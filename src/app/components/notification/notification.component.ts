@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -12,7 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { NotificationService } from '../../services/notification.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, debounceTime, fromEvent } from 'rxjs';
 
 @Component({
   selector: 'app-notification-management',
@@ -64,11 +64,6 @@ export class NotificationComponent implements OnInit, OnDestroy {
 
   isMobile: boolean = false;
 
-  @HostListener('window:resize', ['$event'])
-  onResize(): void {
-    this.isMobile = window.innerWidth <= 768;
-  }
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -76,6 +71,13 @@ export class NotificationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.isMobile = window.innerWidth <= 768;
+    fromEvent(window, 'resize').pipe(
+      debounceTime(300),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.isMobile = window.innerWidth <= 768;
+      this.cdr.markForCheck();
+    });
     this.initForm();
     this.initTypeStyles();
     this.loadNotifications();

@@ -72,7 +72,7 @@
 
 .content-area {
     flex-grow: 1;
-    padding: 30px;
+    padding: 30px 30px calc(30px + env(safe-area-inset-bottom, 0px));
 }
 
 @keyframes fadeSlideDown {
@@ -392,7 +392,7 @@
     .hdr-bell { width: 36px; height: 36px; }
     .hdr-bell mat-icon { font-size: 20px; width: 20px; height: 20px; }
 
-    .content-area { padding: 20px; }
+    .content-area { padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ── Mobile (≤ 600px) — logo + controls on one row, tabs below ───── */
@@ -476,5 +476,5 @@
     .hdr-bell { width: 36px; height: 36px; }
     .hdr-bell mat-icon { font-size: 20px; width: 20px; height: 20px; }
 
-    .content-area { padding: 10px; }
+    .content-area { padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
 }

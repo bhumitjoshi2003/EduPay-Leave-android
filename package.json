@@ -30,6 +30,7 @@
     "@angular/ssr": "^19.2.1",
     "@anthropic-ai/claude-code": "^2.1.104",
     "@capacitor/android": "^8.2.0",
+    "@capacitor/app": "^8.1.0",
     "@capacitor/cli": "^8.2.0",
     "@capacitor/core": "^8.2.0",
     "@capacitor/splash-screen": "^8.0.1",

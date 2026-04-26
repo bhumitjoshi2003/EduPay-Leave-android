@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ElementRef, ViewChild, HostListener, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ElementRef, ViewChild, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
 import { isPlatformBrowser } from '@angular/common';
+import { Capacitor } from '@capacitor/core';
 import { EventService } from '../../services/event.service';
 import { AuthService } from '../../auth/auth.service';
 import { StudentService } from '../../services/student.service';
@@ -13,7 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { environment } from '../../../environments/environment';
 import { CalendarEvent } from '../../interfaces/event-calendar.component';
 import { AttendanceService } from '../../services/attendance.service';
-import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { forkJoin, Subject, takeUntil, debounceTime, fromEvent } from 'rxjs';
 
 interface DayCell {
   date: Date | null;
@@ -97,12 +98,11 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
     });
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: UIEvent) {
-    this.checkMobileView();
-  }
-
   ngOnInit(): void {
+    fromEvent(window, 'resize').pipe(
+      debounceTime(300),
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.checkMobileView());
     this.currentUserRole = this.authService.getUserRole();
     this.initCategoryColors();
     this.checkMobileView();
@@ -152,6 +152,14 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
       }
     } else {
       loadEventsAfterDetails();
+    }
+  }
+
+  openExternalLink(url: string): void {
+    if (Capacitor.isNativePlatform()) {
+      window.open(url, '_system');
+    } else {
+      window.open(url, '_blank');
     }
   }
 

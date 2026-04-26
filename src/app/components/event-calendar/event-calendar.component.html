@@ -96,7 +96,7 @@
                 <ng-container *ngIf="selectedEvent.videoLinks?.length">
                     <p class="video-links-heading"><strong>Video Links:</strong></p>
                     <ul>
-                        <li *ngFor="let l of selectedEvent.videoLinks"><a [href]="l" target="_blank">{{ l }}</a></li>
+                        <li *ngFor="let l of selectedEvent.videoLinks"><a (click)="openExternalLink(l)" style="cursor:pointer;">{{ l }}</a></li>
                     </ul>
                 </ng-container>
             </ng-container>

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Indra Academy</string>
-    <string name="title_activity_main">Indra Academy</string>
+    <string name="app_name">Edunexify</string>
+    <string name="title_activity_main">Edunexify</string>
     <string name="package_name">in.indraacademy.app</string>
     <string name="custom_url_scheme">in.indraacademy.app</string>
 </resources>
