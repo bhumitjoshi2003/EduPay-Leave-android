@@ -24,10 +24,57 @@
     margin-bottom: 15px;
 }
 
-.logo {
-    width: 60%;
-    transition: transform 0.3s ease;
-    height: auto;
+/* ── Brand block ──────────────────────────────────────────── */
+.hdr-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hdr-brand-logo {
+    height: 44px;
+    width: 44px;
+    object-fit: contain;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.hdr-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1;
+}
+
+.hdr-brand-name {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #1a3a47;
+    letter-spacing: -0.3px;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+.hdr-school-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.hdr-school-icon {
+    height: 16px;
+    width: 16px;
+    object-fit: contain;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.hdr-school-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1f6f8b;
+    letter-spacing: 0.2px;
+    font-family: 'Segoe UI', sans-serif;
+    white-space: nowrap;
 }
 
 .custom-tab-nav {
@@ -342,11 +389,8 @@
         order: 1;
     }
 
-    .logo {
-        width: 100%;
-        max-width: 340px;
-        height: auto;
-    }
+    .hdr-brand-logo { height: 38px; width: 38px; }
+    .hdr-brand-name { font-size: 1.25rem; }
 
     .custom-tab-nav {
         order: 3;
@@ -420,11 +464,9 @@
         justify-content: flex-start;
     }
 
-    .logo {
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-    }
+    .hdr-brand-logo { height: 34px; width: 34px; }
+    .hdr-brand-name { font-size: 1.15rem; }
+    .hdr-school-name { font-size: 0.72rem; }
 
     .custom-tab-nav {
         grid-area: nav;
