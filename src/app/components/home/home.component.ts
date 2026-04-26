@@ -82,10 +82,13 @@ export class HomeComponent implements OnInit {
         this.router.navigateByUrl(redirectUrl);
       },
       error: (error) => {
+        const text = error.status === 0
+          ? 'Cannot reach the server. Please check your internet connection.'
+          : 'Incorrect User ID or Password.';
         Swal.fire({
           icon: 'error',
           title: 'Login Failed',
-          text: 'Incorrect Credentials',
+          text,
           confirmButtonColor: '#d33',
         });
         this.logger.error('Login error:', error);
@@ -105,73 +108,39 @@ export class HomeComponent implements OnInit {
   }
 
   forgotPassword() {
-    Swal.fire({
-      title: 'Forgot Password',
-      html: `
-      <input id="swal-input1" class="swal2-input" style="width: 90%; max-width: 350px; padding: 0.5rem; margin-bottom: 0.75rem; box-sizing: border-box;" placeholder="Enter your User ID">
-      <input id="swal-input2" class="swal2-input" style="width: 90%; max-width: 350px; padding: 0.5rem; margin-bottom: 0.75rem; box-sizing: border-box;" placeholder="Enter your registered Email Address">
-    `,
-      showCancelButton: true,
-      confirmButtonText: 'Reset Password',
-      cancelButtonText: 'Cancel',
-      preConfirm: () => {
-        const userId = (document.getElementById('swal-input1') as HTMLInputElement).value;
-        const email = (document.getElementById('swal-input2') as HTMLInputElement).value;
-        if (!userId || !email) {
-          Swal.showValidationMessage('Please enter both your User ID and Email Address');
-        }
-        return { userId: userId, email: email };
-      },
-      customClass: {
-        confirmButton: 'swal-primary-button',
-        cancelButton: 'swal-cancel-button'
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const { userId, email } = result.value;
-        Swal.fire({
-          title: 'Sending Password Reset Email...',
-          html: `
-            <div style="display: flex; flex-direction: column; align-items: center;">
-              <mat-spinner diameter="30"></mat-spinner>
-              <p style="margin-top: 16px; color: #777;">Please wait while we verify your details and send the reset link.</p>
-            </div>
-          `,
-          showConfirmButton: false,
-          allowOutsideClick: false,
-          customClass: {
-            container: 'swal-loading-container',
-            popup: 'swal-loading-popup'
+    // Defer dialog opening to next macrotask so the button tap doesn't block the UI thread
+    setTimeout(() => {
+      Swal.fire({
+        title: 'Forgot Password',
+        html: `<input id="swal-fp-userid" class="swal2-input" placeholder="User ID">
+               <input id="swal-fp-email" class="swal2-input" placeholder="Registered Email">`,
+        showCancelButton: true,
+        confirmButtonText: 'Reset Password',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#3085d6',
+        preConfirm: () => {
+          const userId = (document.getElementById('swal-fp-userid') as HTMLInputElement).value.trim();
+          const email = (document.getElementById('swal-fp-email') as HTMLInputElement).value.trim();
+          if (!userId || !email) {
+            Swal.showValidationMessage('Please enter both your User ID and Email Address');
+            return false;
           }
-        });
-        this.authService.requestPasswordReset(userId, email).subscribe({ // Modified service call
+          return { userId, email };
+        }
+      }).then((result) => {
+        if (!result.isConfirmed) return;
+        const { userId, email } = result.value;
+        Swal.fire({ title: 'Sending reset link...', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+        this.authService.requestPasswordReset(userId, email).subscribe({
           next: (response: any) => {
-            Swal.close();
-            Swal.fire({
-              title: 'Password Reset Email Sent',
-              text: response.message || 'A password reset link has been sent to your email address.',
-              icon: 'success',
-              confirmButtonColor: '#3085d6',
-              customClass: {
-                confirmButton: 'swal-primary-button'
-              }
-            });
+            Swal.fire({ icon: 'success', title: 'Email Sent', text: response || 'A password reset link has been sent to your email.', confirmButtonColor: '#3085d6' });
           },
           error: (error: any) => {
-            Swal.close();
-            Swal.fire({
-              title: 'Error',
-              text: error.error || 'Failed to request password reset. Please check your User ID and Email Address.',
-              icon: 'error',
-              confirmButtonColor: '#d33',
-              customClass: {
-                confirmButton: 'swal-error-button'
-              }
-            });
+            Swal.fire({ icon: 'error', title: 'Error', text: error.error || 'Failed to send reset link. Please check your User ID and Email.', confirmButtonColor: '#d33' });
           }
         });
-      }
-    });
+      });
+    }, 0);
   }
 }
 

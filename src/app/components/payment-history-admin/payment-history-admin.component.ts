@@ -10,6 +10,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import Swal from 'sweetalert2';
+import { Capacitor } from '@capacitor/core';
 import { PaymentHistory } from '../../interfaces/payment-history';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
@@ -146,6 +147,10 @@ export class PaymentHistoryAdminComponent implements OnInit, OnDestroy {
 
   downloadPaymentReceipt(paymentId: string, event: Event): void {
     event.stopPropagation();
+    if (Capacitor.isNativePlatform()) {
+      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Downloading receipts is not supported on the mobile app. Please use the web version.' });
+      return;
+    }
     this.loading = true;
     this.error = '';
     this.paymentHistoryService.downloadPaymentReceipt(paymentId).subscribe({

@@ -34,15 +34,21 @@
       </svg>
     </div>
 
+    <!-- Loading state -->
+    <div class="nb-empty-hero" *ngIf="loading">
+      <div class="nb-empty-big-icon" style="animation: spin 1s linear infinite; display:inline-block;">⏳</div>
+      <h3 class="nb-empty-title">Loading notices…</h3>
+    </div>
+
     <!-- Empty state -->
-    <div class="nb-empty-hero" *ngIf="userNotifications.length === 0">
+    <div class="nb-empty-hero" *ngIf="!loading && userNotifications.length === 0">
       <div class="nb-empty-big-icon">📭</div>
       <h3 class="nb-empty-title">All clear!</h3>
       <p class="nb-empty-text">No notices for you right now. Check back later.</p>
     </div>
 
     <!-- Notices grid -->
-    <div class="nb-cards-grid" *ngIf="userNotifications.length > 0">
+    <div class="nb-cards-grid" *ngIf="!loading && userNotifications.length > 0">
       <div *ngFor="let n of userNotifications; let i = index; trackBy: trackById"
         class="nb-card" [class.nb-card-unread]="!n.isRead"
         [style.--accent]="getNoticeAccent(i)">

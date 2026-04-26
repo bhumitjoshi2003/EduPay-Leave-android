@@ -11,6 +11,7 @@ import { LoggerService } from '../../services/logger.service';
 import { TimetableEntry } from '../../interfaces/timetable';
 import { Teacher } from '../../interfaces/teacher';
 import Swal from 'sweetalert2';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-timetable',
@@ -293,7 +294,13 @@ export class TimetableComponent implements OnInit, OnDestroy {
     });
   }
 
-  printTimetable(): void { window.print(); }
+  printTimetable(): void {
+    if (Capacitor.isNativePlatform()) {
+      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Printing is not supported on the mobile app. Please use the web version.' });
+      return;
+    }
+    window.print();
+  }
 
   private emptyForm(): TimetableEntry {
     return {

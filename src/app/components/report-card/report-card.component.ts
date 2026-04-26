@@ -8,6 +8,8 @@ import { Title } from '@angular/platform-browser';
 import { Subject, takeUntil } from 'rxjs';
 import { MarksService, ExamResult } from '../../services/marks.service';
 import { LoggerService } from '../../services/logger.service';
+import { Capacitor } from '@capacitor/core';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-report-card',
@@ -140,6 +142,10 @@ export class ReportCardComponent implements OnInit, OnDestroy {
   }
 
   print(): void {
+    if (Capacitor.isNativePlatform()) {
+      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Printing is not supported on the mobile app. Please use the web version.' });
+      return;
+    }
     if (isPlatformBrowser(this.platformId)) {
       window.print();
     }

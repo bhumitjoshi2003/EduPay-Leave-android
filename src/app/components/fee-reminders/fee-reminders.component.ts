@@ -8,6 +8,7 @@ import { OverdueStudent } from '../../interfaces/fee-reminder';
 import { ComingSoonComponent } from '../coming-soon/coming-soon.component';
 import { MODULE_MESSAGES } from '../../config/module-messages.config';
 import Swal from 'sweetalert2';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-fee-reminders',
@@ -237,7 +238,13 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
     });
   }
 
-  printReport(): void { window.print(); }
+  printReport(): void {
+    if (Capacitor.isNativePlatform()) {
+      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Printing is not supported on the mobile app. Please use the web version.' });
+      return;
+    }
+    window.print();
+  }
 
   trackById(_: number, s: OverdueStudent): string { return s.studentId; }
   trackByIndex(i: number): number { return i; }

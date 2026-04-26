@@ -7,6 +7,8 @@ import { AttendanceService } from '../../services/attendance.service';
 import { StudentService } from '../../services/student.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { LoggerService } from '../../services/logger.service';
+import { Capacitor } from '@capacitor/core';
+import Swal from 'sweetalert2';
 import {
   StudentAttendanceSummary, ClassAttendanceSummary, MonthlyBreakdown,
   DailyDetail, CalendarCell, CellStatus
@@ -412,6 +414,10 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
   }
 
   printReport(): void {
+    if (Capacitor.isNativePlatform()) {
+      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Printing is not supported on the mobile app. Please use the web version.' });
+      return;
+    }
     window.print();
   }
 

@@ -174,7 +174,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (this.Role === 'STUDENT') {
         this.router.navigate(['/dashboard/apply-leave']);
       } else if (this.Role === 'TEACHER') {
-        this.router.navigate(['/dashboard/event-calendar']);
+        this.router.navigate(['/dashboard/timetable']);
       } else if (this.Role === 'ADMIN') {
         this.router.navigate(['/dashboard/analytics']);
       } else if (this.Role === 'SUPER_ADMIN') {

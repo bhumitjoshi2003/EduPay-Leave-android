@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://api.indraacademy.in/api'
+    apiUrl: 'https://edunexify.co.in/api'
 };

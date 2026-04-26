@@ -2,10 +2,12 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestro
 import { LoggerService } from '../../services/logger.service';
 import { ActivatedRoute } from '@angular/router';
 import { PaymentHistoryService } from '../../services/payment-history.service';
-import { PaymentHistoryDetails } from '../../interfaces/payment-response'; 
+import { PaymentHistoryDetails } from '../../interfaces/payment-response';
 import { CommonModule } from '@angular/common';
 import saveAs from 'file-saver';
 import { Subject, takeUntil } from 'rxjs';
+import { Capacitor } from '@capacitor/core';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-payment-details',
@@ -74,6 +76,10 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
   }
 
   downloadReceipt(paymentId: string): void {
+    if (Capacitor.isNativePlatform()) {
+      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Downloading receipts is not supported on the mobile app. Please use the web version.' });
+      return;
+    }
     this.loading = true;
     this.error = '';
     this.paymentHistoryService.downloadPaymentReceipt(paymentId).subscribe({

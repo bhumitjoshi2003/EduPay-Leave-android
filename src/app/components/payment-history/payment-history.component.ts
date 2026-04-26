@@ -16,6 +16,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { ComingSoonComponent } from '../coming-soon/coming-soon.component';
 import { MODULE_MESSAGES } from '../../config/module-messages.config';
 import { Subject, takeUntil } from 'rxjs';
+import { Capacitor } from '@capacitor/core';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-payment-history',
@@ -152,6 +154,10 @@ export class PaymentHistoryComponent implements OnInit, OnDestroy {
   trackByPaymentId(index: number, payment: PaymentHistory): string { return payment.paymentId; }
 
   downloadPaymentReceipt(paymentId: string): void {
+    if (Capacitor.isNativePlatform()) {
+      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Downloading receipts is not supported on the mobile app. Please use the web version.' });
+      return;
+    }
     this.loading = true;
     this.error = '';
     this.paymentHistoryService.downloadPaymentReceipt(paymentId).subscribe({

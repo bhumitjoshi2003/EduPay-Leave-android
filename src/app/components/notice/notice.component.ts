@@ -42,6 +42,7 @@ export class NoticeComponent implements OnInit, OnDestroy {
   editForm = { title: '', message: '', type: 'NOTICE', audience: '' };
 
   submitting = false;
+  loading = false;
 
   classList: string[] = [
     'Play group', 'Nursery', 'LKG', 'UKG',
@@ -81,19 +82,21 @@ export class NoticeComponent implements OnInit, OnDestroy {
   // ── Data loading ─────────────────────────────────────────────────────
 
   loadData(): void {
+    this.loading = true;
+    this.cdr.markForCheck();
     if (this.isAdmin) {
       this.notificationService.getAllNotifications()
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (notices) => { this.allNotices = notices; this.cdr.markForCheck(); },
-          error: (e) => this.logger.error('Error loading notices:', e),
+          next: (notices) => { this.allNotices = notices; this.loading = false; this.cdr.markForCheck(); },
+          error: (e) => { this.logger.error('Error loading notices:', e); this.loading = false; this.cdr.markForCheck(); },
         });
     } else {
       this.notificationService.getUserNotifications()
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (notifications) => { this.userNotifications = notifications; this.cdr.markForCheck(); },
-          error: (e) => this.logger.error('Error loading notifications:', e),
+          next: (notifications) => { this.userNotifications = notifications; this.loading = false; this.cdr.markForCheck(); },
+          error: (e) => { this.logger.error('Error loading notifications:', e); this.loading = false; this.cdr.markForCheck(); },
         });
     }
   }

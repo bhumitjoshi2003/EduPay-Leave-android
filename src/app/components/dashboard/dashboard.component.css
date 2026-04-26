@@ -10,7 +10,7 @@
 
 .header-area {
     background-color: #ffffff;
-    padding: 2px 50px;
+    padding: calc(2px + env(safe-area-inset-top, 0px)) 50px 2px;
     /* Decreased horizontal padding to give more space for tabs */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     animation: fadeSlideDown 1s ease-in-out;
@@ -102,7 +102,7 @@
 /* ── Header controls (bell + profile pill) ───────────────────────── */
 .hdr-controls {
     position: absolute;
-    top: 8px;
+    top: calc(8px + env(safe-area-inset-top, 0px));
     right: 20px;
     transform: none;
     display: flex;
@@ -330,7 +330,7 @@
 /* ── Tablet (≤ 1023px) — controls stay top-right, logo gets right padding ── */
 @media (max-width: 1023px) {
     .header-area {
-        padding: 10px 15px;
+        padding: calc(10px + env(safe-area-inset-top, 0px)) 15px 10px;
         flex-direction: column;
         align-items: center;
     }
@@ -374,7 +374,7 @@
 
     /* Controls stay absolute top-right */
     .hdr-controls {
-        top: 12px;
+        top: calc(12px + env(safe-area-inset-top, 0px));
         right: 14px;
         transform: none;
         gap: 6px;
@@ -405,7 +405,7 @@
             "logo  controls"
             "nav   nav";
         align-items: center;
-        padding: 10px 12px 6px;
+        padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 6px;
         gap: 8px 10px;
         /* override tablet column flex */
         flex-direction: unset;
