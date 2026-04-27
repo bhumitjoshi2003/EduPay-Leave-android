@@ -87,7 +87,9 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
         this.daysAbsent = summary.daysAbsent;
         this.totalWorkingDays = summary.totalWorkingDays;
 
-        const leaves = leavesPage.content;
+        const leaves = leavesPage.content
+          .slice()
+          .sort((a, b) => b.leaveDate.localeCompare(a.leaveDate));
         this.pendingLeavesCount = leaves.filter(l => l.status === 'PENDING').length;
         this.recentLeaves = leaves.slice(0, 5);
 

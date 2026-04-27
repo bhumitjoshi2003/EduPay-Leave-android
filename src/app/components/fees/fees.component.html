@@ -1,65 +1,119 @@
 <div *ngIf="showFeesModule; else comingSoonTemplate">
-  <div class="payment-tracker">
-    <div *ngIf="pastUnpaidMonthNames.length > 0" class="unpaid-month-warning">
-      <p>Late fees have been applied for the following overdue {{ pastUnpaidMonthNames.length > 1 ? 'months' : 'month' }}:
-        <ng-container *ngFor="let name of pastUnpaidMonthNames; let last = last; trackBy: trackByIndex">
-          <span class="past-unpaid-month">{{ name }}</span><ng-container *ngIf="!last">, </ng-container>
-        </ng-container>.
-      </p>
-    </div>
-    <div *ngIf="unpaidCurrentMonthName" class="unpaid-month-warning">
-      <p>Reminder: Kindly ensure that the fee for <span class="unpaid-month">{{ unpaidCurrentMonthName }}</span> is paid before the end of this month to avoid late charges.</p>
-    </div>
-    <div class="header">
-      <div class="year-select-wrapper">
-        <select [disabled]="!!lastSelectedMonth" [(ngModel)]="session" (change)="onYearChange($event)">
+  <div class="pt-page">
+
+    <!-- ── Page Header ──────────────────────────────────────────────── -->
+    <div class="pt-header">
+      <div class="pt-header-left">
+        <div class="pt-header-icon">💳</div>
+        <div>
+          <h1 class="pt-title">Fee Payment</h1>
+          <p class="pt-subtitle">Select months to pay your fees</p>
+        </div>
+      </div>
+      <div class="pt-session-wrap">
+        <label class="pt-session-label">Session</label>
+        <select class="pt-session-select" [disabled]="!!lastSelectedMonth"
+          [(ngModel)]="session" (change)="onYearChange($event)">
           <option *ngFor="let year of years; trackBy: trackByYear" [value]="year">{{ year }}</option>
         </select>
       </div>
-      <div class="total-amount" *ngIf="role !== 'ADMIN'">
-        Total Amount to Pay: ₹{{ totalAmountToPay }}
+    </div>
+
+    <!-- ── Warning Banners ──────────────────────────────────────────── -->
+    <div class="pt-alert pt-alert--overdue" *ngIf="pastUnpaidMonthNames.length > 0">
+      <div class="pt-alert-icon">⚠️</div>
+      <div class="pt-alert-body">
+        <span class="pt-alert-title">Late Fee Applied</span>
+        <span class="pt-alert-text">
+          Overdue {{ pastUnpaidMonthNames.length > 1 ? 'months' : 'month' }}:
+          <strong *ngFor="let name of pastUnpaidMonthNames; let last = last; trackBy: trackByIndex">
+            {{ name }}<ng-container *ngIf="!last">, </ng-container>
+          </strong>
+        </span>
       </div>
     </div>
 
-    <div class="month-grid">
-      <div *ngFor="let month of months; trackBy: trackByMonth" class="month" [ngClass]="{
-     'paid': month.paid,
-     'manually-paid': month.manuallyPaid,
-     'unpaid': !month.paid && !month.manuallyPaid,
-     'selected': month.selected,
-     'late': isLate(month)
-   }" (click)="role !== 'ADMIN' && !month.paid && !month.manuallyPaid ? toggleMonthSelection(month) : (role === 'ADMIN' && !month.paid && !month.manuallyPaid ? toggleMonthSelection(month) : null)">
-        <div class="month-name">{{ month.name }}</div>
-        <div class="month-status">
-          <span *ngIf="month.paid && !month.manuallyPaid">Paid ₹{{ month.amountPaid }}</span>
-          <span *ngIf="month.manuallyPaid">Manually Paid ₹{{ month.manualPaymentReceived }}</span>
-          <span *ngIf="!month.paid && !month.manuallyPaid">₹{{ month.fee + (month.busFee || 0) + month.lateFee }}</span>
+    <div class="pt-alert pt-alert--reminder" *ngIf="unpaidCurrentMonthName">
+      <div class="pt-alert-icon">🔔</div>
+      <div class="pt-alert-body">
+        <span class="pt-alert-title">Payment Reminder</span>
+        <span class="pt-alert-text">
+          Pay <strong>{{ unpaidCurrentMonthName }}</strong> before month end to avoid late charges.
+        </span>
+      </div>
+    </div>
+
+    <!-- ── Summary Strip ────────────────────────────────────────────── -->
+    <div class="pt-summary" *ngIf="role !== 'ADMIN' && totalAmountToPay > 0">
+      <span class="pt-summary-label">Selected Total</span>
+      <span class="pt-summary-amount">₹{{ totalAmountToPay }}</span>
+    </div>
+
+    <!-- ── Month Grid ────────────────────────────────────────────────── -->
+    <div class="pt-grid">
+      <div *ngFor="let month of months; trackBy: trackByMonth"
+        class="pt-month"
+        [ngClass]="{
+          'pt-month--paid':     month.paid && !month.manuallyPaid,
+          'pt-month--manual':   month.manuallyPaid,
+          'pt-month--late':     isLate(month) && !month.paid && !month.manuallyPaid,
+          'pt-month--unpaid':   !month.paid && !month.manuallyPaid && !isLate(month),
+          'pt-month--selected': month.selected
+        }"
+        (click)="role !== 'ADMIN' && !month.paid && !month.manuallyPaid ? toggleMonthSelection(month) : (role === 'ADMIN' && !month.paid && !month.manuallyPaid ? toggleMonthSelection(month) : null)">
+
+        <!-- status icon -->
+        <div class="pt-month-icon">
+          <span *ngIf="month.paid || month.manuallyPaid">✓</span>
+          <span *ngIf="isLate(month) && !month.paid && !month.manuallyPaid">!</span>
+          <span *ngIf="!month.paid && !month.manuallyPaid && !isLate(month) && !month.selected">○</span>
+          <span *ngIf="month.selected && !month.paid && !month.manuallyPaid">✓</span>
         </div>
+
+        <span class="pt-month-name">{{ month.name }}</span>
+
+        <span class="pt-month-amount">
+          <ng-container *ngIf="month.paid && !month.manuallyPaid">₹{{ month.amountPaid }}</ng-container>
+          <ng-container *ngIf="month.manuallyPaid">₹{{ month.manualPaymentReceived }}</ng-container>
+          <ng-container *ngIf="!month.paid && !month.manuallyPaid">₹{{ month.fee + (month.busFee || 0) + month.lateFee }}</ng-container>
+        </span>
+
+        <span class="pt-month-chip">
+          <ng-container *ngIf="month.paid && !month.manuallyPaid">Paid</ng-container>
+          <ng-container *ngIf="month.manuallyPaid">Manual</ng-container>
+          <ng-container *ngIf="isLate(month) && !month.paid && !month.manuallyPaid">Overdue</ng-container>
+          <ng-container *ngIf="!month.paid && !month.manuallyPaid && !isLate(month) && !month.selected">Due</ng-container>
+          <ng-container *ngIf="month.selected && !month.paid && !month.manuallyPaid">Selected</ng-container>
+        </span>
       </div>
     </div>
 
+    <!-- ── Fee Breakdown ─────────────────────────────────────────────── -->
     <app-fee-breakdown
       [details]="selectedMonthDetails"
       [platformFeeAmount]="platformFeeAmount"
       [selectedMonthCount]="(selectedMonthsByYear[selectedYear] || []).length">
     </app-fee-breakdown>
 
-    <div *ngIf="role !== 'ADMIN'; else adminPayment" class="sticky-footer">
-      <div class="total-amount-bottom">
-        Total Amount to Pay: ₹{{ totalAmountToPay }}
+    <!-- ── Sticky Footer ─────────────────────────────────────────────── -->
+    <div *ngIf="role !== 'ADMIN'; else adminPayment" class="pt-footer">
+      <div class="pt-footer-total">
+        <span class="pt-footer-label">Total to Pay</span>
+        <span class="pt-footer-amount">₹{{ totalAmountToPay }}</span>
       </div>
       <app-payment [paymentData]="paymentData" (paymentSuccess)="handleSuccessfulPayment()"
-        (paymentProcessingStarted)="onPaymentProcessingStarted()" [disabled]="isLoadingPayment">>
+        (paymentProcessingStarted)="onPaymentProcessingStarted()" [disabled]="isLoadingPayment">
       </app-payment>
     </div>
 
     <ng-template #adminPayment>
-      <div class="sticky-footer">
-        <div class="total-amount-bottom">
-          Total Amount to Pay: ₹{{ totalAmountToPay }}
+      <div class="pt-footer">
+        <div class="pt-footer-total">
+          <span class="pt-footer-label">Total to Pay</span>
+          <span class="pt-footer-amount">₹{{ totalAmountToPay }}</span>
         </div>
-        <div class="admin-payment-controls">
-          <mat-form-field appearance="outline" style="width: 200px;">
+        <div class="pt-admin-controls">
+          <mat-form-field appearance="outline" style="width: 160px;">
             <mat-label>Amount Received</mat-label>
             <input matInput type="number" [(ngModel)]="manualPaymentAmount">
           </mat-form-field>
@@ -67,6 +121,7 @@
         </div>
       </div>
     </ng-template>
+
   </div>
 </div>
 

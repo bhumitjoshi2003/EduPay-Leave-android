@@ -1,569 +1,329 @@
-/* payment-tracker.component.css */
-
-.payment-tracker {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 30px;
-  background-color: #f8f9fa;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: 10px auto;
-  width: 95%;
+.pt-page {
+  font-family: 'Segoe UI', sans-serif;
+  padding-bottom: 100px;
 }
 
-.header {
+/* ── Page Header ──────────────────────────────────────────────────── */
+.pt-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-.year-select-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.year-select-wrapper select {
-  padding: 12px 40px 12px 15px;
-  border: 1px solid #ced4da;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  appearance: none;
-  background-color: #fff;
-  width: 180px;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.year-select-wrapper select:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-
-.year-select-wrapper::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 15px;
-  transform: translateY(-50%);
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 8px solid #333;
-  pointer-events: none;
-}
-
-.month-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  /* 6 columns */
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.month {
-  padding: 20px;
-  text-align: center;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: box-shadow 0.3s ease;
-  border: 1px solid #ddd;
-}
-
-.paid {
-  background-color: #d4edda;
-  color: #155724;
-  cursor: not-allowed;
-  opacity: 0.9;
-}
-
-.unpaid {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.month:hover {
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
-}
-
-.month.selected {
-  background-color: #e0f2fe;
-  color: #1e88e5;
-}
-
-.unpaid.selected {
-  background-color: #f7d156;
-  color: #100d05;
-}
-
-.month-name {
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-
-.month-status {
-  font-size: 0.9em;
-}
-
-.total-amount {
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.month-details-container {
-  margin-top: 30px;
-  background-color: #ebe9e9;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-}
-
-.month-details h2 {
-  font-size: 24px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-}
-
-.section {
-  margin-bottom: 20px;
-}
-
-.section h3 {
-  font-size: 20px;
-  margin-bottom: 10px;
-  color: #333;
-}
-
-.section p {
-  line-height: 1.6;
-  color: #555;
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  width: 100%;
-}
-
-.student-details,
-.fee-details {
-  padding: 15px;
-  border: 1px solid #faf5f5;
-  border-radius: 8px;
-  background-color: #f9fdfd;
-}
-
-.student-details h3,
-.fee-details h3 {
-  font-size: 20px;
-  margin-top: 0%;
-  margin-bottom: 25px;
-  color: #333;
-}
-
-.detail-item {
-  display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
-  padding-bottom: 5px;
-  border-bottom: 1px dashed #ddd;
+  gap: 12px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-.detail-item strong {
-  font-weight: 600;
-  color: #555;
-}
-
-.detail-item span {
-  color: #777;
-}
-
-.sticky-footer {
-  border-radius: 10px;
-  margin-top: 20px;
-  position: sticky;
-  bottom: 0;
-  padding-left: 20px;
-  padding-right: 20px;
+.pt-header-left {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background-color: #f8f9fa;
-  /* Ensure footer has a background */
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-  /* Optional: add shadow to footer */
+  gap: 12px;
 }
 
-.total-amount-bottom {
-  font-weight: 600;
-  font-size: 18px;
-  color: #333;
+.pt-header-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
-.admin-payment-controls {
-  display: flex;
-  gap: 25px;
-  align-items: center;
+.pt-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 2px;
+  letter-spacing: -0.2px;
 }
 
-.admin-payment-controls mat-form-field {
-  border-radius: 8px;
-  margin-top: 23px;
+.pt-subtitle {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin: 0;
 }
 
-.admin-payment-controls input {
-  font-size: 16px;
-}
-
-.admin-payment-controls button {
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  text-transform: none;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.admin-payment-controls button:hover {
-  background-color: #aae17e;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-}
-
-.admin-payment-controls .mat-form-field-wrapper {
-  padding-bottom: 0 !important;
-}
-
-.month.late {
-  background-color: #d83e3e;
-  color: white;
-}
-
-.late.selected {
-  background-color: #f7d156;
-  color: #100d05;
-}
-
-
-.unpaid-month-warning {
-  background-color: #ffebee;
-  color: #d32f2f;
-  margin-bottom: 20px;
-  border-radius: 5px;
-  border: 1px solid #ef9a9a;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  animation: pulse 1.5s infinite alternate;
-  padding: 15px;
-  /* Added default padding */
-}
-
-.unpaid-month-warning .unpaid-month {
-  color: #f77269;
-  font-weight: bolder;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.8;
-    transform: scale(1);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
-}
-
-
-.payment-container.disabled-ui {
-  pointer-events: none;
-  /* Disables all click events */
-  opacity: 0.7;
-  /* Visually indicates disabled state */
-  position: relative;
-  /* Needed for overlay positioning */
-  filter: blur(2px);
-  /* Optional: adds a slight blur */
-  transition: all 0.2s ease-in-out;
-  /* Smooth transition */
-}
-
-/* Loading overlay styles */
-.loading-overlay {
-  position: absolute;
-  /* Position over the parent .payment-container */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.8);
-  /* Semi-transparent white background */
+.pt-session-wrap {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  /* Ensure it's above other content */
-  color: #333;
-  font-weight: bold;
-  font-size: 1.2em;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
-/* Spinner animation */
-.spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #3399cc;
-  /* Primary color of your theme */
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
+.pt-session-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
+.pt-session-select {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 7px 28px 7px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 8px center;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
 }
 
-/* Styles for individual month cards when disabled (e.g., already paid or loading) */
-.month.disabled {
-  pointer-events: none;
-  /* Disable clicks on individual months */
+.pt-session-select:focus {
+  outline: none;
+  border-color: #0369a1;
+}
+
+.pt-session-select:disabled {
   opacity: 0.6;
-  /* Make them slightly faded */
   cursor: not-allowed;
 }
 
+/* ── Alert Banners ────────────────────────────────────────────────── */
+.pt-alert {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
 
-/* --- Responsive Adjustments --- */
+.pt-alert--overdue {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+}
 
-/* Tablet Devices (max-width: 1023px) */
-@media (max-width: 1023px) {
-  .payment-tracker {
-    padding: 20px;
-    /* Reduced padding */
-    width: 98%;
-    /* Slightly wider */
-  }
+.pt-alert--reminder {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
 
-  .header {
-    flex-direction: column;
-    /* Stack year select and total amount */
-    align-items: flex-start;
-    gap: 15px;
-    /* Space between stacked items */
-    margin-bottom: 25px;
-  }
+.pt-alert-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
 
-  .year-select-wrapper select {
-    width: 160px;
-    /* Slightly smaller width */
-    font-size: 15px;
-    padding: 10px 35px 10px 12px;
-  }
+.pt-alert-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
-  .month-grid {
+.pt-alert-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.pt-alert--overdue .pt-alert-text { color: #be123c; }
+.pt-alert--reminder .pt-alert-text { color: #92400e; }
+
+.pt-alert-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ── Summary Strip ────────────────────────────────────────────────── */
+.pt-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #0c4a6e, #0369a1);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+
+.pt-summary-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+}
+
+.pt-summary-amount {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+/* ── Month Grid ───────────────────────────────────────────────────── */
+.pt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.pt-month {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 8px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 1.5px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.pt-month:active { transform: scale(0.94); }
+
+/* ── Month States ─────────────────────────────────────────────────── */
+.pt-month--paid {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  border-color: #86efac;
+  cursor: not-allowed;
+}
+
+.pt-month--manual {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border-color: #6ee7b7;
+  cursor: not-allowed;
+}
+
+.pt-month--late {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border-color: #fca5a5;
+}
+
+.pt-month--unpaid {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.pt-month--selected {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe) !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 4px 14px rgba(59,130,246,0.25) !important;
+}
+
+/* ── Month Card Internals ─────────────────────────────────────────── */
+.pt-month-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.pt-month--paid     .pt-month-icon { background: #16a34a; color: #fff; }
+.pt-month--manual   .pt-month-icon { background: #059669; color: #fff; }
+.pt-month--late     .pt-month-icon { background: #dc2626; color: #fff; }
+.pt-month--unpaid   .pt-month-icon { background: #e2e8f0; color: #64748b; }
+.pt-month--selected .pt-month-icon { background: #3b82f6; color: #fff; }
+
+.pt-month-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+}
+
+.pt-month--paid   .pt-month-name,
+.pt-month--manual .pt-month-name { color: #15803d; }
+.pt-month--late   .pt-month-name { color: #b91c1c; }
+
+.pt-month-amount {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  text-align: center;
+}
+
+.pt-month--paid   .pt-month-amount,
+.pt-month--manual .pt-month-amount { color: #16a34a; }
+.pt-month--late   .pt-month-amount { color: #dc2626; }
+.pt-month--selected .pt-month-amount { color: #1d4ed8; }
+
+.pt-month-chip {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  margin-top: 2px;
+}
+
+.pt-month--paid     .pt-month-chip { background: #dcfce7; color: #15803d; }
+.pt-month--manual   .pt-month-chip { background: #d1fae5; color: #065f46; }
+.pt-month--late     .pt-month-chip { background: #fee2e2; color: #b91c1c; }
+.pt-month--unpaid   .pt-month-chip { background: #f1f5f9; color: #64748b; }
+.pt-month--selected .pt-month-chip { background: #dbeafe; color: #1d4ed8; }
+
+/* ── Sticky Footer ────────────────────────────────────────────────── */
+.pt-footer {
+  position: sticky;
+  bottom: 62px;
+  background: #fff;
+  border-radius: 18px 18px 0 0;
+  padding: 14px 16px 10px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 10;
+}
+
+.pt-footer-total {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pt-footer-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pt-footer-amount {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0369a1;
+  letter-spacing: -0.4px;
+  line-height: 1;
+}
+
+.pt-admin-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pt-admin-controls mat-form-field {
+  margin-top: 22px;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media (min-width: 480px) {
+  .pt-grid {
     grid-template-columns: repeat(4, 1fr);
-    /* 4 columns for tablets */
-    gap: 12px;
-  }
-
-  .month {
-    padding: 15px;
-    /* Reduced month card padding */
-  }
-
-  .month-name {
-    font-size: 0.95em;
-  }
-
-  .month-status {
-    font-size: 0.8em;
-  }
-
-  .total-amount {
-    font-size: 17px;
-  }
-
-  .month-details-container {
-    margin-top: 30px;
-    padding: 20px;
-  }
-
-  .month-details h2 {
-    font-size: 22px;
-    margin-bottom: 15px;
-  }
-
-  .details-grid {
-    gap: 15px;
-  }
-
-  .student-details h3,
-  .fee-details h3 {
-    font-size: 18px;
-    margin-bottom: 20px;
-  }
-
-  .detail-item strong,
-  .detail-item span {
-    font-size: 0.95em;
-  }
-
-  .sticky-footer {
-    padding-left: 15px;
-    padding-right: 15px;
-    margin-top: 15px;
-    flex-direction: column;
-    /* Stack total and controls */
-    align-items: center;
-    gap: 10px;
-  }
-
-  .total-amount-bottom {
-    font-size: 17px;
-    padding-top: 12px;
-  }
-
-  .admin-payment-controls {
-    flex-direction: column;
-    /* Stack input and button */
-    gap: 15px;
-    width: 100%;
-    /* Take full width to allow stacking */
-  }
-
-  .admin-payment-controls mat-form-field {
-    width: 100% !important;
-    /* Full width for input field */
-    margin-top: 15px;
-    /* Adjust margin as needed */
-  }
-
-  .admin-payment-controls button {
-    width: 100%;
-    /* Full width for button */
-    padding: 10px 15px;
-    font-size: 15px;
-  }
-
-  .unpaid-month-warning {
-    font-size: 0.9em;
-    padding: 10px 15px;
   }
 }
 
-/* Mobile Devices (max-width: 767px) */
-@media (max-width: 767px) {
-  .payment-tracker {
-    padding: 6px;
+@media (max-width: 360px) {
+  .pt-month-amount {
+    font-size: 0.65rem;
   }
-
-  .header {
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  .year-select-wrapper select {
-    width: 100%;
-    /* Full width for mobile */
-    font-size: 14px;
-    padding: 10px 30px 10px 10px;
-  }
-
-  .month-grid {
-    grid-template-columns: repeat(2, 1fr);
-    /* 2 columns for mobile */
-    gap: 10px;
-  }
-
-  .month {
-    padding: 12px;
-    /* Further reduced month card padding */
-  }
-
-  .month-name {
-    font-size: 0.9em;
-  }
-
-  .month-status {
-    font-size: 0.75em;
-  }
-
-  .total-amount {
-    font-size: 16px;
-  }
-
-  .month-details-container {
-    margin-top: 20px;
-    padding: 15px;
-  }
-
-  .month-details h2 {
-    font-size: 20px;
-    margin-bottom: 15px;
-  }
-
-  .details-grid {
-    grid-template-columns: 1fr;
-    /* Stack student and fee details */
-    gap: 15px;
-  }
-
-  .student-details h3,
-  .fee-details h3 {
-    font-size: 17px;
-    margin-bottom: 15px;
-  }
-
-  .detail-item strong,
-  .detail-item span {
-    font-size: 0.85em;
-  }
-
-  .sticky-footer {
-    padding-left: 10px;
-    padding-right: 10px;
-    margin-top: 10px;
-    gap: 4px;
-  }
-
-  .total-amount-bottom {
-    font-size: 16px;
-    padding-top: 12px;
-  }
-
-  .admin-payment-controls {
-    gap: 10px;
-  }
-
-  .admin-payment-controls mat-form-field {
-    margin-top: 10px;
-  }
-
-  .admin-payment-controls button {
-    padding: 8px 12px;
-    font-size: 14px;
-  }
-
-  .unpaid-month-warning {
-    font-size: 0.85em;
-    padding: 8px 12px;
-  }
-
-  /* Adjust the spinner for smaller screens if needed */
-  .spinner {
-    width: 40px;
-    height: 40px;
+  .pt-month-name {
+    font-size: 0.72rem;
   }
 }

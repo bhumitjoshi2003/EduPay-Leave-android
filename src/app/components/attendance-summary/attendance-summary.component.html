@@ -3,7 +3,6 @@
   <!-- ── Page Header ───────────────────────────────────────────── -->
   <div class="as-page-header no-print">
     <h2 class="as-title">Attendance Summary</h2>
-    <button class="as-back-btn" (click)="goBack()" aria-label="Back to student list">← Back</button>
   </div>
 
   <!-- ── Controls Card ─────────────────────────────────────────── -->
@@ -48,9 +47,8 @@
       </select>
 
       <!-- Student selector (student view only) -->
-      <select *ngIf="viewMode === 'student'" [(ngModel)]="selectedStudentId"
-        aria-label="Select student" class="as-select"
-        [disabled]="studentList.length === 0">
+      <select *ngIf="viewMode === 'student'" [(ngModel)]="selectedStudentId" aria-label="Select student"
+        class="as-select" [disabled]="studentList.length === 0">
         <option value="">-- Student --</option>
         <option *ngFor="let s of studentList" [value]="s.studentId">{{ s.name }}</option>
       </select>
@@ -137,8 +135,7 @@
 
     <!-- ── Month view: Day-by-Day calendar toggle ── -->
     <div class="as-calendar-section" *ngIf="periodType === 'month'">
-      <button class="as-expand-toggle no-print" (click)="toggleMonthCalendar()"
-        [attr.aria-expanded]="calendarExpanded"
+      <button class="as-expand-toggle no-print" (click)="toggleMonthCalendar()" [attr.aria-expanded]="calendarExpanded"
         aria-label="Toggle day-by-day calendar view">
         <span class="as-expand-icon">{{ calendarExpanded ? '▲' : '▼' }}</span>
         {{ calendarExpanded ? 'Hide Day-by-Day' : 'Show Day-by-Day' }}
@@ -164,10 +161,8 @@
             </div>
             <!-- Weeks -->
             <div *ngFor="let week of currentCalendarWeeks; trackBy: trackByIndex" class="as-cal-week">
-              <div *ngFor="let cell of week; trackBy: trackByIndex"
-                class="as-cal-cell"
-                [ngClass]="'cell-' + cell.status"
-                [attr.title]="cell.date">
+              <div *ngFor="let cell of week; trackBy: trackByIndex" class="as-cal-cell"
+                [ngClass]="'cell-' + cell.status" [attr.title]="cell.date">
                 <span *ngIf="cell.day !== null">{{ cell.day }}</span>
               </div>
             </div>
@@ -218,9 +213,7 @@
                   </span>
                 </td>
                 <td class="no-print" *ngIf="periodType === 'year'">
-                  <button class="as-row-expand-btn"
-                    (click)="toggleRowCalendar(row)"
-                    [class.active]="isRowExpanded(row)"
+                  <button class="as-row-expand-btn" (click)="toggleRowCalendar(row)" [class.active]="isRowExpanded(row)"
                     [attr.aria-label]="'Toggle calendar for ' + row.month + ' ' + row.year"
                     [attr.aria-expanded]="isRowExpanded(row)">
                     {{ isRowExpanded(row) ? '▲' : '▼' }}
@@ -241,16 +234,15 @@
                         <div class="as-cal-legend no-print">
                           <span class="as-legend-item"><span class="as-legend-dot dot-present"></span> Present</span>
                           <span class="as-legend-item"><span class="as-legend-dot dot-absent"></span> Absent</span>
-                          <span class="as-legend-item"><span class="as-legend-dot dot-closed"></span> Holiday / No school</span>
+                          <span class="as-legend-item"><span class="as-legend-dot dot-closed"></span> Holiday / No
+                            school</span>
                         </div>
                         <div class="as-cal-header">
                           <span *ngFor="let d of dayNames; trackBy: trackByIndex">{{ d }}</span>
                         </div>
                         <div *ngFor="let week of getRowCalendar(row); trackBy: trackByIndex" class="as-cal-week">
-                          <div *ngFor="let cell of week; trackBy: trackByIndex"
-                            class="as-cal-cell"
-                            [ngClass]="'cell-' + cell.status"
-                            [attr.title]="cell.date">
+                          <div *ngFor="let cell of week; trackBy: trackByIndex" class="as-cal-cell"
+                            [ngClass]="'cell-' + cell.status" [attr.title]="cell.date">
                             <span *ngIf="cell.day !== null">{{ cell.day }}</span>
                           </div>
                         </div>
@@ -275,7 +267,8 @@
     <div class="as-report-header">
       <div>
         <h3 class="as-student-name">Class {{ selectedClass }} — Attendance</h3>
-        <p class="as-sub">{{ getPeriodLabel() }} &nbsp;·&nbsp; {{ classSummary.length }} students (sorted by lowest first)</p>
+        <p class="as-sub">{{ getPeriodLabel() }} &nbsp;·&nbsp; {{ classSummary.length }} students (sorted by lowest
+          first)</p>
       </div>
       <button class="as-print-btn no-print" (click)="printReport()" aria-label="Download PDF">
         ⬇ Download PDF
