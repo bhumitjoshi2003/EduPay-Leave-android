@@ -15,9 +15,8 @@
 
     <div class="hdr-controls">
       <button class="hdr-bell" (click)="navigateToNoticeBoard()" title="Notice Board"
-        [matBadge]="unreadNotificationCount"
-        [matBadgeHidden]="unreadNotificationCount === 0"
-        matBadgeColor="warn" matBadgeSize="small">
+        [matBadge]="unreadNotificationCount" [matBadgeHidden]="unreadNotificationCount === 0" matBadgeColor="warn"
+        matBadgeSize="small">
         <mat-icon>notifications_none</mat-icon>
       </button>
 
@@ -59,8 +58,7 @@
         </div>
 
         <!-- ── Actions ── -->
-        <button mat-menu-item class="pm-action"
-          *ngIf="isStudent() || isTeacher() || isAdmin()"
+        <button mat-menu-item class="pm-action" *ngIf="isStudent() || isTeacher() || isAdmin()"
           (click)="navigateToMyProfile()">
           <mat-icon>person_outline</mat-icon>
           <span>My Profile</span>
@@ -84,11 +82,11 @@
 
     <!-- STUDENT -->
     <ng-container *ngIf="isStudent()">
+      <a class="bnav-item" routerLink="/dashboard/student-dashboard" routerLinkActive="bnav-active">
+        <mat-icon>home</mat-icon><span>Home</span>
+      </a>
       <a class="bnav-item" routerLink="/dashboard/apply-leave" routerLinkActive="bnav-active">
         <mat-icon>edit_calendar</mat-icon><span>Leave</span>
-      </a>
-      <a class="bnav-item" routerLink="/dashboard/timetable" routerLinkActive="bnav-active">
-        <mat-icon>schedule</mat-icon><span>Timetable</span>
       </a>
       <a class="bnav-item" routerLink="/dashboard/fees" routerLinkActive="bnav-active">
         <mat-icon>payments</mat-icon><span>Fees</span>

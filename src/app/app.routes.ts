@@ -211,6 +211,13 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN'] }
       },
 
+      // ── Student Dashboard ────────────────────────────────────────────
+      {
+        path: 'student-dashboard',
+        loadComponent: () => import('./components/student-dashboard/student-dashboard.component').then(m => m.StudentDashboardComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT'] }
+      },
+
       // ── Teacher Dashboard ────────────────────────────────────────────
       {
         path: 'teacher-dashboard',

@@ -1,0 +1,447 @@
+.sd-page {
+  padding-bottom: 16px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Loading ────────────────────────────────────────────────────── */
+.sd-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 80px 20px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.sd-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #7c3aed;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Hero ───────────────────────────────────────────────────────── */
+.sd-hero {
+  position: relative;
+  background: linear-gradient(135deg, #2e1065 0%, #7c3aed 55%, #a855f7 100%);
+  border-radius: 20px;
+  padding: 28px 22px 32px;
+  margin: 0 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  overflow: hidden;
+  color: #fff;
+}
+
+.sd-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.sd-blob-1 {
+  width: 140px;
+  height: 140px;
+  background: #fff;
+  top: -40px;
+  right: -30px;
+}
+
+.sd-blob-2 {
+  width: 90px;
+  height: 90px;
+  background: #f0abfc;
+  bottom: -20px;
+  left: 30%;
+}
+
+.sd-hero-left {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.sd-greeting {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.75);
+  margin: 0 0 4px;
+  letter-spacing: 0.3px;
+}
+
+.sd-hero-name {
+  font-size: 1.45rem;
+  font-weight: 800;
+  margin: 0 0 10px;
+  color: #fff;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.sd-class-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 20px;
+  padding: 4px 12px 4px 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+.sd-class-badge mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+}
+
+.sd-hero-right {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.sd-date-card {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  padding: 10px 14px;
+  text-align: center;
+  backdrop-filter: blur(6px);
+}
+
+.sd-date-day {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sd-date-full {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+/* ── Attendance Ring Card ───────────────────────────────────────── */
+.sd-attend-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.sd-ring-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+}
+
+.sd-ring {
+  width: 80px;
+  height: 80px;
+  transform: rotate(-90deg);
+}
+
+.sd-ring-bg {
+  fill: none;
+  stroke: #e2e8f0;
+  stroke-width: 7;
+}
+
+.sd-ring-fill {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 201;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.sd-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.sd-ring-pct {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sd-ring-sub {
+  font-size: 0.52rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+
+.sd-attend-stats {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.sd-attend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sd-attend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sd-attend-text {
+  flex: 1;
+  font-size: 0.78rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.sd-attend-val {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* ── Sections ───────────────────────────────────────────────────── */
+.sd-section {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.sd-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sd-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #d97706;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* ── Quick Actions ──────────────────────────────────────────────── */
+.sd-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.sd-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  padding: 14px 8px 12px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e8edf2;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sd-action-card:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.sd-action-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sd-action-icon mat-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.sd-action-card span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #374151;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── Leave Cards ────────────────────────────────────────────────── */
+.sd-empty-leaves {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 0 8px;
+  color: #94a3b8;
+}
+
+.sd-empty-leaves mat-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: #c4b5fd;
+}
+
+.sd-empty-leaves p {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.sd-leave-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sd-leave-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e8edf2;
+}
+
+.sd-leave-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  border-radius: 10px;
+  padding: 8px 6px;
+  flex-shrink: 0;
+}
+
+.sd-leave-date {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.sd-leave-year {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.8);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.sd-leave-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sd-leave-reason {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sd-leave-meta {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.sd-leave-meta mat-icon {
+  font-size: 11px;
+  width: 11px;
+  height: 11px;
+}
+
+.sd-status {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.sd-status--pending  { background: #fef3c7; color: #b45309; }
+.sd-status--approved { background: #dcfce7; color: #15803d; }
+.sd-status--rejected { background: #fee2e2; color: #dc2626; }
+
+.sd-view-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #7c3aed;
+  text-decoration: none;
+}
+
+.sd-view-all mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+}

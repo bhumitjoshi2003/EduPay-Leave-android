@@ -39,7 +39,7 @@ import { ComingSoonComponent } from '../coming-soon/coming-soon.component';
 export class PaymentHistoryAdminComponent implements OnInit, OnDestroy {
 
   comingSoonConfig = MODULE_MESSAGES.paymentHistory;
-  showFeesModule: boolean = false;
+  showFeesModule: boolean = true;
   filteredPayments: PaymentHistory[] = [];
   classList: string[] = [
     'Play group', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',

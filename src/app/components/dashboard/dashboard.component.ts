@@ -171,7 +171,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const currentUrl = this.router.url;
     if (!currentUrl.startsWith('/dashboard/payment-history-details/')) {
       if (this.Role === 'STUDENT') {
-        this.router.navigate(['/dashboard/apply-leave']);
+        this.router.navigate(['/dashboard/student-dashboard']);
       } else if (this.Role === 'TEACHER') {
         this.router.navigate(['/dashboard/teacher-dashboard']);
       } else if (this.Role === 'ADMIN') {

@@ -40,7 +40,7 @@ export class PaymentHistoryComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   comingSoonConfig = MODULE_MESSAGES.paymentHistory;
-  showFeesModule: boolean = false;
+  showFeesModule: boolean = true;
   paymentHistory: PaymentHistory[] = [];
   loading: boolean = true;
   error: string = '';

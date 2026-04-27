@@ -81,7 +81,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
   ) { }
 
   comingSoonConfig = MODULE_MESSAGES.fees;
-  showFeesModule: boolean = false;
+  showFeesModule: boolean = true;
   unpaidCurrentMonthName: string = '';
   pastUnpaidMonthNames: string[] = [];
   selectedYear: number = new Date().getFullYear();

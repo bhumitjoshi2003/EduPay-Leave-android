@@ -1,0 +1,177 @@
+<div class="sd-page">
+
+  <!-- ── Loading ──────────────────────────────────────────────────── -->
+  <div class="sd-loading" *ngIf="isLoading">
+    <div class="sd-spinner"></div>
+    <span>Loading your dashboard…</span>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- ── Hero ─────────────────────────────────────────────────────── -->
+    <div class="sd-hero">
+      <div class="sd-hero-left">
+        <p class="sd-greeting">{{ greeting }}</p>
+        <h1 class="sd-hero-name">{{ studentName || 'Student' }} 👋</h1>
+        <div class="sd-class-badge">
+          <mat-icon>school</mat-icon>
+          <span>Class {{ className }}</span>
+        </div>
+      </div>
+      <div class="sd-hero-right">
+        <div class="sd-date-card">
+          <span class="sd-date-day">{{ today | date:'EEEE' }}</span>
+          <span class="sd-date-full">{{ today | date:'d MMM yyyy' }}</span>
+        </div>
+      </div>
+      <div class="sd-blob sd-blob-1"></div>
+      <div class="sd-blob sd-blob-2"></div>
+    </div>
+
+    <!-- ── Attendance Ring + Stats ───────────────────────────────────── -->
+    <div class="sd-attend-card">
+      <div class="sd-ring-wrap">
+        <svg class="sd-ring" viewBox="0 0 80 80">
+          <circle class="sd-ring-bg" cx="40" cy="40" r="32" />
+          <circle class="sd-ring-fill" cx="40" cy="40" r="32" [style.stroke]="attendanceColor"
+            [style.stroke-dashoffset]="201 - (201 * attendancePercentage / 100)" />
+        </svg>
+        <div class="sd-ring-label">
+          <span class="sd-ring-pct" [style.color]="attendanceColor">{{ attendancePercentage }}%</span>
+          <span class="sd-ring-sub">This Month</span>
+        </div>
+      </div>
+      <div class="sd-attend-stats">
+        <div class="sd-attend-row">
+          <span class="sd-attend-dot" style="background:#059669"></span>
+          <span class="sd-attend-text">Present</span>
+          <span class="sd-attend-val">{{ daysPresent }}</span>
+        </div>
+        <div class="sd-attend-row">
+          <span class="sd-attend-dot" style="background:#dc2626"></span>
+          <span class="sd-attend-text">Absent</span>
+          <span class="sd-attend-val">{{ daysAbsent }}</span>
+        </div>
+        <div class="sd-attend-row">
+          <span class="sd-attend-dot" style="background:#64748b"></span>
+          <span class="sd-attend-text">Working Days</span>
+          <span class="sd-attend-val">{{ totalWorkingDays }}</span>
+        </div>
+        <div class="sd-attend-row">
+          <span class="sd-attend-dot" style="background:#d97706"></span>
+          <span class="sd-attend-text">Pending Leaves</span>
+          <span class="sd-attend-val">{{ pendingLeavesCount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Quick Actions ─────────────────────────────────────────────── -->
+    <div class="sd-section">
+      <h2 class="sd-section-title">Quick Actions</h2>
+      <div class="sd-actions-grid">
+
+        <a class="sd-action-card" routerLink="/dashboard/apply-leave">
+          <div class="sd-action-icon" style="background:#fef3c7;color:#b45309">
+            <mat-icon>edit_calendar</mat-icon>
+          </div>
+          <span>Apply Leave</span>
+        </a>
+
+        <a class="sd-action-card" routerLink="/dashboard/attendance-summary">
+          <div class="sd-action-icon" style="background:#e0f2fe;color:#0369a1">
+            <mat-icon>event_available</mat-icon>
+          </div>
+          <span>Att. Summary</span>
+        </a>
+
+        <a class="sd-action-card" routerLink="/dashboard/my-results">
+          <div class="sd-action-icon" style="background:#fdf4ff;color:#a21caf">
+            <mat-icon>grade</mat-icon>
+          </div>
+          <span>My Results</span>
+        </a>
+
+        <a class="sd-action-card" routerLink="/dashboard/fees">
+          <div class="sd-action-icon" style="background:#fefce8;color:#a16207">
+            <mat-icon>receipt_long</mat-icon>
+          </div>
+          <span>Fees</span>
+        </a>
+
+        <a class="sd-action-card" routerLink="/dashboard/timetable">
+          <div class="sd-action-icon" style="background:#e0e7ff;color:#3730a3">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <span>Timetable</span>
+        </a>
+
+        <a class="sd-action-card" routerLink="/dashboard/fee-structure">
+          <div class="sd-action-icon" style="background:#ecfdf5;color:#065f46">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <span>Fee Structure</span>
+        </a>
+
+        <a class="sd-action-card" routerLink="/dashboard/payment-history">
+          <div class="sd-action-icon" style="background:#ede9fe;color:#7c3aed">
+            <mat-icon>receipt</mat-icon>
+          </div>
+          <span>Payment History</span>
+        </a>
+
+        <a class="sd-action-card" routerLink="/dashboard/notice">
+          <div class="sd-action-icon" style="background:#fff1f2;color:#be123c">
+            <mat-icon>campaign</mat-icon>
+          </div>
+          <span>Notice Board</span>
+        </a>
+
+        <a class="sd-action-card" routerLink="/dashboard/event-calendar">
+          <div class="sd-action-icon" style="background:#f0fdf4;color:#15803d">
+            <mat-icon>event</mat-icon>
+          </div>
+          <span>Events</span>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ── Recent Leave Applications ────────────────────────────────── -->
+    <div class="sd-section">
+      <h2 class="sd-section-title">
+        Recent Leave Applications
+        <span class="sd-badge" *ngIf="pendingLeavesCount > 0">{{ pendingLeavesCount }}</span>
+      </h2>
+
+      <div class="sd-empty-leaves" *ngIf="recentLeaves.length === 0">
+        <mat-icon>event_busy</mat-icon>
+        <p>No leave applications yet</p>
+      </div>
+
+      <div class="sd-leave-list" *ngIf="recentLeaves.length > 0">
+        <div class="sd-leave-card" *ngFor="let leave of recentLeaves">
+          <div class="sd-leave-left">
+            <span class="sd-leave-date">{{ leave.leaveDate | date:'d MMM' }}</span>
+            <span class="sd-leave-year">{{ leave.leaveDate | date:'yyyy' }}</span>
+          </div>
+          <div class="sd-leave-info">
+            <span class="sd-leave-reason">{{ leave.reason || 'No reason provided' }}</span>
+            <span class="sd-leave-meta">
+              <mat-icon>calendar_today</mat-icon>
+              Applied for {{ leave.leaveDate | date:'d MMM yyyy' }}
+            </span>
+          </div>
+          <span class="sd-status" [ngClass]="getLeaveStatusClass(leave.status)">
+            {{ getLeaveStatusLabel(leave.status) }}
+          </span>
+        </div>
+      </div>
+
+      <a class="sd-view-all" routerLink="/dashboard/apply-leave">
+        View all applications
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+
+  </ng-container>
+</div>
