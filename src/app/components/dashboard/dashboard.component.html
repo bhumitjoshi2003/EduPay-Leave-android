@@ -91,7 +91,7 @@
       <a class="bnav-item" routerLink="/dashboard/fees" routerLinkActive="bnav-active">
         <mat-icon>payments</mat-icon><span>Fees</span>
       </a>
-      <a class="bnav-item" routerLink="/dashboard/student-attendance" routerLinkActive="bnav-active">
+      <a class="bnav-item" routerLink="/dashboard/attendance-summary" routerLinkActive="bnav-active">
         <mat-icon>fact_check</mat-icon><span>Attendance</span>
       </a>
     </ng-container>
@@ -180,7 +180,7 @@
           </a>
           <a class="more-item" routerLink="/dashboard/attendance-summary" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
-            <span>Att. Summary</span>
+            <span>Attendance</span>
           </a>
           <a class="more-item" routerLink="/dashboard/my-results" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-amber"><mat-icon>emoji_events</mat-icon></div>
@@ -197,6 +197,10 @@
           <a class="more-item" routerLink="/dashboard/notice" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-red"><mat-icon>campaign</mat-icon></div>
             <span>Notice Board</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/fees" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-green"><mat-icon>payments</mat-icon></div>
+            <span>Fees</span>
           </a>
         </ng-container>
 
