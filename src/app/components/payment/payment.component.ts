@@ -64,7 +64,36 @@ export class PaymentComponent {
       });
       return;
     }
-    this.loadStudentDetails(this.paymentData.studentId);
+    this.loadRazorpayScript()
+      .then(() => this.loadStudentDetails(this.paymentData.studentId))
+      .catch(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Payment Unavailable',
+          text: 'Could not load the payment gateway. Please check your internet connection and try again.',
+        }).then(() => this.paymentProcessCompleted.emit());
+      });
+  }
+
+  private loadRazorpayScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Already loaded
+      if (typeof Razorpay !== 'undefined') { resolve(); return; }
+      const existing = document.getElementById('razorpay-checkout-js');
+      if (existing) {
+        // Script tag exists but Razorpay not ready yet — wait for it
+        existing.addEventListener('load', () => resolve());
+        existing.addEventListener('error', () => reject());
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'razorpay-checkout-js';
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject();
+      document.body.appendChild(script);
+    });
   }
 
   loadStudentDetails(studentId: string): void {
