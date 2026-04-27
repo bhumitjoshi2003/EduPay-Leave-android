@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
-import { MatTabsModule } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -23,7 +22,6 @@ import { filter } from 'rxjs/operators';
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    MatTabsModule,
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
@@ -46,6 +44,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ClassTeacher: string = '';
   hasShownWelcomeMessage: boolean = false;
   unreadNotificationCount: number = 0;
+  showMoreMenu: boolean = false;
   private ngUnsubscribe = new Subject<void>();
   private welcomeMessageKey = 'hasShownWelcome';
   private pollingIntervalSubscription: Subscription | undefined;
@@ -220,6 +219,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   navigateToNoticeBoard(): void {
     this.router.navigate(['/dashboard/notice']);
+  }
+
+  toggleMoreMenu(): void {
+    this.showMoreMenu = !this.showMoreMenu;
+  }
+
+  closeMoreMenu(): void {
+    this.showMoreMenu = false;
   }
 
   navigateToMyProfile(): void {

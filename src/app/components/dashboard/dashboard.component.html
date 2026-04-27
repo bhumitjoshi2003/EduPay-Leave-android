@@ -1,78 +1,19 @@
 <div class="dashboard-container">
+
+  <!-- ── Header ──────────────────────────────────────────────────── -->
   <div class="header-area">
-    <div class="logo-container">
-      <div class="hdr-brand">
-        <img src="EdunexifyLogo.png" alt="Edunexify" class="hdr-brand-logo" />
-        <div class="hdr-brand-text">
-          <span class="hdr-brand-name">Edunexify</span>
-          <span class="hdr-school-row">
-            <img src="MONO_png.png" alt="" class="hdr-school-icon" />
-            <span class="hdr-school-name">Indra Academy</span>
-          </span>
-        </div>
+    <div class="hdr-brand">
+      <img src="EdunexifyLogo.png" alt="Edunexify" class="hdr-brand-logo" />
+      <div class="hdr-brand-text">
+        <span class="hdr-brand-name">Edunexify</span>
+        <span class="hdr-school-row">
+          <img src="MONO_png.png" alt="" class="hdr-school-icon" />
+          <span class="hdr-school-name">Indra Academy</span>
+        </span>
       </div>
     </div>
 
-    <nav mat-tab-nav-bar class="custom-tab-nav" #tabNav [tabPanel]="tabPanel">
-      <a *ngIf="isAdmin() || isSuperAdmin()" mat-tab-link routerLink="/dashboard/analytics"
-        routerLinkActive #rlaAn="routerLinkActive" [active]="rlaAn.isActive">📊 Dashboard</a>
-      <a *ngIf="isStudent() || isAdmin() || isSuperAdmin()" mat-tab-link routerLink="/dashboard/fee-structure"
-        routerLinkActive #rla1="routerLinkActive" [active]="rla1.isActive">Fee Structure</a>
-      <a *ngIf="isStudent() || isTeacher() || isAdmin()" mat-tab-link routerLink="/dashboard/timetable"
-        routerLinkActive #rlaTt="routerLinkActive" [active]="rlaTt.isActive">Timetable</a>
-      <a *ngIf="isStudent() || isTeacher() || isAdmin()" mat-tab-link routerLink="/dashboard/event-calendar"
-        routerLinkActive #rla14="routerLinkActive" [active]="rla14.isActive">Event Calendar</a>
-      <a *ngIf="isStudent()" mat-tab-link routerLink="/dashboard/apply-leave" routerLinkActive #rla6="routerLinkActive"
-        [active]="rla6.isActive">Apply Leave</a>
-      <a *ngIf="isStudent()" mat-tab-link routerLink="/dashboard/student-attendance" routerLinkActive
-        #rla8="routerLinkActive" [active]="rla8.isActive">Student Attendance</a>
-      <a *ngIf="isStudent() || (isTeacher() && ClassTeacher) || isAdmin()" mat-tab-link
-        routerLink="/dashboard/attendance-summary" routerLinkActive #rlaAs="routerLinkActive"
-        [active]="rlaAs.isActive">Attendance Summary</a>
-      <a *ngIf="((isTeacher() && ClassTeacher) && ClassTeacher) || isAdmin()" mat-tab-link
-        routerLink="/dashboard/teacher-attendance" routerLinkActive #rla7="routerLinkActive"
-        [active]="rla7.isActive">Attendance</a>
-      <a *ngIf="(isTeacher() && ClassTeacher) || isAdmin()" mat-tab-link routerLink="/dashboard/student-list"
-        routerLinkActive #rla9="routerLinkActive" [active]="rla9.isActive">Students</a>
-      <a *ngIf="(isTeacher() && ClassTeacher) || isAdmin()" mat-tab-link routerLink="/dashboard/view-leaves"
-        routerLinkActive #rla10="routerLinkActive" [active]="rla10.isActive">Leaves</a>
-      <a *ngIf="isAdmin()" mat-tab-link routerLink="/dashboard/teacher-list" routerLinkActive #rla12="routerLinkActive"
-        [active]="rla12.isActive">Teachers</a>
-      <a *ngIf="isAdmin() || isSuperAdmin()" mat-tab-link routerLink="/dashboard/admin-list" routerLinkActive
-        #rla12="routerLinkActive" [active]="rla12.isActive">Admins</a>
-      <a mat-tab-link routerLink="/dashboard/notice" routerLinkActive #rla13="routerLinkActive"
-        [active]="rla13.isActive">Notice Board</a>
-      <a *ngIf="isAdmin()" mat-tab-link routerLink="/dashboard/register" routerLinkActive #rla13="routerLinkActive"
-        [active]="rla13.isActive">Register</a>
-      <a *ngIf="isAdmin()" mat-tab-link routerLink="/dashboard/event-new" routerLinkActive #rla15="routerLinkActive"
-        [active]="rla15.isActive">Create Event</a>
-      <a *ngIf="isAdmin()" mat-tab-link routerLink="/dashboard/subject-config" routerLinkActive
-        #rla17="routerLinkActive" [active]="rla17.isActive">Subjects</a>
-      <a *ngIf="isAdmin()" mat-tab-link routerLink="/dashboard/exam-config" routerLinkActive #rla18="routerLinkActive"
-        [active]="rla18.isActive">Exams</a>
-      <a *ngIf="isAdmin()" mat-tab-link routerLink="/dashboard/student-stream" routerLinkActive
-        #rla19="routerLinkActive" [active]="rla19.isActive">Streams</a>
-      <a *ngIf="isAdmin() || isTeacher()" mat-tab-link routerLink="/dashboard/mark-entry" routerLinkActive
-        #rla20="routerLinkActive" [active]="rla20.isActive">Mark Entry</a>
-      <a *ngIf="isAdmin() || isTeacher()" mat-tab-link routerLink="/dashboard/class-results" routerLinkActive
-        #rla21="routerLinkActive" [active]="rla21.isActive">Class Results</a>
-      <a *ngIf="isStudent()" mat-tab-link routerLink="/dashboard/my-results" routerLinkActive #rla22="routerLinkActive"
-        [active]="rla22.isActive">My Results</a>
-      <a *ngIf="isAdmin() || isSuperAdmin()" mat-tab-link routerLink="/dashboard/audit-logs" routerLinkActive
-        #rla16="routerLinkActive" [active]="rla16.isActive">Audit Logs</a>
-      <a *ngIf="isStudent()" mat-tab-link routerLink="/dashboard/fees" routerLinkActive #rla2="routerLinkActive"
-        [active]="rla2.isActive">Fees</a>
-      <a *ngIf="isStudent()" mat-tab-link routerLink="/dashboard/payment-history" routerLinkActive
-        #rla5="routerLinkActive" [active]="rla5.isActive">Payment History</a>
-      <a *ngIf="isAdmin()" mat-tab-link routerLink="/dashboard/payment-history-admin" routerLinkActive
-        #rla11="routerLinkActive" [active]="rla11.isActive">Payment History</a>
-      <a *ngIf="isAdmin()" mat-tab-link routerLink="/dashboard/fee-reminders" routerLinkActive
-        #rlaFr="routerLinkActive" [active]="rlaFr.isActive">Fee Reminders</a>
-    </nav>
-
     <div class="hdr-controls">
-
-      <!-- Notification bell -->
       <button class="hdr-bell" (click)="navigateToNoticeBoard()" title="Notice Board"
         [matBadge]="unreadNotificationCount"
         [matBadgeHidden]="unreadNotificationCount === 0"
@@ -80,7 +21,6 @@
         <mat-icon>notifications_none</mat-icon>
       </button>
 
-      <!-- Profile pill -->
       <button class="hdr-profile-pill" [matMenuTriggerFor]="profileMenu">
         <div class="hdr-avatar">{{ (Name || Role).charAt(0).toUpperCase() }}</div>
         <span class="hdr-pill-name">{{ Name || Role }}</span>
@@ -88,8 +28,6 @@
       </button>
 
       <mat-menu #profileMenu="matMenu" xPosition="before" class="hdr-profile-menu">
-
-        <!-- Menu header — not a menu item, click won't close -->
         <div class="hdr-menu-header" (click)="$event.stopPropagation()">
           <div class="hdr-menu-avatar">{{ (Name || Role).charAt(0).toUpperCase() }}</div>
           <div class="hdr-menu-info">
@@ -101,28 +39,287 @@
             </div>
           </div>
         </div>
-
         <div class="hdr-menu-divider"></div>
-
         <button mat-menu-item class="hdr-menu-item"
           *ngIf="isStudent() || isTeacher() || isAdmin()"
           (click)="navigateToMyProfile()">
           <mat-icon>person_outline</mat-icon>
           <span>My Profile</span>
         </button>
-
         <button mat-menu-item class="hdr-menu-item hdr-menu-logout" (click)="logout()">
           <mat-icon>logout</mat-icon>
           <span>Sign Out</span>
         </button>
-
       </mat-menu>
     </div>
   </div>
 
-  <mat-tab-nav-panel #tabPanel>
-    <div class="content-area">
-      <router-outlet></router-outlet>
+  <!-- ── Page Content ──────────────────────────────────────────────── -->
+  <div class="content-area">
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- ── Bottom Navigation Bar ──────────────────────────────────────── -->
+  <nav class="bottom-nav">
+
+    <!-- STUDENT -->
+    <ng-container *ngIf="isStudent()">
+      <a class="bnav-item" routerLink="/dashboard/apply-leave" routerLinkActive="bnav-active">
+        <mat-icon>edit_calendar</mat-icon><span>Leave</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/timetable" routerLinkActive="bnav-active">
+        <mat-icon>schedule</mat-icon><span>Timetable</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/fees" routerLinkActive="bnav-active">
+        <mat-icon>payments</mat-icon><span>Fees</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/student-attendance" routerLinkActive="bnav-active">
+        <mat-icon>fact_check</mat-icon><span>Attendance</span>
+      </a>
+    </ng-container>
+
+    <!-- TEACHER (class teacher) -->
+    <ng-container *ngIf="isTeacher() && ClassTeacher">
+      <a class="bnav-item" routerLink="/dashboard/timetable" routerLinkActive="bnav-active">
+        <mat-icon>schedule</mat-icon><span>Timetable</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/student-list" routerLinkActive="bnav-active">
+        <mat-icon>group</mat-icon><span>Students</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/teacher-attendance" routerLinkActive="bnav-active">
+        <mat-icon>how_to_reg</mat-icon><span>Attendance</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/view-leaves" routerLinkActive="bnav-active">
+        <mat-icon>assignment_late</mat-icon><span>Leaves</span>
+      </a>
+    </ng-container>
+
+    <!-- TEACHER (not class teacher) -->
+    <ng-container *ngIf="isTeacher() && !ClassTeacher">
+      <a class="bnav-item" routerLink="/dashboard/timetable" routerLinkActive="bnav-active">
+        <mat-icon>schedule</mat-icon><span>Timetable</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/mark-entry" routerLinkActive="bnav-active">
+        <mat-icon>grade</mat-icon><span>Marks</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/event-calendar" routerLinkActive="bnav-active">
+        <mat-icon>event</mat-icon><span>Events</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/notice" routerLinkActive="bnav-active">
+        <mat-icon>campaign</mat-icon><span>Notice</span>
+      </a>
+    </ng-container>
+
+    <!-- ADMIN -->
+    <ng-container *ngIf="isAdmin()">
+      <a class="bnav-item" routerLink="/dashboard/analytics" routerLinkActive="bnav-active">
+        <mat-icon>bar_chart</mat-icon><span>Analytics</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/student-list" routerLinkActive="bnav-active">
+        <mat-icon>group</mat-icon><span>Students</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/teacher-list" routerLinkActive="bnav-active">
+        <mat-icon>school</mat-icon><span>Teachers</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/fee-reminders" routerLinkActive="bnav-active">
+        <mat-icon>payments</mat-icon><span>Fees</span>
+      </a>
+    </ng-container>
+
+    <!-- SUPER_ADMIN -->
+    <ng-container *ngIf="isSuperAdmin()">
+      <a class="bnav-item" routerLink="/dashboard/admin-list" routerLinkActive="bnav-active">
+        <mat-icon>admin_panel_settings</mat-icon><span>Admins</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/notice" routerLinkActive="bnav-active">
+        <mat-icon>campaign</mat-icon><span>Notice</span>
+      </a>
+      <a class="bnav-item" routerLink="/dashboard/audit-logs" routerLinkActive="bnav-active">
+        <mat-icon>security</mat-icon><span>Audit</span>
+      </a>
+    </ng-container>
+
+    <!-- More — always last -->
+    <button class="bnav-item" [class.bnav-active]="showMoreMenu" (click)="toggleMoreMenu()">
+      <mat-icon>{{ showMoreMenu ? 'close' : 'apps' }}</mat-icon>
+      <span>More</span>
+    </button>
+  </nav>
+
+  <!-- ── More Bottom Sheet ───────────────────────────────────────────── -->
+  <div class="more-overlay" [class.open]="showMoreMenu" (click)="closeMoreMenu()">
+    <div class="more-sheet" (click)="$event.stopPropagation()">
+      <div class="more-handle"></div>
+      <p class="more-title">All Features</p>
+
+      <div class="more-grid">
+
+        <!-- STUDENT more items -->
+        <ng-container *ngIf="isStudent()">
+          <a class="more-item" routerLink="/dashboard/fee-structure" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-green"><mat-icon>receipt_long</mat-icon></div>
+            <span>Fee Structure</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/attendance-summary" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
+            <span>Att. Summary</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/my-results" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-amber"><mat-icon>emoji_events</mat-icon></div>
+            <span>My Results</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
+            <span>Event Calendar</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/payment-history" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-orange"><mat-icon>history</mat-icon></div>
+            <span>Payment History</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/notice" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-red"><mat-icon>campaign</mat-icon></div>
+            <span>Notice Board</span>
+          </a>
+        </ng-container>
+
+        <!-- TEACHER (class teacher) more items -->
+        <ng-container *ngIf="isTeacher() && ClassTeacher">
+          <a class="more-item" routerLink="/dashboard/attendance-summary" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
+            <span>Att. Summary</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/mark-entry" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-purple"><mat-icon>grade</mat-icon></div>
+            <span>Mark Entry</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-amber"><mat-icon>leaderboard</mat-icon></div>
+            <span>Class Results</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
+            <span>Event Calendar</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/notice" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-red"><mat-icon>campaign</mat-icon></div>
+            <span>Notice Board</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/fee-structure" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-green"><mat-icon>receipt_long</mat-icon></div>
+            <span>Fee Structure</span>
+          </a>
+        </ng-container>
+
+        <!-- TEACHER (not class teacher) more items -->
+        <ng-container *ngIf="isTeacher() && !ClassTeacher">
+          <a class="more-item" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-amber"><mat-icon>leaderboard</mat-icon></div>
+            <span>Class Results</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/fee-structure" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-green"><mat-icon>receipt_long</mat-icon></div>
+            <span>Fee Structure</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/attendance-summary" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
+            <span>Att. Summary</span>
+          </a>
+        </ng-container>
+
+        <!-- ADMIN more items -->
+        <ng-container *ngIf="isAdmin()">
+          <a class="more-item" routerLink="/dashboard/fee-structure" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-green"><mat-icon>receipt_long</mat-icon></div>
+            <span>Fee Structure</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/payment-history-admin" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-orange"><mat-icon>history</mat-icon></div>
+            <span>Payment History</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/view-leaves" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-orange"><mat-icon>assignment_late</mat-icon></div>
+            <span>Leaves</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/teacher-attendance" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-teal"><mat-icon>how_to_reg</mat-icon></div>
+            <span>Attendance</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/attendance-summary" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
+            <span>Att. Summary</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/mark-entry" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-purple"><mat-icon>grade</mat-icon></div>
+            <span>Mark Entry</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-amber"><mat-icon>leaderboard</mat-icon></div>
+            <span>Class Results</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/register" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-green"><mat-icon>person_add</mat-icon></div>
+            <span>Register</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/event-new" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-blue"><mat-icon>add_circle</mat-icon></div>
+            <span>Create Event</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
+            <span>Event Calendar</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/notice" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-red"><mat-icon>campaign</mat-icon></div>
+            <span>Notice Board</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/admin-list" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-indigo"><mat-icon>admin_panel_settings</mat-icon></div>
+            <span>Admins</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/subject-config" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-teal"><mat-icon>menu_book</mat-icon></div>
+            <span>Subjects</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/exam-config" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-red"><mat-icon>quiz</mat-icon></div>
+            <span>Exams</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/student-stream" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-purple"><mat-icon>account_tree</mat-icon></div>
+            <span>Streams</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/timetable" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-indigo"><mat-icon>schedule</mat-icon></div>
+            <span>Timetable</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/audit-logs" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-dark"><mat-icon>security</mat-icon></div>
+            <span>Audit Logs</span>
+          </a>
+        </ng-container>
+
+        <!-- SUPER_ADMIN more items -->
+        <ng-container *ngIf="isSuperAdmin()">
+          <a class="more-item" routerLink="/dashboard/analytics" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-blue"><mat-icon>bar_chart</mat-icon></div>
+            <span>Analytics</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/fee-structure" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-green"><mat-icon>receipt_long</mat-icon></div>
+            <span>Fee Structure</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/timetable" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-indigo"><mat-icon>schedule</mat-icon></div>
+            <span>Timetable</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
+            <span>Event Calendar</span>
+          </a>
+        </ng-container>
+
+      </div>
     </div>
-  </mat-tab-nav-panel>
+  </div>
+
 </div>
