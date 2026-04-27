@@ -33,6 +33,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
 
   totalStudents = 0;
   todayAbsent = 0;
+  attendanceTaken = false;   // true when 'X' record found → school was open that day
   pendingLeavesCount = 0;
   monthlyAttendanceRate = 0;
   recentLeaves: LeaveApplication[] = [];
@@ -45,7 +46,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     private leaveService: LeaveService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const user = this.authState.getUser();
@@ -93,7 +94,10 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     ]).pipe(takeUntil(this.destroy$)).subscribe({
       next: ([students, absentToday, leavesPage, summary]) => {
         this.totalStudents = students.length;
-        this.todayAbsent = absentToday.length;
+        // 'X' is a dummy record that marks the school as open that day.
+        // Exclude it from the real absent count.
+        this.attendanceTaken = absentToday.some(a => a.studentId === 'X');
+        this.todayAbsent = absentToday.filter(a => a.studentId !== 'X').length;
 
         const pending = leavesPage.content.filter(l => l.status === 'PENDING');
         this.pendingLeavesCount = pending.length;
@@ -165,7 +169,9 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   /** 'weekend' | 'not-marked' | 'marked' */
   get absentCardState(): 'weekend' | 'not-marked' | 'marked' {
     if (this.isWeekend) return 'weekend';
-    if (this.todayAbsent === 0) return 'not-marked';
-    return 'marked';
+    // 'not-marked' = no 'X' record found → attendance was never submitted today
+    // 'marked'     = 'X' record exists → school was open, attendance submitted
+    //                (todayAbsent may be 0 = all present, or N = N real absences)
+    return this.attendanceTaken ? 'marked' : 'not-marked';
   }
 }
