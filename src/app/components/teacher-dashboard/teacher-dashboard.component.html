@@ -1,0 +1,230 @@
+<div class="td-page">
+
+  <!-- ── Loading ──────────────────────────────────────────────────── -->
+  <div class="td-loading" *ngIf="isLoading">
+    <div class="td-spinner"></div>
+    <span>Loading your dashboard…</span>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- ── Hero ─────────────────────────────────────────────────────── -->
+    <div class="td-hero">
+      <div class="td-hero-left">
+        <p class="td-greeting">{{ greeting }}</p>
+        <h1 class="td-hero-name">{{ teacherName || 'Teacher' }} 👋</h1>
+        <div class="td-class-badge" *ngIf="isClassTeacher">
+          <mat-icon>meeting_room</mat-icon>
+          <span>Class {{ className }}</span>
+        </div>
+        <p class="td-hero-sub" *ngIf="!isClassTeacher">Here's your workspace for today</p>
+      </div>
+      <div class="td-hero-right">
+        <div class="td-date-card">
+          <span class="td-date-day">{{ today | date:'EEEE' }}</span>
+          <span class="td-date-full">{{ today | date:'d MMM yyyy' }}</span>
+        </div>
+      </div>
+      <div class="td-blob td-blob-1"></div>
+      <div class="td-blob td-blob-2"></div>
+    </div>
+
+    <!-- ── Stat Cards (class teachers only) ─────────────────────────── -->
+    <div class="td-stats-grid" *ngIf="isClassTeacher">
+
+      <div class="td-stat-card" style="--c1:#6366f1;--c2:#818cf8">
+        <div class="td-stat-icon">👨‍🎓</div>
+        <div class="td-stat-info">
+          <span class="td-stat-value">{{ totalStudents }}</span>
+          <span class="td-stat-label">Total Students</span>
+        </div>
+        <div class="td-stat-bg">🎓</div>
+      </div>
+
+      <!-- Absent Today card — 3 states -->
+      <div class="td-stat-card"
+        [style]="absentCardState === 'marked'     ? '--c1:#dc2626;--c2:#f87171' :
+                 absentCardState === 'not-marked'  ? '--c1:#b45309;--c2:#fbbf24' :
+                                                     '--c1:#475569;--c2:#94a3b8'">
+        <div class="td-stat-icon">
+          {{ absentCardState === 'weekend' ? '🏖️' : absentCardState === 'not-marked' ? '⏳' : '😔' }}
+        </div>
+        <div class="td-stat-info">
+          <span class="td-stat-value" *ngIf="absentCardState === 'marked'">{{ todayAbsent }}</span>
+          <span class="td-stat-value td-stat-value--sm" *ngIf="absentCardState !== 'marked'">
+            {{ absentCardState === 'weekend' ? 'No School' : 'Not Marked' }}
+          </span>
+          <span class="td-stat-label">Absent Today</span>
+        </div>
+        <div class="td-stat-bg">{{ absentCardState === 'weekend' ? '📅' : '📋' }}</div>
+      </div>
+
+      <div class="td-stat-card" style="--c1:#d97706;--c2:#fbbf24">
+        <div class="td-stat-icon">📝</div>
+        <div class="td-stat-info">
+          <span class="td-stat-value">{{ pendingLeavesCount }}</span>
+          <span class="td-stat-label">Pending Leaves</span>
+        </div>
+        <div class="td-stat-bg">📬</div>
+      </div>
+
+      <div class="td-stat-card" [style]="
+        monthlyAttendanceRate >= 85 ? '--c1:#059669;--c2:#34d399' :
+        monthlyAttendanceRate >= 70 ? '--c1:#d97706;--c2:#fbbf24' :
+                                       '--c1:#dc2626;--c2:#f87171'">
+        <div class="td-stat-icon">📊</div>
+        <div class="td-stat-info">
+          <span class="td-stat-value">{{ monthlyAttendanceRate }}%</span>
+          <span class="td-stat-label">Monthly Attendance</span>
+        </div>
+        <div class="td-stat-bg">📈</div>
+      </div>
+
+    </div>
+
+    <!-- ── Quick Actions ─────────────────────────────────────────────── -->
+    <div class="td-section">
+      <h2 class="td-section-title">Quick Actions</h2>
+      <div class="td-actions-grid">
+
+        <ng-container *ngIf="isClassTeacher">
+          <a class="td-action-card" routerLink="/dashboard/teacher-attendance">
+            <div class="td-action-icon" style="background:#e0f2fe;color:#0369a1">
+              <mat-icon>how_to_reg</mat-icon>
+            </div>
+            <span>Take Attendance</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/student-list">
+            <div class="td-action-icon" style="background:#ede9fe;color:#7c3aed">
+              <mat-icon>group</mat-icon>
+            </div>
+            <span>My Students</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/view-leaves">
+            <div class="td-action-icon" style="background:#fff7ed;color:#c2410c">
+              <mat-icon>assignment_late</mat-icon>
+            </div>
+            <span>Leaves</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/mark-entry">
+            <div class="td-action-icon" style="background:#fdf4ff;color:#a21caf">
+              <mat-icon>grade</mat-icon>
+            </div>
+            <span>Mark Entry</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/class-results">
+            <div class="td-action-icon" style="background:#fefce8;color:#a16207">
+              <mat-icon>leaderboard</mat-icon>
+            </div>
+            <span>Class Results</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/timetable">
+            <div class="td-action-icon" style="background:#e0e7ff;color:#3730a3">
+              <mat-icon>schedule</mat-icon>
+            </div>
+            <span>Timetable</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/attendance-summary">
+            <div class="td-action-icon" style="background:#ecfdf5;color:#065f46">
+              <mat-icon>summarize</mat-icon>
+            </div>
+            <span>Att. Summary</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/notice">
+            <div class="td-action-icon" style="background:#fff1f2;color:#be123c">
+              <mat-icon>campaign</mat-icon>
+            </div>
+            <span>Notice Board</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/event-calendar">
+            <div class="td-action-icon" style="background:#f0fdf4;color:#15803d">
+              <mat-icon>event</mat-icon>
+            </div>
+            <span>Events</span>
+          </a>
+        </ng-container>
+
+        <ng-container *ngIf="!isClassTeacher">
+          <a class="td-action-card" routerLink="/dashboard/timetable">
+            <div class="td-action-icon" style="background:#e0e7ff;color:#3730a3">
+              <mat-icon>schedule</mat-icon>
+            </div>
+            <span>Timetable</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/mark-entry">
+            <div class="td-action-icon" style="background:#fdf4ff;color:#a21caf">
+              <mat-icon>grade</mat-icon>
+            </div>
+            <span>Mark Entry</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/class-results">
+            <div class="td-action-icon" style="background:#fefce8;color:#a16207">
+              <mat-icon>leaderboard</mat-icon>
+            </div>
+            <span>Class Results</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/event-calendar">
+            <div class="td-action-icon" style="background:#f0fdf4;color:#15803d">
+              <mat-icon>event</mat-icon>
+            </div>
+            <span>Event Calendar</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/notice">
+            <div class="td-action-icon" style="background:#fff1f2;color:#be123c">
+              <mat-icon>campaign</mat-icon>
+            </div>
+            <span>Notice Board</span>
+          </a>
+          <a class="td-action-card" routerLink="/dashboard/attendance-summary">
+            <div class="td-action-icon" style="background:#ecfdf5;color:#065f46">
+              <mat-icon>summarize</mat-icon>
+            </div>
+            <span>Att. Summary</span>
+          </a>
+        </ng-container>
+
+      </div>
+    </div>
+
+    <!-- ── Pending Leave Requests ────────────────────────────────────── -->
+    <div class="td-section" *ngIf="isClassTeacher">
+      <h2 class="td-section-title">
+        Pending Leave Requests
+        <span class="td-badge" *ngIf="pendingLeavesCount > 0">{{ pendingLeavesCount }}</span>
+      </h2>
+
+      <div class="td-empty-leaves" *ngIf="recentLeaves.length === 0">
+        <mat-icon>check_circle_outline</mat-icon>
+        <p>No pending leave requests</p>
+      </div>
+
+      <div class="td-leave-list" *ngIf="recentLeaves.length > 0">
+        <div class="td-leave-card" *ngFor="let leave of recentLeaves">
+          <div class="td-leave-avatar">{{ leave.studentName.charAt(0).toUpperCase() }}</div>
+          <div class="td-leave-info">
+            <span class="td-leave-name">{{ leave.studentName }}</span>
+            <span class="td-leave-meta">
+              <mat-icon>calendar_today</mat-icon>
+              {{ leave.leaveDate | date:'d MMM yyyy' }}
+            </span>
+            <span class="td-leave-reason" *ngIf="leave.reason">{{ leave.reason }}</span>
+          </div>
+          <div class="td-leave-actions">
+            <button class="td-btn-approve" (click)="approveLeave(leave.id)">
+              <mat-icon>check</mat-icon>
+            </button>
+            <button class="td-btn-reject" (click)="rejectLeave(leave.id)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <a class="td-view-all" routerLink="/dashboard/view-leaves" *ngIf="pendingLeavesCount > 5">
+        View all {{ pendingLeavesCount }} requests
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+
+  </ng-container>
+</div>

@@ -148,43 +148,124 @@
   color: #1f6f8b;
 }
 
-/* ── Profile menu ────────────────────────────────────────────────── */
-.hdr-menu-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px 14px;
+/* ── Profile menu card ──────────────────────────────────────────── */
+.pm-card {
   cursor: default;
+  user-select: none;
 }
 
-.hdr-menu-avatar {
-  width: 48px;
-  height: 48px;
+/* Gradient banner at the top */
+.pm-banner {
+  height: 78px;
+  background: linear-gradient(135deg, #1a3a47 0%, #1f6f8b 55%, #4fbdbd 100%);
+  position: relative;
+  border-radius: 0;
+}
+
+/* Large avatar overlapping banner */
+.pm-avatar-circle {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1f6f8b, #4fbdbd);
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, #e8f6f8 100%);
+  color: #1f6f8b;
+  font-size: 26px;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 3.5px solid #ffffff;
+  box-shadow: 0 6px 20px rgba(31, 111, 139, 0.28);
+  letter-spacing: -0.5px;
+}
+
+/* Name + role chip */
+.pm-identity {
+  padding: 40px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+}
+
+.pm-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a3a47;
+  letter-spacing: -0.2px;
+  text-align: center;
+}
+
+.pm-role-chip {
+  display: inline-block;
+  padding: 3px 13px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+/* Role chip colours */
+.chip-student   { background: #e3f2fd; color: #1565c0; }
+.chip-teacher   { background: #e8f5e9; color: #2e7d32; }
+.chip-admin     { background: #f3e5f5; color: #6a1b9a; }
+.chip-subadmin  { background: #fff3e0; color: #e65100; }
+.chip-superadmin { background: #fce4ec; color: #b71c1c; }
+
+/* Info rows */
+.pm-info-list {
+  padding: 10px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f5f9fc;
+  border-top: 1px solid #edf2f6;
+  border-bottom: 1px solid #edf2f6;
+}
+
+.pm-info-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.8rem;
+  color: #4a6572;
+  font-weight: 500;
+}
+
+.pm-info-row mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  color: #1f6f8b;
   flex-shrink: 0;
 }
 
-.hdr-menu-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.hdr-menu-name { font-size: 0.95rem; font-weight: 700; color: #1a3a47; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hdr-menu-role { font-size: 0.75rem; font-weight: 600; color: #1f6f8b; text-transform: uppercase; letter-spacing: 0.5px; }
-.hdr-menu-id { font-size: 0.72rem; color: #999; }
-.hdr-menu-class { font-size: 0.72rem; color: #4fbdbd; font-weight: 600; margin-top: 2px; }
+/* Action buttons */
+.pm-action {
+  font-size: 0.88rem !important;
+  color: #1a3a47 !important;
+  font-weight: 600 !important;
+  padding: 11px 18px !important;
+}
 
-.hdr-menu-divider { height: 1px; background: #eef3f6; margin: 0 12px 4px; }
+.pm-action mat-icon {
+  color: #1f6f8b;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
 
-.hdr-menu-item { font-size: 0.88rem !important; color: #333 !important; font-weight: 500 !important; padding: 10px 18px !important; }
-.hdr-menu-item mat-icon { color: #666; font-size: 18px; width: 18px; height: 18px; }
-.hdr-menu-item:hover { background: #f0f9fc !important; }
-.hdr-menu-logout { color: #c0392b !important; margin-bottom: 4px; }
-.hdr-menu-logout mat-icon { color: #c0392b; }
-.hdr-menu-logout:hover { background: #fdf0ef !important; }
+.pm-action:hover { background: #f0f9fc !important; }
+
+.pm-logout { color: #c0392b !important; }
+.pm-logout mat-icon { color: #e53935; }
+.pm-logout:hover { background: #fff5f5 !important; }
 
 /* ── Page content ────────────────────────────────────────────────── */
 .content-area {
@@ -364,12 +445,13 @@
 /* ── Material overrides ──────────────────────────────────────────── */
 ::ng-deep .hdr-profile-menu .mat-mdc-menu-panel,
 ::ng-deep .hdr-profile-menu .mat-menu-panel {
-  min-width: 240px !important;
-  max-width: 280px !important;
-  border-radius: 14px !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.14) !important;
-  overflow: hidden;
-  border: 1px solid #e8f0f5 !important;
+  min-width: 310px !important;
+  max-width: 340px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18) !important;
+  overflow: hidden !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 ::ng-deep .mat-menu-panel {

@@ -28,28 +28,48 @@
       </button>
 
       <mat-menu #profileMenu="matMenu" xPosition="before" class="hdr-profile-menu">
-        <div class="hdr-menu-header" (click)="$event.stopPropagation()">
-          <div class="hdr-menu-avatar">{{ (Name || Role).charAt(0).toUpperCase() }}</div>
-          <div class="hdr-menu-info">
-            <div class="hdr-menu-name">{{ Name || '—' }}</div>
-            <div class="hdr-menu-role">{{ Role }}</div>
-            <div class="hdr-menu-id">ID: {{ Id }}</div>
-            <div class="hdr-menu-class" *ngIf="isTeacher() && ClassTeacher">
-              Class Teacher · {{ ClassTeacher }}
+
+        <!-- ── Banner + Avatar ── -->
+        <div class="pm-card" (click)="$event.stopPropagation()">
+          <div class="pm-banner">
+            <div class="pm-avatar-circle">{{ (Name || Role).charAt(0).toUpperCase() }}</div>
+          </div>
+
+          <!-- ── Name + Role badge ── -->
+          <div class="pm-identity">
+            <span class="pm-name">{{ Name || '—' }}</span>
+            <span class="pm-role-chip" [ngClass]="getRoleChipClass()">{{ getRoleLabel() }}</span>
+          </div>
+
+          <!-- ── Info rows ── -->
+          <div class="pm-info-list">
+            <div class="pm-info-row">
+              <mat-icon>badge</mat-icon>
+              <span>{{ Id }}</span>
+            </div>
+            <div class="pm-info-row" *ngIf="isStudent() && Class">
+              <mat-icon>school</mat-icon>
+              <span>Class {{ Class }}</span>
+            </div>
+            <div class="pm-info-row" *ngIf="isTeacher() && ClassTeacher">
+              <mat-icon>meeting_room</mat-icon>
+              <span>Class Teacher · {{ ClassTeacher }}</span>
             </div>
           </div>
         </div>
-        <div class="hdr-menu-divider"></div>
-        <button mat-menu-item class="hdr-menu-item"
+
+        <!-- ── Actions ── -->
+        <button mat-menu-item class="pm-action"
           *ngIf="isStudent() || isTeacher() || isAdmin()"
           (click)="navigateToMyProfile()">
           <mat-icon>person_outline</mat-icon>
           <span>My Profile</span>
         </button>
-        <button mat-menu-item class="hdr-menu-item hdr-menu-logout" (click)="logout()">
-          <mat-icon>logout</mat-icon>
+        <button mat-menu-item class="pm-action pm-logout" (click)="logout()">
+          <mat-icon>power_settings_new</mat-icon>
           <span>Sign Out</span>
         </button>
+
       </mat-menu>
     </div>
   </div>
@@ -80,8 +100,8 @@
 
     <!-- TEACHER (class teacher) -->
     <ng-container *ngIf="isTeacher() && ClassTeacher">
-      <a class="bnav-item" routerLink="/dashboard/timetable" routerLinkActive="bnav-active">
-        <mat-icon>schedule</mat-icon><span>Timetable</span>
+      <a class="bnav-item" routerLink="/dashboard/teacher-dashboard" routerLinkActive="bnav-active">
+        <mat-icon>home</mat-icon><span>Home</span>
       </a>
       <a class="bnav-item" routerLink="/dashboard/student-list" routerLinkActive="bnav-active">
         <mat-icon>group</mat-icon><span>Students</span>
@@ -96,6 +116,9 @@
 
     <!-- TEACHER (not class teacher) -->
     <ng-container *ngIf="isTeacher() && !ClassTeacher">
+      <a class="bnav-item" routerLink="/dashboard/teacher-dashboard" routerLinkActive="bnav-active">
+        <mat-icon>home</mat-icon><span>Home</span>
+      </a>
       <a class="bnav-item" routerLink="/dashboard/timetable" routerLinkActive="bnav-active">
         <mat-icon>schedule</mat-icon><span>Timetable</span>
       </a>
@@ -104,9 +127,6 @@
       </a>
       <a class="bnav-item" routerLink="/dashboard/event-calendar" routerLinkActive="bnav-active">
         <mat-icon>event</mat-icon><span>Events</span>
-      </a>
-      <a class="bnav-item" routerLink="/dashboard/notice" routerLinkActive="bnav-active">
-        <mat-icon>campaign</mat-icon><span>Notice</span>
       </a>
     </ng-container>
 
@@ -184,6 +204,10 @@
 
         <!-- TEACHER (class teacher) more items -->
         <ng-container *ngIf="isTeacher() && ClassTeacher">
+          <a class="more-item" routerLink="/dashboard/timetable" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-indigo"><mat-icon>schedule</mat-icon></div>
+            <span>Timetable</span>
+          </a>
           <a class="more-item" routerLink="/dashboard/attendance-summary" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
             <span>Att. Summary</span>
@@ -204,10 +228,6 @@
             <div class="more-icon-bg c-red"><mat-icon>campaign</mat-icon></div>
             <span>Notice Board</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/fee-structure" (click)="closeMoreMenu()">
-            <div class="more-icon-bg c-green"><mat-icon>receipt_long</mat-icon></div>
-            <span>Fee Structure</span>
-          </a>
         </ng-container>
 
         <!-- TEACHER (not class teacher) more items -->
@@ -215,10 +235,6 @@
           <a class="more-item" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-amber"><mat-icon>leaderboard</mat-icon></div>
             <span>Class Results</span>
-          </a>
-          <a class="more-item" routerLink="/dashboard/fee-structure" (click)="closeMoreMenu()">
-            <div class="more-icon-bg c-green"><mat-icon>receipt_long</mat-icon></div>
-            <span>Fee Structure</span>
           </a>
           <a class="more-item" routerLink="/dashboard/attendance-summary" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>

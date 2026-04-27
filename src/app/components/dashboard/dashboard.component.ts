@@ -173,7 +173,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (this.Role === 'STUDENT') {
         this.router.navigate(['/dashboard/apply-leave']);
       } else if (this.Role === 'TEACHER') {
-        this.router.navigate(['/dashboard/timetable']);
+        this.router.navigate(['/dashboard/teacher-dashboard']);
       } else if (this.Role === 'ADMIN') {
         this.router.navigate(['/dashboard/analytics']);
       } else if (this.Role === 'SUPER_ADMIN') {
@@ -219,6 +219,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   navigateToNoticeBoard(): void {
     this.router.navigate(['/dashboard/notice']);
+  }
+
+  getRoleLabel(): string {
+    const labels: Record<string, string> = {
+      'STUDENT': 'Student',
+      'TEACHER': 'Teacher',
+      'ADMIN': 'Admin',
+      'SUB-ADMIN': 'Sub Admin',
+      'SUPER_ADMIN': 'Super Admin',
+    };
+    return labels[this.Role] ?? this.Role;
+  }
+
+  getRoleChipClass(): string {
+    const classes: Record<string, string> = {
+      'STUDENT': 'chip-student',
+      'TEACHER': 'chip-teacher',
+      'ADMIN': 'chip-admin',
+      'SUB-ADMIN': 'chip-subadmin',
+      'SUPER_ADMIN': 'chip-superadmin',
+    };
+    return classes[this.Role] ?? 'chip-student';
   }
 
   toggleMoreMenu(): void {
