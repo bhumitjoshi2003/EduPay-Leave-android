@@ -1,0 +1,210 @@
+<div class="ad-page">
+
+  <!-- ── Loading ──────────────────────────────────────────────────── -->
+  <div class="ad-loading" *ngIf="isLoading">
+    <div class="ad-spinner"></div>
+    <span>Loading dashboard…</span>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- ── Hero ─────────────────────────────────────────────────────── -->
+    <div class="ad-hero">
+      <div class="ad-hero-left">
+        <p class="ad-greeting">{{ greeting }}</p>
+        <h1 class="ad-hero-name">{{ adminName || 'Admin' }} 👋</h1>
+        <div class="ad-role-badge">
+          <mat-icon>admin_panel_settings</mat-icon>
+          <span>Administrator</span>
+        </div>
+      </div>
+      <div class="ad-hero-right">
+        <div class="ad-date-card">
+          <span class="ad-date-day">{{ today | date:'EEEE' }}</span>
+          <span class="ad-date-full">{{ today | date:'d MMM yyyy' }}</span>
+        </div>
+      </div>
+      <div class="ad-blob ad-blob-1"></div>
+      <div class="ad-blob ad-blob-2"></div>
+    </div>
+
+    <!-- ── Stat Cards ────────────────────────────────────────────────── -->
+    <div class="ad-stats-grid" *ngIf="stats">
+
+      <div class="ad-stat-card" style="--c1:#0369a1;--c2:#0ea5e9">
+        <div class="ad-stat-icon">👨‍🎓</div>
+        <div class="ad-stat-info">
+          <span class="ad-stat-value">{{ stats.totalStudents }}</span>
+          <span class="ad-stat-label">Total Students</span>
+        </div>
+        <div class="ad-stat-bg">🎓</div>
+      </div>
+
+      <div class="ad-stat-card" style="--c1:#0f766e;--c2:#14b8a6">
+        <div class="ad-stat-icon">👨‍🏫</div>
+        <div class="ad-stat-info">
+          <span class="ad-stat-value">{{ stats.totalTeachers }}</span>
+          <span class="ad-stat-label">Total Teachers</span>
+        </div>
+        <div class="ad-stat-bg">🏫</div>
+      </div>
+
+      <div class="ad-stat-card" style="--c1:#059669;--c2:#34d399">
+        <div class="ad-stat-icon">💰</div>
+        <div class="ad-stat-info">
+          <span class="ad-stat-value ad-stat-value--sm">₹{{ stats.feesCollectedThisMonth | number }}</span>
+          <span class="ad-stat-label">Fees This Month</span>
+        </div>
+        <div class="ad-stat-bg">💳</div>
+      </div>
+
+      <div class="ad-stat-card" style="--c1:#dc2626;--c2:#f87171">
+        <div class="ad-stat-icon">⚠️</div>
+        <div class="ad-stat-info">
+          <span class="ad-stat-value">{{ stats.overdueStudents }}</span>
+          <span class="ad-stat-label">Overdue Students</span>
+        </div>
+        <div class="ad-stat-bg">📌</div>
+      </div>
+
+      <div class="ad-stat-card" [attr.style]="attendanceGradient">
+        <div class="ad-stat-icon">📊</div>
+        <div class="ad-stat-info">
+          <span class="ad-stat-value">{{ stats.todayAttendanceRate | number:'1.0-1' }}%</span>
+          <span class="ad-stat-label">Today's Attendance</span>
+        </div>
+        <div class="ad-stat-bg">📈</div>
+      </div>
+
+      <div class="ad-stat-card" style="--c1:#b45309;--c2:#f59e0b">
+        <div class="ad-stat-icon">📝</div>
+        <div class="ad-stat-info">
+          <span class="ad-stat-value">{{ stats.pendingLeaves }}</span>
+          <span class="ad-stat-label">Pending Leaves</span>
+        </div>
+        <div class="ad-stat-bg">📬</div>
+      </div>
+
+    </div>
+
+    <!-- ── Quick Actions ─────────────────────────────────────────────── -->
+    <div class="ad-section">
+      <h2 class="ad-section-title">Quick Actions</h2>
+      <div class="ad-actions-grid">
+
+        <a class="ad-action-card" routerLink="/dashboard/student-list">
+          <div class="ad-action-icon" style="background:#e0f2fe;color:#0369a1">
+            <mat-icon>group</mat-icon>
+          </div>
+          <span>Students</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/teacher-list">
+          <div class="ad-action-icon" style="background:#d1fae5;color:#065f46">
+            <mat-icon>school</mat-icon>
+          </div>
+          <span>Teachers</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/view-leaves">
+          <div class="ad-action-icon" style="background:#fef3c7;color:#b45309">
+            <mat-icon>assignment_late</mat-icon>
+          </div>
+          <span>Leaves</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/payment-history-admin">
+          <div class="ad-action-icon" style="background:#ede9fe;color:#7c3aed">
+            <mat-icon>payments</mat-icon>
+          </div>
+          <span>Payments</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/fee-reminders">
+          <div class="ad-action-icon" style="background:#fee2e2;color:#dc2626">
+            <mat-icon>notifications_active</mat-icon>
+          </div>
+          <span>Fee Reminders</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/register">
+          <div class="ad-action-icon" style="background:#ecfdf5;color:#059669">
+            <mat-icon>person_add</mat-icon>
+          </div>
+          <span>Register</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/notice">
+          <div class="ad-action-icon" style="background:#fff1f2;color:#be123c">
+            <mat-icon>campaign</mat-icon>
+          </div>
+          <span>Notice Board</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/analytics">
+          <div class="ad-action-icon" style="background:#fdf4ff;color:#a21caf">
+            <mat-icon>bar_chart</mat-icon>
+          </div>
+          <span>Analytics</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/attendance-summary">
+          <div class="ad-action-icon" style="background:#e0e7ff;color:#3730a3">
+            <mat-icon>summarize</mat-icon>
+          </div>
+          <span>Attendance</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/fee-structure">
+          <div class="ad-action-icon" style="background:#f0fdf4;color:#15803d">
+            <mat-icon>receipt_long</mat-icon>
+          </div>
+          <span>Fee Structure</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/event-calendar">
+          <div class="ad-action-icon" style="background:#fefce8;color:#a16207">
+            <mat-icon>event</mat-icon>
+          </div>
+          <span>Events</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/audit-logs">
+          <div class="ad-action-icon" style="background:#f1f5f9;color:#475569">
+            <mat-icon>history</mat-icon>
+          </div>
+          <span>Audit Logs</span>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ── Pending Leave Requests ────────────────────────────────────── -->
+    <div class="ad-section">
+      <h2 class="ad-section-title">
+        Pending Leave Requests
+        <span class="ad-badge" *ngIf="stats && stats.pendingLeaves > 0">{{ stats.pendingLeaves }}</span>
+      </h2>
+
+      <div class="ad-empty-leaves" *ngIf="recentLeaves.length === 0">
+        <mat-icon>check_circle_outline</mat-icon>
+        <p>No pending leave requests</p>
+      </div>
+
+      <div class="ad-leave-list" *ngIf="recentLeaves.length > 0">
+        <a class="ad-leave-card" routerLink="/dashboard/view-leaves"
+          *ngFor="let leave of recentLeaves">
+          <div class="ad-leave-avatar">{{ leave.studentName.charAt(0).toUpperCase() }}</div>
+          <div class="ad-leave-info">
+            <span class="ad-leave-name">{{ leave.studentName }}</span>
+            <span class="ad-leave-meta">
+              <mat-icon>school</mat-icon>
+              Class {{ leave.className }}
+              <span class="ad-leave-dot">·</span>
+              <mat-icon>calendar_today</mat-icon>
+              {{ leave.leaveDate | date:'d MMM' }}
+            </span>
+            <span class="ad-leave-reason" *ngIf="leave.reason">{{ leave.reason }}</span>
+          </div>
+          <mat-icon class="ad-leave-arrow">chevron_right</mat-icon>
+        </a>
+      </div>
+
+      <a class="ad-view-all" routerLink="/dashboard/view-leaves"
+        *ngIf="stats && stats.pendingLeaves > 5">
+        View all {{ stats.pendingLeaves }} requests
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+
+  </ng-container>
+</div>

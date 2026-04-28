@@ -1,106 +1,129 @@
-<div class="apply-leave-container">
-  <h2 class="section-title">Apply for Leave</h2>
+<div class="al-page">
 
-  <!-- Error Message -->
-  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <div class="al-hero">
+    <div class="al-hero-left">
+      <p class="al-hero-sub">Student Portal</p>
+      <h1 class="al-hero-title">Leave Application</h1>
+    </div>
+    <div class="al-hero-right">
+      <div class="al-date-card">
+        <span class="al-date-day">{{ todayDate | date:'EEEE' }}</span>
+        <span class="al-date-full">{{ todayDate | date:'d MMM yyyy' }}</span>
+      </div>
+    </div>
+    <div class="al-blob al-blob-1"></div>
+    <div class="al-blob al-blob-2"></div>
+  </div>
 
-  <!-- Leave Application Form -->
-  <form [formGroup]="leaveForm" (ngSubmit)="applyLeave()" class="leave-form">
-    <!-- Date -->
-    <div class="form-group">
-      <label for="leaveDate" class="form-label">Leave Date:</label>
-      <input type="date" id="leaveDate" formControlName="leaveDate" class="form-input styled-input" required />
+  <!-- ── Apply Form Card ───────────────────────────────────────────── -->
+  <div class="al-card">
+    <h2 class="al-card-title">
+      <span class="al-card-title-icon">📋</span>
+      New Application
+    </h2>
+
+    <!-- Inline error -->
+    <div class="al-error" *ngIf="errorMessage">
+      <span>⚠️ {{ errorMessage }}</span>
     </div>
 
-    <!-- Reason -->
-    <div class="form-group">
-      <label for="reason" class="form-label">Reason for Leave:</label>
-      <select id="reason" formControlName="reason" class="form-input styled-input default-select"
-        (change)="onReasonChange()" required>
-        <option value="" disabled>Select Reason</option>
-        <option *ngFor="let reason of reasonOptions; trackBy: trackByReason" [value]="reason">{{ reason }}</option>
-      </select>
-    </div>
+    <form [formGroup]="leaveForm" (ngSubmit)="applyLeave()">
 
-    <!-- Other Reason -->
-    <div class="form-group" *ngIf="showOtherReasonInput">
-      <label for="otherReason" class="form-label">Specify Reason (Max 200 characters):</label>
-      <textarea id="otherReason" formControlName="otherReason" class="form-textarea styled-input" rows="3"
-        maxlength="200" placeholder="Type your reason here..."></textarea>
-    </div>
-
-    <button type="submit" class="submit-button">Apply Leave</button>
-  </form>
-
-  <!-- Leave Display with Pagination -->
-  <div *ngIf="leaves.length > 0" class="leave-section">
-    <h2 class="section-title">Applied Leaves</h2>
-
-    <!-- Table View -->
-    <div class="leave-table-container">
-      <table class="leave-table">
-        <thead>
-          <tr>
-            <th>Leave Date</th>
-            <th>Reason</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let leave of leaves; trackBy: trackByLeaveDate" class="leave-row">
-            <td>{{ leave.leaveDate }}</td>
-            <td>{{ leave.reason }}</td>
-            <td>
-              <span class="leave-status-badge" [ngClass]="'status-' + leave.status.toLowerCase()">
-                {{ leave.status }}
-              </span>
-            </td>
-            <td>
-              <button [disabled]="leave.originalLeaveDate <= today || leave.status === 'APPROVED'" (click)="deleteLeave(leave.originalLeaveDate)"
-                class="delete-button" [title]="leave.originalLeaveDate <= today ? 'Cannot delete past leaves' : leave.status === 'APPROVED' ? 'Cannot delete approved leave' : ''">
-                Delete
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Mobile Card View -->
-    <div class="leave-cards-container">
-      <div *ngFor="let leave of leaves; trackBy: trackByLeaveDate" class="leave-card">
-        <div class="card-item">
-          <span class="card-label">Leave Date:</span>
-          <span class="card-value">{{ leave.leaveDate }}</span>
+      <!-- Date field -->
+      <div class="al-field">
+        <label class="al-label">Leave Date</label>
+        <div class="al-input-wrap">
+          <span class="al-input-icon">📅</span>
+          <input type="date" formControlName="leaveDate" class="al-input" />
         </div>
-        <div class="card-item">
-          <span class="card-label">Reason:</span>
-          <span class="card-value">{{ leave.reason }}</span>
+        <span class="al-field-hint">Cannot apply for past dates or Sundays</span>
+      </div>
+
+      <!-- Reason dropdown -->
+      <div class="al-field">
+        <label class="al-label">Reason</label>
+        <div class="al-input-wrap">
+          <span class="al-input-icon">📝</span>
+          <select formControlName="reason" class="al-input al-select" (change)="onReasonChange()">
+            <option value="" disabled>Select a reason</option>
+            <option *ngFor="let r of reasonOptions; trackBy: trackByReason" [value]="r">{{ r }}</option>
+          </select>
         </div>
-        <div class="card-item">
-          <span class="card-label">Status:</span>
-          <span class="card-value">
-            <span class="leave-status-badge" [ngClass]="'status-' + leave.status.toLowerCase()">
-              {{ leave.status }}
-            </span>
+      </div>
+
+      <!-- Other reason textarea -->
+      <div class="al-field" *ngIf="showOtherReasonInput">
+        <label class="al-label">Specify Reason <span class="al-label-hint">(max 200 chars)</span></label>
+        <textarea formControlName="otherReason" class="al-textarea"
+          rows="3" maxlength="200"
+          placeholder="Describe your reason…"></textarea>
+      </div>
+
+      <button type="submit" class="al-submit-btn">
+        Apply for Leave
+      </button>
+
+    </form>
+  </div>
+
+  <!-- ── Applied Leaves ────────────────────────────────────────────── -->
+  <div class="al-card" *ngIf="leaves.length > 0">
+    <h2 class="al-card-title">
+      <span class="al-card-title-icon">📂</span>
+      Applied Leaves
+      <span class="al-total-badge">{{ totalElements }}</span>
+    </h2>
+
+    <div class="al-leave-list">
+      <div class="al-leave-card" *ngFor="let leave of leaves; trackBy: trackByLeaveDate">
+
+        <!-- Date badge -->
+        <div class="al-leave-date-badge">
+          <span class="al-leave-day">{{ leave.leaveDate | date:'d' }}</span>
+          <span class="al-leave-month">{{ leave.leaveDate | date:'MMM' }}</span>
+        </div>
+
+        <!-- Info -->
+        <div class="al-leave-info">
+          <span class="al-leave-reason">{{ leave.reason || 'No reason provided' }}</span>
+          <span class="al-leave-year">{{ leave.leaveDate | date:'yyyy' }}</span>
+        </div>
+
+        <!-- Status + delete -->
+        <div class="al-leave-right">
+          <span class="al-status-chip"
+            [ngClass]="'al-status--' + leave.status.toLowerCase()">
+            {{ leave.status | titlecase }}
           </span>
-        </div>
-        <div class="card-actions">
-          <button [disabled]="leave.originalLeaveDate <= today || leave.status === 'APPROVED'" (click)="deleteLeave(leave.originalLeaveDate)"
-            class="card-delete-button"
-            [title]="leave.originalLeaveDate <= today ? 'Cannot delete past leaves' : leave.status === 'APPROVED' ? 'Cannot delete approved leave' : 'Delete leave'">
-            Delete
+          <button class="al-delete-btn"
+            [disabled]="leave.originalLeaveDate <= today || leave.status === 'APPROVED'"
+            (click)="deleteLeave(leave.originalLeaveDate)"
+            title="Delete">
+            🗑️
           </button>
         </div>
+
       </div>
     </div>
 
-    <!-- Pagination Controls -->
-    <div class="pagination-controls" *ngIf="totalPages > 1">
-      <button class="page-button" (click)="previousPage()" [disabled]="currentPage === 0">Previous</button>
-      <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
-      <button class="page-button" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">Next</button>
+    <!-- Pagination -->
+    <div class="al-pagination" *ngIf="totalPages > 1">
+      <button class="al-page-btn" (click)="previousPage()" [disabled]="currentPage === 0">
+        ‹ Prev
+      </button>
+      <span class="al-page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
+      <button class="al-page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">
+        Next ›
+      </button>
     </div>
   </div>
+
+  <!-- ── Empty state ───────────────────────────────────────────────── -->
+  <div class="al-empty" *ngIf="leaves.length === 0">
+    <span class="al-empty-icon">📭</span>
+    <p>No leave applications yet</p>
+    <span>Applications you submit will appear here</span>
+  </div>
+
 </div>

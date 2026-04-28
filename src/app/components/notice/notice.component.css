@@ -7,10 +7,9 @@
    Page wrapper
 ───────────────────────────────────────────────────────────────── */
 .nb-page {
-  min-height: 100vh;
-  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  font-family: 'Segoe UI', 'Poppins', sans-serif;
   box-sizing: border-box;
-  padding-bottom: 48px;
+  padding-bottom: 16px;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -21,14 +20,14 @@
   overflow: hidden;
   background: linear-gradient(135deg, #1e3a5f 0%, #1f6f8b 45%, #4fbdbd 100%);
   border-radius: 20px;
-  padding: 32px 36px 48px;
-  margin-bottom: 28px;
+  padding: 24px 20px 36px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 20px;
-  box-shadow: 0 12px 40px rgba(31, 111, 139, 0.35);
+  gap: 16px;
+  box-shadow: 0 8px 28px rgba(31, 111, 139, 0.3);
 }
 
 .nb-hero::before {
@@ -153,10 +152,11 @@
 ───────────────────────────────────────────────────────────────── */
 .nb-empty-hero {
   text-align: center;
-  padding: 80px 20px;
-  background: rgba(255,255,255,0.6);
-  border-radius: 20px;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 18px;
   border: 2px dashed #d0dfe8;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
 }
 .nb-empty-big-icon { font-size: 3.5rem; margin-bottom: 14px; }
 .nb-empty-title { margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: #333; }
@@ -168,7 +168,7 @@
 .nb-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
+  gap: 16px;
   animation: fadeIn 0.5s ease;
 }
 
@@ -730,21 +730,24 @@
 
 @media (max-width: 640px) {
   .nb-hero {
-    padding: 24px 20px 42px;
+    padding: 20px 18px 34px;
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
   .nb-hero-left { gap: 12px; }
-  .nb-hero-icon-wrap { width: 50px; height: 50px; font-size: 2rem; }
-  .nb-hero-title { font-size: 1.5rem; }
-  .nb-hero-right { width: 100%; flex-direction: column; align-items: flex-start; gap: 12px; }
-  .nb-hero-stats { gap: 10px; }
-  .nb-mark-all-btn { width: 100%; text-align: center; }
-  .nb-cards-grid { grid-template-columns: 1fr; gap: 16px; }
-  .nb-card-inner { padding: 16px 18px 18px; }
-  .nb-admin-hero { padding: 16px 18px; }
-  .nb-admin-title { font-size: 1.3rem; }
-  .nb-compose-card, .nb-list-card { padding: 20px 16px; }
+  .nb-hero-icon-wrap { width: 46px; height: 46px; font-size: 1.8rem; }
+  .nb-hero-title { font-size: 1.35rem; }
+  .nb-hero-sub { font-size: 0.8rem; }
+  .nb-hero-right { width: 100%; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
+  .nb-hero-stats { gap: 8px; }
+  .nb-hero-stat { padding: 8px 14px; }
+  .nb-mark-all-btn { padding: 9px 18px; font-size: 0.8rem; }
+  .nb-cards-grid { grid-template-columns: 1fr; gap: 14px; }
+  .nb-card-inner { padding: 14px 16px 16px; }
+  .nb-admin-hero { padding: 14px 16px; }
+  .nb-admin-title { font-size: 1.2rem; }
+  .nb-compose-card, .nb-list-card { padding: 18px 14px; }
   .nb-ani-top { flex-direction: column; gap: 8px; }
   .nb-ani-actions { width: 100%; justify-content: flex-end; }
 }

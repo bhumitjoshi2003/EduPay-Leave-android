@@ -1,55 +1,91 @@
 <div *ngIf="showFeesModule; else comingSoonTemplate">
-  <div class="payment-history-container">
-    <h2>Payment History</h2>
+  <div class="ph-page">
 
-    <div *ngIf="loading" class="loading-message">Loading payment history...</div>
-    <div *ngIf="error" class="error-message">{{ error }}</div>
+    <!-- ── Full-page Loading ─────────────────────────────────────────── -->
+    <div class="ph-loading" *ngIf="loading && paymentHistory.length === 0">
+      <div class="ph-spinner"></div>
+      <span>Loading payment history…</span>
+    </div>
 
-    <div class="table-container" *ngIf="paymentHistory.length > 0">
-      <table>
-        <thead>
-          <tr>
-            <th>Payment ID</th>
-            <th>Amount</th>
-            <th>Payment Date</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let payment of paymentHistory; trackBy: trackByPaymentId"
-            (click)="viewPaymentDetails(payment.paymentId)" class="payment-row">
-            <td data-label="Payment ID:"><span class="payment-value">{{ payment.paymentId }}</span></td>
-            <td data-label="Amount:"><span class="payment-value">{{ payment.amountPaid | currency: 'INR' }}</span></td>
-            <td data-label="Payment Date:"><span class="payment-value">{{ payment.paymentDate | date: 'MMM d, y, h:mm a'
-                }}</span></td>
-            <td data-label="Status:"><span class="payment-value"
-                [ngClass]="{'status-success': payment.status === 'success'}">{{ payment.status | uppercase }}</span>
-            </td>
-            <td data-label="Receipt:">
-              <span class="payment-value download-value">
-                <button (click)="downloadPaymentReceipt(payment.paymentId); $event.stopPropagation();"
-                  class="download-button" aria-label="Download receipt">
-                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"
-                    fill="currentColor">
-                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                  </svg>
-                </button>
+    <ng-container *ngIf="!loading || paymentHistory.length > 0">
+
+      <!-- ── Hero ─────────────────────────────────────────────────────── -->
+      <div class="ph-hero">
+        <div class="ph-hero-left">
+          <div class="ph-hero-icon">💳</div>
+          <div>
+            <h1 class="ph-hero-title">Payment History</h1>
+            <p class="ph-hero-sub">All your fee transactions in one place</p>
+          </div>
+        </div>
+        <div class="ph-hero-stat" *ngIf="totalElements > 0">
+          <span class="ph-hero-num">{{ totalElements }}</span>
+          <span class="ph-hero-lbl">Payments</span>
+        </div>
+        <div class="ph-blob ph-blob-1"></div>
+        <div class="ph-blob ph-blob-2"></div>
+      </div>
+
+      <!-- ── Error ─────────────────────────────────────────────────────── -->
+      <div class="ph-error" *ngIf="error">
+        <span>⚠️</span> {{ error }}
+      </div>
+
+      <!-- ── Empty ─────────────────────────────────────────────────────── -->
+      <div class="ph-empty" *ngIf="paymentHistory.length === 0 && !loading && !error">
+        <div class="ph-empty-icon">🧾</div>
+        <p class="ph-empty-title">No payment records yet</p>
+        <p class="ph-empty-sub">Your fee payment history will appear here once you make your first payment</p>
+      </div>
+
+      <!-- ── Payment Cards ─────────────────────────────────────────────── -->
+      <div class="ph-section" *ngIf="paymentHistory.length > 0">
+        <h2 class="ph-section-title">Transactions</h2>
+
+        <div class="ph-list">
+          <div class="ph-card"
+            *ngFor="let payment of paymentHistory; trackBy: trackByPaymentId"
+            (click)="viewPaymentDetails(payment.paymentId)">
+
+            <div class="ph-card-icon">₹</div>
+
+            <div class="ph-card-info">
+              <span class="ph-card-id">
+                #{{ payment.paymentId.length > 16 ? (payment.paymentId | slice:0:16) + '…' : payment.paymentId }}
               </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              <span class="ph-card-date">{{ payment.paymentDate | date:'d MMM yyyy, h:mm a' }}</span>
+            </div>
 
-    <div class="pagination-controls" *ngIf="totalPages > 1 && !loading">
-      <button class="page-button" (click)="previousPage()" [disabled]="currentPage === 0">Previous</button>
-      <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
-      <button class="page-button" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">Next</button>
-    </div>
+            <div class="ph-card-right">
+              <span class="ph-card-amount">{{ payment.amountPaid | currency:'INR':'symbol':'1.0-0' }}</span>
+              <span class="ph-card-status" [class.ph-status-success]="payment.status === 'success'">
+                {{ payment.status | uppercase }}
+              </span>
+            </div>
 
-    <div *ngIf="paymentHistory.length === 0 && !loading && !error" class="no-history-message">No payment history found.
-    </div>
+            <button class="ph-download-btn"
+              (click)="downloadPaymentReceipt(payment.paymentId); $event.stopPropagation();"
+              title="Download receipt" aria-label="Download receipt">
+              ⬇
+            </button>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Pagination ─────────────────────────────────────────────────── -->
+      <div class="ph-pagination" *ngIf="totalPages > 1 && !loading">
+        <button class="ph-page-btn" (click)="previousPage()" [disabled]="currentPage === 0">
+          ← Prev
+        </button>
+        <span class="ph-page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
+        <button class="ph-page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">
+          Next →
+        </button>
+      </div>
+
+    </ng-container>
+
   </div>
 </div>
 

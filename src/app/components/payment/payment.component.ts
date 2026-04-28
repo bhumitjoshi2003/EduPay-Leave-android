@@ -108,8 +108,9 @@ export class PaymentComponent {
           }).then(() => this.paymentProcessCompleted.emit());
           return EMPTY;
         }
-        this.paymentData.totalAmount *= 100;
-        return this.razorpayService.createOrder(this.paymentData);
+        // Send amount in paise without mutating the original paymentData object
+        const orderPayload = { ...this.paymentData, totalAmount: this.paymentData.totalAmount * 100 };
+        return this.razorpayService.createOrder(orderPayload);
       })
     ).subscribe({
       next: (response: RazorpayOrderResponse) => {
@@ -128,34 +129,50 @@ export class PaymentComponent {
           theme: { color: '#3399cc' },
           method: { netbanking: true, card: true, upi: true, wallet: false },
           handler: (paymentResponse: RazorpayPaymentResponse) => {
-            this.verifyPayment(paymentResponse, response);
+            // Razorpay callbacks fire outside Angular zone — run() brings them back in
+            this.ngZone.run(() => this.verifyPayment(paymentResponse, response));
           },
           modal: {
             ondismiss: () => {
-              this.ngZone.run(() => this.paymentProcessCompleted.emit());
-              Swal.fire({
-                icon: 'warning',
-                title: 'Payment Cancelled!',
-                text: 'Please try again if you wish to proceed.',
-                confirmButtonText: 'Okay',
-                confirmButtonColor: '#ff6b6b',
-                background: '#fef2f2',
-                color: '#b91c1c',
-                timer: 4000,
-                timerProgressBar: true
+              this.ngZone.run(() => {
+                this.paymentProcessCompleted.emit();
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Payment Cancelled!',
+                  text: 'Please try again if you wish to proceed.',
+                  confirmButtonText: 'Okay',
+                  confirmButtonColor: '#ff6b6b',
+                  background: '#fef2f2',
+                  color: '#b91c1c',
+                  timer: 4000,
+                  timerProgressBar: true
+                });
               });
             }
           }
         };
         const rzp = new Razorpay(options);
+        // Handle payment failure (e.g. "Failure" option in test mode)
+        rzp.on('payment.failed', (failureResponse: any) => {
+          this.ngZone.run(() => {
+            this.logger.error('Razorpay payment failed:', failureResponse.error);
+            this.paymentProcessCompleted.emit();
+            Swal.fire({
+              icon: 'error',
+              title: 'Payment Failed!',
+              text: failureResponse.error?.description || 'Your payment could not be processed. Please try again.',
+              confirmButtonText: 'Okay',
+            });
+          });
+        });
         rzp.open();
       },
       error: (error) => {
-        this.logger.error('Error fetching student details for payment:', error);
+        this.logger.error('Error creating payment order:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Failed to load student details for payment.',
+          text: 'Failed to create payment order. Please try again.',
         }).then(() => this.paymentProcessCompleted.emit());
       }
     });

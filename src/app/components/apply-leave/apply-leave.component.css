@@ -1,451 +1,417 @@
-.apply-leave-container,
-.leave-list-container {
-  max-width: 600px;
-  margin: 1rem auto;
-  padding: 2rem;
-  background: #f8f9fa;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+.al-page {
+  font-family: 'Segoe UI', sans-serif;
+  padding-bottom: 24px;
 }
 
-.apply-leave-container:hover,
-.leave-list-container:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-  transform: translateY(-3px);
-}
-
-.section-title {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: #333;
-  font-weight: 500;
-  text-transform: capitalize;
-  letter-spacing: 0.8px;
+/* ── Hero ───────────────────────────────────────────────────────── */
+.al-hero {
   position: relative;
-  padding-bottom: 0.6rem;
-  border-bottom: 2px solid #007bff;
-}
-
-.leave-form .form-group {
-  margin-bottom: 1.6rem;
+  background: linear-gradient(135deg, #78350f 0%, #b45309 55%, #d97706 100%);
+  border-radius: 20px;
+  padding: 28px 22px 32px;
+  margin: 0 0 20px;
   display: flex;
-  padding: 0 0.8rem 0;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  overflow: hidden;
+  color: #fff;
 }
 
-.leave-form .form-label {
-  display: block;
-  margin-bottom: 0.6rem;
-  color: #555;
+.al-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.al-blob-1 {
+  width: 140px; height: 140px;
+  background: #fff;
+  top: -40px; right: -30px;
+}
+
+.al-blob-2 {
+  width: 90px; height: 90px;
+  background: #fcd34d;
+  bottom: -20px; left: 30%;
+}
+
+.al-hero-left {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.al-hero-sub {
+  font-size: 0.75rem;
   font-weight: 500;
-  font-size: 1rem;
+  color: rgba(255,255,255,0.75);
+  margin: 0 0 4px;
+  letter-spacing: 0.3px;
 }
 
-.leave-form .form-input,
-.leave-form select,
-.leave-form .form-textarea {
-  width: 100%;
-  padding: 1rem;
-  border: 1px solid #bdc3c7;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  background-color: #fdfdfd;
-  font-family: inherit;
-  box-sizing: border-box;
-  height: 3.2rem;
+.al-hero-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  color: #fff;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
 }
 
-.leave-form select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url('data:image/svg+xml;charset=UTF-8,<svg fill="%23007bff" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>');
-  background-repeat: no-repeat;
-  background-position-x: 98%;
-  background-position-y: center;
-  background-size: 12px;
-  padding-right: 2rem;
-  color: #495057;
+.al-hero-right {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
 }
 
-.leave-form select.default-select option:first-child {
-  color: #495057;
+.al-date-card {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 14px;
+  padding: 10px 14px;
+  text-align: center;
+  backdrop-filter: blur(6px);
 }
 
-.leave-form select option:disabled {
-  color: #6c757d;
-}
-
-.leave-form select::-ms-expand {
-  display: none;
-}
-
-.leave-form .form-textarea {
-  resize: vertical;
-  min-height: 80px;
-  height: auto;
-}
-
-.submit-button {
-  width: 95%;
-  padding: 1rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
+.al-date-day {
   display: block;
-  margin: 2rem auto 1rem;
-}
-
-.submit-button:hover {
-  background-color: #0056b3;
-}
-
-.error-message {
-  background-color: #ffe6e6;
-  color: #d32f2f;
-  border: 1px solid #ffcdd2;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.leave-table-container {
-  overflow-x: auto;
-  margin-top: 2rem;
-}
-
-.leave-table {
-  width: 100%;
-  border-collapse: collapse;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #e0e0e0;
-}
-
-.leave-table th,
-.leave-table td {
-  padding: 0.8rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid #ecf0f1;
-}
-
-.leave-table th {
-  background-color: #e9ecef;
-  color: #495057;
-}
-
-.leave-table tbody tr:hover {
-  background-color: #f5f5f5;
-}
-
-.leave-table td:first-child {
-  white-space: nowrap;
-  width: 12%;
-}
-
-.leave-table td:nth-child(2) {
-  width: 68%;
-  text-align: left;
-  word-break: break-word;
-  hyphens: auto;
-}
-
-.leave-table .delete-button[disabled] {
-  background-color: #e74c3c;
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.leave-table .delete-button {
-  padding: 0.6rem 1rem;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.leave-table .delete-button:hover {
-  background-color: #c82333;
-}
-
-.leave-cards-container {
-  display: none;
-  margin-top: 2rem;
-  flex-direction: column;
-  padding: 0 0.5rem;
-}
-
-.leave-card {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  padding: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s ease-in-out;
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-
-.leave-card:hover {
-  transform: translateY(-2px);
-}
-
-.card-item {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  font-size: 0.85rem;
-  border-bottom: 1px solid #eee;
-}
-
-.card-item:last-of-type {
-  border-bottom: none;
-}
-
-.card-label {
-  flex-basis: 40%;
+  font-size: 0.65rem;
   font-weight: 600;
-  color: #333;
-  text-align: center;
-  background-color: #f0f3f6;
-  border-right: 1px solid #e0e0e0;
-  padding: 0.8rem 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: rgba(255,255,255,0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.card-value {
-  flex-basis: 60%;
-  color: #555;
-  text-align: center;
-  padding: 0.8rem 0.5rem;
-  word-break: break-word;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card-actions {
-  margin-top: 0.8rem;
-  text-align: center;
-  padding-bottom: 0.5rem;
-}
-
-.card-delete-button {
-  width: 30%;
-  padding: 0.35rem 0.7rem;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-  display: inline-block;
-}
-
-.card-delete-button:hover {
-  background-color: #c82333;
-}
-
-.card-delete-button[disabled] {
-  background-color: #e74c3c;
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 1.5rem;
-  gap: 1rem;
-}
-
-.leave-status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.65rem;
-  border-radius: 12px;
+.al-date-full {
+  display: block;
   font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+/* ── Card ───────────────────────────────────────────────────────── */
+.al-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.al-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.al-card-title-icon { font-size: 1rem; }
+
+.al-total-badge {
+  margin-left: auto;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* ── Error ──────────────────────────────────────────────────────── */
+.al-error {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #be123c;
+  margin-bottom: 16px;
+}
+
+/* ── Form Fields ─────────────────────────────────────────────────── */
+.al-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.al-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.al-label-hint {
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.al-field-hint {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.al-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.al-input-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 1rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.al-input {
+  width: 100%;
+  padding: 12px 14px 12px 38px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: #1e293b;
+  background: #f8fafc;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  appearance: none;
+}
+
+.al-input:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+  background: #fff;
+}
+
+.al-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+.al-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: #1e293b;
+  background: #f8fafc;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 90px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.al-textarea:focus {
+  outline: none;
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+  background: #fff;
+}
+
+/* ── Submit Button ───────────────────────────────────────────────── */
+.al-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #b45309, #d97706);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  box-shadow: 0 4px 14px rgba(180,83,9,0.35);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  font-family: inherit;
+}
+
+.al-submit-btn:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* ── Leave List ──────────────────────────────────────────────────── */
+.al-leave-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.al-leave-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e8edf2;
+}
+
+.al-leave-date-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  background: linear-gradient(135deg, #b45309, #d97706);
+  border-radius: 12px;
+  padding: 8px 6px;
+  flex-shrink: 0;
+}
+
+.al-leave-day {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.al-leave-month {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.85);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+
+.al-leave-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.al-leave-reason {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.al-leave-year {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.al-leave-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.al-status-chip {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   white-space: nowrap;
 }
 
-.leave-status-badge.status-pending {
-  background-color: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffc107;
-}
+.al-status--pending  { background: #fef3c7; color: #b45309; }
+.al-status--approved { background: #dcfce7; color: #15803d; }
+.al-status--rejected { background: #fee2e2; color: #dc2626; }
 
-.leave-status-badge.status-approved {
-  background-color: #d1e7dd;
-  color: #0a5e38;
-  border: 1px solid #198754;
-}
-
-.leave-status-badge.status-rejected {
-  background-color: #f8d7da;
-  color: #842029;
-  border: 1px solid #dc3545;
-}
-
-.page-button {
-  background-color: #007bff;
-  color: white;
+.al-delete-btn {
+  background: none;
   border: none;
-  border-radius: 5px;
-  padding: 0.4rem 1.25rem;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s ease, opacity 0.3s ease;
+  padding: 2px;
+  opacity: 0.7;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.page-button:hover:not(:disabled) {
-  background-color: #0056b3;
-}
+.al-delete-btn:active { transform: scale(0.85); }
 
-.page-button:disabled {
-  background-color: #cccccc;
+.al-delete-btn:disabled {
+  opacity: 0.25;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
-.page-info {
-  font-size: 0.95rem;
+/* ── Pagination ──────────────────────────────────────────────────── */
+.al-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.al-page-btn {
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.al-page-btn:not(:disabled):active { background: #e2e8f0; }
+
+.al-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.al-page-info {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #b45309;
+  min-width: 48px;
+  text-align: center;
+}
+
+/* ── Empty State ─────────────────────────────────────────────────── */
+.al-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 20px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.al-empty-icon { font-size: 2.5rem; }
+
+.al-empty p {
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #007bff;
+  color: #475569;
+  margin: 4px 0 0;
 }
 
-@media (max-width: 768px) {
-
-  .apply-leave-container,
-  .leave-list-container {
-    padding: 1.5rem 1rem;
-    margin: 1.5rem auto;
-  }
-
-  .leave-form .form-label {
-    font-size: 0.9rem;
-  }
-
-  .leave-form .form-input,
-  .leave-form select,
-  .leave-form .form-textarea,
-  .submit-button {
-    padding: 0.3rem;
-    font-size: 0.9rem;
-  }
-
-  .section-title {
-    font-size: 1.3rem;
-    margin-bottom: 1.2rem;
-  }
-
-  .leave-table-container {
-    display: none;
-  }
-
-  .leave-cards-container {
-    display: flex;
-  }
-
-  .leave-table th,
-  .leave-table td {
-    padding: 0.7rem 0.9rem;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-
-  .apply-leave-container,
-  .leave-list-container {
-    padding: 1rem 0.2rem;
-    margin: 0.8rem auto;
-  }
-
-  .section-title {
-    font-size: 1.2rem;
-    margin-bottom: 0.8rem;
-  }
-
-  .leave-form .form-label {
-    font-size: 0.8rem;
-  }
-
-  .leave-form .form-input,
-  .leave-form select,
-  .leave-form .form-textarea,
-  .submit-button {
-    padding: 0.5rem;
-    font-size: 0.8rem;
-  }
-
-  .leave-card {
-    padding: 0;
-  }
-
-  .card-item {
-    font-size: 0.75rem;
-  }
-
-  .card-label,
-  .card-value {
-    padding: 0.6rem 0.4rem;
-  }
-
-  .card-delete-button {
-    padding: 0.3rem 0.5rem;
-    font-size: 0.65rem;
-  }
-
-  .submit-button {
-    padding: 0.7rem;
-    width: 90%;
-  }
-
-  .pagination-controls {
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    margin-top: 1.5rem;
-    padding: 0.75rem 0.5rem;
-    background-color: #f0f4f8;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .page-button {
-    flex-grow: 1;
-    max-width: 35%;
-    padding: 0.5rem 0.5rem;
-    font-size: 0.7rem;
-    font-weight: 1000;
-    border-radius: 20px;
-    min-width: 70px;
-    font-size: bold;
-  }
-
-  .page-info {
-    font-size: 0.75rem;
-  }
+.al-empty span {
+  font-size: 0.75rem;
 }

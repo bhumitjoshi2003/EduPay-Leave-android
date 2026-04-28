@@ -225,6 +225,13 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['TEACHER'] }
       },
 
+      // ── Admin Dashboard ───────────────────────────────────────────────
+      {
+        path: 'admin-dashboard',
+        loadComponent: () => import('./components/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }
+      },
+
       // ── Analytics Dashboard ───────────────────────────────────────────
       {
         path: 'analytics',

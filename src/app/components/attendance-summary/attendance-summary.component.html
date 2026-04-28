@@ -1,8 +1,16 @@
-<div class="as-container">
+<div class="as-page">
 
-  <!-- ── Page Header ───────────────────────────────────────────── -->
-  <div class="as-page-header no-print">
-    <h2 class="as-title">Attendance Summary</h2>
+  <!-- ── Hero ─────────────────────────────────────────────────── -->
+  <div class="as-hero no-print">
+    <div class="as-hero-left">
+      <div class="as-hero-icon">📊</div>
+      <div>
+        <h1 class="as-hero-title">Attendance Summary</h1>
+        <p class="as-hero-sub">Track daily presence and monthly breakdown</p>
+      </div>
+    </div>
+    <div class="as-blob as-blob-1"></div>
+    <div class="as-blob as-blob-2"></div>
   </div>
 
   <!-- ── Controls Card ─────────────────────────────────────────── -->
@@ -307,7 +315,9 @@
 
   <!-- Empty state -->
   <div class="as-empty" *ngIf="!isLoading && !studentSummary && classSummary.length === 0 && !error">
-    <p>Select the filters above and click <strong>Load Report</strong> to view the attendance summary.</p>
+    <div class="as-empty-icon">📅</div>
+    <p class="as-empty-title">No report loaded yet</p>
+    <p class="as-empty-sub">Select the filters above and tap <strong>Load Report</strong> to view the attendance summary.</p>
   </div>
 
 </div>

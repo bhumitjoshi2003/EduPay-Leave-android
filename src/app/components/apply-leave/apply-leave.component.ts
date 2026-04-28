@@ -36,6 +36,7 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
   totalElements: number = 0;
 
   today: string = '';
+  todayDate = new Date();
   reasonOptions: string[] = [
     'Medical Leave',
     'Family Event',
