@@ -1,22 +1,45 @@
-<div class="teacher-list-container">
-    <div class="teacher-list-area">
-      <div class="teacher-list-area__header">
-        <h2>List of Teachers</h2>
-        <button class="bulk-import-btn" (click)="navigateToBulkImport()">&#8679; Bulk Import</button>
+<div class="tl-page">
+
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <div class="tl-hero">
+    <div class="tl-hero-left">
+      <div class="tl-hero-icon">👨‍🏫</div>
+      <div>
+        <h1 class="tl-hero-title">Teachers</h1>
+        <p class="tl-hero-sub">{{ teachers.length }} staff member{{ teachers.length !== 1 ? 's' : '' }}</p>
       </div>
-      <div *ngIf="teachers.length > 0; else noTeachersContainer">
-        <ul class="teacher-list">
-          <li *ngFor="let teacher of teachers; trackBy: trackByTeacherId" class="teacher-item" (click)="viewTeacherDetails(teacher.teacherId)">
-            <div class="teacher-info">
-              <span class="teacher-name">{{ teacher.name }}</span>
-              <span class="teacher-id">({{ teacher.teacherId }})</span>
-              </div>
-            <button class="view-details-button" (click)="viewTeacherDetails(teacher.teacherId)">View Details</button>
-          </li>
-        </ul>
+    </div>
+    <div class="tl-hero-right">
+      <button class="tl-import-btn" (click)="navigateToBulkImport()">⬆ Bulk Import</button>
+    </div>
+    <div class="tl-blob tl-blob-1"></div>
+    <div class="tl-blob tl-blob-2"></div>
+  </div>
+
+  <!-- ── Empty ──────────────────────────────────────────────────────── -->
+  <div class="tl-empty" *ngIf="teachers.length === 0">
+    <div class="tl-empty-icon">🔍</div>
+    <p class="tl-empty-title">No teachers found</p>
+    <p class="tl-empty-sub">No teacher records available</p>
+  </div>
+
+  <!-- ── Teacher List ──────────────────────────────────────────────── -->
+  <div class="tl-section" *ngIf="teachers.length > 0">
+    <div class="tl-section-header">
+      <h2 class="tl-section-title">All Teachers</h2>
+      <span class="tl-section-count">{{ teachers.length }}</span>
+    </div>
+    <div class="tl-list">
+      <div class="tl-card" *ngFor="let t of teachers; trackBy: trackByTeacherId"
+        (click)="viewTeacherDetails(t.teacherId)">
+        <div class="tl-avatar">{{ t.name.charAt(0).toUpperCase() }}</div>
+        <div class="tl-card-info">
+          <span class="tl-card-name">{{ t.name }}</span>
+          <span class="tl-card-id">{{ t.teacherId }}</span>
+        </div>
+        <span class="tl-arrow">›</span>
       </div>
-      <ng-template #noTeachersContainer>
-        <p class="no-teachers">No teachers found.</p>
-      </ng-template>
     </div>
   </div>
+
+</div>

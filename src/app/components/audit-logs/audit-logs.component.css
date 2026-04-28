@@ -6,22 +6,67 @@
     --text-dark: #1f2937;
     --text-light: #6b7280;
     --border: #e5e7eb;
-    background-color: var(--bg);
     display: block;
-    min-height: 100vh;
-    padding: 30px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Segoe UI', 'Inter', sans-serif;
 }
 
-.header-section h1 {
-    margin: 0;
-    font-size: 24px;
-    color: var(--text-dark);
+.audit-wrapper {
+    padding-bottom: 16px;
 }
 
-.header-section p {
-    margin: 5px 0 25px;
-    color: var(--text-light);
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.al-hero {
+  position: relative;
+  background: linear-gradient(135deg, #312e81 0%, #4338ca 55%, #6366f1 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
+}
+
+.al-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.al-blob-1 { width: 120px; height: 120px; background: #fff;    top: -30px; right: -20px; }
+.al-blob-2 { width: 80px;  height: 80px;  background: #a5b4fc; bottom: -20px; left: 40%; }
+
+.al-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.al-hero-icon {
+  font-size: 1.6rem;
+  background: rgba(255,255,255,0.18);
+  border-radius: 14px;
+  width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.al-hero-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.al-hero-sub {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.78);
 }
 
 /* Card Styles */

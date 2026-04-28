@@ -1,10 +1,10 @@
 /* ── Page ────────────────────────────────────────────────────────── */
 .an-page {
-  padding: 0 0 48px;
+  padding-bottom: 16px;
   font-family: 'Poppins', 'Segoe UI', sans-serif;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   animation: anFade 0.5s ease;
 }
 

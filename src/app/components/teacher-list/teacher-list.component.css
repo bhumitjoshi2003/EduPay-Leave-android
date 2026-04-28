@@ -1,262 +1,194 @@
-.teacher-list-container {
-  display: flex;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #eaf6f6, #f0f8ff);
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-  animation: fadeIn 0.8s ease-in-out;
-  padding: 30px;
-  margin: auto auto;
-  width: 95%;
+.tl-page {
+  padding-bottom: 16px;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.teacher-list-container h2 {
-  color: #1f6f8b;
-  margin-bottom: 20px;
-  text-align: center;
-  border-bottom: 2px solid #4fbdbd;
-  padding-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  width: 100%;
-}
-
-.teacher-list-area {
-  flex-grow: 1;
-  padding: 20px;
-  background-color: rgba(255, 255, 255, 0.95);
-  border-radius: 10px;
-}
-
-.teacher-list-area__header {
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.tl-hero {
+  position: relative;
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 55%, #14b8a6 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  margin: 0 0 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-bottom: 2px solid #4fbdbd;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  gap: 12px;
-}
-
-.teacher-list-area__header h2 {
-  margin: 0;
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.teacher-list-area h2 {
-  text-align: left;
-  border-bottom: 2px solid #4fbdbd;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-  color: #1f6f8b;
-  font-size: 1.4em;
-}
-
-.bulk-import-btn {
-  background: linear-gradient(135deg, #1f6f8b 0%, #14505d 100%);
+  gap: 14px;
+  overflow: hidden;
   color: #fff;
-  border: none;
-  border-radius: 6px;
+}
+
+.tl-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.tl-blob-1 { width: 120px; height: 120px; background: #fff;    top: -30px; right: -20px; }
+.tl-blob-2 { width: 80px;  height: 80px;  background: #5eead4; bottom: -20px; left: 40%; }
+
+.tl-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.tl-hero-icon {
+  font-size: 1.6rem;
+  background: rgba(255,255,255,0.18);
+  border-radius: 14px;
+  width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.tl-hero-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.tl-hero-sub {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.78);
+}
+
+.tl-hero-right {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.tl-import-btn {
   padding: 8px 16px;
-  font-size: 0.82rem;
-  font-weight: 600;
+  background: rgba(255,255,255,0.18);
+  border: 1.5px solid rgba(255,255,255,0.35);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  flex-shrink: 0;
-  transition: opacity 0.15s;
+  font-family: inherit;
+  transition: background 0.15s;
 }
+.tl-import-btn:hover { background: rgba(255,255,255,0.28); }
 
-.bulk-import-btn:hover {
-  opacity: 0.85;
-}
-
-.teacher-list {
-  list-style: none;
-  padding: 0;
-}
-
-.teacher-item {
+/* ── Empty ────────────────────────────────────────────────────────── */
+.tl-empty {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: background-color 0.3s ease;
-  background-color: #f0f9f9;
-  border-left: 8px solid #4fbdbd;
-}
-
-.teacher-item:hover {
-  background-color: #ccf7f7;
-}
-
-.teacher-info {
-  flex-grow: 1;
-  display: flex;
-  /* Use flex for name and ID */
-  align-items: center;
-  min-width: 0;
-  /* Allow content to shrink */
-}
-
-.teacher-name {
-  font-weight: bold;
-  color: #333;
-  margin-right: 5px;
-  /* Reduced margin */
-  white-space: nowrap;
-  /* Prevent wrapping */
-  overflow: hidden;
-  /* Hide overflow */
-  text-overflow: ellipsis;
-  /* Add ellipsis */
-}
-
-.teacher-id {
-  color: #666;
-  font-size: 0.9em;
-  white-space: nowrap;
-  /* Prevent wrapping */
-  overflow: hidden;
-  /* Hide overflow */
-  text-overflow: ellipsis;
-  /* Add ellipsis */
-}
-
-.teacher-email,
-.teacher-phone {
-  color: #444;
-  font-size: 0.9em;
-  margin-right: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.view-details-button {
-  background-color: #1f6f8b;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  flex-shrink: 0;
-  /* Prevent button from shrinking */
-  white-space: nowrap;
-  /* Prevent button text from wrapping */
-}
-
-.view-details-button:hover {
-  background-color: #14505d;
-}
-
-.no-teachers {
+  gap: 8px;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   text-align: center;
-  padding: 20px;
-  font-style: italic;
-  color: #666;
+}
+.tl-empty-icon  { font-size: 2.8rem; margin-bottom: 4px; }
+.tl-empty-title { font-size: 1rem; font-weight: 700; color: #374151; margin: 0; }
+.tl-empty-sub   { font-size: 0.8rem; color: #94a3b8; margin: 0; }
+
+/* ── Section ──────────────────────────────────────────────────────── */
+.tl-section {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.tl-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-/* --- Responsive Adjustments --- */
-
-/* Tablet Devices (max-width: 1023px) */
-@media (max-width: 1023px) {
-  .teacher-list-container {
-    padding: 20px;
-    width: 95%;
-  }
-
-  .teacher-list-container h2 {
-    font-size: 20px;
-    margin-bottom: 15px;
-  }
-
-  .teacher-list-area {
-    padding: 15px;
-  }
-
-  .teacher-list-area h2 {
-    font-size: 1.3em;
-    margin-bottom: 15px;
-  }
-
-  .teacher-item {
-    padding: 12px;
-  }
-
-  .teacher-name {
-    font-size: 0.95em;
-  }
-
-  .teacher-id {
-    font-size: 0.85em;
-  }
-
-  .view-details-button {
-    padding: 6px 12px;
-    font-size: 0.85em;
-  }
+.tl-section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0;
+  flex: 1;
 }
 
-/* Mobile Devices (max-width: 767px) */
-@media (max-width: 767px) {
-  .teacher-list-container {
-    padding: 10px;
-    width: 95%;
-  }
+.tl-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px; height: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: #ccfbf1;
+  color: #0f766e;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
 
-  .teacher-list-container h2 {
-    font-size: 18px;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-  }
+/* ── Cards ────────────────────────────────────────────────────────── */
+.tl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  .teacher-list-area {
-    padding: 10px;
-  }
+.tl-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e8edf2;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tl-card:active { background: #f0fdfa; }
 
-  .teacher-list-area h2 {
-    font-size: 1.2em;
-    margin-bottom: 10px;
-  }
+.tl-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
 
-  .teacher-item {
-    padding: 8px 10px;
-    justify-content: flex-start;
-  }
+.tl-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
 
-  .teacher-info {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-  }
+.tl-card-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .teacher-name {
-    font-size: 0.9em;
-    margin-right: 5px;
-  }
+.tl-card-id {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
 
-  .teacher-id {
-    font-size: 0.8em;
-  }
-
-  .view-details-button {
-    display: none;
-  }
+.tl-arrow {
+  font-size: 1.3rem;
+  color: #cbd5e1;
+  flex-shrink: 0;
+  line-height: 1;
 }

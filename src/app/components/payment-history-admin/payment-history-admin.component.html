@@ -1,157 +1,130 @@
 <div *ngIf="showFeesModule; else comingSoonTemplate">
-  <div class="payment-history-container">
-    <div class="left-navigation">
-      <h2>CLASSES</h2>
-      <ul class="class-list-vertical">
-        <li (click)="onClassSelect('all')" [class.selected]="selectedClass === 'all'" class="class-item-vertical">
-          <div class="chevron">
-            <span>All Payments</span>
-          </div>
-        </li>
-        <li *ngFor="let className of classList; trackBy: trackByClass" (click)="onClassSelect(className)"
-          [class.selected]="className !== 'all' && className === selectedClass" class="class-item-vertical">
-          <div class="chevron">
-            <span>{{ className }}</span>
-          </div>
-        </li>
-      </ul>
+  <div class="pha-page">
+
+    <!-- ── Hero ──────────────────────────────────────────────────── -->
+    <div class="pha-hero">
+      <div class="pha-hero-left">
+        <div class="pha-hero-icon">💰</div>
+        <div>
+          <h1 class="pha-hero-title">Payment History</h1>
+          <p class="pha-hero-sub">All student fee transactions</p>
+        </div>
+      </div>
+      <div class="pha-blob pha-blob-1"></div>
+      <div class="pha-blob pha-blob-2"></div>
     </div>
 
-    <div class="payment-history-area">
-      <h2>Payment History {{ selectedClass !== 'all' ? 'for Class ' + selectedClass : ' - All Payments' }}</h2>
+    <!-- ── Class Chips ────────────────────────────────────────────── -->
+    <div class="pha-chips-wrap">
+      <div class="pha-chips">
+        <button class="pha-chip" [class.pha-chip-active]="selectedClass === 'all'"
+          (click)="onClassSelect('all')">All</button>
+        <button *ngFor="let c of classList; trackBy: trackByClass" class="pha-chip"
+          [class.pha-chip-active]="selectedClass === c"
+          (click)="onClassSelect(c)">{{ c }}</button>
+      </div>
+    </div>
 
-      <div class="filter-options">
-        <div class="form-group">
-          <label for="date" class="form-label">Filter by Date:</label>
-          <mat-form-field appearance="outline">
-            <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" (ngModelChange)="onDateSelect()"
-              id="date">
+    <!-- ── Filters ────────────────────────────────────────────────── -->
+    <div class="pha-filter-card">
+      <div class="pha-filter-row">
+
+        <div class="pha-filter-group">
+          <label class="pha-filter-label">Filter by Date</label>
+          <mat-form-field appearance="outline" class="pha-mat-field">
+            <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate"
+              (ngModelChange)="onDateSelect()" placeholder="Pick a date">
             <mat-datepicker-toggle matSuffix [for]="picker">
               <mat-icon>calendar_today</mat-icon>
             </mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
           </mat-form-field>
         </div>
-        <div class="form-group">
-          <label for="studentIdFilter" class="form-label">Filter by Student ID:</label>
-          <mat-form-field appearance="outline">
-            <input matInput [(ngModel)]="studentIdFilter" (input)="onStudentIdInput()" id="studentIdFilter">
+
+        <div class="pha-filter-group">
+          <label class="pha-filter-label">Student ID</label>
+          <mat-form-field appearance="outline" class="pha-mat-field">
+            <input matInput [(ngModel)]="studentIdFilter" (input)="onStudentIdInput()"
+              placeholder="Search by ID…">
           </mat-form-field>
         </div>
-        <button class="clear-filter-button" (click)="clearFilter()">Clear Filter</button>
-      </div>
 
-      <div *ngIf="loading" class="loading-indicator">Loading payment history...</div>
-      <div *ngIf="error" class="error-message">{{ error }}</div>
-
-      <div class="top-pagination-controls" *ngIf="totalElements > 0">
-        <div class="page-info">
-          Total: {{ totalElements }} payments
-        </div>
-        <div class="page-size">
-          Payments per page:
-          <select [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange($event)">
-            <option *ngFor="let size of pageSizes; let i = index; trackBy: trackByIndex" [ngValue]="size">{{ size }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div *ngIf="filteredPayments.length > 0; else noPaymentsContainer">
-        <div class="table-wrapper d-none d-md-block">
-          <table class="payment-history-table">
-            <thead>
-              <tr>
-                <th>Student ID</th>
-                <th>Student Name</th>
-                <th>Amount Paid</th>
-                <th>Payment Date</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let payment of filteredPayments; trackBy: trackByPaymentId" class="payment-row clickable-row"
-                (click)="viewPaymentDetails(payment.paymentId)">
-                <td>{{ payment.studentId }}</td>
-                <td>{{ payment.studentName }}</td>
-                <td>{{ payment.amountPaid }}</td>
-                <td>{{ payment.paymentDate | date:'yyyy-MM-dd' }}</td>
-                <td
-                  [ngClass]="{'status-success': payment.status.toLowerCase() === 'success', 'status-failed': payment.status.toLowerCase() !== 'success'}">
-                  {{
-                  payment.status | uppercase}}</td>
-                <td>
-                  <button (click)="downloadPaymentReceipt(payment.paymentId, $event)" class="download-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"
-                      fill="currentColor">
-                      <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="cards-wrapper d-block d-md-none">
-          <div *ngFor="let payment of filteredPayments; trackBy: trackByPaymentId" class="payment-card clickable-card"
-            (click)="viewPaymentDetails(payment.paymentId)">
-            <div class="card-row">
-              <span class="card-label">Student ID:</span>
-              <span class="card-value">{{ payment.studentId }}</span>
-            </div>
-            <div class="card-row">
-              <span class="card-label">Student Name:</span>
-              <span class="card-value">{{ payment.studentName }}</span>
-            </div>
-            <div class="card-row">
-              <span class="card-label">Amount Paid:</span>
-              <span class="card-value">{{ payment.amountPaid }}</span>
-            </div>
-            <div class="card-row">
-              <span class="card-label">Payment Date:</span>
-              <span class="card-value">{{ payment.paymentDate | date:'yyyy-MM-dd' }}</span>
-            </div>
-            <div class="card-row">
-              <span class="card-label">Status:</span>
-              <span class="card-value"
-                [ngClass]="{'status-success': payment.status.toLowerCase() === 'success', 'status-failed': payment.status.toLowerCase() !== 'success'}">{{
-                payment.status | uppercase}}</span>
-            </div>
-            <div class="card-actions">
-              <button (click)="downloadPaymentReceipt(payment.paymentId, $event)" class="download-button">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                  <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-                </svg>
-                Download Receipt
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ng-template #noPaymentsContainer>
-        <p class="no-payments">No payment history found for the applied filters.</p>
-      </ng-template>
-
-      <div class="pagination-controls" *ngIf="totalElements > 0">
-        <div class="pagination-buttons">
-          <button (click)="prevPage()" [disabled]="currentPage === 0">Previous</button>
-
-          <ng-container *ngFor="let pageItem of getPaginationDisplayPages(); let i = index; trackBy: trackByIndex">
-            <ng-container *ngIf="pageItem !== '...'; else ellipsisTemplate">
-              <button (click)="goToPage(+pageItem)" [class.active]="currentPage === +pageItem">
-                {{ +pageItem + 1 }}
-              </button>
-            </ng-container>
-            <ng-template #ellipsisTemplate>
-              <span class="ellipsis">{{ pageItem }}</span>
-            </ng-template>
-          </ng-container>
-
-          <button (click)="nextPage()" [disabled]="currentPage === totalPages - 1">Next</button>
-        </div>
+        <button class="pha-clear-btn" (click)="clearFilter()">Clear</button>
       </div>
     </div>
+
+    <!-- ── Loading / Error ──────────────────────────────────────── -->
+    <div class="pha-loading" *ngIf="loading">
+      <div class="pha-spinner"></div>
+      <span>Loading payments…</span>
+    </div>
+    <p class="pha-error" *ngIf="error">{{ error }}</p>
+
+    <!-- ── Action Bar ─────────────────────────────────────────────── -->
+    <div class="pha-action-bar" *ngIf="!loading && totalElements > 0">
+      <span class="pha-total">{{ totalElements }} payment{{ totalElements !== 1 ? 's' : '' }}</span>
+      <div class="pha-page-size">
+        Per page:
+        <select [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+          <option *ngFor="let s of pageSizes; let i = index; trackBy: trackByIndex" [ngValue]="s">{{ s }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ── Payment Cards ─────────────────────────────────────────── -->
+    <div class="pha-list" *ngIf="!loading && filteredPayments.length > 0">
+      <div *ngFor="let p of filteredPayments; trackBy: trackByPaymentId"
+        class="pha-card" (click)="viewPaymentDetails(p.paymentId)">
+
+        <div class="pha-card-left">
+          <div class="pha-amount-circle">₹</div>
+        </div>
+
+        <div class="pha-card-body">
+          <div class="pha-card-top">
+            <span class="pha-student-name">{{ p.studentName }}</span>
+            <span class="pha-status-chip"
+              [class.pha-status-success]="p.status.toLowerCase() === 'success'"
+              [class.pha-status-failed]="p.status.toLowerCase() !== 'success'">
+              {{ p.status | uppercase }}
+            </span>
+          </div>
+          <div class="pha-card-mid">
+            <span class="pha-amount">₹{{ p.amountPaid | number }}</span>
+          </div>
+          <div class="pha-card-bottom">
+            <span class="pha-student-id">{{ p.studentId }}</span>
+            <span class="pha-date">{{ p.paymentDate | date:'dd MMM yyyy' }}</span>
+          </div>
+        </div>
+
+        <button class="pha-dl-btn" (click)="downloadPaymentReceipt(p.paymentId, $event)"
+          aria-label="Download receipt">⬇</button>
+      </div>
+    </div>
+
+    <!-- ── Empty ─────────────────────────────────────────────────── -->
+    <div class="pha-empty" *ngIf="!loading && !error && filteredPayments.length === 0">
+      <div class="pha-empty-icon">📭</div>
+      <p class="pha-empty-title">No payments found</p>
+      <p class="pha-empty-sub">Try adjusting the filters or selecting a different class.</p>
+    </div>
+
+    <!-- ── Pagination ─────────────────────────────────────────────── -->
+    <div class="pha-pagination" *ngIf="!loading && totalPages > 1">
+      <button class="pha-page-btn" (click)="prevPage()" [disabled]="currentPage === 0">&#8249; Prev</button>
+
+      <ng-container *ngFor="let pageItem of getPaginationDisplayPages(); let i = index; trackBy: trackByIndex">
+        <ng-container *ngIf="pageItem !== '...'; else ellipsis">
+          <button class="pha-page-btn" [class.pha-page-active]="currentPage === +pageItem"
+            (click)="goToPage(+pageItem)">{{ +pageItem + 1 }}</button>
+        </ng-container>
+        <ng-template #ellipsis><span class="pha-ellipsis">…</span></ng-template>
+      </ng-container>
+
+      <button class="pha-page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">Next &#8250;</button>
+    </div>
+
   </div>
 </div>
 

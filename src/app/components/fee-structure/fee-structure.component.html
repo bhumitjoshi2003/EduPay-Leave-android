@@ -1,81 +1,104 @@
-<div class="fee-structure-container">
-  <div class="header">
-    <h2>School Fee Structure {{currentSession}}</h2>
+<div class="fs-page">
 
-    <div class="actions">
-      <div class="session-select-wrapper">
-        <label for="session-select">Academic Session:</label>
-        <select id="session-select" [(ngModel)]="currentSession" (change)="changeSession(currentSession)">
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="fs-hero">
+    <div class="fs-hero-left">
+      <div class="fs-hero-icon">💼</div>
+      <div>
+        <h1 class="fs-hero-title">Fee Structure</h1>
+        <p class="fs-hero-sub">School fee schedule — {{ currentSession }}</p>
+      </div>
+    </div>
+    <div class="fs-blob fs-blob-1"></div>
+    <div class="fs-blob fs-blob-2"></div>
+  </div>
+
+  <!-- ── Controls ──────────────────────────────────────────────────── -->
+  <div class="fs-controls">
+    <div class="fs-controls-row">
+
+      <div class="fs-control-group">
+        <label class="fs-label" for="session-select">Session</label>
+        <select id="session-select" class="fs-select" [(ngModel)]="currentSession"
+          (change)="changeSession(currentSession)">
           <option *ngFor="let session of sessions; trackBy: trackBySession" [value]="session">{{ session }}</option>
         </select>
       </div>
 
-      <button *ngIf="!(isNewSessionStarted || isEditing) && canEdit()" (click)="startNewAcademicYear()">Start New
-        Academic Year</button>
-      <button *ngIf="!isEditing && canEdit()" (click)="edit()">Edit</button>
-
-      <div *ngIf="isEditing" class="edit-actions">
-        <button (click)="save()">Save</button>
-        <button (click)="cancel()">Cancel</button>
-        <button (click)="addRow()">Add Row</button>
-        <button (click)="removeRow()">Remove Row</button>
+      <div class="fs-action-buttons">
+        <button *ngIf="!(isNewSessionStarted || isEditing) && canEdit()"
+          class="fs-btn fs-btn-secondary" (click)="startNewAcademicYear()">
+          ＋ New Year
+        </button>
+        <button *ngIf="!isEditing && canEdit()"
+          class="fs-btn fs-btn-primary" (click)="edit()">
+          ✎ Edit
+        </button>
+        <ng-container *ngIf="isEditing">
+          <button class="fs-btn fs-btn-success" (click)="save()">✓ Save</button>
+          <button class="fs-btn fs-btn-danger" (click)="cancel()">✕ Cancel</button>
+          <button class="fs-btn fs-btn-secondary" (click)="addRow()">＋ Row</button>
+          <button class="fs-btn fs-btn-secondary" (click)="removeRow()">− Row</button>
+        </ng-container>
       </div>
+
     </div>
   </div>
 
-  <div class="tables-container">
-    <div class="fee-table-section">
-      <div class="table-responsive-wrapper">
-        <table class="fee-table">
-          <thead>
-            <tr>
-              <th>Class</th>
-              <th>Tuition Fee</th>
-              <th>Admission Fee</th>
-              <th>Annual Charges</th>
-              <th>E.C.A (Project)</th>
-              <th>Examination Fee</th>
-              <th>Lab Charges</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let fee of feeStructures; trackBy: trackByClassName">
-              <td>
-                <input *ngIf="isEditing" type="text" [(ngModel)]="fee.className" />
-                <span *ngIf="!isEditing">{{ fee.className }}</span>
-              </td>
-              <td>
-                <input *ngIf="isEditing" type="number" [(ngModel)]="fee.tuitionFee" />
-                <span *ngIf="!isEditing">{{ fee.tuitionFee }}</span>
-              </td>
-              <td>
-                <input *ngIf="isEditing" type="number" [(ngModel)]="fee.admissionFee" />
-                <span *ngIf="!isEditing">{{ fee.admissionFee }}</span>
-              </td>
-              <td>
-                <input *ngIf="isEditing" type="number" [(ngModel)]="fee.annualCharges" />
-                <span *ngIf="!isEditing">{{ fee.annualCharges }}</span>
-              </td>
-              <td>
-                <input *ngIf="isEditing" type="number" [(ngModel)]="fee.ecaProject" />
-                <span *ngIf="!isEditing">{{ fee.ecaProject }}</span>
-              </td>
-              <td>
-                <input *ngIf="isEditing" type="number" [(ngModel)]="fee.examinationFee" />
-                <span *ngIf="!isEditing">{{ fee.examinationFee }}</span>
-              </td>
-              <td>
-                <input *ngIf="isEditing" type="number" [(ngModel)]="fee.labCharges" />
-                <span *ngIf="!isEditing">{{ fee.labCharges }}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="bus-fees-table-section">
-      <app-bus-fees></app-bus-fees>
+  <!-- ── Fee Table ─────────────────────────────────────────────────── -->
+  <div class="fs-table-wrap">
+    <div class="fs-table-scroll">
+      <table class="fs-table" aria-label="Fee structure table">
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Tuition Fee</th>
+            <th>Admission Fee</th>
+            <th>Annual Charges</th>
+            <th>E.C.A (Project)</th>
+            <th>Examination Fee</th>
+            <th>Lab Charges</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let fee of feeStructures; trackBy: trackByClassName">
+            <td data-label="Class">
+              <input *ngIf="isEditing" class="fs-input" type="text" [(ngModel)]="fee.className" />
+              <span *ngIf="!isEditing" class="fs-cell-val fs-class-name">{{ fee.className }}</span>
+            </td>
+            <td data-label="Tuition Fee">
+              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.tuitionFee" />
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.tuitionFee }}</span>
+            </td>
+            <td data-label="Admission Fee">
+              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.admissionFee" />
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.admissionFee }}</span>
+            </td>
+            <td data-label="Annual Charges">
+              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.annualCharges" />
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.annualCharges }}</span>
+            </td>
+            <td data-label="E.C.A">
+              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.ecaProject" />
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.ecaProject }}</span>
+            </td>
+            <td data-label="Exam Fee">
+              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.examinationFee" />
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.examinationFee }}</span>
+            </td>
+            <td data-label="Lab Charges">
+              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.labCharges" />
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.labCharges }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
+
+  <!-- ── Bus Fees ───────────────────────────────────────────────────── -->
+  <div class="fs-bus-wrap">
+    <app-bus-fees></app-bus-fees>
+  </div>
+
 </div>

@@ -1,61 +1,99 @@
-<div class="student-list-container">
-  <div *ngIf="loggedInUserRole === 'ADMIN'" class="left-navigation">
-    <h2>Classes</h2>
-    <ul class="class-list-vertical">
-      <li *ngFor="let className of classList; trackBy: trackByClass" (click)="onClassSelect(className)"
-        [class.selected]="className === selectedClass" class="class-item-vertical">
-        <div class="chevron">
-          <span>{{ className }}</span>
+<div class="sl-page">
+
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <div class="sl-hero">
+    <div class="sl-hero-left">
+      <div class="sl-hero-icon">👨‍🎓</div>
+      <div>
+        <h1 class="sl-hero-title">Students</h1>
+        <p class="sl-hero-sub">
+          {{ loggedInUserRole === 'TEACHER' ? 'Class ' + selectedClass : 'Class ' + selectedClass }}
+        </p>
+      </div>
+    </div>
+    <div class="sl-hero-right" *ngIf="loggedInUserRole === 'ADMIN'">
+      <button class="sl-import-btn" (click)="navigateToBulkImport()">⬆ Bulk Import</button>
+    </div>
+    <div class="sl-blob sl-blob-1"></div>
+    <div class="sl-blob sl-blob-2"></div>
+  </div>
+
+  <!-- ── Class Chips (Admin only) ──────────────────────────────────── -->
+  <div class="sl-chips-wrap" *ngIf="loggedInUserRole === 'ADMIN'">
+    <div class="sl-chips">
+      <button *ngFor="let c of classList; trackBy: trackByClass"
+        class="sl-chip" [class.sl-chip-active]="selectedClass === c"
+        (click)="onClassSelect(c)">{{ c }}</button>
+    </div>
+  </div>
+
+  <!-- ── Empty ──────────────────────────────────────────────────────── -->
+  <div class="sl-empty"
+    *ngIf="activeStudents.length === 0 && newStudents.length === 0 && inactiveStudents.length === 0">
+    <div class="sl-empty-icon">🔍</div>
+    <p class="sl-empty-title">No students found</p>
+    <p class="sl-empty-sub">No students found for the selected class</p>
+  </div>
+
+  <!-- ── Active Students ───────────────────────────────────────────── -->
+  <div class="sl-section" *ngIf="activeStudents.length > 0">
+    <div class="sl-section-header">
+      <span class="sl-section-dot sl-dot-active"></span>
+      <h2 class="sl-section-title">Active</h2>
+      <span class="sl-section-count">{{ activeStudents.length }}</span>
+    </div>
+    <div class="sl-list">
+      <div class="sl-card" *ngFor="let s of activeStudents; trackBy: trackByStudentId"
+        (click)="viewStudentDetails(s.studentId)">
+        <div class="sl-avatar sl-avatar-active">{{ s.name.charAt(0).toUpperCase() }}</div>
+        <div class="sl-card-info">
+          <span class="sl-card-name">{{ s.name }}</span>
+          <span class="sl-card-id">{{ s.studentId }}</span>
         </div>
-      </li>
-    </ul>
+        <span class="sl-arrow">›</span>
+      </div>
+    </div>
   </div>
 
-  <div class="student-list-area">
-    <div class="student-list-area__header">
-      <h2 *ngIf="loggedInUserRole === 'TEACHER'">Students of Class {{ selectedClass }}</h2>
-      <h2 *ngIf="loggedInUserRole === 'ADMIN' && selectedClass">Students of Class {{ selectedClass }}</h2>
-      <button *ngIf="loggedInUserRole === 'ADMIN'" class="bulk-import-btn" (click)="navigateToBulkImport()">
-        &#8679; Bulk Import
-      </button>
+  <!-- ── New Students ──────────────────────────────────────────────── -->
+  <div class="sl-section" *ngIf="newStudents.length > 0">
+    <div class="sl-section-header">
+      <span class="sl-section-dot sl-dot-new"></span>
+      <h2 class="sl-section-title">New</h2>
+      <span class="sl-section-count sl-count-new">{{ newStudents.length }}</span>
     </div>
-    <div *ngIf="(activeStudents.length + inactiveStudents.length + newStudents.length) > 0; else noStudentsContainer">
-      <ul class="student-list">
-        <li *ngFor="let student of activeStudents; trackBy: trackByStudentId" class="active-student-item"
-          (click)="viewStudentDetails(student.studentId)">
-          <div class="student-info">
-            <span class="student-name">{{ student.name }}</span>
-            <span class="student-id">({{ student.studentId }})</span>
-          </div>
-          <button class="view-details-button" (click)="viewStudentDetails(student.studentId)">View Details</button>
-        </li>
-      </ul>
-
-      <ul class="student-list">
-        <li *ngFor="let student of newStudents; trackBy: trackByStudentId" class="new-student-item"
-          (click)="viewStudentDetails(student.studentId)">
-          <div class="student-info">
-            <span class="student-name">{{ student.name }}</span>
-            <span class="student-id">({{ student.studentId }})</span>
-          </div>
-          <button class="view-details-button" (click)="viewStudentDetails(student.studentId)">View Details</button>
-        </li>
-      </ul>
-
-      <ul class="student-list">
-        <li *ngFor="let student of inactiveStudents; trackBy: trackByStudentId" class="inactive-student-item"
-          (click)="viewStudentDetails(student.studentId)">
-          <div class="student-info">
-            <span class="student-name">{{ student.name }}</span>
-            <span class="student-id">({{ student.studentId }})</span>
-          </div>
-          <button class="inactive-view-details-button" (click)="viewStudentDetails(student.studentId)">View
-            Details</button>
-        </li>
-      </ul>
+    <div class="sl-list">
+      <div class="sl-card sl-card-new" *ngFor="let s of newStudents; trackBy: trackByStudentId"
+        (click)="viewStudentDetails(s.studentId)">
+        <div class="sl-avatar sl-avatar-new">{{ s.name.charAt(0).toUpperCase() }}</div>
+        <div class="sl-card-info">
+          <span class="sl-card-name">{{ s.name }}</span>
+          <span class="sl-card-id">{{ s.studentId }}</span>
+        </div>
+        <span class="sl-new-tag">NEW</span>
+        <span class="sl-arrow">›</span>
+      </div>
     </div>
-    <ng-template #noStudentsContainer>
-      <p class="no-students">No students found for the selected class.</p>
-    </ng-template>
   </div>
+
+  <!-- ── Inactive Students ─────────────────────────────────────────── -->
+  <div class="sl-section" *ngIf="inactiveStudents.length > 0">
+    <div class="sl-section-header">
+      <span class="sl-section-dot sl-dot-inactive"></span>
+      <h2 class="sl-section-title">Inactive</h2>
+      <span class="sl-section-count sl-count-inactive">{{ inactiveStudents.length }}</span>
+    </div>
+    <div class="sl-list">
+      <div class="sl-card sl-card-inactive" *ngFor="let s of inactiveStudents; trackBy: trackByStudentId"
+        (click)="viewStudentDetails(s.studentId)">
+        <div class="sl-avatar sl-avatar-inactive">{{ s.name.charAt(0).toUpperCase() }}</div>
+        <div class="sl-card-info">
+          <span class="sl-card-name sl-name-inactive">{{ s.name }}</span>
+          <span class="sl-card-id">{{ s.studentId }}</span>
+        </div>
+        <span class="sl-arrow">›</span>
+      </div>
+    </div>
+  </div>
+
 </div>

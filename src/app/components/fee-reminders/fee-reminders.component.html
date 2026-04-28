@@ -1,12 +1,17 @@
 <div *ngIf="showFeesReminderModule; else comingSoonTemplate">
-  <div class="fr-container">
+  <div class="fr-page">
 
-    <!-- ── Header ───────────────────────────────────────────────── -->
-    <div class="fr-page-header">
-      <div>
-        <h2 class="fr-title">Fee Reminders</h2>
-        <p class="fr-subtitle">Students with overdue fee payments</p>
+    <!-- ── Hero ────────────────────────────────────────────────── -->
+    <div class="fr-hero">
+      <div class="fr-hero-left">
+        <div class="fr-hero-icon">🔔</div>
+        <div>
+          <h1 class="fr-hero-title">Fee Reminders</h1>
+          <p class="fr-hero-sub">Students with overdue fee payments</p>
+        </div>
       </div>
+      <div class="fr-blob fr-blob-1"></div>
+      <div class="fr-blob fr-blob-2"></div>
     </div>
 
     <!-- ── Controls ─────────────────────────────────────────────── -->
@@ -50,21 +55,21 @@
 
     <!-- ── Summary cards ────────────────────────────────────────── -->
     <div class="fr-stats" *ngIf="!isLoading && allStudents.length > 0">
-      <div class="fr-stat-card">
+      <div class="fr-stat-card" style="--c1:#dc2626;--c2:#f87171">
         <span class="fr-stat-value">{{ filteredStudents.length }}</span>
         <span class="fr-stat-label">Overdue Students</span>
       </div>
-      <div class="fr-stat-card fr-stat-amount">
-        <span class="fr-stat-value">₹{{ totalDue | number }}</span>
+      <div class="fr-stat-card" style="--c1:#7c3aed;--c2:#a78bfa">
+        <span class="fr-stat-value" style="font-size:1.1rem">₹{{ totalDue | number }}</span>
         <span class="fr-stat-label">Total Due</span>
       </div>
-      <div class="fr-stat-card fr-stat-critical">
+      <div class="fr-stat-card" style="--c1:#b91c1c;--c2:#ef4444">
         <span class="fr-stat-value">{{ criticalCount }}</span>
         <span class="fr-stat-label">Critical (60+ days)</span>
       </div>
-      <div class="fr-stat-card fr-stat-warning">
+      <div class="fr-stat-card" style="--c1:#d97706;--c2:#fbbf24">
         <span class="fr-stat-value">{{ warningCount }}</span>
-        <span class="fr-stat-label">Warning (30-60 days)</span>
+        <span class="fr-stat-label">Warning (30–60 days)</span>
       </div>
     </div>
 
@@ -200,7 +205,6 @@
 
   </div>
 </div>
-
 
 <ng-template #comingSoonTemplate>
   <app-coming-soon [title]="comingSoonConfig.title" [message]="comingSoonConfig.message"

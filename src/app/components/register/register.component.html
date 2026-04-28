@@ -1,21 +1,32 @@
-<div class="register-container">
-    <div class="form-toggle-nav">
-      <button
-        [ngClass]="{'active': showStudentForm}"
-        (click)="toggleForm('student')"
-      >
-        Register Student
-      </button>
-      <button
-        [ngClass]="{'active': !showStudentForm}"
-        (click)="toggleForm('teacher')"
-      >
-        Register Teacher
-      </button>
+<div class="rg-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="rg-hero">
+    <div class="rg-hero-left">
+      <div class="rg-hero-icon">📝</div>
+      <div>
+        <h1 class="rg-hero-title">Register</h1>
+        <p class="rg-hero-sub">Add new students or staff members</p>
+      </div>
     </div>
-  
-    <div class="form-wrapper">
-      <app-register-student *ngIf="showStudentForm"></app-register-student>
-      <app-register-teacher *ngIf="!showStudentForm"></app-register-teacher>
-    </div>
+    <div class="rg-blob rg-blob-1"></div>
+    <div class="rg-blob rg-blob-2"></div>
   </div>
+
+  <!-- ── Tab Chips ─────────────────────────────────────────────────── -->
+  <div class="rg-tabs">
+    <button class="rg-tab" [class.rg-tab-active]="showStudentForm" (click)="toggleForm('student')">
+      👨‍🎓 Student
+    </button>
+    <button class="rg-tab" [class.rg-tab-active]="!showStudentForm" (click)="toggleForm('teacher')">
+      👨‍🏫 Teacher
+    </button>
+  </div>
+
+  <!-- ── Form Content ───────────────────────────────────────────────── -->
+  <div class="rg-form-wrap">
+    <app-register-student *ngIf="showStudentForm"></app-register-student>
+    <app-register-teacher *ngIf="!showStudentForm"></app-register-teacher>
+  </div>
+
+</div>

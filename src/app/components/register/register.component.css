@@ -1,134 +1,100 @@
-body {
-  background: linear-gradient(135deg, #e0f7fa, #ffffff);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 20px;
-  box-sizing: border-box;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.rg-page {
+  padding-bottom: 16px;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.register-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 700px;
-  margin: 0px auto;
-  padding: 0 15px;
-  box-sizing: border-box;
-
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.8);
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.rg-hero {
+  position: relative;
+  background: linear-gradient(135deg, #064e3b 0%, #059669 55%, #34d399 100%);
   border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  animation: fadeIn 1s ease-out;
-  /* Keeping the fadeIn animation here */
-}
-
-.form-toggle-nav {
+  padding: 24px 20px 28px;
+  margin: 0 0 16px;
   display: flex;
-  margin-bottom: 20px;
-  justify-content: center;
-  width: 100%;
-  max-width: 400px;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 5px;
-  margin-top: 20px;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
 }
 
-.form-toggle-nav button {
-  padding: 10px 20px;
-  font-size: 1rem;
-  border: none;
-  background-color: transparent;
+.rg-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.rg-blob-1 { width: 120px; height: 120px; background: #fff;    top: -30px; right: -20px; }
+.rg-blob-2 { width: 80px;  height: 80px;  background: #6ee7b7; bottom: -20px; left: 40%; }
+
+.rg-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.rg-hero-icon {
+  font-size: 1.6rem;
+  background: rgba(255,255,255,0.18);
+  border-radius: 14px;
+  width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.rg-hero-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.rg-hero-sub {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.78);
+}
+
+/* ── Tab Chips ────────────────────────────────────────────────────── */
+.rg-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.rg-tab {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: color 0.3s ease, font-weight 0.3s ease, border-bottom 0.3s ease;
-  color: #555;
-  flex-grow: 1;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-family: inherit;
   text-align: center;
-  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-.form-toggle-nav button:hover {
-  color: #00796b;
+.rg-tab-active {
+  background: linear-gradient(135deg, #059669, #34d399);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 3px 12px rgba(5,150,105,0.3);
 }
 
-.form-toggle-nav button.active {
-  color: #00796b;
-  font-weight: bold;
-  border-bottom: 2px solid #00796b;
-}
-
-.form-wrapper {
+/* ── Form Wrapper ─────────────────────────────────────────────────── */
+.rg-form-wrap {
   width: 100%;
-  padding: 0;
-  margin-bottom: 30px;
 }
 
 app-register-student,
 app-register-teacher {
   display: block;
   width: 100%;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive adjustments for the main layout */
-@media (max-width: 768px) {
-  body {
-    padding: 15px;
-  }
-
-  .register-container {
-    margin: 15px auto;
-    padding: 0 10px;
-  }
-
-  .form-toggle-nav {
-    margin-bottom: 15px;
-    max-width: 350px;
-    margin-top: 15px;
-  }
-
-  .form-toggle-nav button {
-    padding: 8px 15px;
-    font-size: 0.95rem;
-  }
-}
-
-@media (max-width: 480px) {
-  body {
-    padding: 10px;
-  }
-
-  .register-container {
-    margin: 10px auto;
-    padding: 0 5px;
-  }
-
-  .form-toggle-nav {
-    margin-bottom: 10px;
-    max-width: 280px;
-    margin-top: 10px;
-  }
-
-  .form-toggle-nav button {
-    padding: 8px 10px;
-    font-size: 0.85rem;
-  }
 }
