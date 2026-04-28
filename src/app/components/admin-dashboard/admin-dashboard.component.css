@@ -92,7 +92,6 @@
   font-size: 0.8rem;
   font-weight: 700;
   color: #fff;
-  backdrop-filter: blur(4px);
 }
 
 .ad-role-badge mat-icon {
@@ -111,7 +110,6 @@
   border-radius: 14px;
   padding: 10px 14px;
   text-align: center;
-  backdrop-filter: blur(6px);
 }
 
 .ad-date-day {

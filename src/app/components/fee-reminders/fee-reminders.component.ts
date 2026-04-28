@@ -27,7 +27,7 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
   ];
 
   comingSoonConfig = MODULE_MESSAGES.feesReminder;
-  showFeesReminderModule: boolean = false;
+  showFeesReminderModule: boolean = true;
   sessions: string[] = [];
   selectedSession = '';
   selectedClass = '';
@@ -51,7 +51,7 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
     private feeReminderService: FeeReminderService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initSessions();

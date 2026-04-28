@@ -2,6 +2,10 @@
 .photo-section {
   display: flex;
   justify-content: center;
+  background: #fff;
+  border-radius: 18px;
+  padding: 24px 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
 .photo-wrapper {
@@ -76,20 +80,12 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .teacher-details-container {
-  padding: 50px;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  animation: fadeIn 0.8s ease-in-out;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  margin: 5px auto;
-  width: 92%;
+  gap: 16px;
+  padding-bottom: 16px;
 }
 
 .header {
@@ -97,19 +93,20 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 15px;
-  padding-bottom: 30px;
+  gap: 12px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
 .header h2 {
-  color: #222;
-  border-bottom: 4px solid #4fbdbd;
-  padding-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-size: 2.2em;
+  color: #1a1a2e;
+  font-size: 1.2rem;
+  font-weight: 800;
   margin: 0;
   flex-shrink: 0;
+  letter-spacing: -0.2px;
 }
 
 .header button {
@@ -150,24 +147,22 @@
 .details-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 25px;
+  gap: 10px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
 .detail-item {
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 15px;
-  padding: 20px 25px;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 13px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-left: 6px solid #4fbdbd;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.detail-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid #f1f5f9;
+  border-left: 4px solid #0f766e;
 }
 
 .detail-item.parent-info {

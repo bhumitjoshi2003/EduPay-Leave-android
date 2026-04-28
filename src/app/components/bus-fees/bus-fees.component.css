@@ -1,11 +1,9 @@
 .bus-fees-container {
-  width: 94%;
-  margin: 0px auto;
-  background: linear-gradient(145deg, #f0faff, #e0f7fa);
-  border-radius: 16px;
-  box-shadow: 9px 9px 18px #d1e9f1, -9px -9px 18px #efffff;
-  padding: 40px;
-  font-family: 'Poppins', sans-serif;
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  font-family: 'Segoe UI', sans-serif;
 }
 
 input[type="number"]::-webkit-outer-spin-button,
@@ -16,317 +14,158 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .header {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 40px;
-  padding-bottom: 25px;
-  border-bottom: 2px solid #81d4fa;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .header h2 {
-  color: #1e88e5;
-  font-size: 30px;
-  margin-top: 0;
-  margin-bottom: 20px;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.8px;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  text-align: left;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0;
+  flex: 1;
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 15px;
-  width: 100%;
-  justify-content: flex-end;
+  gap: 8px;
 }
 
 .actions .session-select-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-right: auto;
-}
-
-.actions button,
-.actions select {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 2px 2px 4px #d1e9f1, -2px -2px 4px #efffff;
-  border: none;
-  outline: none;
-}
-
-.actions button {
-  background-color: #34b4e3;
-  color: white;
-}
-
-.actions button:hover {
-  background-color: #159aca;
-  transform: translateY(-2px);
-}
-
-.actions button:active {
-  transform: translateY(1px);
-}
-
-.actions select {
-  color: #444;
-  background-color: #fff;
-  border: 1px solid #81d4fa;
-  min-width: 160px;
-  padding: 12px 18px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.actions select:focus {
-  border-color: #1e88e5;
-  box-shadow: 0 0 6px rgba(30, 136, 229, 0.3);
+  gap: 6px;
 }
 
 .actions .session-select-wrapper label {
-  font-size: 17px;
-  color: #333;
-  font-weight: 400;
-  margin-right: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
 }
 
-.actions>div[ngif="isEditing"] {
+.actions select {
+  padding: 7px 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  background: #f8fafc;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+  min-width: 130px;
+}
+.actions select:focus { border-color: #0369a1; outline: none; }
+
+.actions button {
+  padding: 7px 14px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0369a1, #0ea5e9);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.actions button:hover { opacity: 0.88; }
+
+.edit-actions {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.actions>div[ngif="isEditing"] button {
-  padding: 10px 16px;
-  font-size: 14px;
-  box-shadow: 1px 1px 2px #d1e9f1, -1px -1px 2px #efffff;
+.edit-actions button {
+  padding: 7px 12px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0369a1, #0ea5e9);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
 }
+.edit-actions button:hover { opacity: 0.88; }
 
-.actions>div[ngif="isEditing"] button:hover {
-  box-shadow: 2px 2px 4px #d1e9f1, -2px -2px 4px #efffff;
+/* ── Table ────────────────────────────────────────────────────────── */
+.table-responsive-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
 }
 
 .bus-fees-table {
   width: 100%;
   border-collapse: collapse;
-}
-
-.bus-fees-table th,
-.bus-fees-table td {
-  padding: 16px;
-  text-align: left;
-  border-bottom: 1px solid #b2ebf2;
+  min-width: 400px;
 }
 
 .bus-fees-table th {
-  background-color: #1e88e5;
-  color: white;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #0369a1, #0c4a6e);
+  color: #fff;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
-.bus-fees-table tr:nth-child(even) {
-  background-color: #f8f8f8;
+.bus-fees-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  font-size: 0.85rem;
+  color: #374151;
 }
 
-.bus-fees-table tr:hover {
-  background-color: #e0f7fa;
-  transition: background-color 0.3s ease;
-  transform: scale(1.005);
-}
+.bus-fees-table tbody tr:last-child td { border-bottom: none; }
+.bus-fees-table tbody tr:hover { background: #f8fafc; }
 
 .bus-fees-table input[type="number"] {
   width: 80px;
-  padding: 10px;
-  border: 1px solid #81d4fa;
-  border-radius: 6px;
-  font-size: 15px;
-  transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-  color: #333;
-  background-color: #fff;
+  padding: 7px 9px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #374151;
+  background: #f8fafc;
   outline: none;
-  box-shadow: inset 1px 1px 3px #d1e9f1, inset -1px -1px 3px #efffff;
+  font-family: inherit;
 }
-
 .bus-fees-table input[type="number"]:focus {
-  border-color: #26a69a;
-  box-shadow: 0 0 6px rgba(38, 166, 154, 0.5);
+  border-color: #0369a1;
+  box-shadow: 0 0 0 2px rgba(3,105,161,0.1);
 }
 
 .bus-fees-table td span {
   display: block;
-  padding: 10px 0;
-  color: #555;
-  font-size: 15px;
+  color: #374151;
+  font-size: 0.85rem;
 }
 
-:disabled {
-  cursor: not-allowed !important;
-  opacity: 0.6;
-}
-
-.edit-actions {
-  display: flex;
-  gap: 15px;
-}
-
-.edit-actions button {
-  padding: 12px 25px;
-  font-size: 14px;
-  box-shadow: 1px 1px 2px #d1e9f1, -1px -1px 2px #efffff;
-}
-
-.edit-actions button:hover {
-  box-shadow: 2px 2px 4px #d1e9f1, -2px -2px 4px #efffff;
-}
-
-.actions .edit-actions button {
-  border-radius: 10px;
-  background-color: #34b4e3;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: 0.3s;
-  box-shadow: 1px 1px 2px #d1e9f1, -1px -1px 2px #efffff;
-}
-
-.actions .edit-actions button:hover {
-  background-color: #159aca;
-  transform: translateY(-2px);
-}
-
-.table-responsive-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 5px;
-  width: 100%;
-  border-radius: 10px;
-  box-shadow: 4px 4px 8px #d1e9f1, -4px -4px 8px #efffff;
-  background-color: #e0f7fa;
-}
-
-@media (max-width: 1023px) {
-  .bus-fees-container {
-    padding: 25px;
-  }
-
-  .header h2 {
-    font-size: 26px;
-    margin-bottom: 15px;
-  }
-
-  .actions {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .actions button,
-  .actions select {
-    padding: 10px 18px;
-    font-size: 14px;
-  }
-
-  .actions select {
-    min-width: 140px;
-  }
-
-  .actions .session-select-wrapper {
-    margin-right: unset;
-  }
-
-  .bus-fees-table th,
-  .bus-fees-table td {
-    padding: 12px;
-    font-size: 14px;
-  }
-
-  .bus-fees-table input[type="number"] {
-    width: 70px;
-    padding: 8px;
-    font-size: 14px;
-  }
-}
+:disabled { cursor: not-allowed !important; opacity: 0.6; }
 
 @media (max-width: 767px) {
-  .bus-fees-container {
-    width: 98%;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 5px 5px 10px #d1e9f1, -5px -5px 10px #efffff;
-  }
-
-  .header {
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-  }
-
-  .header h2 {
-    font-size: 22px;
-    margin-bottom: 15px;
-  }
-
-  .actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .actions button,
-  .actions select {
-    width: 100%;
-    min-width: unset;
-    padding: 10px 15px;
-    font-size: 14px;
-  }
-
-  .actions .session-select-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    gap: 5px;
-  }
-
-  .actions .session-select-wrapper label {
-    text-align: center;
-    margin-right: 0;
-    font-size: 15px;
-  }
-
-  .actions>div[ngif="isEditing"] {
-    flex-direction: column;
-    width: 100%;
-    gap: 8px;
-  }
-
-  .actions>div[ngif="isEditing"] button {
-    width: 100%;
-    padding: 10px 15px;
-  }
-
-  .bus-fees-table th,
-  .bus-fees-table td {
-    padding: 10px;
-    font-size: 13px;
-  }
-
-  .bus-fees-table input[type="number"] {
-    width: 50px;
-    padding: 6px;
-    font-size: 13px;
-  }
-
-  .bus-fees-table td span {
-    font-size: 13px;
-  }
+  .header { flex-direction: column; align-items: stretch; }
+  .actions { flex-direction: column; align-items: stretch; }
+  .actions button, .actions select { width: 100%; }
+  .edit-actions { flex-direction: column; }
+  .edit-actions button { width: 100%; }
 }

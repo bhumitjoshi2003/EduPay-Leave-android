@@ -71,7 +71,6 @@
   border-radius: 14px;
   padding: 10px 14px;
   text-align: center;
-  backdrop-filter: blur(6px);
 }
 
 .al-date-day {
