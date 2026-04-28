@@ -67,8 +67,14 @@
     </form>
   </div>
 
+  <!-- ── Loading ──────────────────────────────────────────────────── -->
+  <div class="al-loading" *ngIf="isLoading">
+    <div class="al-spinner"></div>
+    <p>Loading leaves...</p>
+  </div>
+
   <!-- ── Applied Leaves ────────────────────────────────────────────── -->
-  <div class="al-card" *ngIf="leaves.length > 0">
+  <div class="al-card" *ngIf="!isLoading && leaves.length > 0">
     <h2 class="al-card-title">
       <span class="al-card-title-icon">📂</span>
       Applied Leaves
@@ -120,7 +126,7 @@
   </div>
 
   <!-- ── Empty state ───────────────────────────────────────────────── -->
-  <div class="al-empty" *ngIf="leaves.length === 0">
+  <div class="al-empty" *ngIf="!isLoading && leaves.length === 0">
     <span class="al-empty-icon">📭</span>
     <p>No leave applications yet</p>
     <span>Applications you submit will appear here</span>

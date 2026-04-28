@@ -28,6 +28,7 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
   studentName: string = '';
   className = '';
   leaves: { originalLeaveDate: string; leaveDate: string; reason: string; status: string }[] = [];
+  isLoading: boolean = true;
 
   // Pagination
   currentPage: number = 0;
@@ -108,6 +109,8 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
   }
 
   loadStudentLeaves(): void {
+    this.isLoading = true;
+    this.cdr.markForCheck();
     this.leaveService.getLeavesByStudentId(this.studentId, this.currentPage, this.pageSize)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -120,10 +123,13 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
           }));
           this.totalPages = response.totalPages;
           this.totalElements = response.totalElements;
+          this.isLoading = false;
           this.cdr.markForCheck();
         },
         error: (error) => {
           this.logger.error('Error fetching student leaves:', error);
+          this.isLoading = false;
+          this.cdr.markForCheck();
         }
       });
   }

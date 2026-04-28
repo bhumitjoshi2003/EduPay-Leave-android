@@ -64,7 +64,6 @@
   width: 52px; height: 52px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  backdrop-filter: blur(4px);
 }
 
 .ph-hero-title {
@@ -90,7 +89,6 @@
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-  backdrop-filter: blur(6px);
 }
 
 .ph-hero-num {

@@ -400,7 +400,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
 
   getPeriodLabel(): string {
     if (this.periodType === 'month') {
-      return `${this.months.find(m => m.value === this.selectedMonth)?.label} ${this.selectedYear}`;
+      return `${this.months.find(m => m.value === +this.selectedMonth)?.label} ${this.selectedYear}`;
     }
     return `Academic Year ${this.selectedSession}`;
   }

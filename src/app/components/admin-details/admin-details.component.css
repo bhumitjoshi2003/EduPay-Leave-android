@@ -2,7 +2,10 @@
 .photo-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 8px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 24px 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
 .photo-wrapper {
@@ -76,131 +79,120 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* --- Main Container (Teacher Profile Style) --- */
+/* --- Main Container --- */
 .admin-details-container {
-    padding: 50px;
-    font-family: 'Poppins', sans-serif;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    animation: fadeIn 0.8s ease-in-out;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    margin: 20px auto;
-    width: 92%;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 16px;
 }
 
 /* --- Header & Title --- */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    padding-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
 .title-section h2 {
-    color: #222;
-    border-bottom: 4px solid #4fbdbd;
-    padding-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-size: 2.2em;
-    margin: 0;
-    flex-shrink: 0;
+  color: #1a1a2e;
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0;
+  flex-shrink: 0;
+  letter-spacing: -0.2px;
 }
 
 .header-buttons {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    flex-grow: 1;
-    align-items: center;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex-grow: 1;
+  align-items: center;
 }
 
-/* --- Global Button Core Styles --- */
+/* --- Button Styles --- */
 button {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 12px;
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1em;
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
-    white-space: nowrap;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9em;
+  white-space: nowrap;
 }
 
 button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
-
 
 .edit-btn,
 .save-btn {
-    background: linear-gradient(135deg, #28a745, #20c997) !important;
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
 }
 
 .password-btn,
 .delete-btn,
 .cancel-btn {
-    background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+  background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
 }
 
 .back-button {
-    background: linear-gradient(135deg, #4fbdbd, #1f6f8b);
-    margin-top: 50px;
-    width: 100%;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
+  background: linear-gradient(135deg, #4fbdbd, #1f6f8b);
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
 .details-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 25px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
 .detail-item {
-    background: rgba(255, 255, 255, 0.92);
-    border-radius: 15px;
-    padding: 20px 25px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    border-left: 6px solid #4fbdbd;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-}
-
-.detail-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 13px 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #f1f5f9;
+  border-left: 4px solid #4fbdbd;
 }
 
 .label {
-    font-weight: 600;
-    color: #333;
-    font-size: 1.1em;
-    width: 40%;
+  font-weight: 600;
+  color: #333;
+  font-size: 1.05em;
+  flex-basis: 40%;
+  flex-shrink: 0;
 }
 
 .value {
-    color: #111;
-    font-size: 1.2em;
-    font-weight: 500;
-    word-break: break-word;
-    text-align: right;
-    width: 60%;
+  color: #111;
+  font-size: 1.15em;
+  word-break: break-word;
+  text-align: right;
+  flex-grow: 1;
+  min-width: 0;
 }
 
 /* --- Input Fields --- */
@@ -229,69 +221,47 @@ select.is-invalid {
 }
 
 /* --- Responsive Adjustments --- */
-
-/* Tablet View: Drop to 2 columns */
-@media (max-width: 1023px) {
-    .admin-details-container {
-        padding: 30px;
-        width: 95%;
-    }
-
-    .details-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
 @media (max-width: 767px) {
-    .admin-details-container {
-        padding: 15px;
-        gap: 20px;
-        width: 93%;
-    }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 
-    .header {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
+  .header-buttons {
+    width: 100%;
+    justify-content: space-around;
+    gap: 8px;
+  }
 
-    .title-section h2 {
-        font-size: 1.6em;
-        width: 100%;
-        padding-bottom: 8px;
-    }
+  .header-buttons button {
+    flex-grow: 1;
+    font-size: 0.82em;
+    padding: 9px 10px;
+  }
 
-    .header-buttons {
-        width: 100%;
-        justify-content: center;
-        gap: 8px;
-    }
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .header-buttons button {
-        flex-grow: 1;
-        font-size: 0.85em;
-        padding: 10px;
-    }
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 13px;
+  }
 
-    .details-grid {
-        grid-template-columns: 1fr;
-    }
+  .label {
+    flex-basis: auto;
+    width: 100%;
+    font-size: 0.95em;
+  }
 
-    .detail-item {
-        padding: 15px;
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  .value {
+    text-align: left;
+    font-size: 1em;
+    width: 100%;
+  }
 }
 
 /* ── Change Password Modal ─────────────────────────────────────────── */

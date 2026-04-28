@@ -69,15 +69,21 @@
     </div>
   </div>
 
+  <!-- ── Loading ──────────────────────────────────────────────────── -->
+  <div class="vl-loading" *ngIf="isLoading">
+    <div class="vl-spinner"></div>
+    <p>Loading leave applications...</p>
+  </div>
+
   <!-- ── Empty State ────────────────────────────────────────────────── -->
-  <div class="vl-empty" *ngIf="filteredLeaves.length === 0">
+  <div class="vl-empty" *ngIf="!isLoading && filteredLeaves.length === 0">
     <div class="vl-empty-icon">📭</div>
     <p class="vl-empty-title">No leave applications found</p>
     <p class="vl-empty-sub">Try clearing the filters or selecting a different class</p>
   </div>
 
   <!-- ── Leave Cards ────────────────────────────────────────────────── -->
-  <div class="vl-section" *ngIf="filteredLeaves.length > 0">
+  <div class="vl-section" *ngIf="!isLoading && filteredLeaves.length > 0">
     <div class="vl-list">
       <div class="vl-card" *ngFor="let leave of filteredLeaves; trackBy: trackByLeaveId">
 
@@ -123,7 +129,7 @@
   </div>
 
   <!-- ── Pagination ──────────────────────────────────────────────────── -->
-  <div class="vl-pagination" *ngIf="totalElements > 0 && totalPages > 1">
+  <div class="vl-pagination" *ngIf="!isLoading && totalElements > 0 && totalPages > 1">
     <button class="vl-page-btn" (click)="prevPage()" [disabled]="currentPage === 0">← Prev</button>
 
     <ng-container *ngFor="let p of getPaginationDisplayPages(); trackBy: trackByIndex">

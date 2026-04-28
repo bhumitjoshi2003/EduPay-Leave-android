@@ -51,16 +51,6 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['STUDENT'] }
       },
       {
-        path: 'student-attendance',
-        loadComponent: () => import('./components/student-attendance/student-attendance.component').then(m => m.StudentAttendanceComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'ADMIN'] }
-      },
-      {
-        path: 'student-attendance/:studentId',
-        loadComponent: () => import('./components/student-attendance/student-attendance.component').then(m => m.StudentAttendanceComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
-      },
-      {
         path: 'attendance-summary',
         loadComponent: () => import('./components/attendance-summary/attendance-summary.component').then(m => m.AttendanceSummaryComponent),
         canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'SUPER_ADMIN'] }

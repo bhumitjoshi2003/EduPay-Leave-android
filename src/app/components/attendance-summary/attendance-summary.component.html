@@ -34,10 +34,10 @@
 
       <ng-container *ngIf="periodType === 'month'">
         <select [(ngModel)]="selectedMonth" aria-label="Select month" class="as-select">
-          <option *ngFor="let m of months" [value]="m.value">{{ m.label }}</option>
+          <option *ngFor="let m of months" [ngValue]="m.value">{{ m.label }}</option>
         </select>
         <select [(ngModel)]="selectedYear" aria-label="Select year" class="as-select">
-          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+          <option *ngFor="let y of years" [ngValue]="y">{{ y }}</option>
         </select>
       </ng-container>
 
@@ -77,10 +77,10 @@
 
       <ng-container *ngIf="periodType === 'month'">
         <select [(ngModel)]="selectedMonth" aria-label="Select month" class="as-select">
-          <option *ngFor="let m of months" [value]="m.value">{{ m.label }}</option>
+          <option *ngFor="let m of months" [ngValue]="m.value">{{ m.label }}</option>
         </select>
         <select [(ngModel)]="selectedYear" aria-label="Select year" class="as-select">
-          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+          <option *ngFor="let y of years" [ngValue]="y">{{ y }}</option>
         </select>
       </ng-container>
 

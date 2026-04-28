@@ -42,7 +42,6 @@
   width: 52px; height: 52px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  backdrop-filter: blur(4px);
 }
 
 .as-hero-title {

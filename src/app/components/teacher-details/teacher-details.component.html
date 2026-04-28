@@ -1,97 +1,108 @@
-<div class="teacher-details-container" *ngIf="teacherDetails && updatedDetails">
+<div class="tdet-page" *ngIf="teacherDetails && updatedDetails">
   <form #editForm="ngForm">
-    <div class="header">
-      <h2>Teacher Profile</h2>
-      <div class="header-buttons">
-        <button type="button" *ngIf="getUserRole() === 'ADMIN' && !isEditing" (click)="enableEditMode()">Edit
-          Details</button>
-        <div *ngIf="getUserRole() === 'ADMIN' && isEditing">
-          <button type="submit" (click)="saveTeacherDetails(editForm)">Save</button>
-          <button type="button" (click)="cancelEditMode()">Cancel</button>
+
+    <!-- ── Profile Hero ───────────────────────────────────────── -->
+    <div class="tdet-hero">
+      <div class="tdet-blob tdet-blob-1"></div>
+      <div class="tdet-blob tdet-blob-2"></div>
+
+      <div class="tdet-hero-bar">
+        <button type="button" *ngIf="getUserRole() === 'ADMIN'" class="tdet-back-icon" (click)="goBackToTeacherList()" title="Back">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div *ngIf="getUserRole() !== 'ADMIN'"></div>
+        <div class="tdet-hero-btns">
+          <button type="button" *ngIf="getUserRole() === 'ADMIN' && !isEditing" class="tdet-pill" (click)="enableEditMode()">✏ Edit</button>
+          <ng-container *ngIf="getUserRole() === 'ADMIN' && isEditing">
+            <button type="submit" class="tdet-pill tdet-pill-green" (click)="saveTeacherDetails(editForm)">✓ Save</button>
+            <button type="button" class="tdet-pill tdet-pill-red" (click)="cancelEditMode()">✕</button>
+          </ng-container>
+          <button type="button" class="tdet-pill-icon" (click)="openPasswordModal()" title="Change Password">🔐</button>
         </div>
-        <button type="button" (click)="openPasswordModal()">Change Password</button>
+      </div>
+
+      <div class="tdet-hero-center">
+        <div class="tdet-photo-ring" [class.uploadable]="canUploadPhoto()" (click)="canUploadPhoto() && triggerPhotoUpload()">
+          <img *ngIf="teacherDetails.photoUrl" [src]="getPhotoUrl(teacherDetails.photoUrl)" alt="Teacher photo" class="tdet-photo">
+          <div *ngIf="!teacherDetails.photoUrl" class="tdet-initials">{{ getInitials() }}</div>
+          <div *ngIf="canUploadPhoto() && !photoUploading" class="tdet-photo-overlay">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Upload</span>
+          </div>
+          <div *ngIf="photoUploading" class="tdet-photo-uploading"><span class="tdet-spinner"></span></div>
+        </div>
+        <input type="file" #photoInput accept="image/*" (change)="onPhotoSelected($event)" style="display:none">
+        <h1 class="tdet-hero-name">{{ teacherDetails.name }}</h1>
+        <div class="tdet-hero-chips">
+          <span class="tdet-hero-chip">{{ teacherDetails.classTeacher ? 'Class ' + teacherDetails.classTeacher : 'No Class' }}</span>
+          <span class="tdet-hero-chip">{{ teacherDetails.teacherId }}</span>
+        </div>
       </div>
     </div>
 
-    <!-- Photo section -->
-    <div class="photo-section">
-      <div class="photo-wrapper" [class.uploadable]="canUploadPhoto()" (click)="canUploadPhoto() && triggerPhotoUpload()">
-        <img *ngIf="teacherDetails.photoUrl" [src]="getPhotoUrl(teacherDetails.photoUrl)" alt="Teacher photo" class="teacher-photo">
-        <div *ngIf="!teacherDetails.photoUrl" class="photo-initials">{{ getInitials() }}</div>
-        <div *ngIf="canUploadPhoto() && !photoUploading" class="photo-overlay">
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <span>Upload</span>
+    <!-- ── Details ──────────────────────────────────────────────── -->
+    <div class="tdet-section">
+      <p class="tdet-section-title">Teacher Information</p>
+      <div class="tdet-grid">
+        <div class="tdet-item">
+          <span class="tdet-item-label">Name</span>
+          <span class="tdet-item-value" *ngIf="!isEditing">{{ teacherDetails.name }}</span>
+          <input type="text" class="tdet-item-input" *ngIf="isEditing" name="name" [(ngModel)]="updatedDetails.name"
+            (input)="updateFieldValue('name', $event)" required #name="ngModel"
+            [class.invalid-field]="name.invalid && name.touched">
         </div>
-        <div *ngIf="photoUploading" class="photo-uploading">
-          <span class="spinner"></span>
+
+        <div class="tdet-item">
+          <span class="tdet-item-label">Teacher ID</span>
+          <span class="tdet-item-value">{{ teacherDetails.teacherId }}</span>
+        </div>
+
+        <div class="tdet-item tdet-item-wide">
+          <span class="tdet-item-label">Email</span>
+          <span class="tdet-item-value" *ngIf="!isEditing">{{ teacherDetails.email }}</span>
+          <input type="email" class="tdet-item-input" *ngIf="isEditing" name="email" [(ngModel)]="updatedDetails.email"
+            (input)="updateFieldValue('email', $event)" required email #email="ngModel"
+            [class.invalid-field]="email.invalid && email.touched">
+        </div>
+
+        <div class="tdet-item">
+          <span class="tdet-item-label">Phone</span>
+          <span class="tdet-item-value" *ngIf="!isEditing">{{ teacherDetails.phoneNumber }}</span>
+          <input type="text" class="tdet-item-input" *ngIf="isEditing" name="phoneNumber" [(ngModel)]="updatedDetails.phoneNumber"
+            (input)="updateFieldValue('phoneNumber', $event)" required pattern="^[0-9]{10}$" #phone="ngModel"
+            [class.invalid-field]="phone.invalid && phone.touched">
+        </div>
+
+        <div class="tdet-item">
+          <span class="tdet-item-label">Date of Birth</span>
+          <span class="tdet-item-value" *ngIf="!isEditing">{{ teacherDetails.dob }}</span>
+          <input type="date" class="tdet-item-input" *ngIf="isEditing" name="dob" [(ngModel)]="updatedDetails.dob"
+            (input)="updateFieldValue('dob', $event)" required #dob="ngModel"
+            [class.invalid-field]="dob.invalid && dob.touched">
+        </div>
+
+        <div class="tdet-item tdet-item-wide">
+          <span class="tdet-item-label">Class Teacher</span>
+          <span class="tdet-item-value" *ngIf="!isEditing">
+            {{ teacherDetails.classTeacher ? teacherDetails.classTeacher : 'Not Assigned' }}
+          </span>
+          <select class="tdet-item-input" *ngIf="isEditing" name="classTeacher" [(ngModel)]="updatedDetails.classTeacher"
+            (change)="updateFieldValue('classTeacher', $event)">
+            <option value="">Not Assigned</option>
+            <option *ngFor="let className of classList" [value]="className">{{ className }}</option>
+          </select>
         </div>
       </div>
-      <input type="file" #photoInput accept="image/*" (change)="onPhotoSelected($event)" style="display:none">
     </div>
 
-    <div class="details-grid">
-      <div class="detail-item">
-        <span class="label">Name:</span>
-        <span class="value" *ngIf="!isEditing">{{ teacherDetails.name }}</span>
-        <input type="text" *ngIf="isEditing" name="name" [(ngModel)]="updatedDetails.name"
-          (input)="updateFieldValue('name', $event)" required #name="ngModel"
-          [class.is-invalid]="name.invalid && name.touched">
-      </div>
-
-      <div class="detail-item">
-        <span class="label">Teacher ID:</span>
-        <span class="value">{{ teacherDetails.teacherId }}</span>
-      </div>
-
-      <div class="detail-item">
-        <span class="label">Email:</span>
-        <span class="value" *ngIf="!isEditing">{{ teacherDetails.email }}</span>
-        <input type="email" *ngIf="isEditing" name="email" [(ngModel)]="updatedDetails.email"
-          (input)="updateFieldValue('email', $event)" required email #email="ngModel"
-          [class.is-invalid]="email.invalid && email.touched">
-      </div>
-
-      <div class="detail-item">
-        <span class="label">Phone:</span>
-        <span class="value" *ngIf="!isEditing">{{ teacherDetails.phoneNumber }}</span>
-        <input type="text" *ngIf="isEditing" name="phoneNumber" [(ngModel)]="updatedDetails.phoneNumber"
-          (input)="updateFieldValue('phoneNumber', $event)" required pattern="^[0-9]{10}$" #phone="ngModel"
-          [class.is-invalid]="phone.invalid && phone.touched">
-      </div>
-
-      <div class="detail-item">
-        <span class="label">Date of Birth:</span>
-        <span class="value" *ngIf="!isEditing">{{ teacherDetails.dob }}</span>
-        <input type="date" *ngIf="isEditing" name="dob" [(ngModel)]="updatedDetails.dob"
-          (input)="updateFieldValue('dob', $event)" required #dob="ngModel"
-          [class.is-invalid]="dob.invalid && dob.touched">
-      </div>
-
-      <div class="detail-item">
-        <span class="label">Class Teacher:</span>
-        <span class="value" *ngIf="!isEditing">
-          {{ teacherDetails.classTeacher ? teacherDetails.classTeacher : 'Not Assigned' }}</span>
-
-        <select *ngIf="isEditing" name="classTeacher" [(ngModel)]="updatedDetails.classTeacher"
-          (change)="updateFieldValue('classTeacher', $event)">
-          <option value="">Not Assigned</option>
-          <option *ngFor="let className of classList" [value]="className">
-            {{ className }}
-          </option>
-        </select>
-
-      </div>
-    </div>
   </form>
-
-  <div class="actions"></div>
-
-  <button *ngIf="getUserRole()==='ADMIN'" class="back-button" (click)="goBackToTeacherList()">Back to Teacher
-    List</button>
 </div>
 
-<div *ngIf="!teacherDetails">
-  <p class="loading-message">Loading teacher details...</p>
+<div *ngIf="!teacherDetails" class="tdet-loading">
+  <div class="tdet-spinner-wrap">
+    <div class="tdet-spin"></div>
+    <p>Loading teacher details...</p>
+  </div>
 </div>
 
 <!-- ── Change Password Modal ───────────────────────────────────────── -->
@@ -103,7 +114,7 @@
       <label class="cp-label">Current Password</label>
       <div class="cp-input-wrap">
         <input [type]="cpShowOld ? 'text' : 'password'" [(ngModel)]="cpOldPw" placeholder="Enter current password" class="cp-input">
-        <button type="button" class="cp-toggle" (click)="cpShowOld = !cpShowOld" [attr.aria-label]="cpShowOld ? 'Hide current password' : 'Show current password'">
+        <button type="button" class="cp-toggle" (click)="cpShowOld = !cpShowOld">
           <svg *ngIf="!cpShowOld" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           <svg *ngIf="cpShowOld" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         </button>
@@ -114,7 +125,7 @@
       <label class="cp-label">New Password</label>
       <div class="cp-input-wrap">
         <input [type]="cpShowNew ? 'text' : 'password'" [(ngModel)]="cpNewPw" placeholder="Enter new password (min 6 chars)" class="cp-input">
-        <button type="button" class="cp-toggle" (click)="cpShowNew = !cpShowNew" [attr.aria-label]="cpShowNew ? 'Hide new password' : 'Show new password'">
+        <button type="button" class="cp-toggle" (click)="cpShowNew = !cpShowNew">
           <svg *ngIf="!cpShowNew" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           <svg *ngIf="cpShowNew" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         </button>
@@ -125,7 +136,7 @@
       <label class="cp-label">Confirm New Password</label>
       <div class="cp-input-wrap">
         <input [type]="cpShowConfirm ? 'text' : 'password'" [(ngModel)]="cpConfirmPw" placeholder="Confirm new password" class="cp-input">
-        <button type="button" class="cp-toggle" (click)="cpShowConfirm = !cpShowConfirm" [attr.aria-label]="cpShowConfirm ? 'Hide confirm password' : 'Show confirm password'">
+        <button type="button" class="cp-toggle" (click)="cpShowConfirm = !cpShowConfirm">
           <svg *ngIf="!cpShowConfirm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           <svg *ngIf="cpShowConfirm" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         </button>

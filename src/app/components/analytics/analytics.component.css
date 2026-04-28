@@ -109,7 +109,6 @@
 
 .an-date-card {
   background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(10px);
   border-radius: 14px;
   padding: 16px 24px;
   display: flex;

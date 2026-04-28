@@ -1,14 +1,73 @@
+/* ── Page wrapper ─────────────────────────────────────────── */
+.ec-page {
+  padding-bottom: 16px;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Hero ─────────────────────────────────────────────────── */
+.ec-hero {
+  position: relative;
+  background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 55%, #818cf8 100%);
+  border-radius: 20px;
+  padding: 22px 20px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: #fff;
+}
+
+.ec-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.ec-blob-1 { width: 130px; height: 130px; background: #fff; top: -35px; right: -25px; }
+.ec-blob-2 { width: 85px;  height: 85px;  background: #a5b4fc; bottom: -20px; left: 35%; }
+
+.ec-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.ec-hero-icon {
+  font-size: 1.6rem;
+  background: rgba(255,255,255,0.18);
+  border-radius: 14px;
+  width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.ec-hero-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.ec-hero-sub {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.75);
+}
+
+/* ── Calendar Container ───────────────────────────────────── */
 .calendar-container {
     background: #fcfcfc;
-    border: 1px solid #b0b0b0;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    /* max-width: 1000px; */
-    margin: 10px auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     position: relative;
     overflow: hidden;
     font-family: 'Inter', 'Segoe UI', sans-serif;
-    width: 90%;
 }
 
 .calendar-header {
@@ -397,10 +456,7 @@
 /* Mobile Styles (max-width: 768px) */
 @media (max-width: 768px) {
     .calendar-container {
-        margin: 10px auto;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-        width: 100%;
+        border-radius: 12px;
     }
 
     .attendance-circle {

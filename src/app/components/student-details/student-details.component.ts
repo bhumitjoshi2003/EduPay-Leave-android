@@ -309,10 +309,6 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  viewAttendance(): void {
-    this.router.navigate(['/dashboard/student-attendance', this.studentId]);
-  }
-
   viewAttendanceSummary(): void {
     this.router.navigate(['/dashboard/attendance-summary'], {
       queryParams: { studentId: this.studentId, className: this.studentDetails?.className }

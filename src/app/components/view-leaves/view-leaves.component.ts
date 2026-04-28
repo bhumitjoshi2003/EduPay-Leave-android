@@ -36,6 +36,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
   loggedInUserId: string = '';
   loggedInUserClass: string = '';
   filteredLeaves: LeaveApplication[] = [];
+  isLoading: boolean = true;
 
   classList: string[] = [
     'Play group', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
@@ -146,6 +147,9 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
       'desc'
     );
 
+    this.isLoading = true;
+    this.cdr.markForCheck();
+
     leavesObservable.pipe(takeUntil(this.ngUnsubscribe))
       .subscribe({
         next: (response: PaginatedResponse<LeaveApplication>) => {
@@ -153,6 +157,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
           this.totalElements = response.totalElements;
           this.totalPages = response.totalPages;
           this.currentPage = response.number;
+          this.isLoading = false;
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -161,6 +166,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
           this.filteredLeaves = [];
           this.totalElements = 0;
           this.totalPages = 0;
+          this.isLoading = false;
           this.cdr.markForCheck();
         }
       });
