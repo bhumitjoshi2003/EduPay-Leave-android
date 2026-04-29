@@ -69,6 +69,31 @@
   color: rgba(255,255,255,0.78);
 }
 
+/* ── Loading ──────────────────────────────────────────────────────── */
+.al-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  gap: 14px;
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.al-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #4338ca;
+  border-radius: 50%;
+  animation: al-spin 0.7s linear infinite;
+}
+
+@keyframes al-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Card Styles */
 .search-card,
 .data-card {

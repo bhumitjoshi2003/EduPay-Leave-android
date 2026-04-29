@@ -1,3 +1,35 @@
+/* ── Page ─────────────────────────────────────────────────────────── */
+.ad-page {
+  padding-bottom: 16px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.ad-hero {
+  position: relative;
+  background: linear-gradient(135deg, #1e293b 0%, #1e3a5f 55%, #475569 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
+}
+.ad-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.ad-blob-1 { width: 130px; height: 130px; background: #fff; top: -30px; right: -20px; }
+.ad-blob-2 { width: 80px; height: 80px; background: #cbd5e1; bottom: -20px; left: 35%; }
+.ad-hero-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.ad-hero-icon { font-size: 2rem; flex-shrink: 0; }
+.ad-hero-title { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
+.ad-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.8); margin: 3px 0 0; }
+
 /* ── Photo Section ─────────────────────────────────────────────────── */
 .photo-section {
   display: flex;

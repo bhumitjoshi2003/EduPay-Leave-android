@@ -27,9 +27,15 @@
     </div>
   </div>
 
+  <!-- ── Loading ──────────────────────────────────────────────────────── -->
+  <div class="sl-loading" *ngIf="isLoading">
+    <div class="sl-spinner"></div>
+    <p>Loading students...</p>
+  </div>
+
   <!-- ── Empty ──────────────────────────────────────────────────────── -->
   <div class="sl-empty"
-    *ngIf="activeStudents.length === 0 && newStudents.length === 0 && inactiveStudents.length === 0">
+    *ngIf="!isLoading && activeStudents.length === 0 && newStudents.length === 0 && inactiveStudents.length === 0">
     <div class="sl-empty-icon">🔍</div>
     <p class="sl-empty-title">No students found</p>
     <p class="sl-empty-sub">No students found for the selected class</p>

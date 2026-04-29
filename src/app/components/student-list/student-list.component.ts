@@ -6,6 +6,7 @@ import { AuthStateService } from '../../auth/auth-state.service';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { LoggerService } from '../../services/logger.service';
+import Swal from 'sweetalert2';
 
 interface Student {
   studentId: string;
@@ -25,6 +26,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
   activeStudents: Student[] = [];
   newStudents: Student[] = [];
   inactiveStudents: Student[] = [];
+  isLoading: boolean = true;
   teacherId: string = '';
   loggedInUserRole: string = '';
   selectedClass: string = '';
@@ -74,6 +76,9 @@ export class StudentListComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         this.logger.error('Error fetching teacher details:', error);
+        this.isLoading = false;
+        this.cdr.markForCheck();
+        Swal.fire('Error', 'Failed to load teacher details. Please try again.', 'error');
       }
     });
   }
@@ -81,23 +86,40 @@ export class StudentListComponent implements OnInit, OnDestroy {
   loadStudents(): void {
     const classAtRequest = this.selectedClass;
     localStorage.setItem('lastSelectedClass', classAtRequest);
+    this.isLoading = true;
+    this.cdr.markForCheck();
 
-    this.studentService.getActiveStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe((students) => {
-      if (this.selectedClass !== classAtRequest) return;
-      this.activeStudents = students;
-      this.cdr.markForCheck();
+    this.studentService.getActiveStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (students) => {
+        if (this.selectedClass !== classAtRequest) return;
+        this.activeStudents = students;
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.logger.error('Error loading active students:', err);
+        this.isLoading = false;
+        this.cdr.markForCheck();
+        Swal.fire('Error', 'Failed to load students. Please try again.', 'error');
+      }
     });
 
     if (this.loggedInUserRole === 'ADMIN') {
-      this.studentService.getNewStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe((students) => {
-        if (this.selectedClass !== classAtRequest) return;
-        this.newStudents = students;
-        this.cdr.markForCheck();
+      this.studentService.getNewStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (students) => {
+          if (this.selectedClass !== classAtRequest) return;
+          this.newStudents = students;
+          this.cdr.markForCheck();
+        },
+        error: (err) => this.logger.error('Error loading new students:', err)
       });
-      this.studentService.getInactiveStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe((students) => {
-        if (this.selectedClass !== classAtRequest) return;
-        this.inactiveStudents = students;
-        this.cdr.markForCheck();
+      this.studentService.getInactiveStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (students) => {
+          if (this.selectedClass !== classAtRequest) return;
+          this.inactiveStudents = students;
+          this.cdr.markForCheck();
+        },
+        error: (err) => this.logger.error('Error loading inactive students:', err)
       });
     }
   }

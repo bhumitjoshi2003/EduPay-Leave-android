@@ -48,7 +48,12 @@
         </div>
     </div>
 
-    <div class="data-card">
+    <div class="al-loading" *ngIf="isLoading">
+      <div class="al-spinner"></div>
+      <p>Loading audit logs...</p>
+    </div>
+
+    <div class="data-card" *ngIf="!isLoading">
         <div class="table-container">
             <table class="audit-table">
                 <thead>

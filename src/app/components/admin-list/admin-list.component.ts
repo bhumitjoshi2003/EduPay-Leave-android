@@ -18,6 +18,7 @@ import { Admin } from '../../interfaces/admin';
 })
 export class AdminListComponent implements OnInit, OnDestroy {
   admins: Admin[] = [];
+  isLoading: boolean = true;
   loggedInUserRole: string = '';
   currentUserId: string = '';
   private ngUnsubscribe = new Subject<void>();
@@ -56,11 +57,22 @@ export class AdminListComponent implements OnInit, OnDestroy {
   }
 
   loadAdmins(): void {
+    this.isLoading = true;
+    this.cdr.markForCheck();
     this.adminService.getAllAdmins()
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe({
-        next: (data) => { this.admins = data; this.cdr.markForCheck(); },
-        error: (err) => this.logger.error('Error fetching admins:', err)
+        next: (data) => {
+          this.admins = data;
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.logger.error('Error fetching admins:', err);
+          this.isLoading = false;
+          this.cdr.markForCheck();
+          Swal.fire('Error', 'Failed to load administrators. Please try again.', 'error');
+        }
       });
   }
 

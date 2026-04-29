@@ -21,6 +21,7 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   isNewSession: boolean = false;
   busFeeStructures: BusFee[] = [];
   isEditing = false;
+  isLoading = true;
   originalBusFees: BusFee[] = [];
 
   constructor(
@@ -50,10 +51,20 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   fetchBusFees(): void {
-    this.busFeesService.getBusFees(this.currentSession).pipe(takeUntil(this.destroy$)).subscribe(fees => {
-      this.busFeeStructures = fees;
-      this.originalBusFees = JSON.parse(JSON.stringify(this.busFeeStructures));
-      this.cdr.markForCheck();
+    this.isLoading = true;
+    this.cdr.markForCheck();
+    this.busFeesService.getBusFees(this.currentSession).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (fees) => {
+        this.busFeeStructures = fees;
+        this.originalBusFees = JSON.parse(JSON.stringify(this.busFeeStructures));
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+        Swal.fire('Error', 'Failed to load bus fee structure.', 'error');
+      }
     });
   }
 

@@ -28,6 +28,12 @@
       <div class="ad-blob ad-blob-2"></div>
     </div>
 
+    <!-- ── Stats error ──────────────────────────────────────────────── -->
+    <div class="ad-stats-error" *ngIf="!stats">
+      <span>⚠️</span>
+      <p>Could not load dashboard stats. Please refresh to try again.</p>
+    </div>
+
     <!-- ── Stat Cards ────────────────────────────────────────────────── -->
     <div class="ad-stats-grid" *ngIf="stats">
 

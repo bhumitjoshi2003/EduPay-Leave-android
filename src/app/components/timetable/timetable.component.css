@@ -11,38 +11,72 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Header ──────────────────────────────────────────────────── */
-.tt-page-header {
+/* ── Hero ────────────────────────────────────────────────────── */
+.tt-hero {
+  position: relative;
+  background: linear-gradient(135deg, #3b0764 0%, #7c3aed 55%, #a78bfa 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
 }
 
-.tt-title {
+.tt-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.tt-blob-1 { width: 130px; height: 130px; background: #fff; top: -35px; right: 80px; }
+.tt-blob-2 { width: 80px;  height: 80px;  background: #c4b5fd; bottom: -20px; left: 30%; }
+
+.tt-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.tt-hero-icon { font-size: 2rem; flex-shrink: 0; }
+
+.tt-hero-title {
+  font-size: 1.5rem;
+  font-weight: 800;
   margin: 0;
-  font-size: 2em;
-  color: #222;
-  border-bottom: 4px solid #3498db;
-  padding-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
+  color: #fff;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.tt-hero-sub {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.8);
+  margin: 3px 0 0;
 }
 
 .tt-print-btn {
-  padding: 10px 22px;
+  position: relative;
+  z-index: 1;
+  padding: 9px 18px;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
   color: #fff;
-  font-weight: 600;
-  font-size: 0.9em;
+  font-weight: 700;
+  font-size: 0.82rem;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: background 0.15s;
   white-space: nowrap;
+  flex-shrink: 0;
 }
-.tt-print-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(39,174,96,0.35); }
+.tt-print-btn:active { background: rgba(255,255,255,0.3); }
 
 /* ── Controls ────────────────────────────────────────────────── */
 .tt-controls {

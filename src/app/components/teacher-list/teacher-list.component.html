@@ -16,15 +16,21 @@
     <div class="tl-blob tl-blob-2"></div>
   </div>
 
+  <!-- ── Loading ──────────────────────────────────────────────────────── -->
+  <div class="tl-loading" *ngIf="isLoading">
+    <div class="tl-spinner"></div>
+    <p>Loading teachers...</p>
+  </div>
+
   <!-- ── Empty ──────────────────────────────────────────────────────── -->
-  <div class="tl-empty" *ngIf="teachers.length === 0">
+  <div class="tl-empty" *ngIf="!isLoading && teachers.length === 0">
     <div class="tl-empty-icon">🔍</div>
     <p class="tl-empty-title">No teachers found</p>
     <p class="tl-empty-sub">No teacher records available</p>
   </div>
 
   <!-- ── Teacher List ──────────────────────────────────────────────── -->
-  <div class="tl-section" *ngIf="teachers.length > 0">
+  <div class="tl-section" *ngIf="!isLoading && teachers.length > 0">
     <div class="tl-section-header">
       <h2 class="tl-section-title">All Teachers</h2>
       <span class="tl-section-count">{{ teachers.length }}</span>

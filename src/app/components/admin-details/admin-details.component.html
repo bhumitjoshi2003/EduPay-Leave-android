@@ -43,11 +43,25 @@
   </div>
 </div>
 
-<div class="admin-details-container" *ngIf="updatedDetails">
+<div class="ad-page" *ngIf="updatedDetails">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="ad-hero">
+    <div class="ad-hero-left">
+      <div class="ad-hero-icon">🛡️</div>
+      <div>
+        <h1 class="ad-hero-title">{{ isNewAdmin ? 'Create Admin' : 'Admin Profile' }}</h1>
+        <p class="ad-hero-sub">{{ isNewAdmin ? 'Register a new administrator' : 'View &amp; manage admin account' }}</p>
+      </div>
+    </div>
+    <div class="ad-blob ad-blob-1"></div>
+    <div class="ad-blob ad-blob-2"></div>
+  </div>
+
+  <div class="admin-details-container">
     <form #adminForm="ngForm" (ngSubmit)="saveAdmin(adminForm)" novalidate>
         <div class="header">
             <div class="title-section">
-                <h2>{{ isNewAdmin ? 'Create New Admin' : 'Admin Profile' }}</h2>
             </div>
 
             <div class="header-buttons">
@@ -142,4 +156,5 @@
             <button type="button" class="back-button" (click)="goBack()">Back to Admin List</button>
         </div>
     </form>
-</div>
+  </div><!-- /.admin-details-container -->
+</div><!-- /.ad-page -->

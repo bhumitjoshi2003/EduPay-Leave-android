@@ -1,22 +1,24 @@
 <div *ngIf="showFeesModule; else comingSoonTemplate">
   <div class="pt-page">
 
-    <!-- ── Page Header ──────────────────────────────────────────────── -->
-    <div class="pt-header">
-      <div class="pt-header-left">
-        <div class="pt-header-icon">💳</div>
+    <!-- ── Hero ──────────────────────────────────────────────────────── -->
+    <div class="pt-hero">
+      <div class="pt-hero-left">
+        <div class="pt-hero-icon">💳</div>
         <div>
-          <h1 class="pt-title">Fee Payment</h1>
-          <p class="pt-subtitle">Select months to pay your fees</p>
+          <h1 class="pt-hero-title">Fee Payment</h1>
+          <p class="pt-hero-sub">Select months to pay your fees</p>
         </div>
       </div>
-      <div class="pt-session-wrap">
-        <label class="pt-session-label">Session</label>
-        <select class="pt-session-select" [disabled]="!!lastSelectedMonth"
+      <div class="pt-hero-session">
+        <label class="pt-hero-session-label">Session</label>
+        <select class="pt-hero-session-select" [disabled]="!!lastSelectedMonth"
           [(ngModel)]="session" (change)="onYearChange($event)">
           <option *ngFor="let year of years; trackBy: trackByYear" [value]="year">{{ year }}</option>
         </select>
       </div>
+      <div class="pt-blob pt-blob-1"></div>
+      <div class="pt-blob pt-blob-2"></div>
     </div>
 
     <!-- ── Warning Banners ──────────────────────────────────────────── -->

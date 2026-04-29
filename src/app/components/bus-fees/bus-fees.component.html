@@ -1,51 +1,78 @@
-<div class="header">
-    <h2>Bus Fees Structure {{ currentSession}}</h2>
+<div class="bf-page">
 
-    <div class="actions">
-        <div class="session-select-wrapper">
-            <label for="session-select">Academic Session:</label>
-            <select id="session-select" [(ngModel)]="currentSession" (change)="changeSession(currentSession)">
-                <option *ngFor="let session of academicYears; trackBy: trackBySession" [value]="session">{{ session }}</option>
-            </select>
-        </div>
-
-        <button *ngIf="!(isNewSession || isEditing) && canEdit()" (click)="startNewAcademicYear()">Start New Academic
-            Year</button>
-
-        <button *ngIf="!isEditing && canEdit()" (click)="edit()">Edit</button>
-        <div *ngIf="isEditing && canEdit()" class="edit-actions">
-            <button (click)="save()">Save</button>
-            <button (click)="cancel()">Cancel</button>
-            <button (click)="addRow()">Add Row</button>
-            <button (click)="removeRow()">Remove Row</button>
-        </div>
+  <!-- ── Hero ─────────────────────────────��───────────────────────── -->
+  <div class="bf-hero">
+    <div class="bf-hero-left">
+      <div class="bf-hero-icon">🚌</div>
+      <div>
+        <h1 class="bf-hero-title">Bus Fees</h1>
+        <p class="bf-hero-sub">Transport fee schedule — {{ currentSession }}</p>
+      </div>
     </div>
-</div>
+    <div class="bf-blob bf-blob-1"></div>
+    <div class="bf-blob bf-blob-2"></div>
+  </div>
 
-<div class="table-responsive-wrapper">
-    <table class="bus-fees-table">
+  <!-- ── Controls card ──────────────────────────────────────────────── -->
+  <div class="bf-card">
+    <div class="bf-controls">
+      <div class="bf-control-group">
+        <label class="bf-label">Session</label>
+        <select class="bf-select" [(ngModel)]="currentSession" (change)="changeSession(currentSession)">
+          <option *ngFor="let session of academicYears; trackBy: trackBySession" [value]="session">{{ session }}</option>
+        </select>
+      </div>
+      <div class="bf-actions">
+        <button *ngIf="!(isNewSession || isEditing) && canEdit()"
+          class="bf-btn bf-btn-secondary" (click)="startNewAcademicYear()">＋ New Year</button>
+        <button *ngIf="!isEditing && canEdit()"
+          class="bf-btn bf-btn-primary" (click)="edit()">✎ Edit</button>
+        <ng-container *ngIf="isEditing && canEdit()">
+          <button class="bf-btn bf-btn-success" (click)="save()">✓ Save</button>
+          <button class="bf-btn bf-btn-danger" (click)="cancel()">✕ Cancel</button>
+          <button class="bf-btn bf-btn-ghost" (click)="addRow()">＋ Row</button>
+          <button class="bf-btn bf-btn-ghost" (click)="removeRow()">－ Row</button>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="bf-loading" *ngIf="isLoading">
+      <div class="bf-spinner"></div>
+      <p>Loading fee structure...</p>
+    </div>
+
+    <!-- Table -->
+    <div class="bf-table-wrap" *ngIf="!isLoading">
+      <table class="bf-table">
         <thead>
-            <tr>
-                <th>Min Distance (Km)</th>
-                <th>Max Distance (Km)</th>
-                <th>Fee (₹)</th>
-            </tr>
+          <tr>
+            <th>Min Distance (km)</th>
+            <th>Max Distance (km)</th>
+            <th>Fee (₹)</th>
+          </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let fee of busFeeStructures; trackBy: trackByIndex">
-                <td>
-                    <input *ngIf="isEditing" type="number" [(ngModel)]="fee.minDistance" />
-                    <span *ngIf="!isEditing">{{ fee.minDistance }}</span>
-                </td>
-                <td>
-                    <input *ngIf="isEditing" type="number" [(ngModel)]="fee.maxDistance" />
-                    <span *ngIf="!isEditing">{{ fee.maxDistance !== null ? fee.maxDistance : 'Above' }}</span>
-                </td>
-                <td>
-                    <input *ngIf="isEditing" type="number" [(ngModel)]="fee.fees" />
-                    <span *ngIf="!isEditing">{{ fee.fees }}</span>
-                </td>
-            </tr>
+          <tr *ngFor="let fee of busFeeStructures; trackBy: trackByIndex">
+            <td data-label="Min Distance">
+              <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.minDistance" />
+              <span *ngIf="!isEditing">{{ fee.minDistance }} km</span>
+            </td>
+            <td data-label="Max Distance">
+              <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.maxDistance" />
+              <span *ngIf="!isEditing">{{ fee.maxDistance !== null ? fee.maxDistance + ' km' : 'Above' }}</span>
+            </td>
+            <td data-label="Fee">
+              <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.fees" />
+              <span *ngIf="!isEditing" class="bf-fee-val">₹ {{ fee.fees }}</span>
+            </td>
+          </tr>
+          <tr *ngIf="busFeeStructures.length === 0">
+            <td colspan="3" class="bf-empty-row">No fee structure defined for this session.</td>
+          </tr>
         </tbody>
-    </table>
+      </table>
+    </div>
+  </div>
+
 </div>

@@ -227,7 +227,10 @@ export class NoticeComponent implements OnInit, OnDestroy {
           this.userNotifications = this.userNotifications.map(n => ({ ...n, isRead: true }));
           this.cdr.markForCheck();
         },
-        error: (e) => this.logger.error('Error marking notifications as read:', e),
+        error: (e) => {
+          this.logger.error('Error marking notifications as read:', e);
+          Swal.fire('Error', 'Failed to mark notifications as read.', 'error');
+        },
       });
   }
 

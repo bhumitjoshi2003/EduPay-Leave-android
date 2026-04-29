@@ -1,6 +1,20 @@
-<div class="sc-container">
+<div class="sc-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="sc-hero">
+    <div class="sc-hero-left">
+      <div class="sc-hero-icon">📚</div>
+      <div>
+        <h1 class="sc-hero-title">Subject Configuration</h1>
+        <p class="sc-hero-sub">Manage class subjects, streams &amp; optional groups</p>
+      </div>
+    </div>
+    <div class="sc-blob sc-blob-1"></div>
+    <div class="sc-blob sc-blob-2"></div>
+  </div>
+
+  <div class="sc-card">
   <div class="sc-header">
-    <h2>Subject Configuration</h2>
     <div class="sc-tabs">
       <button class="sc-tab" [class.active]="activeTab === 'class'" (click)="setTab('class')">Class Subjects</button>
       <button class="sc-tab" [class.active]="activeTab === 'streams'" (click)="setTab('streams')">Streams (11–12)</button>
@@ -100,4 +114,5 @@
     </div>
     <p *ngIf="optionalGroups.length === 0" class="sc-empty">No optional groups defined yet.</p>
   </div>
-</div>
+  </div><!-- /.sc-card -->
+</div><!-- /.sc-page -->

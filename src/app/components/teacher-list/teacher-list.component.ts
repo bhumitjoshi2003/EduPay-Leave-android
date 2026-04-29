@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
+import Swal from 'sweetalert2';
 
 interface Teacher {
   teacherId: string;
@@ -21,6 +22,7 @@ interface Teacher {
 })
 export class TeacherListComponent implements OnInit, OnDestroy {
   teachers: Teacher[] = [];
+  isLoading: boolean = true;
   loggedInUserRole: string = '';
   private ngUnsubscribe = new Subject<void>();
 
@@ -59,13 +61,19 @@ export class TeacherListComponent implements OnInit, OnDestroy {
   }
 
   loadAllTeachers(): void {
+    this.isLoading = true;
+    this.cdr.markForCheck();
     this.teacherService.getAllTeachers().pipe(takeUntil(this.ngUnsubscribe)).subscribe({
       next: (teachers) => {
         this.teachers = teachers;
+        this.isLoading = false;
         this.cdr.markForCheck();
       },
       error: (error) => {
         this.logger.error('Error fetching all teachers:', error);
+        this.isLoading = false;
+        this.cdr.markForCheck();
+        Swal.fire('Error', 'Failed to load teachers. Please try again.', 'error');
       }
     });
   }

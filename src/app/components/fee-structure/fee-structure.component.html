@@ -45,8 +45,14 @@
     </div>
   </div>
 
+  <!-- ── Loading ─────────────────────────────────────────────────── -->
+  <div class="fs-loading" *ngIf="isLoading">
+    <div class="fs-spinner"></div>
+    <p>Loading fee structure...</p>
+  </div>
+
   <!-- ── Fee Table ─────────────────────────────────────────────────── -->
-  <div class="fs-table-wrap">
+  <div class="fs-table-wrap" *ngIf="!isLoading">
     <div class="fs-table-scroll">
       <table class="fs-table" aria-label="Fee structure table">
         <thead>

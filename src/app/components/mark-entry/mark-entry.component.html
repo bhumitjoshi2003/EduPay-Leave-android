@@ -1,5 +1,19 @@
-<div class="me-container">
-  <h2 class="me-title">Mark Entry</h2>
+<div class="me-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="me-hero">
+    <div class="me-hero-left">
+      <div class="me-hero-icon">🏆</div>
+      <div>
+        <h1 class="me-hero-title">Mark Entry</h1>
+        <p class="me-hero-sub">Enter &amp; update student exam marks</p>
+      </div>
+    </div>
+    <div class="me-blob me-blob-1"></div>
+    <div class="me-blob me-blob-2"></div>
+  </div>
+
+  <div class="me-card">
 
   <!-- Mode Toggle -->
   <div class="me-mode-toggle">
@@ -135,4 +149,6 @@
   </ng-container>
 
   <p *ngIf="!selectedExamId" class="me-empty">Select a session, class, and exam to begin.</p>
-</div>
+
+  </div><!-- /.me-card -->
+</div><!-- /.me-page -->

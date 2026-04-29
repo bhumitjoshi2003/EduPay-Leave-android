@@ -185,7 +185,10 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
         this.studentList = students;
         this.cdr.markForCheck();
       },
-      error: (err) => this.logger.error('Failed to load students:', err)
+      error: (err) => {
+        this.logger.error('Failed to load students:', err);
+        Swal.fire('Error', 'Failed to load student list. Please try again.', 'error');
+      }
     });
   }
 

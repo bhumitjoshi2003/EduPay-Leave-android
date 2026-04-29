@@ -26,6 +26,7 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
   sessions: string[] = [];
 
   exams: ExamConfig[] = [];
+  isLoadingExams = false;
   expandedExamId: number | null = null;
   examSubjects: Record<number, ExamSubjectEntry[]> = {};
 
@@ -71,11 +72,22 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
     this.exams = [];
     this.expandedExamId = null;
     this.examSubjects = {};
+    this.isLoadingExams = true;
+    this.cdr.markForCheck();
     this.examService.getExams(this.selectedSession, this.selectedClass)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (data) => { this.exams = data; this.cdr.markForCheck(); },
-        error: (e) => this.logger.error('Error loading exams:', e),
+        next: (data) => {
+          this.exams = data;
+          this.isLoadingExams = false;
+          this.cdr.markForCheck();
+        },
+        error: (e) => {
+          this.logger.error('Error loading exams:', e);
+          this.isLoadingExams = false;
+          this.cdr.markForCheck();
+          Swal.fire('Error', 'Failed to load exams.', 'error');
+        },
       });
   }
 

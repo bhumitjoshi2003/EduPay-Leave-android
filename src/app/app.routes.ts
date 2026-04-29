@@ -82,7 +82,7 @@ export const routes: Routes = [
       {
         path: 'view-leaves/:studentId',
         loadComponent: () => import('./components/view-leaves/view-leaves.component').then(m => m.ViewLeavesComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['TEACHER', 'ADMIN'] }
       },
       {
         path: 'event-new',

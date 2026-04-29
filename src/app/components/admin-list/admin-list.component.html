@@ -8,7 +8,12 @@
             </button>
         </div>
 
-        <div *ngIf="admins.length > 0; else noAdminsContainer">
+        <div class="al-loading" *ngIf="isLoading">
+            <div class="al-spinner"></div>
+            <p>Loading administrators...</p>
+        </div>
+
+        <div *ngIf="!isLoading && admins.length > 0; else noAdminsContainer">
             <ul class="admin-list">
                 <li *ngFor="let admin of admins; trackBy: trackByAdminId" class="admin-item" (click)="viewAdminDetails(admin.adminId)">
                     <div class="admin-info">
@@ -29,7 +34,7 @@
             </ul>
         </div>
         <ng-template #noAdminsContainer>
-            <p class="no-admins">No administrators found.</p>
+            <p class="no-admins" *ngIf="!isLoading">No administrators found.</p>
         </ng-template>
     </div>
 </div>

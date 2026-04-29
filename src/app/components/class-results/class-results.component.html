@@ -1,6 +1,19 @@
-<div class="cr-container">
-  <h2 class="cr-title">Class Results</h2>
+<div class="cr-page">
 
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="cr-hero">
+    <div class="cr-hero-left">
+      <div class="cr-hero-icon">🏅</div>
+      <div>
+        <h1 class="cr-hero-title">Class Results</h1>
+        <p class="cr-hero-sub">Exam rankings &amp; marks overview</p>
+      </div>
+    </div>
+    <div class="cr-blob cr-blob-1"></div>
+    <div class="cr-blob cr-blob-2"></div>
+  </div>
+
+  <div class="cr-card">
   <div class="cr-filters">
     <div class="cr-filter-group">
       <label>Session</label>
@@ -76,4 +89,5 @@
   </div>
 
   <p *ngIf="!selectedExamId" class="cr-empty">Select a session, class, and exam to view results.</p>
-</div>
+  </div><!-- /.cr-card -->
+</div><!-- /.cr-page -->

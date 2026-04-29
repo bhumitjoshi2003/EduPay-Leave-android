@@ -1,12 +1,20 @@
 <div class="tt-container">
 
-  <!-- ── Page Header ───────────────────────────────────────────── -->
-  <div class="tt-page-header">
-    <h2 class="tt-title">Timetable</h2>
+  <!-- ── Hero ──────────────────────────────────────────────────── -->
+  <div class="tt-hero">
+    <div class="tt-hero-left">
+      <div class="tt-hero-icon">📅</div>
+      <div>
+        <h1 class="tt-hero-title">Timetable</h1>
+        <p class="tt-hero-sub">Weekly class & teacher schedules</p>
+      </div>
+    </div>
     <button class="tt-print-btn no-print" (click)="printTimetable()" aria-label="Print timetable"
       *ngIf="(hasAnyEntry() && isAdmin()) || (isTeacher() && hasAnyTeacherEntry())">
       🖨 Print
     </button>
+    <div class="tt-blob tt-blob-1"></div>
+    <div class="tt-blob tt-blob-2"></div>
   </div>
 
   <!-- ── Admin controls ────────────────────────────────────────── -->

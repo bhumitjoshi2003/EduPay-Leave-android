@@ -21,6 +21,7 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   sessions: string[] = [];
   currentSession: string = '';
   isEditing = false;
+  isLoading = true;
   isNewSessionStarted = false;
   newSessionYear: string = '';
   feeStructures: FeeStructure[] = [];
@@ -54,10 +55,20 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   }
 
   fetchFeeStructures(): void {
-    this.feeStructureService.getFeeStructures(this.currentSession).pipe(takeUntil(this.destroy$)).subscribe(feeStructures => {
-      this.feeStructures = feeStructures;
-      this.originalFeeStructure = JSON.parse(JSON.stringify(this.feeStructures));
-      this.cdr.markForCheck();
+    this.isLoading = true;
+    this.cdr.markForCheck();
+    this.feeStructureService.getFeeStructures(this.currentSession).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (feeStructures) => {
+        this.feeStructures = feeStructures;
+        this.originalFeeStructure = JSON.parse(JSON.stringify(this.feeStructures));
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+        Swal.fire('Error', 'Failed to load fee structure.', 'error');
+      }
     });
   }
 

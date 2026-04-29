@@ -1,5 +1,19 @@
-<div class="ec-container">
-  <h2 class="ec-title">Exam Configuration</h2>
+<div class="ec-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="ec-hero">
+    <div class="ec-hero-left">
+      <div class="ec-hero-icon">📝</div>
+      <div>
+        <h1 class="ec-hero-title">Exam Config</h1>
+        <p class="ec-hero-sub">Manage exams, subjects &amp; marks</p>
+      </div>
+    </div>
+    <div class="ec-blob ec-blob-1"></div>
+    <div class="ec-blob ec-blob-2"></div>
+  </div>
+
+  <div class="ec-card">
 
   <!-- Filters -->
   <div class="ec-filters">
@@ -23,8 +37,14 @@
     <button class="btn-primary" (click)="addExam()">+ Add Exam</button>
   </div>
 
+  <!-- Loading -->
+  <div class="ec-loading" *ngIf="isLoadingExams">
+    <div class="ec-spinner"></div>
+    <p>Loading exams...</p>
+  </div>
+
   <!-- Exam List -->
-  <div *ngIf="exams.length === 0" class="ec-empty">No exams configured for Class {{ selectedClass }}, {{ selectedSession }}.</div>
+  <div *ngIf="!isLoadingExams && exams.length === 0" class="ec-empty">No exams configured for Class {{ selectedClass }}, {{ selectedSession }}.</div>
 
   <div *ngFor="let exam of exams; trackBy: trackById" class="ec-accordion">
     <div class="ec-accordion-header" (click)="toggleExam(exam)">
@@ -89,4 +109,6 @@
       </div>
     </div>
   </div>
-</div>
+
+  </div><!-- /.ec-card -->
+</div><!-- /.ec-page -->

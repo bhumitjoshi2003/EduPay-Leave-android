@@ -1,23 +1,76 @@
 .import-page {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 820px;
-  margin: 0 auto;
-  padding: 32px 24px;
+  padding-bottom: 16px;
 }
 
-/* ── Page header ──────────────────────────── */
-
-.page-header {
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.bi-hero {
+  position: relative;
+  background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #34d399 100%);
+  border-radius: 20px;
+  padding: 20px 16px 24px;
+  margin: 0 0 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 28px;
+  justify-content: space-between;
+  gap: 12px;
+  overflow: hidden;
+  color: #fff;
   flex-wrap: wrap;
 }
-
-.page-header__text {
-  flex: 1;
+.bi-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
 }
+.bi-blob-1 { width: 120px; height: 120px; background: #fff; top: -28px; right: -18px; }
+.bi-blob-2 { width: 70px; height: 70px; background: #6ee7b7; bottom: -18px; left: 40%; }
+.bi-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+}
+.bi-back-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: #fff;
+  border-radius: 10px;
+  width: 36px; height: 36px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.bi-back-btn:hover { background: rgba(255,255,255,0.3); }
+.bi-hero-icon { font-size: 1.8rem; flex-shrink: 0; }
+.bi-hero-title { font-size: 1.3rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
+.bi-hero-sub { font-size: 0.73rem; font-weight: 500; color: rgba(255,255,255,0.8); margin: 3px 0 0; }
+.bi-template-btn {
+  position: relative;
+  z-index: 1;
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  color: #fff;
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.bi-template-btn:hover { background: rgba(255,255,255,0.3); }
+.bi-template-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.page-header { display: none; }
+.page-header__text { flex: 1; }
 
 .page-header__text h1 {
   font-size: 1.5rem;

@@ -75,7 +75,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
           if (this.selectedClass) this.loadExams();
         },
-        error: (e) => this.logger.error('Error fetching teacher:', e),
+        error: (e) => { this.logger.error('Error fetching teacher:', e); Swal.fire('Error', 'Failed to load teacher details.', 'error'); },
       });
     } else {
       this.selectedClass = '1';
@@ -114,7 +114,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => { this.exams = data; this.cdr.markForCheck(); },
-        error: (e) => this.logger.error('Error loading exams:', e),
+        error: (e) => { this.logger.error('Error loading exams:', e); Swal.fire('Error', 'Failed to load exams.', 'error'); },
       });
   }
 
@@ -135,7 +135,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
           this.students = studentList.map((s: any) => ({ studentId: s.studentId, name: s.name }));
           this.cdr.markForCheck();
         },
-        error: (e) => this.logger.error('Error loading exam data:', e),
+        error: (e) => { this.logger.error('Error loading exam data:', e); Swal.fire('Error', 'Failed to load exam data.', 'error'); },
       });
     }
   }
@@ -146,7 +146,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => { this.examSubjects = data; this.cdr.markForCheck(); },
-        error: (e) => this.logger.error('Error loading exam subjects:', e),
+        error: (e) => { this.logger.error('Error loading exam subjects:', e); Swal.fire('Error', 'Failed to load exam subjects.', 'error'); },
       });
   }
 
@@ -169,7 +169,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
           });
           this.cdr.markForCheck();
         },
-        error: (e) => this.logger.error('Error loading students for subject:', e),
+        error: (e) => { this.logger.error('Error loading students for subject:', e); Swal.fire('Error', 'Failed to load students for this subject.', 'error'); },
       });
   }
 
@@ -192,7 +192,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
           });
           this.cdr.markForCheck();
         },
-        error: (e) => this.logger.error('Error loading subjects for student:', e),
+        error: (e) => { this.logger.error('Error loading subjects for student:', e); Swal.fire('Error', 'Failed to load subjects for this student.', 'error'); },
       });
   }
 

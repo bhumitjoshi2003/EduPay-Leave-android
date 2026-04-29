@@ -3,30 +3,53 @@
   padding-bottom: 140px;
 }
 
-/* ── Page Header ──────────────────────────────────────────────────── */
-.pt-header {
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.pt-hero {
+  position: relative;
+  background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 55%, #3b82f6 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  margin: 0 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  background: #fff;
-  border-radius: 18px;
-  padding: 18px 16px;
-  margin-bottom: 14px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
 }
-
-.pt-header-left {
+.pt-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.pt-blob-1 { width: 130px; height: 130px; background: #fff; top: -30px; right: -20px; }
+.pt-blob-2 { width: 80px; height: 80px; background: #bfdbfe; bottom: -20px; left: 35%; }
+.pt-hero-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
 }
-
-.pt-header-icon {
-  font-size: 2rem;
-  line-height: 1;
-  flex-shrink: 0;
+.pt-hero-icon { font-size: 2rem; flex-shrink: 0; }
+.pt-hero-title { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
+.pt-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.8); margin: 3px 0 0; }
+.pt-hero-session { display: flex; flex-direction: column; gap: 4px; position: relative; z-index: 1; }
+.pt-hero-session-label { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.4px; }
+.pt-hero-session-select {
+  padding: 7px 12px;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
 }
+.pt-hero-session-select:disabled { opacity: 0.6; cursor: not-allowed; }
+.pt-hero-session-select option { background: #1d4ed8; color: #fff; }
 
 .pt-title {
   font-size: 1.15rem;

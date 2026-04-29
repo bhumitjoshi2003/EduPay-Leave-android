@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject, forkJoin, takeUntil } from 'rxjs';
+import Swal from 'sweetalert2';
 
 import { AuthStateService } from '../../auth/auth-state.service';
 import { TeacherService } from '../../services/teacher.service';
@@ -128,7 +129,10 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
           this.pendingLeavesCount = Math.max(0, this.pendingLeavesCount - 1);
           this.cdr.markForCheck();
         },
-        error: e => this.logger.error('Approve leave error:', e)
+        error: e => {
+          this.logger.error('Approve leave error:', e);
+          Swal.fire('Error', 'Failed to approve leave. Please try again.', 'error');
+        }
       });
   }
 
@@ -141,7 +145,10 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
           this.pendingLeavesCount = Math.max(0, this.pendingLeavesCount - 1);
           this.cdr.markForCheck();
         },
-        error: e => this.logger.error('Reject leave error:', e)
+        error: e => {
+          this.logger.error('Reject leave error:', e);
+          Swal.fire('Error', 'Failed to reject leave. Please try again.', 'error');
+        }
       });
   }
 

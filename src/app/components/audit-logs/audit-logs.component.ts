@@ -65,6 +65,8 @@ export class AuditLogsComponent implements OnInit, OnDestroy {
   selectedParsed: any = null;
   selectedParsedLabel = '';
 
+  isLoading = false;
+
   constructor(private auditService: AuditService, private cdr: ChangeDetectorRef) { }
 
   ngOnDestroy(): void {
@@ -77,12 +79,21 @@ export class AuditLogsComponent implements OnInit, OnDestroy {
   }
 
   loadLogs() {
+    this.isLoading = true;
+    this.cdr.markForCheck();
     this.auditService.getAuditLogs(this.page, this.size, this.filters)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(res => {
-        this.logs = res.content;
-        this.totalPages = res.totalPages;
-        this.cdr.markForCheck();
+      .subscribe({
+        next: (res) => {
+          this.logs = res.content;
+          this.totalPages = res.totalPages;
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
       });
   }
 

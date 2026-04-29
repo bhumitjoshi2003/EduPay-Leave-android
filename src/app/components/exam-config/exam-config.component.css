@@ -1,26 +1,87 @@
-/* ── Base ─────────────────────────────────────────────────────────── */
-.ec-container {
-  width: 95%;
-  max-width: 100%;
-  margin: auto;
-  background: linear-gradient(135deg, #eaf6f6, #f0f8ff);
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-  padding: 30px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  animation: fadeIn 0.5s ease-in-out;
-  box-sizing: border-box;
+/* ── Page ─────────────────────────────────────────────────────────── */
+.ec-page {
+  font-family: 'Segoe UI', sans-serif;
+  padding-bottom: 16px;
 }
 
-.ec-title {
-  color: #1f6f8b;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  border-bottom: 2px solid #4fbdbd;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-  font-size: 1.2rem;
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.ec-hero {
+  position: relative;
+  background: linear-gradient(135deg, #881337 0%, #be123c 55%, #f43f5e 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
 }
+
+.ec-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.ec-blob-1 { width: 130px; height: 130px; background: #fff; top: -30px; right: -20px; }
+.ec-blob-2 { width: 80px; height: 80px; background: #fda4af; bottom: -20px; left: 35%; }
+
+.ec-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.ec-hero-icon { font-size: 2rem; flex-shrink: 0; }
+
+.ec-hero-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  color: #fff;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.ec-hero-sub {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.8);
+  margin: 3px 0 0;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────── */
+.ec-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Loading ─────────────────────────────────────────────────────── */
+.ec-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 36px 20px;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.ec-spinner {
+  width: 34px; height: 34px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #be123c;
+  border-radius: 50%;
+  animation: ec-spin 0.8s linear infinite;
+}
+
+@keyframes ec-spin { to { transform: rotate(360deg); } }
 
 /* ── Filters ─────────────────────────────────────────────────────── */
 .ec-filters {

@@ -1,16 +1,21 @@
 <div class="import-page">
 
-  <!-- Page header -->
-  <div class="page-header">
-    <button class="back-btn" (click)="goToTeacherList()">&#8592; Teacher List</button>
-    <div class="page-header__text">
-      <h1>Bulk Teacher Import</h1>
-      <p>Upload a CSV file to register multiple teachers at once.</p>
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="bi-hero">
+    <div class="bi-hero-left">
+      <button class="bi-back-btn" (click)="goToTeacherList()">&#8592;</button>
+      <div class="bi-hero-icon">📥</div>
+      <div>
+        <h1 class="bi-hero-title">Bulk Teacher Import</h1>
+        <p class="bi-hero-sub">Upload a CSV file to register multiple teachers at once</p>
+      </div>
     </div>
-    <button class="template-btn" (click)="downloadTemplate()" [disabled]="isDownloadingTemplate">
+    <button class="bi-template-btn" (click)="downloadTemplate()" [disabled]="isDownloadingTemplate">
       <span *ngIf="!isDownloadingTemplate">&#8595; Download Template</span>
       <span *ngIf="isDownloadingTemplate">Downloading...</span>
     </button>
+    <div class="bi-blob bi-blob-1"></div>
+    <div class="bi-blob bi-blob-2"></div>
   </div>
 
   <!-- Upload area -->

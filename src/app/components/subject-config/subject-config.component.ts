@@ -72,7 +72,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
   loadClassSubjects(): void {
     this.service.getClassSubjects(this.selectedClass).pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => { this.classSubjects = data; this.cdr.markForCheck(); },
-      error: (e) => this.logger.error('Error loading class subjects:', e),
+      error: (e) => { this.logger.error('Error loading class subjects:', e); Swal.fire('Error', 'Failed to load subjects.', 'error'); },
     });
   }
 
@@ -125,7 +125,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
   loadStreams(): void {
     this.service.getStreams().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => { this.streams = data; this.cdr.markForCheck(); },
-      error: (e) => this.logger.error('Error loading streams:', e),
+      error: (e) => { this.logger.error('Error loading streams:', e); Swal.fire('Error', 'Failed to load streams.', 'error'); },
     });
   }
 
@@ -221,7 +221,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
   loadOptionalGroups(): void {
     this.service.getOptionalGroups().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => { this.optionalGroups = data; this.cdr.markForCheck(); },
-      error: (e) => this.logger.error('Error loading optional groups:', e),
+      error: (e) => { this.logger.error('Error loading optional groups:', e); Swal.fire('Error', 'Failed to load optional groups.', 'error'); },
     });
   }
 

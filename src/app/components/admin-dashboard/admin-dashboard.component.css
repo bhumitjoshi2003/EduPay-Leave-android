@@ -25,6 +25,23 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── Stats error ────────────────────────────────────────────────── */
+.ad-stats-error {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+  color: #be123c;
+  font-weight: 600;
+}
+
+.ad-stats-error p { margin: 0; }
+
 /* ── Hero ───────────────────────────────────────────────────────── */
 .ad-hero {
   position: relative;

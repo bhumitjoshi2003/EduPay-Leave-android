@@ -1,23 +1,46 @@
-/* ── Base ─────────────────────────────────────────────────────────── */
-.cr-container {
-  width: 95%;
-  max-width: 100%;
-  margin: auto;
-  background: linear-gradient(135deg, #eaf6f6, #f0f8ff);
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
-  padding: 30px;
+/* ── Page ─────────────────────────────────────────────────────────── */
+.cr-page {
+  padding-bottom: 16px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  animation: fadeIn 0.5s ease-in-out;
-  box-sizing: border-box;
 }
 
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.cr-hero {
+  position: relative;
+  background: linear-gradient(135deg, #164e63 0%, #0e7490 55%, #22d3ee 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
+}
+.cr-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.cr-blob-1 { width: 130px; height: 130px; background: #fff; top: -30px; right: -20px; }
+.cr-blob-2 { width: 80px; height: 80px; background: #a5f3fc; bottom: -20px; left: 35%; }
+.cr-hero-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.cr-hero-icon { font-size: 2rem; flex-shrink: 0; }
+.cr-hero-title { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
+.cr-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.8); margin: 3px 0 0; }
+
+/* ── Card ─────────────────────────────────────────────────────────── */
+.cr-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+/* ── Legacy (keep for inner elements) ────────────────────────────── */
 .cr-title {
-  color: #1f6f8b;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  border-bottom: 2px solid #4fbdbd;
-  padding-bottom: 10px;
+  display: none;
   margin-bottom: 20px;
   font-size: 1.2rem;
 }
