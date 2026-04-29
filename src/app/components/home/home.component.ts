@@ -4,6 +4,7 @@ import { AuthStateService } from '../../auth/auth-state.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { LoggerService } from '../../services/logger.service';
+import { PushNotificationService } from '../../services/push-notification.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -38,7 +39,8 @@ export class HomeComponent implements OnInit {
     private snackBar: MatSnackBar,
     private router: Router,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private pushNotificationService: PushNotificationService
   ) { }
 
   ngOnInit() {
@@ -76,6 +78,8 @@ export class HomeComponent implements OnInit {
         this.showLoginForm = false;
         this.loginState = 'initial';
         this.cdr.markForCheck();
+
+        this.pushNotificationService.init();
 
         const redirectUrl = localStorage.getItem('redirectUrl') || '/dashboard';
         localStorage.removeItem('redirectUrl');

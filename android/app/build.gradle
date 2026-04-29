@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "in.indraacademy.app"
+    namespace = "in.edunexify.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "in.indraacademy.app"
+        applicationId "in.edunexify.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

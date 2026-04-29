@@ -1,104 +1,119 @@
-<div class="payment-details-container">
-  <div class="receipt-header">
-    <h2 class="receipt-title">Fee Receipt</h2> <button *ngIf="paymentDetails" class="download-button"
-      (click)="downloadReceipt(paymentDetails.paymentId)" aria-label="Download Receipt">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-      </svg>
-    </button>
+<div class="pd-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="pd-hero">
+    <div class="pd-blob pd-blob-1"></div>
+    <div class="pd-blob pd-blob-2"></div>
+
+    <div class="pd-hero-bar">
+      <button type="button" class="pd-back-btn" (click)="goBack()" title="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button type="button" class="pd-share-btn" (click)="shareReceipt()" *ngIf="paymentDetails" title="Share Receipt">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        Share
+      </button>
+    </div>
+
+    <div class="pd-hero-center">
+      <div class="pd-receipt-icon">🧾</div>
+      <h1 class="pd-hero-title">Fee Receipt</h1>
+      <p class="pd-hero-sub" *ngIf="paymentDetails">{{ paymentDetails.paymentDate | date:'d MMM yyyy, h:mm a' }}</p>
+    </div>
   </div>
 
-  <div *ngIf="loading" class="loading-message">Loading payment details...</div>
-  <div *ngIf="error" class="error-message">{{ error }}</div>
-
-  <div class="details-table-container" *ngIf="paymentDetails">
-    <h3>Student Details</h3>
-    <table>
-      <tr>
-        <td class="label">Student ID:</td>
-        <td>{{ paymentDetails.studentId }}</td>
-      </tr>
-      <tr>
-        <td class="label">Student Name:</td>
-        <td>{{ paymentDetails.studentName }}</td>
-      </tr>
-      <tr>
-        <td class="label">Class Name:</td>
-        <td>{{ paymentDetails.className }}</td>
-      </tr>
-    </table>
-
-    <h3>Fee Details</h3>
-    <table>
-      <tr>
-        <td class="label">Payment ID:</td>
-        <td>{{ paymentDetails.paymentId }}</td>
-      </tr>
-      <tr>
-        <td class="label">Order ID:</td>
-        <td>{{ paymentDetails.orderId }}</td>
-      </tr>
-      <tr>
-        <td class="label">Month:</td>
-        <td>{{months}}</td>
-      </tr>
-      <tr>
-        <td class="label">Session:</td>
-        <td>{{ paymentDetails.session }}</td>
-      </tr>
-      <tr>
-        <td class="label">Payment Date:</td>
-        <td>{{ paymentDetails.paymentDate | date: 'MMM d, y, h:mm a' }}</td>
-      </tr>
-      <tr>
-        <td class="label">Status:</td>
-        <td [ngClass]="{'status-success': paymentDetails.status === 'success'}">{{ paymentDetails.status | uppercase }}
-        </td>
-      </tr>
-      <tr>
-        <td class="label">Tuition Fee:</td>
-        <td>{{ paymentDetails.tuitionFee | currency: 'INR' }}</td>
-      </tr>
-      <tr>
-        <td class="label">Bus Fee:</td>
-        <td>{{ paymentDetails.busFee | currency: 'INR' }}</td>
-      </tr>
-      <tr>
-        <td class="label">Annual Charges:</td>
-        <td>{{ paymentDetails.annualCharges | currency: 'INR' }}</td>
-      </tr>
-      <tr>
-        <td class="label">Lab Charges:</td>
-        <td>{{ paymentDetails.labCharges | currency: 'INR' }}</td>
-      </tr>
-      <tr>
-        <td class="label">ECA Project:</td>
-        <td>{{ paymentDetails.ecaProject | currency: 'INR' }}</td>
-      </tr>
-      <tr>
-        <td class="label">Examination Fee:</td>
-        <td>{{ paymentDetails.examinationFee | currency: 'INR' }}</td>
-      </tr>
-      <tr *ngIf="paymentDetails.additionalCharges">
-        <td class="label">Unapplied Leave Charges:</td>
-        <td>{{ paymentDetails.additionalCharges | currency: 'INR' }}</td>
-      </tr>
-      <tr *ngIf="paymentDetails.lateFees">
-        <td class="label">Late Fees:</td>
-        <td>{{ paymentDetails.lateFees | currency: 'INR' }}</td>
-      </tr>
-      <tr *ngIf="paymentDetails.platformFee > 0">
-        <td class="label">Platform Fee:</td>
-        <td>{{ paymentDetails.platformFee | currency: 'INR' }}</td>
-      </tr>
-      <tr>
-        <td class="label">Total Amount:</td>
-        <td>{{ paymentDetails.amount | currency: 'INR' }}</td>
-      </tr>
-      <tr>
-        <td class="label">Amount Received:</td>
-        <td>{{ paymentDetails.amountPaid | currency: 'INR' }}</td>
-      </tr>
-    </table>
+  <!-- ── Loading ───────────────────────────────────────────────────── -->
+  <div class="pd-loading" *ngIf="loading">
+    <div class="pd-spinner"></div>
+    <p>Loading receipt...</p>
   </div>
+
+  <!-- ── Error ─────────────────────────────────────────────────────── -->
+  <div class="pd-error" *ngIf="error && !loading">
+    <p>{{ error }}</p>
+  </div>
+
+  <ng-container *ngIf="paymentDetails && !loading">
+
+    <!-- ── Status Banner ──────────────────────────────────────────── -->
+    <div class="pd-status-banner" [class.pd-status-success]="paymentDetails.status === 'success'">
+      <span class="pd-status-dot"></span>
+      {{ paymentDetails.status | uppercase }}
+    </div>
+
+    <!-- ── Student Info ───────────────────────────────────────────── -->
+    <div class="pd-card">
+      <p class="pd-card-title">Student Details</p>
+      <div class="pd-grid">
+        <div class="pd-item">
+          <span class="pd-item-label">Student ID</span>
+          <span class="pd-item-value">{{ paymentDetails.studentId }}</span>
+        </div>
+        <div class="pd-item">
+          <span class="pd-item-label">Class</span>
+          <span class="pd-item-value">{{ paymentDetails.className }}</span>
+        </div>
+        <div class="pd-item pd-item-wide">
+          <span class="pd-item-label">Full Name</span>
+          <span class="pd-item-value">{{ paymentDetails.studentName }}</span>
+        </div>
+        <div class="pd-item">
+          <span class="pd-item-label">Session</span>
+          <span class="pd-item-value">{{ paymentDetails.session }}</span>
+        </div>
+        <div class="pd-item">
+          <span class="pd-item-label">Months</span>
+          <span class="pd-item-value">{{ months.join(', ') || '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Fee Breakdown ──────────────────────────────────────────── -->
+    <div class="pd-card">
+      <p class="pd-card-title">Fee Breakdown</p>
+      <ul class="pd-fee-list">
+        <li class="pd-fee-row" *ngFor="let line of feeLines()">
+          <span class="pd-fee-label">{{ line.label }}</span>
+          <span class="pd-fee-amount">{{ line.amount | currency:'INR' }}</span>
+        </li>
+      </ul>
+
+      <div class="pd-divider"></div>
+
+      <div class="pd-total-row">
+        <span>Total Charged</span>
+        <span>{{ paymentDetails.amount | currency:'INR' }}</span>
+      </div>
+      <div class="pd-paid-row">
+        <span>Amount Paid</span>
+        <span>{{ paymentDetails.amountPaid | currency:'INR' }}</span>
+      </div>
+    </div>
+
+    <!-- ── Transaction Info ───────────────────────────────────────── -->
+    <div class="pd-card">
+      <p class="pd-card-title">Transaction Info</p>
+      <div class="pd-txn-row">
+        <span class="pd-txn-label">Payment ID</span>
+        <span class="pd-txn-value pd-mono">{{ paymentDetails.paymentId }}</span>
+      </div>
+      <div class="pd-txn-row">
+        <span class="pd-txn-label">Order ID</span>
+        <span class="pd-txn-value pd-mono">{{ paymentDetails.orderId }}</span>
+      </div>
+      <div class="pd-txn-row">
+        <span class="pd-txn-label">Date & Time</span>
+        <span class="pd-txn-value">{{ paymentDetails.paymentDate | date:'d MMM yyyy, h:mm a' }}</span>
+      </div>
+    </div>
+
+  </ng-container>
 </div>

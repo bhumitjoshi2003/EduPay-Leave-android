@@ -1,12 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PaymentHistoryService } from '../../services/payment-history.service';
 import { PaymentHistoryDetails } from '../../interfaces/payment-response';
 import { CommonModule } from '@angular/common';
-import saveAs from 'file-saver';
 import { Subject, takeUntil } from 'rxjs';
-import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -24,12 +23,13 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
   error: string = '';
   months: string[] = [];
 
-  constructor(private route: ActivatedRoute, private paymentHistoryService: PaymentHistoryService, private logger: LoggerService, private cdr: ChangeDetectorRef) {}
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private paymentHistoryService: PaymentHistoryService,
+    private logger: LoggerService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -38,15 +38,19 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   fetchPaymentDetails(): void {
     this.loading = true;
     this.error = '';
-
-    this.paymentHistoryService.getPaymentHistoryDetails(this.paymentId).subscribe({
+    this.paymentHistoryService.getPaymentHistoryDetails(this.paymentId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => {
         this.paymentDetails = data;
         this.loading = false;
-        this.getMonths();
+        this.buildMonths();
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -58,43 +62,62 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  getMonths(): void {
-    if (this.paymentDetails && this.paymentDetails.month) {
-      const monthString = this.paymentDetails.month;
-      const allMonths = [
-        'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March', 
-      ];
-      this.months = [];
-      for (let i = 0; i < monthString.length; i++) {
-        if (monthString[i] === '1') {
+  buildMonths(): void {
+    const allMonths = ['April','May','June','July','August','September','October','November','December','January','February','March'];
+    this.months = [];
+    if (this.paymentDetails?.month) {
+      for (let i = 0; i < this.paymentDetails.month.length; i++) {
+        if (this.paymentDetails.month[i] === '1') {
           this.months.push(allMonths[i]);
         }
       }
-    } else {
-      this.months = [];
     }
   }
 
-  downloadReceipt(paymentId: string): void {
-    if (Capacitor.isNativePlatform()) {
-      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Downloading receipts is not supported on the mobile app. Please use the web version.' });
-      return;
+  goBack(): void {
+    this.router.navigate(['..'], { relativeTo: this.route });
+  }
+
+  feeLines(): { label: string; amount: number }[] {
+    if (!this.paymentDetails) return [];
+    const d = this.paymentDetails;
+    return [
+      { label: 'Tuition Fee',              amount: d.tuitionFee },
+      { label: 'Bus Fee',                  amount: d.busFee },
+      { label: 'Annual Charges',           amount: d.annualCharges },
+      { label: 'Lab Charges',              amount: d.labCharges },
+      { label: 'ECA / Project',            amount: d.ecaProject },
+      { label: 'Examination Fee',          amount: d.examinationFee },
+      { label: 'Unapplied Leave Charges',  amount: d.additionalCharges },
+      { label: 'Late Fee',                 amount: d.lateFees },
+      { label: 'Platform Fee',             amount: d.platformFee },
+    ].filter(l => l.amount > 0);
+  }
+
+  async shareReceipt(): Promise<void> {
+    if (!this.paymentDetails) return;
+    const d = this.paymentDetails;
+    const lines = this.feeLines().map(l => `  ${l.label}: ₹${l.amount.toFixed(2)}`).join('\n');
+    const text = `🏫 Indra Academy — Fee Receipt\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `Student : ${d.studentName} (${d.studentId})\n` +
+      `Class   : ${d.className}\n` +
+      `Session : ${d.session}\n` +
+      `Months  : ${this.months.join(', ') || '—'}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `${lines}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `Total Paid : ₹${d.amountPaid.toFixed(2)}\n` +
+      `Date       : ${new Date(d.paymentDate).toLocaleString('en-IN')}\n` +
+      `Payment ID : ${d.paymentId}\n` +
+      `Status     : ${d.status.toUpperCase()}`;
+
+    try {
+      await Share.share({ title: 'Fee Receipt', text, dialogTitle: 'Share Fee Receipt' });
+    } catch (e: any) {
+      if (e?.message !== 'Share canceled') {
+        Swal.fire('Error', 'Could not open share sheet.', 'error');
+      }
     }
-    this.loading = true;
-    this.error = '';
-    this.paymentHistoryService.downloadPaymentReceipt(paymentId).subscribe({
-      next: (data: Blob) => {
-        const filename = `receipt_${paymentId}.pdf`;
-        saveAs(data, filename);
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.error = 'Failed to download receipt.';
-        this.logger.error('Download error:', err);
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-    });
   }
 }

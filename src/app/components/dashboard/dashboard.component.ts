@@ -12,6 +12,7 @@ import { StudentService } from '../../services/student.service';
 import { TeacherService } from '../../services/teacher.service';
 import { AdminService } from '../../services/admin.service';
 import { NotificationService } from '../../services/notification.service';
+import { PushNotificationService } from '../../services/push-notification.service';
 import { MatDialog } from '@angular/material/dialog';
 import { WelcomeDialogComponent } from '../welcome-dialog/welcome-dialog.component';
 import { Subject, takeUntil, interval, Subscription } from 'rxjs';
@@ -57,6 +58,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private teacherService: TeacherService,
     private adminService: AdminService,
     private notificationService: NotificationService,
+    private pushNotificationService: PushNotificationService,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService
@@ -202,6 +204,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   logout() {
     localStorage.removeItem(this.welcomeMessageKey);
+    this.pushNotificationService.clearToken();
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/home']),
       error: () => this.router.navigate(['/home'])

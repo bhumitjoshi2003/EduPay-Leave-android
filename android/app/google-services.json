@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "863559370941",
+    "project_id": "edunexify-a0506",
+    "storage_bucket": "edunexify-a0506.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:863559370941:android:2d895c50fe73b2eb0c4fd4",
+        "android_client_info": {
+          "package_name": "in.edunexify.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgbeA1AWlNXhxQjBmSk40imdLGPAUxtTw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

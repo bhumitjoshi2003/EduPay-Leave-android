@@ -1,4 +1,4 @@
-package in.indraacademy.app;
+package in.edunexify.app;
 
 import com.getcapacitor.BridgeActivity;
 
