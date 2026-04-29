@@ -127,6 +127,11 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
       {
+        path: 'student-promotion',
+        loadComponent: () => import('./components/student-promotion/student-promotion.component').then(m => m.StudentPromotionComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+      },
+      {
         path: 'teacher-bulk-import',
         loadComponent: () => import('./components/teacher-bulk-import/teacher-bulk-import.component').then(m => m.TeacherBulkImportComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN'] }

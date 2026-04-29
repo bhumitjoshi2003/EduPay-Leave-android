@@ -1,0 +1,111 @@
+<div class="sp-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="sp-hero">
+    <div class="sp-blob sp-blob-1"></div>
+    <div class="sp-blob sp-blob-2"></div>
+    <div class="sp-hero-left">
+      <div class="sp-hero-icon">🎓</div>
+      <div>
+        <h1 class="sp-hero-title">Student Promotion</h1>
+        <p class="sp-hero-sub">Review and promote students to the next class</p>
+      </div>
+    </div>
+    <div class="sp-hero-stats" *ngIf="!isLoading && !result && groups.length > 0">
+      <span class="sp-stat sp-stat-green">✓ {{ promotedCount }} Promote</span>
+      <span class="sp-stat sp-stat-yellow">⟳ {{ detainedCount }} Detain</span>
+      <span class="sp-stat sp-stat-blue">🎓 {{ passOutCount }} Pass Out</span>
+    </div>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────────────── -->
+  <div class="sp-loading" *ngIf="isLoading">
+    <div class="sp-spinner"></div>
+    <p>Loading students for promotion...</p>
+  </div>
+
+  <!-- ── Result Screen ─────────────────────────────────────────────── -->
+  <div class="sp-result-card" *ngIf="result">
+    <div class="sp-result-icon">🎉</div>
+    <h2 class="sp-result-title">Promotion Complete</h2>
+    <div class="sp-result-grid">
+      <div class="sp-result-item sp-result-green">
+        <span class="sp-result-num">{{ result.promoted }}</span>
+        <span class="sp-result-lbl">Promoted</span>
+      </div>
+      <div class="sp-result-item sp-result-yellow">
+        <span class="sp-result-num">{{ result.detained }}</span>
+        <span class="sp-result-lbl">Detained</span>
+      </div>
+      <div class="sp-result-item sp-result-blue">
+        <span class="sp-result-num">{{ result.passedOut }}</span>
+        <span class="sp-result-lbl">Passed Out</span>
+      </div>
+    </div>
+    <div class="sp-errors" *ngIf="result.errors.length > 0">
+      <p class="sp-errors-title">⚠ {{ result.errors.length }} student(s) could not be processed:</p>
+      <ul class="sp-errors-list">
+        <li *ngFor="let e of result.errors">
+          <strong>{{ e.studentId }}</strong> — {{ e.reason }}
+        </li>
+      </ul>
+    </div>
+    <button class="sp-reset-btn" (click)="resetResult()">↺ Back to Promotion</button>
+  </div>
+
+  <!-- ── Class Groups ───────────────────────────────────────────────── -->
+  <ng-container *ngIf="!isLoading && !result">
+
+    <div class="sp-empty" *ngIf="groups.length === 0">
+      <p>No active students found for promotion.</p>
+    </div>
+
+    <div class="sp-class-card" *ngFor="let group of groups; trackBy: trackByClass">
+      <div class="sp-class-header">
+        <div class="sp-class-meta">
+          <span class="sp-class-label">Class {{ group.className }}</span>
+          <span class="sp-class-count">{{ group.students.length }} student{{ group.students.length !== 1 ? 's' : '' }}</span>
+        </div>
+        <div class="sp-class-actions">
+          <button class="sp-bulk-btn sp-bulk-promote" (click)="setClassAction(group, 'PROMOTE')">All Promote</button>
+          <button class="sp-bulk-btn sp-bulk-detain" (click)="setClassAction(group, 'DETAIN')">All Detain</button>
+          <button *ngIf="isClass12(group)" class="sp-bulk-btn sp-bulk-passout" (click)="setClassAction(group, 'PASS_OUT')">All Pass Out</button>
+        </div>
+      </div>
+
+      <ul class="sp-student-list">
+        <li *ngFor="let s of group.students; trackBy: trackByStudent" class="sp-student-item">
+          <span class="sp-student-name">{{ s.name }}</span>
+          <span class="sp-student-id">{{ s.studentId }}</span>
+          <div class="sp-toggle-group">
+            <button class="sp-toggle sp-toggle-promote"
+              [class.active]="decisions.get(s.studentId) === 'PROMOTE'"
+              (click)="setAction(s.studentId, 'PROMOTE')">Promote</button>
+            <button class="sp-toggle sp-toggle-detain"
+              [class.active]="decisions.get(s.studentId) === 'DETAIN'"
+              (click)="setAction(s.studentId, 'DETAIN')">Detain</button>
+            <button *ngIf="isClass12(group)" class="sp-toggle sp-toggle-passout"
+              [class.active]="decisions.get(s.studentId) === 'PASS_OUT'"
+              (click)="setAction(s.studentId, 'PASS_OUT')">Pass Out</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ── Execute Card ──────────────────────────────────────────────── -->
+    <div class="sp-execute-card" *ngIf="groups.length > 0">
+      <div class="sp-footer-summary">
+        <span class="sp-fs-item sp-fs-green">✓ {{ promotedCount }} Promoted</span>
+        <span class="sp-fs-item sp-fs-yellow">⟳ {{ detainedCount }} Detained</span>
+        <span class="sp-fs-item sp-fs-blue">🎓 {{ passOutCount }} Passed Out</span>
+        <span class="sp-fs-total">of {{ decisions.size }} total</span>
+      </div>
+      <button class="sp-execute-btn" (click)="execute()" [disabled]="isExecuting">
+        <span *ngIf="!isExecuting">Execute Promotion</span>
+        <span *ngIf="isExecuting" class="sp-btn-spinner"></span>
+      </button>
+    </div>
+
+  </ng-container>
+
+</div>

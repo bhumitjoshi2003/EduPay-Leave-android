@@ -44,117 +44,107 @@
 </div>
 
 <div class="ad-page" *ngIf="updatedDetails">
+  <form #adminForm="ngForm" (ngSubmit)="saveAdmin(adminForm)" novalidate>
 
-  <!-- ── Hero ──────────────────────────────────────────────────────── -->
-  <div class="ad-hero">
-    <div class="ad-hero-left">
-      <div class="ad-hero-icon">🛡️</div>
-      <div>
-        <h1 class="ad-hero-title">{{ isNewAdmin ? 'Create Admin' : 'Admin Profile' }}</h1>
-        <p class="ad-hero-sub">{{ isNewAdmin ? 'Register a new administrator' : 'View &amp; manage admin account' }}</p>
+    <!-- ── Profile Hero ─────────────────────────────────────────── -->
+    <div class="ad-hero">
+      <div class="ad-blob ad-blob-1"></div>
+      <div class="ad-blob ad-blob-2"></div>
+
+      <div class="ad-hero-bar">
+        <button type="button" class="ad-back-icon" (click)="goBack()" title="Back">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="ad-hero-btns">
+          <button type="button" *ngIf="!isEditing && canEdit()" class="ad-pill" (click)="enableEditMode()">✏ Edit</button>
+          <ng-container *ngIf="isEditing">
+            <button type="submit" class="ad-pill ad-pill-green">✓ Save</button>
+            <button type="button" class="ad-pill ad-pill-red" (click)="cancelEdit()">✕</button>
+          </ng-container>
+          <button type="button" class="ad-pill-icon" (click)="openPasswordModal()" title="Change Password"
+            *ngIf="!isNewAdmin && (loggedInUserId === adminId || loggedInUserRole === 'SUPER_ADMIN')">🔐</button>
+          <button type="button" class="ad-pill ad-pill-danger" (click)="deleteAdmin()"
+            *ngIf="loggedInUserRole === 'SUPER_ADMIN' && !isNewAdmin && loggedInUserId !== adminId">🗑 Delete</button>
+        </div>
+      </div>
+
+      <div class="ad-hero-center">
+        <div class="ad-photo-ring" [class.uploadable]="canUploadPhoto()" (click)="canUploadPhoto() && triggerPhotoUpload()" *ngIf="!isNewAdmin">
+          <img *ngIf="adminDetails?.photoUrl" [src]="getPhotoUrl(adminDetails!.photoUrl!)" alt="Admin photo" class="ad-photo">
+          <div *ngIf="!adminDetails?.photoUrl" class="ad-initials">{{ getInitials() }}</div>
+          <div *ngIf="canUploadPhoto() && !photoUploading" class="ad-photo-overlay">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Upload</span>
+          </div>
+          <div *ngIf="photoUploading" class="ad-photo-uploading"><span class="ad-spinner"></span></div>
+        </div>
+        <input type="file" #photoInput accept="image/*" (change)="onPhotoSelected($event)" style="display:none">
+        <h1 class="ad-hero-name">{{ updatedDetails.name || 'New Admin' }}</h1>
+        <div class="ad-hero-chips" *ngIf="!isNewAdmin">
+          <span class="ad-hero-chip">{{ updatedDetails.adminId }}</span>
+        </div>
       </div>
     </div>
-    <div class="ad-blob ad-blob-1"></div>
-    <div class="ad-blob ad-blob-2"></div>
-  </div>
 
-  <div class="admin-details-container">
-    <form #adminForm="ngForm" (ngSubmit)="saveAdmin(adminForm)" novalidate>
-        <div class="header">
-            <div class="title-section">
-            </div>
+    <!-- ── Admin Information ─────────────────────────────────────── -->
+    <div class="ad-section">
+      <p class="ad-section-title">Admin Information</p>
+      <div class="ad-grid">
 
-            <div class="header-buttons">
-                <button type="button" class="edit-btn" *ngIf="!isEditing && canEdit()" (click)="enableEditMode()">
-                    Edit Details
-                </button>
-
-                <div *ngIf="isEditing" class="editing-group">
-                    <button type="submit" class="save-btn">Save</button>
-                    <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancel</button>
-                </div>
-
-                <button type="button" class="password-btn" (click)="openPasswordModal()"
-                    *ngIf="!isNewAdmin && (loggedInUserId === adminId || loggedInUserRole === 'SUPER_ADMIN')">
-                    Change Password
-                </button>
-
-                <button type="button" class="delete-btn"
-                    *ngIf="loggedInUserRole === 'SUPER_ADMIN' && !isNewAdmin && loggedInUserId !== adminId"
-                    (click)="deleteAdmin()">
-                    Delete Admin
-                </button>
-            </div>
+        <div class="ad-item">
+          <span class="ad-item-label">Admin ID</span>
+          <span class="ad-item-value" *ngIf="!isNewAdmin">{{ updatedDetails.adminId }}</span>
+          <input type="text" class="ad-item-input" *ngIf="isNewAdmin" name="adminId"
+            [(ngModel)]="updatedDetails.adminId" required #idField="ngModel"
+            [class.invalid-field]="idField.invalid && idField.touched" placeholder="e.g. A1005">
         </div>
 
-        <!-- Photo section -->
-        <div class="photo-section" *ngIf="!isNewAdmin">
-          <div class="photo-wrapper" [class.uploadable]="canUploadPhoto()" (click)="canUploadPhoto() && triggerPhotoUpload()">
-            <img *ngIf="adminDetails?.photoUrl" [src]="getPhotoUrl(adminDetails!.photoUrl!)" alt="Admin photo" class="admin-photo">
-            <div *ngIf="!adminDetails?.photoUrl" class="photo-initials">{{ getInitials() }}</div>
-            <div *ngIf="canUploadPhoto() && !photoUploading" class="photo-overlay">
-              <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <span>Upload</span>
-            </div>
-            <div *ngIf="photoUploading" class="photo-uploading">
-              <span class="spinner"></span>
-            </div>
-          </div>
-          <input type="file" #photoInput accept="image/*" (change)="onPhotoSelected($event)" style="display:none">
+        <div class="ad-item">
+          <span class="ad-item-label">Full Name</span>
+          <span class="ad-item-value" *ngIf="!isEditing">{{ updatedDetails.name }}</span>
+          <input type="text" class="ad-item-input" *ngIf="isEditing" name="name"
+            [(ngModel)]="updatedDetails.name" required #nameField="ngModel"
+            [class.invalid-field]="nameField.invalid && nameField.touched">
         </div>
 
-        <div class="details-grid">
-            <div class="detail-item">
-                <span class="label">Admin ID:</span>
-                <span class="value" *ngIf="!isNewAdmin">{{ updatedDetails.adminId }}</span>
-                <input type="text" *ngIf="isNewAdmin" name="adminId" [(ngModel)]="updatedDetails.adminId" required
-                    #idField="ngModel" [class.is-invalid]="idField.invalid && idField.touched" placeholder="e.g. A1005">
-            </div>
-
-            <div class="detail-item">
-                <span class="label">Full Name:</span>
-                <span class="value" *ngIf="!isEditing">{{ updatedDetails.name }}</span>
-                <input type="text" *ngIf="isEditing" name="name" [(ngModel)]="updatedDetails.name" required
-                    #nameField="ngModel" [class.is-invalid]="nameField.invalid && nameField.touched">
-            </div>
-
-            <div class="detail-item">
-                <span class="label">Email:</span>
-                <span class="value" *ngIf="!isEditing">{{ updatedDetails.email }}</span>
-                <input type="email" *ngIf="isEditing" name="email" [(ngModel)]="updatedDetails.email" required email
-                    #emailField="ngModel" [class.is-invalid]="emailField.invalid && emailField.touched">
-            </div>
-
-            <div class="detail-item">
-                <span class="label">Phone:</span>
-                <span class="value" *ngIf="!isEditing">{{ updatedDetails.phoneNumber }}</span>
-                <input type="text" *ngIf="isEditing" name="phone" [(ngModel)]="updatedDetails.phoneNumber" required
-                    pattern="^[0-9]{10}$" #phoneField="ngModel"
-                    [class.is-invalid]="phoneField.invalid && phoneField.touched">
-            </div>
-
-            <div class="detail-item">
-                <span class="label">Gender:</span>
-                <span class="value" *ngIf="!isEditing">{{ updatedDetails.gender }}</span>
-                <select *ngIf="isEditing" name="gender" [(ngModel)]="updatedDetails.gender" required
-                    #genderField="ngModel" [class.is-invalid]="genderField.invalid && genderField.touched">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-
-            <div class="detail-item">
-                <span class="label">Date of Birth:</span>
-                <span class="value" *ngIf="!isEditing">{{ updatedDetails.dob }}</span>
-                <input type="date" *ngIf="isEditing" name="dob" [(ngModel)]="updatedDetails.dob" required
-                    #dobField="ngModel" [class.is-invalid]="dobField.invalid && dobField.touched">
-            </div>
+        <div class="ad-item ad-item-wide">
+          <span class="ad-item-label">Email</span>
+          <span class="ad-item-value" *ngIf="!isEditing">{{ updatedDetails.email }}</span>
+          <input type="email" class="ad-item-input" *ngIf="isEditing" name="email"
+            [(ngModel)]="updatedDetails.email" required email #emailField="ngModel"
+            [class.invalid-field]="emailField.invalid && emailField.touched">
         </div>
 
-        <div class="footer-actions">
-            <button type="button" class="back-button" (click)="goBack()">Back to Admin List</button>
+        <div class="ad-item">
+          <span class="ad-item-label">Phone</span>
+          <span class="ad-item-value" *ngIf="!isEditing">{{ updatedDetails.phoneNumber }}</span>
+          <input type="text" class="ad-item-input" *ngIf="isEditing" name="phone"
+            [(ngModel)]="updatedDetails.phoneNumber" required pattern="^[0-9]{10}$"
+            #phoneField="ngModel" [class.invalid-field]="phoneField.invalid && phoneField.touched">
         </div>
-    </form>
-  </div><!-- /.admin-details-container -->
-</div><!-- /.ad-page -->
+
+        <div class="ad-item">
+          <span class="ad-item-label">Gender</span>
+          <span class="ad-item-value" *ngIf="!isEditing">{{ updatedDetails.gender }}</span>
+          <select class="ad-item-input" *ngIf="isEditing" name="gender"
+            [(ngModel)]="updatedDetails.gender" required #genderField="ngModel"
+            [class.invalid-field]="genderField.invalid && genderField.touched">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="ad-item">
+          <span class="ad-item-label">Date of Birth</span>
+          <span class="ad-item-value" *ngIf="!isEditing">{{ updatedDetails.dob }}</span>
+          <input type="date" class="ad-item-input" *ngIf="isEditing" name="dob"
+            [(ngModel)]="updatedDetails.dob" required #dobField="ngModel"
+            [class.invalid-field]="dobField.invalid && dobField.touched">
+        </div>
+
+      </div>
+    </div>
+
+  </form>
+</div>

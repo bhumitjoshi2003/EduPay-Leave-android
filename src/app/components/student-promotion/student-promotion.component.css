@@ -1,0 +1,359 @@
+/* ── Page ─────────────────────────────────────────────────────────── */
+.sp-page {
+  padding-bottom: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.sp-hero {
+  position: relative;
+  background: linear-gradient(135deg, #14532d 0%, #15803d 55%, #4ade80 100%);
+  border-radius: 20px;
+  padding: 22px 20px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
+  flex-wrap: wrap;
+}
+
+.sp-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.sp-blob-1 { width: 140px; height: 140px; background: #fff; top: -35px; right: -25px; }
+.sp-blob-2 { width: 80px; height: 80px; background: #a7f3d0; bottom: -20px; left: 30%; }
+
+.sp-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
+}
+.sp-hero-icon { font-size: 2rem; flex-shrink: 0; }
+.sp-hero-title { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
+.sp-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.85); margin: 3px 0 0; }
+
+.sp-hero-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.sp-stat {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1.5px solid rgba(255,255,255,0.35);
+}
+.sp-stat-green  { background: rgba(16,185,129,0.3); }
+.sp-stat-yellow { background: rgba(234,179,8,0.3); }
+.sp-stat-blue   { background: rgba(59,130,246,0.3); }
+
+/* ── Loading ─────────────────────────────────────────────────────── */
+.sp-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 48px 20px;
+  color: #64748b;
+  font-size: 0.88rem;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.sp-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #15803d;
+  border-radius: 50%;
+  animation: sp-spin 0.8s linear infinite;
+}
+@keyframes sp-spin { to { transform: rotate(360deg); } }
+
+/* ── Empty ───────────────────────────────────────────────────────── */
+.sp-empty {
+  background: #fff;
+  border-radius: 18px;
+  padding: 48px 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+/* ── Class Card ──────────────────────────────────────────────────── */
+.sp-class-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.sp-class-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border-bottom: 1px solid #dcfce7;
+  flex-wrap: wrap;
+}
+
+.sp-class-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.sp-class-label {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #14532d;
+}
+.sp-class-count {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.sp-class-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sp-bulk-btn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+.sp-bulk-btn:hover { opacity: 0.82; }
+
+.sp-bulk-promote { background: #dcfce7; color: #166534; }
+.sp-bulk-detain  { background: #fef9c3; color: #854d0e; }
+.sp-bulk-passout { background: #dbeafe; color: #1e40af; }
+
+/* ── Student List ────────────────────────────────────────────────── */
+.sp-student-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sp-student-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+.sp-student-item:last-child { border-bottom: none; }
+
+.sp-student-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  flex: 1;
+  min-width: 120px;
+}
+.sp-student-id {
+  font-size: 0.75rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* ── Toggle Group ────────────────────────────────────────────────── */
+.sp-toggle-group {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sp-toggle {
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  background: #f1f5f9;
+  color: #64748b;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.sp-toggle:hover { background: #e2e8f0; }
+
+.sp-toggle-promote.active { background: #dcfce7; color: #166534; border-color: #86efac; }
+.sp-toggle-detain.active  { background: #fef9c3; color: #854d0e; border-color: #fde047; }
+.sp-toggle-passout.active { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+
+/* ── Result Card ─────────────────────────────────────────────────── */
+.sp-result-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 32px 20px 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.sp-result-icon { font-size: 3rem; }
+
+.sp-result-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.sp-result-grid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.sp-result-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 20px;
+  border-radius: 14px;
+  min-width: 80px;
+}
+.sp-result-num { font-size: 1.8rem; font-weight: 800; }
+.sp-result-lbl { font-size: 0.75rem; font-weight: 600; margin-top: 2px; }
+
+.sp-result-green  { background: #dcfce7; color: #166534; }
+.sp-result-yellow { background: #fef9c3; color: #854d0e; }
+.sp-result-blue   { background: #dbeafe; color: #1e40af; }
+
+.sp-errors {
+  width: 100%;
+  background: #fff8f0;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.sp-errors-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #9a3412;
+  margin: 0 0 8px;
+}
+.sp-errors-list {
+  margin: 0;
+  padding: 0 0 0 16px;
+  font-size: 0.8rem;
+  color: #7c2d12;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sp-reset-btn {
+  padding: 11px 28px;
+  background: linear-gradient(135deg, #14532d, #15803d);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+.sp-reset-btn:hover { opacity: 0.88; }
+
+/* ── Execute Card ────────────────────────────────────────────────── */
+.sp-execute-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sp-footer-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sp-fs-item {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.sp-fs-green  { background: #dcfce7; color: #166534; }
+.sp-fs-yellow { background: #fef9c3; color: #854d0e; }
+.sp-fs-blue   { background: #dbeafe; color: #1e40af; }
+.sp-fs-total  { font-size: 0.75rem; color: #64748b; }
+
+.sp-execute-btn {
+  padding: 11px 22px;
+  background: linear-gradient(135deg, #14532d, #15803d);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
+  white-space: nowrap;
+}
+.sp-execute-btn:hover:not(:disabled) { opacity: 0.88; }
+.sp-execute-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.sp-btn-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: sp-spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .sp-hero { flex-direction: column; align-items: flex-start; }
+  .sp-student-item { gap: 6px; }
+  .sp-toggle { padding: 5px 8px; font-size: 0.7rem; }
+  .sp-execute-card { flex-direction: column; align-items: stretch; }
+  .sp-execute-btn { width: 100%; }
+}

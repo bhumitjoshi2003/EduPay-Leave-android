@@ -1,81 +1,67 @@
-.admin-list-container {
-    display: flex;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #eaf6f6, #f0f8ff);
-    border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-    animation: fadeIn 0.8s ease-in-out;
-    padding: 30px;
-    margin: auto auto;
-    width: 95%;
+/* ── Page ─────────────────────────────────────────────────────────── */
+.al-page {
+  padding-bottom: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #4fbdbd;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.al-hero {
+  position: relative;
+  background: linear-gradient(135deg, #1e293b 0%, #1e3a5f 55%, #334155 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
+  flex-wrap: wrap;
 }
-
-.list-header h2 {
-    border-bottom: none !important;
-    margin-bottom: 0 !important;
-    width: auto !important;
+.al-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
 }
+.al-blob-1 { width: 130px; height: 130px; background: #fff; top: -30px; right: -20px; }
+.al-blob-2 { width: 80px; height: 80px; background: #94a3b8; bottom: -20px; left: 35%; }
 
-.create-admin-button {
-    background: linear-gradient(135deg, #28a745, #218838);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(40, 167, 69, 0.2);
+.al-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
 }
+.al-hero-icon { font-size: 2rem; flex-shrink: 0; }
+.al-hero-title { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
+.al-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.8); margin: 3px 0 0; }
 
-.create-admin-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
-    background: linear-gradient(135deg, #218838, #1e7e34);
+.al-hero-btn {
+  position: relative;
+  z-index: 1;
+  background: rgba(255,255,255,0.18);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  color: #fff;
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  font-family: inherit;
 }
+.al-hero-btn:hover { background: rgba(255,255,255,0.28); }
 
-.plus-icon {
-    font-size: 1.2em;
-    font-weight: bold;
-}
-
-.admin-list-container h2 {
-    color: #1f6f8b;
-    margin-bottom: 20px;
-    text-align: center;
-    border-bottom: 2px solid #4fbdbd;
-    padding-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    width: 100%;
-}
-
-.admin-list-area {
-    flex-grow: 1;
-    padding: 20px;
-    background-color: rgba(255, 255, 255, 0.95);
-    border-radius: 10px;
-}
-
-.admin-list-area h2 {
-    text-align: left;
-    border-bottom: 2px solid #4fbdbd;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    color: #1f6f8b;
-    font-size: 1.4em;
+/* ── Card ─────────────────────────────────────────────────────────── */
+.al-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
 .admin-list {
@@ -205,52 +191,15 @@
 
 /* --- Responsive Adjustments --- */
 
-@media (max-width: 1023px) {
-    .admin-list-container {
-        padding: 20px;
-        width: 95%;
-    }
-
-    .admin-item {
-        padding: 12px;
-    }
-
-    .view-details-button,
-    .delete-button {
-        padding: 6px 12px;
-        font-size: 0.85em;
-    }
-}
-
 @media (max-width: 767px) {
-    .admin-list-container {
-        padding: 10px;
-        width: 95%;
-    }
-
     .admin-item {
         padding: 10px;
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
-
-    .admin-info {
-        width: 100%;
-    }
-
-    .button-group {
-        display: none;
-    }
-
-    .list-header {
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
-    }
-
-    .create-admin-button {
-        width: 100%;
-        justify-content: center;
-    }
+    .admin-info { width: 100%; }
+    .button-group { display: none; }
+    .al-hero { flex-direction: column; align-items: flex-start; }
+    .al-hero-btn { width: 100%; text-align: center; }
 }

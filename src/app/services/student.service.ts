@@ -9,6 +9,20 @@ interface StudentDTO {
   name: string;
 }
 
+export type PromotionAction = 'PROMOTE' | 'DETAIN' | 'PASS_OUT';
+
+export interface PromotionPreviewGroup {
+  className: string;
+  students: { studentId: string; name: string; }[];
+}
+
+export interface PromotionResult {
+  promoted: number;
+  detained: number;
+  passedOut: number;
+  errors: { studentId: string; reason: string; }[];
+}
+
 export interface BulkImportError {
   row: number;
   studentId: string;
@@ -68,6 +82,14 @@ export class StudentService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ photoUrl: string }>(`${this.baseUrl}/${studentId}/photo`, formData);
+  }
+
+  getPromotionPreview(): Observable<PromotionPreviewGroup[]> {
+    return this.http.get<PromotionPreviewGroup[]>(`${this.baseUrl}/promotion/preview`);
+  }
+
+  executePromotion(decisions: { studentId: string; action: PromotionAction }[]): Observable<PromotionResult> {
+    return this.http.post<PromotionResult>(`${this.baseUrl}/promotion/execute`, { decisions });
   }
 
 }
