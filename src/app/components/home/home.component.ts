@@ -1,26 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
 import { AuthStateService } from '../../auth/auth-state.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { LoggerService } from '../../services/logger.service';
 import { PushNotificationService } from '../../services/push-notification.service';
 
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { CommonModule } from '@angular/common';
+import { DemoService } from '../../services/demo.service';
 
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSnackBarModule, FormsModule, MatIconModule, CommonModule],
+  imports: [FormsModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -28,19 +21,29 @@ import Swal from 'sweetalert2';
 export class HomeComponent implements OnInit {
   authenticated = false;
   showLoginForm = false;
-  userId = '';
+  showDemoForm  = false;
+  userId   = '';
   password = '';
-  loginState = 'initial';
   hidePassword = true;
+
+  demo = {
+    schoolName:   '',
+    contactName:  '',
+    email:        '',
+    phone:        '',
+    students:     '',
+    city:         '',
+    message:      ''
+  };
 
   constructor(
     private authService: AuthService,
     private authStateService: AuthStateService,
-    private snackBar: MatSnackBar,
     private router: Router,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private pushNotificationService: PushNotificationService
+    private pushNotificationService: PushNotificationService,
+    private demoService: DemoService
   ) { }
 
   ngOnInit() {
@@ -52,12 +55,10 @@ export class HomeComponent implements OnInit {
 
   login() {
     this.showLoginForm = true;
-    this.loginState = 'loginActive';
   }
 
   cancelLogin() {
     this.showLoginForm = false;
-    this.loginState = 'initial';
   }
 
   submitLogin() {
@@ -76,7 +77,6 @@ export class HomeComponent implements OnInit {
         this.authStateService.setUser(response);
         this.authenticated = true;
         this.showLoginForm = false;
-        this.loginState = 'initial';
         this.cdr.markForCheck();
 
         this.pushNotificationService.init();
@@ -104,6 +104,62 @@ export class HomeComponent implements OnInit {
     this.authService.logout().subscribe({
       next: () => { this.authenticated = false; this.cdr.markForCheck(); },
       error: () => { this.authenticated = false; this.cdr.markForCheck(); }
+    });
+  }
+
+  openDemo() {
+    this.showDemoForm = true;
+    this.cdr.markForCheck();
+  }
+
+  closeDemo() {
+    this.showDemoForm = false;
+    this.cdr.markForCheck();
+  }
+
+  submitDemo() {
+    const { schoolName, contactName, email, phone } = this.demo;
+    if (!schoolName.trim() || !contactName.trim() || !email.trim() || !phone.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Required Fields', text: 'Please fill in School Name, Contact Name, Email and Phone.', confirmButtonColor: '#1e3a5f' });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      Swal.fire({ icon: 'warning', title: 'Invalid Email', text: 'Please enter a valid email address.', confirmButtonColor: '#1e3a5f' });
+      return;
+    }
+
+    Swal.fire({ title: 'Sending your request…', didOpen: () => Swal.showLoading(), allowOutsideClick: false, showConfirmButton: false });
+
+    this.demoService.submitRequest({
+      schoolName:       this.demo.schoolName.trim(),
+      contactName:      this.demo.contactName.trim(),
+      email:            this.demo.email.trim(),
+      phone:            this.demo.phone.trim(),
+      numberOfStudents: this.demo.students.trim() || undefined,
+      city:             this.demo.city.trim() || undefined,
+      message:          this.demo.message.trim() || undefined
+    }).subscribe({
+      next: () => {
+        this.showDemoForm = false;
+        this.demo = { schoolName: '', contactName: '', email: '', phone: '', students: '', city: '', message: '' };
+        this.cdr.markForCheck();
+        Swal.fire({
+          icon: 'success',
+          title: 'Demo Request Received!',
+          html: '<p style="color:#64748b;font-size:.88rem;line-height:1.6">Thank you! Our team will reach out within <strong style="color:#1e3a5f">24 hours</strong> to schedule your personalised demo.</p>',
+          confirmButtonColor: '#1e3a5f',
+          confirmButtonText: 'Awesome, Thanks!'
+        });
+      },
+      error: (err) => {
+        this.logger.error('Demo request failed:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Submission Failed',
+          text: 'Could not send your request. Please try again or contact us directly.',
+          confirmButtonColor: '#1e3a5f'
+        });
+      }
     });
   }
 

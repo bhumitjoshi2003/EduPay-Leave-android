@@ -1,45 +1,499 @@
-<div class="home-container" [class.login-active]="loginState === 'loginActive'">
-  @if (!authenticated) {
-  @if (!showLoginForm) {
-  <button mat-button style="color: rgb(211, 207, 207);" class="login-button" (click)="login()">Login</button>
-  } @else {
-  <div class="login-form">
-    <mat-card>
-      <mat-card-title>Login</mat-card-title>
-      <mat-card-content (keydown.enter)="submitLogin()">
-        <mat-form-field appearance="outline">
-          <mat-label>User ID</mat-label>
-          <input matInput [(ngModel)]="userId" placeholder="Enter your User ID">
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Password</mat-label>
-          <input matInput [type]="hidePassword ? 'password' : 'text'" [(ngModel)]="password"
-            placeholder="Enter your password">
-          <button mat-icon-button matSuffix (click)="togglePasswordVisibility()"
-            [attr.aria-label]="hidePassword ? 'Hide password' : 'Show password'" [attr.aria-pressed]="!hidePassword">
-            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-          </button>
-        </mat-form-field>
-        <div class="login-actions">
-          <button mat-raised-button color="primary" (click)="submitLogin()">Login</button>
-          <div class="secondary-actions">
-            <button mat-button (click)="cancelLogin()">Cancel</button>
-            <button mat-button class="forgot-password-button" (click)="forgotPassword()">Forgot Password?</button>
+<div class="lp-page">
+
+  <!-- ══════════════════════════════════════════════════
+       NAVIGATION
+  ══════════════════════════════════════════════════ -->
+  <nav class="lp-nav">
+    <div class="lp-brand">
+      <img src="EdunexifyLogo.png" alt="Edunexify" class="lp-brand-logo">
+      <span class="lp-brand-name">Edunexify</span>
+    </div>
+    @if (!authenticated && !showLoginForm && !showDemoForm) {
+      <button class="lp-nav-btn" (click)="login()">Sign In</button>
+    }
+    @if (authenticated) {
+      <button class="lp-nav-btn" (click)="logout()">Logout</button>
+    }
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════
+       HERO  — light aurora, airy, school-themed
+  ══════════════════════════════════════════════════ -->
+  <section class="lp-hero">
+
+    <!-- Aurora background blobs -->
+    <div class="lp-aurora lp-au1"></div>
+    <div class="lp-aurora lp-au2"></div>
+    <div class="lp-aurora lp-au3"></div>
+    <div class="lp-aurora lp-au4"></div>
+    <div class="lp-dot-grid" aria-hidden="true"></div>
+
+    <!-- Corner school elements — large, prominent, dancing -->
+    <div class="lp-el lp-el-tl" aria-hidden="true">📚</div>
+    <div class="lp-el lp-el-tr" aria-hidden="true">🎓</div>
+    <div class="lp-el lp-el-bl" aria-hidden="true">✏️</div>
+    <div class="lp-el lp-el-br" aria-hidden="true">🏫</div>
+    <!-- Extra mid elements -->
+    <div class="lp-el lp-el-ml" aria-hidden="true">📐</div>
+    <div class="lp-el lp-el-mr" aria-hidden="true">🔬</div>
+
+    <!-- Hero content -->
+    <div class="lp-hero-body">
+
+      <div class="lp-hero-badge">
+        <span class="lp-badge-dot"></span>
+        Next-Gen School ERP · Built for India
+      </div>
+
+      <h1 class="lp-hero-h1">
+        Run Your School
+        <span class="lp-hero-line2">
+          <span class="lp-accent-word">Smarter.</span>
+          <span class="lp-underline-wave"></span>
+        </span>
+      </h1>
+
+      <p class="lp-hero-p">
+        Fees. Attendance. Exams. Notices. Events. All in one powerful platform — on every device, for every school.
+      </p>
+
+      <div class="lp-hero-actions">
+        @if (!authenticated && !showLoginForm) {
+          <button class="lp-hero-signin" (click)="login()">Sign In to Your Portal</button>
+        }
+      </div>
+
+      <!-- Trust strip -->
+      <div class="lp-trust">
+        <div class="lp-trust-dots">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <p class="lp-trust-text">Trusted by forward-thinking schools across India</p>
+      </div>
+    </div>
+
+    <!-- Bottom scroll cue -->
+    <div class="lp-scroll-cue" aria-hidden="true">
+      <span class="lp-scroll-ball"></span>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════
+       STATS BAR
+  ══════════════════════════════════════════════════ -->
+  <div class="lp-stats-bar">
+    <div class="lp-stat">
+      <span class="lp-stat-n">10+</span>
+      <span class="lp-stat-l">Modules</span>
+    </div>
+    <div class="lp-stat-sep"></div>
+    <div class="lp-stat">
+      <span class="lp-stat-n">5</span>
+      <span class="lp-stat-l">User Roles</span>
+    </div>
+    <div class="lp-stat-sep"></div>
+    <div class="lp-stat">
+      <span class="lp-stat-n">∞</span>
+      <span class="lp-stat-l">Scalability</span>
+    </div>
+    <div class="lp-stat-sep"></div>
+    <div class="lp-stat">
+      <span class="lp-stat-n">100%</span>
+      <span class="lp-stat-l">Mobile First</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       FEATURES  — bento grid, animated borders
+  ══════════════════════════════════════════════════ -->
+  <section class="lp-section lp-feat-section">
+    <div class="lp-section-head">
+      <div class="lp-sec-tag">What We Offer</div>
+      <h2 class="lp-sec-h2">Everything Your School Needs</h2>
+      <p class="lp-sec-sub">From fee collection to exam reports — beautifully integrated in one platform.</p>
+    </div>
+
+    <div class="lp-bento">
+
+      <!-- ① FEATURED: Fee Management (full-width horizontal card) -->
+      <div class="lp-card lp-card-hero">
+        <div class="lp-card-hero-left">
+          <div class="lp-feat-icon-lg" style="--ic:#1e3a5f;--ic2:#4fbdbd">💰</div>
+          <div>
+            <h3 class="lp-feat-h-white">Fee Management</h3>
+            <p class="lp-feat-p-white">Razorpay-powered online collection, smart reminders, payment history, and in-app receipt sharing — all handled.</p>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
+        <div class="lp-card-hero-chips">
+          <span>Razorpay</span><span>Reminders</span><span>Receipts</span>
+        </div>
+      </div>
+
+      <!-- ② Attendance -->
+      <div class="lp-card lp-card-sm" style="--glow:rgba(14,165,233,0.25)">
+        <div class="lp-feat-icon-sm" style="background:linear-gradient(135deg,#0ea5e9,#4fbdbd)">📊</div>
+        <h3 class="lp-feat-title">Attendance Tracking</h3>
+        <p class="lp-feat-desc">Class-wise student & teacher attendance with summaries and instant reports.</p>
+      </div>
+
+      <!-- ③ Notice Board -->
+      <div class="lp-card lp-card-sm" style="--glow:rgba(5,150,105,0.25)">
+        <div class="lp-feat-icon-sm" style="background:linear-gradient(135deg,#059669,#10b981)">📢</div>
+        <h3 class="lp-feat-title">Notice Board</h3>
+        <p class="lp-feat-desc">Push announcements to specific classes, roles, or the entire school in seconds.</p>
+      </div>
+
+      <!-- ④ FEATURED: Exam & Results (full-width horizontal) -->
+      <div class="lp-card lp-card-hero lp-card-hero-amber">
+        <div class="lp-card-hero-left">
+          <div class="lp-feat-icon-lg" style="--ic:#92400e;--ic2:#f59e0b">📝</div>
+          <div>
+            <h3 class="lp-feat-h-white">Exam & Results</h3>
+            <p class="lp-feat-p-white">Configure exams, enter marks, and auto-generate detailed report cards for every student in every class.</p>
+          </div>
+        </div>
+        <div class="lp-card-hero-chips">
+          <span>Mark Entry</span><span>Report Cards</span><span>Class Results</span>
+        </div>
+      </div>
+
+      <!-- ⑤ Event Calendar -->
+      <div class="lp-card lp-card-sm" style="--glow:rgba(124,58,237,0.25)">
+        <div class="lp-feat-icon-sm" style="background:linear-gradient(135deg,#7c3aed,#ec4899)">🗓</div>
+        <h3 class="lp-feat-title">Event Calendar</h3>
+        <p class="lp-feat-desc">Schedule events with images, videos, and targeted audience groups.</p>
+      </div>
+
+      <!-- ⑥ Bus Fees -->
+      <div class="lp-card lp-card-sm" style="--glow:rgba(249,115,22,0.25)">
+        <div class="lp-feat-icon-sm" style="background:linear-gradient(135deg,#f97316,#ef4444)">🚌</div>
+        <h3 class="lp-feat-title">Bus Fee Management</h3>
+        <p class="lp-feat-desc">Route-wise bus fee structures with tracking for every transport subscriber.</p>
+      </div>
+
+      <!-- ⑦ Push Notifications -->
+      <div class="lp-card lp-card-sm" style="--glow:rgba(30,58,95,0.2)">
+        <div class="lp-feat-icon-sm" style="background:linear-gradient(135deg,#1e3a5f,#4fbdbd)">🔔</div>
+        <h3 class="lp-feat-title">Push Notifications</h3>
+        <p class="lp-feat-desc">Firebase FCM alerts for notices, fees, and events — even when the app is closed.</p>
+      </div>
+
+      <!-- ⑧ Analytics -->
+      <div class="lp-card lp-card-sm" style="--glow:rgba(14,165,233,0.2)">
+        <div class="lp-feat-icon-sm" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4)">📈</div>
+        <h3 class="lp-feat-title">Analytics Dashboard</h3>
+        <p class="lp-feat-desc">School-wide insights on collections, attendance trends, and performance.</p>
+      </div>
+
+      <!-- ⑨ Leave Management -->
+      <div class="lp-card lp-card-sm" style="--glow:rgba(22,163,74,0.25)">
+        <div class="lp-feat-icon-sm" style="background:linear-gradient(135deg,#16a34a,#84cc16)">✅</div>
+        <h3 class="lp-feat-title">Leave Management</h3>
+        <p class="lp-feat-desc">Digital leave applications reviewed and approved by teachers with a tap.</p>
+      </div>
+
+      <!-- ⑩ Timetable -->
+      <div class="lp-card lp-card-sm" style="--glow:rgba(79,70,229,0.25)">
+        <div class="lp-feat-icon-sm" style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">⏰</div>
+        <h3 class="lp-feat-title">Timetable</h3>
+        <p class="lp-feat-desc">Configurable class timetables accessible to students and teachers from anywhere.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════
+       HOW IT WORKS
+  ══════════════════════════════════════════════════ -->
+  <section class="lp-section lp-how-section">
+    <div class="lp-section-head">
+      <div class="lp-sec-tag">Simple Setup</div>
+      <h2 class="lp-sec-h2">Up & Running in 3 Steps</h2>
+    </div>
+    <div class="lp-steps">
+      <div class="lp-step">
+        <div class="lp-step-num"><span>01</span><div class="lp-step-ring"></div></div>
+        <div class="lp-step-body">
+          <h3 class="lp-step-title">Choose a Plan</h3>
+          <p class="lp-step-desc">Pick the package that fits your school size. Instant access — no paperwork.</p>
+        </div>
+      </div>
+      <div class="lp-step-conn"><div class="lp-conn-line"></div><div class="lp-conn-dot"></div></div>
+      <div class="lp-step">
+        <div class="lp-step-num"><span>02</span><div class="lp-step-ring"></div></div>
+        <div class="lp-step-body">
+          <h3 class="lp-step-title">Import Your Data</h3>
+          <p class="lp-step-desc">Bulk upload students & teachers via CSV. We handle onboarding seamlessly.</p>
+        </div>
+      </div>
+      <div class="lp-step-conn"><div class="lp-conn-line"></div><div class="lp-conn-dot"></div></div>
+      <div class="lp-step">
+        <div class="lp-step-num"><span>03</span><div class="lp-step-ring"></div></div>
+        <div class="lp-step-body">
+          <h3 class="lp-step-title">Go Live Instantly</h3>
+          <p class="lp-step-desc">Portal is live on Day 1. Students, teachers & admins log in right away.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════
+       PRICING
+  ══════════════════════════════════════════════════ -->
+  <section class="lp-section lp-pricing-section">
+    <div class="lp-section-head">
+      <div class="lp-sec-tag">Transparent Pricing</div>
+      <h2 class="lp-sec-h2">Plans for Every School</h2>
+      <p class="lp-sec-sub">No hidden charges. Cancel anytime. All plans include the Android mobile app.</p>
+    </div>
+    <div class="lp-plans">
+
+      <!-- Starter -->
+      <div class="lp-plan">
+        <div class="lp-plan-top">
+          <div class="lp-plan-emoji">🌱</div>
+          <p class="lp-plan-name">Starter</p>
+          <div class="lp-plan-price"><span class="lp-psym">₹</span><span class="lp-pnum">999</span><span class="lp-pper">/mo</span></div>
+          <p class="lp-plan-cap">Up to 150 students</p>
+        </div>
+        <ul class="lp-plan-list">
+          <li class="lp-pi lp-yes">Fee Management + Razorpay</li>
+          <li class="lp-pi lp-yes">Attendance Tracking</li>
+          <li class="lp-pi lp-yes">Notice Board</li>
+          <li class="lp-pi lp-yes">Event Calendar</li>
+          <li class="lp-pi lp-yes">Android Mobile App</li>
+          <li class="lp-pi lp-no">Exam & Results</li>
+          <li class="lp-pi lp-no">Push Notifications</li>
+          <li class="lp-pi lp-no">Analytics Dashboard</li>
+          <li class="lp-pi lp-no">Bulk Import</li>
+        </ul>
+        <button class="lp-plan-btn lp-plan-outline" (click)="openDemo()">Book a Demo →</button>
+      </div>
+
+      <!-- Pro -->
+      <div class="lp-plan lp-plan-pro">
+        <div class="lp-plan-badge">Most Popular</div>
+        <div class="lp-plan-top lp-plan-top-pro">
+          <div class="lp-plan-emoji">🚀</div>
+          <p class="lp-plan-name lp-plan-name-pro">Pro</p>
+          <div class="lp-plan-price"><span class="lp-psym lp-psym-pro">₹</span><span class="lp-pnum lp-pnum-pro">2,499</span><span class="lp-pper lp-pper-pro">/mo</span></div>
+          <p class="lp-plan-cap lp-plan-cap-pro">Up to 500 students</p>
+        </div>
+        <ul class="lp-plan-list">
+          <li class="lp-pi lp-yes">Everything in Starter</li>
+          <li class="lp-pi lp-yes">Exam & Results + Report Cards</li>
+          <li class="lp-pi lp-yes">Push Notifications (FCM)</li>
+          <li class="lp-pi lp-yes">Analytics Dashboard</li>
+          <li class="lp-pi lp-yes">Bulk Student & Teacher Import</li>
+          <li class="lp-pi lp-yes">Leave Management</li>
+          <li class="lp-pi lp-yes">Timetable Management</li>
+          <li class="lp-pi lp-yes">Bus Fee Management</li>
+          <li class="lp-pi lp-yes">Priority Support</li>
+        </ul>
+        <button class="lp-plan-btn lp-plan-fill" (click)="openDemo()">Book a Demo →</button>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="lp-plan">
+        <div class="lp-plan-top">
+          <div class="lp-plan-emoji">🏛️</div>
+          <p class="lp-plan-name">Enterprise</p>
+          <div class="lp-plan-price"><span class="lp-price-custom">Custom</span></div>
+          <p class="lp-plan-cap">Unlimited students</p>
+        </div>
+        <ul class="lp-plan-list">
+          <li class="lp-pi lp-yes">Everything in Pro</li>
+          <li class="lp-pi lp-yes">Multi-branch Support</li>
+          <li class="lp-pi lp-yes">Custom Branding</li>
+          <li class="lp-pi lp-yes">Dedicated Account Manager</li>
+          <li class="lp-pi lp-yes">Priority 24/7 Support</li>
+          <li class="lp-pi lp-yes">API Access</li>
+          <li class="lp-pi lp-yes">SLA Guarantee</li>
+          <li class="lp-pi lp-yes">On-site Training</li>
+          <li class="lp-pi lp-yes">Custom Feature Development</li>
+        </ul>
+        <button class="lp-plan-btn lp-plan-outline" (click)="openDemo()">Contact Sales →</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════
+       BOTTOM CTA
+  ══════════════════════════════════════════════════ -->
+  <section class="lp-cta-section">
+    <div class="lp-cta-blob lp-ctab1"></div>
+    <div class="lp-cta-blob lp-ctab2"></div>
+    <div class="lp-el lp-cta-e1" aria-hidden="true">🎓</div>
+    <div class="lp-el lp-cta-e2" aria-hidden="true">📚</div>
+    <div class="lp-el lp-cta-e3" aria-hidden="true">✏️</div>
+
+    <img src="EdunexifyLogo.png" alt="Edunexify" class="lp-cta-logo">
+    <h2 class="lp-cta-h2">Ready to Transform<br>Your School?</h2>
+    <p class="lp-cta-p">Book a free personalised demo — we'll walk you through everything tailored to your school's needs.</p>
+
+    <div class="lp-cta-btns">
+      <button class="lp-btn-demo lp-btn-demo-lg" (click)="openDemo()">
+        <span class="lp-btn-demo-icon">🗓</span>
+        Book a Free Demo
+      </button>
+      @if (!authenticated && !showLoginForm) {
+        <button class="lp-cta-signin" (click)="login()">Sign In</button>
+      }
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════════════ -->
+  <footer class="lp-footer">
+    <div class="lp-footer-brand">
+      <img src="EdunexifyLogo.png" alt="Edunexify" class="lp-footer-logo">
+      <span class="lp-footer-name">Edunexify</span>
+    </div>
+    <p class="lp-footer-tag">Empowering schools. Connecting communities.</p>
+    <p class="lp-footer-copy">© 2025 Edunexify. All rights reserved.</p>
+  </footer>
+
+  <!-- ══════════════════════════════════════════════════
+       LOGIN BOTTOM SHEET
+  ══════════════════════════════════════════════════ -->
+  @if (showLoginForm) {
+    <div class="lp-overlay" (click)="cancelLogin()"></div>
+    <div class="lp-sheet">
+      <div class="lp-sheet-pill"></div>
+      <div class="lp-sheet-brand">
+        <img src="EdunexifyLogo.png" alt="Edunexify" class="lp-sheet-logo">
+        <span class="lp-sheet-brand-name">Edunexify</span>
+      </div>
+      <h2 class="lp-sheet-title">Welcome Back 👋</h2>
+      <p class="lp-sheet-sub">Sign in to your school portal</p>
+
+      <div class="lp-field">
+        <label class="lp-label">User ID</label>
+        <div class="lp-input-wrap">
+          <span class="lp-input-ic">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <input class="lp-input" type="text" [(ngModel)]="userId" placeholder="Enter your User ID" (keydown.enter)="submitLogin()" autocomplete="username">
+        </div>
+      </div>
+
+      <div class="lp-field">
+        <label class="lp-label">Password</label>
+        <div class="lp-input-wrap">
+          <span class="lp-input-ic">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <input class="lp-input lp-input-pwd" [type]="hidePassword ? 'password' : 'text'" [(ngModel)]="password" placeholder="Enter your password" (keydown.enter)="submitLogin()" autocomplete="current-password">
+          <button class="lp-eye-btn" type="button" (click)="togglePasswordVisibility()">
+            @if (hidePassword) {
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            }
+          </button>
+        </div>
+      </div>
+
+      <button class="lp-submit-btn" (click)="submitLogin()">
+        Sign In
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+
+      <div class="lp-sheet-footer">
+        <button class="lp-link-btn" (click)="cancelLogin()">Cancel</button>
+        <button class="lp-link-btn lp-forgot-btn" (click)="forgotPassword()">Forgot Password?</button>
+      </div>
+    </div>
   }
-  } @else {
-  <button mat-button style="color: rgb(211, 207, 207);" class="login-button" (click)="logout()">Logout</button>
+
+  <!-- ══════════════════════════════════════════════════
+       BOOK A DEMO BOTTOM SHEET
+  ══════════════════════════════════════════════════ -->
+  @if (showDemoForm) {
+    <div class="lp-overlay" (click)="closeDemo()"></div>
+    <div class="lp-sheet lp-sheet-demo">
+      <div class="lp-sheet-pill"></div>
+
+      <div class="lp-sheet-brand">
+        <img src="EdunexifyLogo.png" alt="Edunexify" class="lp-sheet-logo">
+        <span class="lp-sheet-brand-name">Book a Demo</span>
+      </div>
+
+      <p class="lp-sheet-sub">Tell us about your school and we'll schedule a personalised walkthrough.</p>
+
+      <div class="lp-field">
+        <label class="lp-label">School Name <span class="lp-req">*</span></label>
+        <div class="lp-input-wrap">
+          <span class="lp-input-ic">🏫</span>
+          <input class="lp-input lp-input-emoji-ic" type="text" [(ngModel)]="demo.schoolName" placeholder="e.g. Sunrise Public School">
+        </div>
+      </div>
+
+      <div class="lp-field">
+        <label class="lp-label">Your Name <span class="lp-req">*</span></label>
+        <div class="lp-input-wrap">
+          <span class="lp-input-ic lp-input-ic-svg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <input class="lp-input" type="text" [(ngModel)]="demo.contactName" placeholder="Principal / Admin name">
+        </div>
+      </div>
+
+      <div class="lp-demo-row">
+        <div class="lp-field" style="flex:1">
+          <label class="lp-label">Email <span class="lp-req">*</span></label>
+          <div class="lp-input-wrap">
+            <span class="lp-input-ic lp-input-ic-svg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </span>
+            <input class="lp-input" type="email" [(ngModel)]="demo.email" placeholder="school@email.com">
+          </div>
+        </div>
+        <div class="lp-field" style="flex:1">
+          <label class="lp-label">Phone <span class="lp-req">*</span></label>
+          <div class="lp-input-wrap">
+            <span class="lp-input-ic lp-input-ic-svg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+            <input class="lp-input" type="tel" [(ngModel)]="demo.phone" placeholder="+91 98765 43210">
+          </div>
+        </div>
+      </div>
+
+      <div class="lp-demo-row">
+        <div class="lp-field" style="flex:1">
+          <label class="lp-label">No. of Students</label>
+          <div class="lp-input-wrap">
+            <span class="lp-input-ic">🎓</span>
+            <input class="lp-input lp-input-emoji-ic" type="number" [(ngModel)]="demo.students" placeholder="e.g. 350">
+          </div>
+        </div>
+        <div class="lp-field" style="flex:1">
+          <label class="lp-label">City / State</label>
+          <div class="lp-input-wrap">
+            <span class="lp-input-ic">📍</span>
+            <input class="lp-input lp-input-emoji-ic" type="text" [(ngModel)]="demo.city" placeholder="e.g. Haldwani, UK">
+          </div>
+        </div>
+      </div>
+
+      <div class="lp-field">
+        <label class="lp-label">Message <span class="lp-opt">(optional)</span></label>
+        <textarea class="lp-textarea" [(ngModel)]="demo.message" rows="2" placeholder="Any specific requirements or questions?"></textarea>
+      </div>
+
+      <button class="lp-submit-btn lp-submit-teal" (click)="submitDemo()">
+        Send Demo Request
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+
+      <div class="lp-sheet-footer">
+        <button class="lp-link-btn" (click)="closeDemo()">Cancel</button>
+        <span class="lp-demo-note">We respond within 24 hours ⚡</span>
+      </div>
+    </div>
   }
-  <div class="content">
-    <img src="MONO_png.png" alt="School Logo" class="logo">
-    <h1 style="font-family: Verdana, Geneva, Tahoma, sans-serif">Indra Academy Sr. Sec. School</h1>
-    <h2 style="font-family: Verdana, Geneva, Tahoma, sans-serif">Haldwani, Nainital</h2>
-    <span class="custom-hr"></span>
-    <hr *ngIf="showLoginForm" class="login-active-hr">
-    <h3 style="font-family: Verdana, Geneva, Tahoma, sans-serif">Affiliated to CBSE, New Delhi</h3>
-  </div>
+
 </div>

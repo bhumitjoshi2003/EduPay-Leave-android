@@ -1,107 +1,150 @@
-<div class="event-form-container">
-    <h2>{{ isEditMode ? 'Edit Event' : 'Create New Event' }}</h2>
+<div class="ef-page">
 
-    <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" class="event-form">
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="ef-hero">
+    <div class="ef-blob ef-blob-1"></div>
+    <div class="ef-blob ef-blob-2"></div>
+    <div class="ef-hero-bar">
+      <button type="button" class="ef-back-btn" (click)="onCancel()" title="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+    </div>
+    <div class="ef-hero-center">
+      <div class="ef-hero-icon">📅</div>
+      <h1 class="ef-hero-title">{{ isEditMode ? 'Edit Event' : 'Create Event' }}</h1>
+      <p class="ef-hero-sub">{{ isEditMode ? 'Update event details' : 'Add a new school event' }}</p>
+    </div>
+  </div>
 
-        <div class="form-group">
-            <label for="title">Event Title:</label>
-            <input id="title" type="text" formControlName="title" required>
-            <div class="error-message" *ngIf="hasError('title', 'required')">Title is required</div>
+  <form [formGroup]="eventForm" (ngSubmit)="onSubmit()" novalidate>
+
+    <!-- ── Basic Details ──────────────────────────────────────────── -->
+    <div class="ef-card">
+      <p class="ef-card-title">Event Details</p>
+
+      <div class="ef-field">
+        <label class="ef-label">Event Title <span class="ef-required">*</span></label>
+        <input class="ef-input" type="text" formControlName="title" placeholder="e.g. Annual Sports Day">
+        <span class="ef-error" *ngIf="hasError('title', 'required')">Title is required</span>
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label">Description <span class="ef-required">*</span></label>
+        <textarea class="ef-textarea" formControlName="description" rows="3" placeholder="Describe the event…"></textarea>
+        <span class="ef-error" *ngIf="hasError('description', 'required')">Description is required</span>
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label">Category <span class="ef-required">*</span></label>
+        <select class="ef-select" formControlName="category">
+          <option value="" disabled>Select category</option>
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+        <span class="ef-error" *ngIf="hasError('category', 'required')">Category is required</span>
+      </div>
+
+      <div class="ef-field">
+        <label class="ef-label">Location <span class="ef-optional">(optional)</span></label>
+        <input class="ef-input" type="text" formControlName="location" placeholder="e.g. School Ground">
+      </div>
+    </div>
+
+    <!-- ── Date & Time ────────────────────────────────────────────── -->
+    <div class="ef-card">
+      <p class="ef-card-title">Date & Time</p>
+
+      <div class="ef-row">
+        <div class="ef-field ef-field-half">
+          <label class="ef-label">Start Date <span class="ef-required">*</span></label>
+          <input class="ef-input" type="date" formControlName="startDate">
+          <span class="ef-error" *ngIf="hasError('startDate', 'required')">Required</span>
         </div>
-
-        <div class="form-group">
-            <label for="description">Description:</label>
-            <textarea id="description" formControlName="description" rows="3"></textarea>
-            <div class="error-message" *ngIf="hasError('description', 'required')">Description is required</div>
+        <div class="ef-field ef-field-half">
+          <label class="ef-label">Start Time</label>
+          <input class="ef-input" type="time" formControlName="startTime">
         </div>
+      </div>
 
-        <div class="date-time-group">
-            <div class="form-group half-width">
-                <label for="startDate">Start Date:</label>
-                <input id="startDate" type="date" formControlName="startDate" required>
-                <div class="error-message" *ngIf="hasError('startDate', 'required')">Start Date is required</div>
-            </div>
-
-            <div class="form-group half-width">
-                <label for="startTime">Start Time:</label>
-                <input id="startTime" type="time" formControlName="startTime">
-            </div>
+      <div class="ef-row">
+        <div class="ef-field ef-field-half">
+          <label class="ef-label">End Date <span class="ef-required">*</span></label>
+          <input class="ef-input" type="date" formControlName="endDate">
         </div>
-
-        <div class="date-time-group">
-            <div class="form-group half-width">
-                <label for="endDate">End Date:</label>
-                <input id="endDate" type="date" formControlName="endDate">
-            </div>
-
-            <div class="form-group half-width">
-                <label for="endTime">End Time:</label>
-                <input id="endTime" type="time" formControlName="endTime">
-            </div>
+        <div class="ef-field ef-field-half">
+          <label class="ef-label">End Time</label>
+          <input class="ef-input" type="time" formControlName="endTime">
         </div>
+      </div>
 
-        <div class="error-message"
-            *ngIf="eventForm.hasError('dateRangeInvalid') && (eventForm.get('endDate')?.touched || eventForm.get('startDate')?.touched)">
-            End date cannot be before start date.
+      <span class="ef-error"
+        *ngIf="eventForm.hasError('dateRangeInvalid') && (eventForm.get('endDate')?.touched || eventForm.get('startDate')?.touched)">
+        End date cannot be before start date
+      </span>
+    </div>
+
+    <!-- ── Target Audience ───────────────────────────────────────── -->
+    <div class="ef-card">
+      <p class="ef-card-title">Target Audience <span class="ef-required">*</span></p>
+      <div class="ef-audience-grid">
+        <button type="button" *ngFor="let aud of targetAudiences"
+          class="ef-audience-pill" [class.ef-pill-active]="isAudienceSelected(aud)"
+          (click)="onAudienceToggle(aud)">
+          {{ aud }}
+        </button>
+      </div>
+      <span class="ef-error" *ngIf="hasError('targetAudience', 'required')">Select at least one audience</span>
+    </div>
+
+    <!-- ── Media ──────────────────────────────────────────────────── -->
+    <div class="ef-card">
+      <p class="ef-card-title">Media</p>
+
+      <!-- Video Links -->
+      <div class="ef-field">
+        <label class="ef-label">Video Links</label>
+        <div formArrayName="videoLinks" class="ef-video-list">
+          <div *ngFor="let link of videoLinks.controls; let i = index" class="ef-video-row">
+            <input class="ef-input" type="url" [formControlName]="i" placeholder="https://youtube.com/...">
+            <button type="button" class="ef-remove-btn" (click)="removeVideoLink(i)">✕</button>
+          </div>
         </div>
+        <button type="button" class="ef-add-link-btn" (click)="addVideoLink()">+ Add Link</button>
+      </div>
 
-        <div class="form-group">
-            <label for="location">Location (Optional):</label>
-            <input id="location" type="text" formControlName="location">
+      <!-- Image -->
+      <div class="ef-field">
+        <label class="ef-label">Event Image</label>
+        <label class="ef-file-label">
+          <input type="file" accept="image/*" (change)="onFileSelected($event)" #fileInput style="display:none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          {{ selectedFile ? selectedFile.name : 'Choose image' }}
+        </label>
+
+        <div class="ef-image-preview" *ngIf="imagePreviewUrl">
+          <img [src]="imagePreviewUrl" alt="Preview">
+          <button type="button" class="ef-remove-image-btn" (click)="removeImage()">Remove</button>
         </div>
-
-        <div class="form-group">
-            <label for="category">Category:</label>
-            <select id="category" formControlName="category" required>
-                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
-            </select>
-            <div class="error-message" *ngIf="hasError('category', 'required')">Category is required</div>
+        <div class="ef-image-preview" *ngIf="isEditMode && eventForm.get('imageUrl')?.value && !imagePreviewUrl">
+          <img [src]="getFullImageUrl(eventForm.get('imageUrl')?.value)" alt="Current image">
+          <button type="button" class="ef-remove-image-btn" (click)="removeImage()">Remove</button>
         </div>
+      </div>
+    </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Target Audience</mat-label>
-            <mat-select formControlName="targetAudience" multiple>
-                <mat-option *ngFor="let audience of targetAudiences" [value]="audience">{{ audience }}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="hasError('targetAudience', 'required')">Target Audience is required</mat-error>
-        </mat-form-field>
+    <!-- ── Actions ────────────────────────────────────────────────── -->
+    <div class="ef-actions">
+      <button type="button" class="ef-btn-cancel" (click)="onCancel()">Cancel</button>
+      <button type="submit" class="ef-btn-save" [disabled]="!eventForm.valid">
+        {{ isEditMode ? 'Update Event' : 'Create Event' }}
+      </button>
+    </div>
 
-        <div class="form-group video-links-group">
-            <label>Video Links:</label>
-            <div formArrayName="videoLinks" class="video-links-array">
-                <div *ngFor="let linkControl of videoLinks.controls; let i = index" class="video-link-item">
-                    <input type="url" [id]="'videoLink' + i" [formControlName]="i">
-                    <button type="button" (click)="removeVideoLink(i)" class="remove-link-btn">
-                        &times; </button>
-                </div>
-            </div>
-            <button type="button" (click)="addVideoLink()" class="add-link-btn">
-                + Add Link
-            </button>
-        </div>
-
-        <div class="form-group">
-            <label for="eventImage">Event Image:</label>
-            <input type="file" id="eventImage" accept="image/*" (change)="onFileSelected($event)" #fileInput>
-            <div *ngIf="selectedFile">Selected: {{ selectedFile.name }}</div>
-            <div *ngIf="imagePreviewUrl" class="image-preview-container">
-                <img [src]="imagePreviewUrl" alt="Image Preview" class="image-preview">
-                <button type="button" (click)="removeImage()" class="remove-image-btn">Remove Image</button>
-            </div>
-            <div *ngIf="isEditMode && eventForm.get('imageUrl')?.value && !imagePreviewUrl"
-                class="image-preview-container">
-                <img [src]="getFullImageUrl(eventForm.get('imageUrl')?.value)" alt="Current Event Image"
-                    class="image-preview">
-                <button type="button" (click)="removeImage()" class="remove-image-btn">Remove Image</button>
-            </div>
-        </div>
-
-
-        <div class="form-actions">
-            <button type="submit" [disabled]="!eventForm.valid" class="save-btn">
-                {{ isEditMode ? 'Update Event' : 'Create Event' }}
-            </button>
-            <button type="button" class="cancel-btn" (click)="onCancel()">Cancel</button>
-        </div>
-    </form>
+  </form>
 </div>

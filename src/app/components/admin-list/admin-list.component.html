@@ -16,37 +16,41 @@
     <div class="al-blob al-blob-2"></div>
   </div>
 
-  <!-- ── Content Card ───────────────────────────────────────────────── -->
-  <div class="al-card">
+  <!-- ── Loading ───────────────────────────────────────────────────── -->
+  <div class="al-loading" *ngIf="isLoading">
+    <div class="al-spinner"></div>
+    <p>Loading administrators...</p>
+  </div>
 
-    <div class="al-loading" *ngIf="isLoading">
-      <div class="al-spinner"></div>
-      <p>Loading administrators...</p>
+  <!-- ── List ──────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="!isLoading">
+
+    <div class="al-empty" *ngIf="admins.length === 0">
+      <div class="al-empty-icon">🔍</div>
+      <p class="al-empty-title">No administrators found</p>
     </div>
 
-    <div *ngIf="!isLoading && admins.length > 0; else noAdminsContainer">
-      <ul class="admin-list">
-        <li *ngFor="let admin of admins; trackBy: trackByAdminId" class="admin-item" (click)="viewAdminDetails(admin.adminId)">
-          <div class="admin-info">
-            <span class="admin-name">{{ admin.name }}</span>
-            <span class="admin-id-label">({{ admin.adminId }})</span>
+    <div class="al-section" *ngIf="admins.length > 0">
+      <div class="al-section-header">
+        <span class="al-section-dot"></span>
+        <h2 class="al-section-title">All Admins</h2>
+        <span class="al-section-count">{{ admins.length }}</span>
+      </div>
+      <div class="al-list">
+        <div class="al-item" *ngFor="let admin of admins; trackBy: trackByAdminId"
+          (click)="viewAdminDetails(admin.adminId)">
+          <div class="al-avatar">{{ admin.name.charAt(0).toUpperCase() }}</div>
+          <div class="al-item-info">
+            <span class="al-item-name">{{ admin.name }}</span>
+            <span class="al-item-id">{{ admin.adminId }}</span>
           </div>
-          <div class="button-group">
-            <button class="view-details-button" (click)="viewAdminDetails(admin.adminId)">
-              View Details
-            </button>
-            <button *ngIf="loggedInUserRole === 'SUPER_ADMIN'" class="delete-button"
-              (click)="deleteAdmin($event, admin.adminId)">
-              Delete
-            </button>
-          </div>
-        </li>
-      </ul>
+          <button *ngIf="loggedInUserRole === 'SUPER_ADMIN'" class="al-delete-btn"
+            (click)="deleteAdmin($event, admin.adminId)" title="Delete">✕</button>
+          <span class="al-arrow">›</span>
+        </div>
+      </div>
     </div>
 
-    <ng-template #noAdminsContainer>
-      <p class="no-admins" *ngIf="!isLoading">No administrators found.</p>
-    </ng-template>
+  </ng-container>
 
-  </div><!-- /.al-card -->
-</div><!-- /.al-page -->
+</div>

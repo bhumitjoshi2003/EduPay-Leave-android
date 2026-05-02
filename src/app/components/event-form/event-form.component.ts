@@ -5,13 +5,6 @@ import { EventService } from '../../services/event.service';
 import { CalendarEvent } from '../../interfaces/event-calendar.component';
 import { Router, ActivatedRoute } from '@angular/router';
 
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatSelectModule } from '@angular/material/select';
-import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { Subject, takeUntil } from 'rxjs';
@@ -41,17 +34,7 @@ export const dateRangeValidator: ValidatorFn = (control: AbstractControl): { [ke
   templateUrl: './event-form.component.html',
   styleUrls: ['./event-form.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatSelectModule,
-    MatIconModule
-  ]
+  imports: [CommonModule, ReactiveFormsModule]
 })
 export class EventFormComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -308,6 +291,19 @@ export class EventFormComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  isAudienceSelected(audience: string): boolean {
+    const current: string[] = this.eventForm.get('targetAudience')?.value || [];
+    return current.includes(audience);
+  }
+
+  onAudienceToggle(audience: string): void {
+    const current: string[] = this.eventForm.get('targetAudience')?.value || [];
+    const updated = current.includes(audience)
+      ? current.filter((a: string) => a !== audience)
+      : [...current, audience];
+    this.eventForm.get('targetAudience')?.setValue(updated);
   }
 
   hasError(controlName: string, errorType: string): boolean | null {
