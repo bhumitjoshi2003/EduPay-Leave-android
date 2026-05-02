@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Notification } from '../interfaces/notification';
 import { environment } from '../../environments/environment';
@@ -11,6 +11,16 @@ export interface NoticePayload {
   body: string;
   targetClass: string;
   deliveryMode: string;
+}
+
+export interface PagedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+  first: boolean;
+  numberOfElements: number;
+  pageable: { pageNumber: number; pageSize: number; };
 }
 
 @Injectable({
@@ -29,16 +39,24 @@ export class NotificationService {
     return this.http.put<Notification>(`${this.apiUrl}/${id}`, notification);
   }
 
-  getAllNotifications(): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.apiUrl}/all`);
+  getAllNotifications(page = 0, size = 20): Observable<PagedResponse<Notification>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', 'createdAt,desc');
+    return this.http.get<PagedResponse<Notification>>(`${this.apiUrl}/all`, { params });
   }
 
   deleteNotification(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  getUserNotifications(): Observable<UserNotification[]> {
-    return this.http.get<UserNotification[]>(`${this.apiUrl}/user`);
+  getUserNotifications(page = 0, size = 20): Observable<PagedResponse<UserNotification>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', 'createdAt,desc');
+    return this.http.get<PagedResponse<UserNotification>>(`${this.apiUrl}/user`, { params });
   }
 
   getUnreadNotificationCount(): Observable<number> {

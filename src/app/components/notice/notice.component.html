@@ -15,7 +15,7 @@
       <div class="nb-hero-right">
         <div class="nb-hero-stats" *ngIf="userNotifications.length > 0">
           <div class="nb-hero-stat">
-            <span class="nb-hero-stat-num">{{ userNotifications.length }}</span>
+            <span class="nb-hero-stat-num">{{ userTotalElements }}</span>
             <span class="nb-hero-stat-lbl">Notices</span>
           </div>
           <div class="nb-hero-stat nb-hero-stat-new" *ngIf="unreadCount > 0">
@@ -89,6 +89,13 @@
 
         </div>
       </div>
+    </div>
+
+    <!-- Load more — student/teacher -->
+    <div class="nb-load-more-wrap" *ngIf="!loading && !userLast">
+      <button class="nb-load-more-btn" (click)="loadMoreUserNotifications()" [disabled]="loadingMoreUser">
+        {{ loadingMoreUser ? 'Loading…' : 'Load more notices' }}
+      </button>
     </div>
 
   </ng-container>
@@ -171,9 +178,9 @@
         <div class="nb-list-header">
           <div>
             <h3 class="nb-list-title">Posted Notices</h3>
-            <p class="nb-list-sub">{{ allNotices.length }} notice{{ allNotices.length !== 1 ? 's' : '' }} published</p>
+            <p class="nb-list-sub">{{ noticesTotalElements }} notice{{ noticesTotalElements !== 1 ? 's' : '' }} published</p>
           </div>
-          <span class="nb-count-chip">{{ allNotices.length }}</span>
+          <span class="nb-count-chip">{{ noticesTotalElements }}</span>
         </div>
 
         <div *ngIf="allNotices.length === 0" class="nb-empty-admin">
@@ -226,6 +233,13 @@
 
           </div>
         </div>
+      </div>
+
+      <!-- Load more — admin -->
+      <div class="nb-load-more-wrap" *ngIf="!noticesLast">
+        <button class="nb-load-more-btn" (click)="loadMoreNotices()" [disabled]="loadingMoreNotices">
+          {{ loadingMoreNotices ? 'Loading…' : 'Load more notices' }}
+        </button>
       </div>
 
     </div>

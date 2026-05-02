@@ -24,9 +24,17 @@ export class NoticeComponent implements OnInit, OnDestroy {
 
   // Admin: full list of posted notices
   allNotices: Notification[] = [];
+  noticesTotalElements = 0;
+  noticesPage = 0;
+  noticesLast = true;
+  loadingMoreNotices = false;
 
   // Student / Teacher: personal notifications
   userNotifications: UserNotification[] = [];
+  userTotalElements = 0;
+  userPage = 0;
+  userLast = true;
+  loadingMoreUser = false;
 
   // Compose form (admin)
   form = {
@@ -85,20 +93,70 @@ export class NoticeComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.cdr.markForCheck();
     if (this.isAdmin) {
-      this.notificationService.getAllNotifications()
+      this.noticesPage = 0;
+      this.notificationService.getAllNotifications(0)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (notices) => { this.allNotices = notices; this.loading = false; this.cdr.markForCheck(); },
+          next: (res) => {
+            this.allNotices = res.content;
+            this.noticesTotalElements = res.totalElements;
+            this.noticesLast = res.last;
+            this.loading = false;
+            this.cdr.markForCheck();
+          },
           error: (e) => { this.logger.error('Error loading notices:', e); this.loading = false; this.cdr.markForCheck(); },
         });
     } else {
-      this.notificationService.getUserNotifications()
+      this.userPage = 0;
+      this.notificationService.getUserNotifications(0)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (notifications) => { this.userNotifications = notifications; this.loading = false; this.cdr.markForCheck(); },
+          next: (res) => {
+            this.userNotifications = res.content;
+            this.userTotalElements = res.totalElements;
+            this.userLast = res.last;
+            this.loading = false;
+            this.cdr.markForCheck();
+          },
           error: (e) => { this.logger.error('Error loading notifications:', e); this.loading = false; this.cdr.markForCheck(); },
         });
     }
+  }
+
+  loadMoreNotices(): void {
+    if (this.noticesLast || this.loadingMoreNotices) return;
+    this.loadingMoreNotices = true;
+    this.cdr.markForCheck();
+    this.notificationService.getAllNotifications(this.noticesPage + 1)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.allNotices = [...this.allNotices, ...res.content];
+          this.noticesPage = res.pageable.pageNumber;
+          this.noticesLast = res.last;
+          this.loadingMoreNotices = false;
+          this.cdr.markForCheck();
+        },
+        error: (e) => { this.logger.error('Error loading more notices:', e); this.loadingMoreNotices = false; this.cdr.markForCheck(); },
+      });
+  }
+
+  loadMoreUserNotifications(): void {
+    if (this.userLast || this.loadingMoreUser) return;
+    this.loadingMoreUser = true;
+    this.cdr.markForCheck();
+    this.notificationService.getUserNotifications(this.userPage + 1)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.userNotifications = [...this.userNotifications, ...res.content];
+          this.userPage = res.pageable.pageNumber;
+          this.userLast = res.last;
+          this.loadingMoreUser = false;
+          this.cdr.markForCheck();
+        },
+        error: (e) => { this.logger.error('Error loading more notifications:', e); this.loadingMoreUser = false; this.cdr.markForCheck(); },
+      });
   }
 
   // ── Admin: post notice ───────────────────────────────────────────────
