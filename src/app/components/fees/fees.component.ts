@@ -446,9 +446,22 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const selectedMonthNumbers = this.selectedMonthsByYear[this.selectedYear];
+    const selectedMonthNames = this.months
+      .filter(m => selectedMonthNumbers.includes(m.month))
+      .map(m => m.name);
+    const monthList = selectedMonthNames.map(n => `<li>${n}</li>`).join('');
+
     Swal.fire({
       title: 'Confirm Manual Payment',
-      text: `Mark selected months as manually paid with a total amount of ₹${this.manualPaymentAmount}?`,
+      html: `
+        <p style="margin-bottom:8px">Mark the following months as manually paid?</p>
+        <ul style="text-align:left;display:inline-block;margin:0 0 12px;padding-left:20px;color:#374151">
+          ${monthList}
+        </ul>
+        <p><strong>Amount Received: ₹${this.manualPaymentAmount}</strong></p>
+        <p style="font-size:.82rem;color:#6b7280">Student: ${this.studentName || this.studentId} &nbsp;|&nbsp; Session: ${this.session}</p>
+      `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -463,13 +476,29 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
           this.paymentData
         ).pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
+            const recordedAmount = this.manualPaymentAmount;
+            const recordedMonths = selectedMonthNames.join(', ');
             this.initPaymentData();
             this.fetchFees();
             this.selectedMonthsByYear = {};
             this.totalAmountToPay = 0;
             this.manualPaymentAmount = 0;
             this.cdr.detectChanges();
-            Swal.fire('Marked as Paid!', 'The selected months have been marked as paid.', 'success');
+            Swal.fire({
+              icon: 'success',
+              title: 'Marked as Paid!',
+              html: `
+                <p style="color:#374151;margin-bottom:8px">Payment recorded successfully.</p>
+                <table style="width:100%;font-size:.85rem;border-collapse:collapse;text-align:left">
+                  <tr><td style="padding:4px 8px;color:#6b7280">Student</td><td style="padding:4px 8px;font-weight:600">${this.studentName || this.studentId}</td></tr>
+                  <tr style="background:#f9fafb"><td style="padding:4px 8px;color:#6b7280">Months</td><td style="padding:4px 8px;font-weight:600">${recordedMonths}</td></tr>
+                  <tr><td style="padding:4px 8px;color:#6b7280">Amount</td><td style="padding:4px 8px;font-weight:600;color:#16a34a">₹${recordedAmount}</td></tr>
+                  <tr style="background:#f9fafb"><td style="padding:4px 8px;color:#6b7280">Session</td><td style="padding:4px 8px;font-weight:600">${this.session}</td></tr>
+                </table>
+              `,
+              confirmButtonColor: '#3085d6',
+              confirmButtonText: 'Done'
+            });
           },
           error: () => Swal.fire('Error!', 'Failed to record manual payment.', 'error')
         });
