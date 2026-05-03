@@ -5,7 +5,7 @@ import { CommonModule, formatDate } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { LeaveService } from '../../services/leave.service';
 import { StudentService } from '../../services/student.service';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { LeaveRequest } from '../../interfaces/leave-request';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { PaginatedResponse } from '../../services/payment-history.service';
@@ -53,7 +53,8 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
     private studentService: StudentService,
     private authStateService: AuthStateService,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {
     this.leaveForm = this.fb.group({
       leaveDate: ['', Validators.required],
@@ -150,16 +151,14 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
 
   deleteLeave(leaveDate: string): void {
     if (leaveDate) {
-      Swal.fire({
+      this.toast.confirm({
         title: 'Are you sure?',
-        text: 'You will not be able to recover this leave!',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, delete it!',
-      }).then((result) => {
-        if (result.isConfirmed) {
+        message: 'You will not be able to recover this leave!',
+        confirmText: 'Yes, delete it!',
+        cancelText: 'Cancel',
+        danger: true,
+      }).then((confirmed) => {
+        if (confirmed) {
           const formattedLeaveDate = new Date(leaveDate).toISOString().split('T')[0];
 
           this.leaveService.deleteLeave(this.studentId, formattedLeaveDate).subscribe({
@@ -167,25 +166,13 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
               this.leaveForm.reset();
               this.reasonControl?.setValue('');
               this.showOtherReasonInput = false;
-              Swal.fire({
-                title: 'Deleted!',
-                text: 'Your leave has been deleted.',
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false,
-              });
+              this.toast.success('Deleted!', 'Your leave has been deleted.');
               this.currentPage = 0;
               this.loadStudentLeaves();
             },
             error: (error) => {
               this.logger.error('Error deleting leave:', error);
-              Swal.fire({
-                title: 'Error!',
-                text: 'Failed to delete leave. Please try again.',
-                icon: 'error',
-                timer: 2000,
-                showConfirmButton: false,
-              });
+              this.toast.error('Error!', 'Failed to delete leave. Please try again.');
             },
           });
         }
@@ -275,13 +262,7 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
           this.reasonControl?.setValue('');
           this.leaveForm.get('leaveDate')?.setValue('');
           this.showOtherReasonInput = false;
-          Swal.fire({
-            title: 'Leave Applied!',
-            text: response,
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false,
-          });
+          this.toast.success('Leave Applied!', response);
           this.currentPage = 0;
           this.loadStudentLeaves();
         },
@@ -290,13 +271,7 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
           this.errorMessage = error.status === 404
             ? 'Failed to retrieve student information. Please try again.'
             : 'Failed to apply leave. Please try again.';
-          Swal.fire({
-            title: 'Error!',
-            text: this.errorMessage,
-            icon: 'error',
-            timer: 2000,
-            showConfirmButton: false,
-          });
+          this.toast.error('Error!', this.errorMessage);
         }
       });
     }

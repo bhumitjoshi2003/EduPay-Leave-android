@@ -3,7 +3,7 @@ import { LoggerService } from '../../services/logger.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TeacherService } from '../../services/teacher.service';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../auth/auth.service';
@@ -31,7 +31,8 @@ export class RegisterTeacherComponent implements OnInit {
     private teacherService: TeacherService,
     private router: Router,
     private authService: AuthService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private toast: ToastService
   ) {
     this.teacherForm = this.fb.group({
       teacherId: ['', Validators.required],
@@ -61,19 +62,14 @@ export class RegisterTeacherComponent implements OnInit {
             map(() => tempPassword),
             catchError((authError) => {
               this.logger.error('Error registering user in auth service:', authError);
-              Swal.fire('Error', 'Teacher record created but account setup failed. Please retry.', 'error');
+              this.toast.error('Error', 'Teacher record created but account setup failed. Please retry.');
               return EMPTY;
             })
           );
         })
       ).subscribe({
         next: (tempPassword) => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Teacher Registered!',
-            html: `Registration complete.<br><br><b>Temporary Password:</b><br><code style="font-size:1.1em;letter-spacing:0.05em">${tempPassword}</code><br><small>Share this with the teacher. They should change it on first login.</small>`,
-            confirmButtonText: 'Done'
-          });
+          this.toast.success('Teacher Registered!', `Registration complete. Temporary Password: ${tempPassword} — Share this with the teacher. They should change it on first login.`);
           this.teacherForm.reset();
         },
         error: (error) => {
@@ -82,15 +78,11 @@ export class RegisterTeacherComponent implements OnInit {
           if (error.status === 409) {
             errorMessage = error.error;
           }
-          Swal.fire({ icon: 'error', title: 'Error!', text: errorMessage });
+          this.toast.error('Error!', errorMessage);
         }
       });
     } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Validation Error!',
-        text: 'Please fill in all the required fields correctly.',
-      });
+      this.toast.error('Validation Error!', 'Please fill in all the required fields correctly.');
     }
   }
 

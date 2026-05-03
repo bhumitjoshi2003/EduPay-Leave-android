@@ -8,7 +8,7 @@ import { StudentService } from '../../services/student.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { LoggerService } from '../../services/logger.service';
 import { Capacitor } from '@capacitor/core';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import {
   StudentAttendanceSummary, ClassAttendanceSummary, MonthlyBreakdown,
   DailyDetail, CalendarCell, CellStatus
@@ -81,7 +81,8 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     private studentService: StudentService,
     private authStateService: AuthStateService,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -187,7 +188,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.logger.error('Failed to load students:', err);
-        Swal.fire('Error', 'Failed to load student list. Please try again.', 'error');
+        this.toast.error('Error', 'Failed to load student list. Please try again.');
       }
     });
   }
@@ -418,7 +419,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
 
   printReport(): void {
     if (Capacitor.isNativePlatform()) {
-      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Printing is not supported on the mobile app. Please use the web version.' });
+      this.toast.info('Not Available', 'Printing is not supported on the mobile app. Please use the web version.');
       return;
     }
     window.print();

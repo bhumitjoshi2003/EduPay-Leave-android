@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../../auth/auth.service';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { environment } from '../../../environments/environment';
 
 interface TeacherDetails {
@@ -61,7 +61,8 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     private teacherService: TeacherService,
     private authService: AuthService,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -88,7 +89,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.logger.error('Error fetching teacher details:', error);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load teacher details.' });
+        this.toast.error('Error', 'Failed to load teacher details.');
       }
     });
   }
@@ -98,16 +99,12 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   }
 
   enableEditMode(): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Are you sure?',
-      text: 'Do you want to edit the teacher details?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, edit it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
+      message: 'Do you want to edit the teacher details?',
+      confirmText: 'Yes, edit it!',
+    }).then((confirmed) => {
+      if (confirmed) {
         this.isEditing = true;
         this.cdr.markForCheck();
       }
@@ -117,13 +114,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   cancelEditMode(): void {
     this.isEditing = false;
     this.updatedDetails = { ...this.teacherDetails! };
-    Swal.fire({
-      icon: 'info',
-      title: 'Cancelled',
-      text: 'Edit mode cancelled. No changes saved.',
-      timer: 1500,
-      showConfirmButton: false,
-    });
+    this.toast.info('Cancelled', 'Edit mode cancelled. No changes saved.');
   }
 
   // Accepts NgForm now
@@ -152,44 +143,29 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
 
       errorMessages += '</ul>';
 
-      // 3. Show detailed SweetAlert
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops... Invalid Details',
-        html: errorMessages, // Use html property for the list
-        confirmButtonColor: '#d33',
-      });
+      // 3. Show detailed toast
+      this.toast.error('Oops... Invalid Details', errorMessages);
       return;
     }
 
     // Proceeds normally if form is valid
-    Swal.fire({
+    this.toast.confirm({
       title: 'Are you sure?',
-      text: 'Do you want to save the changes?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, save it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
+      message: 'Do you want to save the changes?',
+      confirmText: 'Yes, save it!',
+    }).then((confirmed) => {
+      if (confirmed) {
         if (this.updatedDetails) {
           this.teacherService.updateTeacher(this.teacherId, this.updatedDetails).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
             next: (response) => {
               this.teacherDetails = { ...this.updatedDetails };
               this.isEditing = false;
               this.cdr.markForCheck();
-              Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: 'Teacher details have been updated.',
-                timer: 1500,
-                showConfirmButton: false,
-              });
+              this.toast.success('Success!', 'Teacher details have been updated.');
             },
             error: (error) => {
               this.logger.error('Error updating teacher details:', error);
-              Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to update teacher details.' });
+              this.toast.error('Error!', 'Failed to update teacher details.');
             }
           });
         }
@@ -239,13 +215,13 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
         }
         this.photoUploading = false;
         this.cdr.markForCheck();
-        Swal.fire({ icon: 'success', title: 'Photo updated!', timer: 1500, showConfirmButton: false });
+        this.toast.success('Photo updated!');
       },
       error: (err) => {
         this.logger.error('Photo upload error:', err);
         this.photoUploading = false;
         this.cdr.markForCheck();
-        Swal.fire({ icon: 'error', title: 'Upload failed', text: 'Could not upload photo. Please try again.' });
+        this.toast.error('Upload failed', 'Could not upload photo. Please try again.');
       }
     });
   }
@@ -271,30 +247,30 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
 
   submitPasswordChange(): void {
     if (this.cpShowOldField && !this.cpOldPw) {
-      Swal.fire('Error', 'Current password is required', 'error');
+      this.toast.error('Error', 'Current password is required');
       return;
     }
     if (!this.cpNewPw || !this.cpConfirmPw) {
-      Swal.fire('Error', 'New password and confirmation are required', 'error');
+      this.toast.error('Error', 'New password and confirmation are required');
       return;
     }
     if (this.cpNewPw.length < 6) {
-      Swal.fire('Error', 'New password must be at least 6 characters', 'error');
+      this.toast.error('Error', 'New password must be at least 6 characters');
       return;
     }
     if (this.cpNewPw !== this.cpConfirmPw) {
-      Swal.fire('Error', 'New passwords do not match', 'error');
+      this.toast.error('Error', 'New passwords do not match');
       return;
     }
     const payload = { userId: this.teacherId, oldPassword: this.cpOldPw, newPassword: this.cpNewPw };
     this.authService.changePassword(payload).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
       next: () => {
         this.closePasswordModal();
-        Swal.fire('Success', 'Password changed successfully!', 'success');
+        this.toast.success('Success', 'Password changed successfully!');
       },
       error: (error) => {
         this.logger.error('Error changing password', error);
-        Swal.fire('Error', error.error || 'Failed to change password', 'error');
+        this.toast.error('Error', error.error || 'Failed to change password');
       }
     });
   }

@@ -7,7 +7,7 @@ import { FeesService } from '../../services/fees.service';
 import { FeeStructureService } from '../../services/fee-structure.service';
 import { StudentService } from '../../services/student.service';
 import { BusFeesService } from '../../services/bus-fees.service';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { PaymentData } from '../../interfaces/payment-data';
 import { StudentFee } from '../../interfaces/student-fee';
 import { AuthStateService } from '../../auth/auth-state.service';
@@ -77,7 +77,8 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     private attendanceService: AttendanceService,
     private authStateService: AuthStateService,
     private feesCalc: FeesCalculationService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private toast: ToastService
   ) { }
 
   comingSoonConfig = MODULE_MESSAGES.fees;
@@ -420,16 +421,8 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
       this.totalAmountToPay = 0;
       this.cdr.detectChanges();
 
-      Swal.fire({
-        title: '🎉 Payment Successful!',
-        text: 'Your payment has been processed successfully.',
-        icon: 'success',
-        confirmButtonText: 'OK',
-        timer: 3000,
-        timerProgressBar: true,
-      }).then(() => {
-        this.onPaymentProcessCompleted();
-      });
+      this.toast.success('Payment Successful!', 'Your payment has been processed successfully.');
+      this.onPaymentProcessCompleted();
     });
   }
 
@@ -442,7 +435,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
 
   markAsManuallyPaid(): void {
     if (this.role !== 'ADMIN' || !this.manualPaymentAmount || !this.selectedMonthsByYear[this.selectedYear]?.length) {
-      Swal.fire({ icon: 'warning', title: 'Warning', text: 'Please select months and enter the amount received.' });
+      this.toast.warning('Warning', 'Please select months and enter the amount received.');
       return;
     }
 
@@ -452,7 +445,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
       .map(m => m.name);
     const monthList = selectedMonthNames.map(n => `<li>${n}</li>`).join('');
 
-    Swal.fire({
+    this.toast.confirm({
       title: 'Confirm Manual Payment',
       html: `
         <p style="margin-bottom:8px">Mark the following months as manually paid?</p>
@@ -462,13 +455,10 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
         <p><strong>Amount Received: ₹${this.manualPaymentAmount}</strong></p>
         <p style="font-size:.82rem;color:#6b7280">Student: ${this.studentName || this.studentId} &nbsp;|&nbsp; Session: ${this.session}</p>
       `,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, mark as paid!'
-    }).then((result) => {
-      if (result.isConfirmed) {
+      confirmText: 'Yes, mark as paid!',
+      cancelText: 'Cancel'
+    }).then(confirmed => {
+      if (confirmed) {
         this.feesService.processManualPayment(
           this.studentId,
           this.selectedMonthsByYear,
@@ -484,8 +474,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
             this.totalAmountToPay = 0;
             this.manualPaymentAmount = 0;
             this.cdr.detectChanges();
-            Swal.fire({
-              icon: 'success',
+            this.toast.confirm({
               title: 'Marked as Paid!',
               html: `
                 <p style="color:#374151;margin-bottom:8px">Payment recorded successfully.</p>
@@ -496,11 +485,10 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
                   <tr style="background:#f9fafb"><td style="padding:4px 8px;color:#6b7280">Session</td><td style="padding:4px 8px;font-weight:600">${this.session}</td></tr>
                 </table>
               `,
-              confirmButtonColor: '#3085d6',
-              confirmButtonText: 'Done'
+              confirmText: 'Done'
             });
           },
-          error: () => Swal.fire('Error!', 'Failed to record manual payment.', 'error')
+          error: () => this.toast.error('Error!', 'Failed to record manual payment.')
         });
       }
     });

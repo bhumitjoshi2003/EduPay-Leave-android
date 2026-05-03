@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { ExamConfigService, ExamConfig, ExamSubjectEntry } from '../../services/exam-config.service';
 import { MarksService, MarkEntryStudent, StudentExamSubject, MarkEntryRequest } from '../../services/marks.service';
 import { AuthStateService } from '../../auth/auth-state.service';
@@ -59,7 +59,8 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     private studentService: StudentService,
     private feesCalc: FeesCalculationService,
     private cdr: ChangeDetectorRef,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -75,7 +76,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
           if (this.selectedClass) this.loadExams();
         },
-        error: (e) => { this.logger.error('Error fetching teacher:', e); Swal.fire('Error', 'Failed to load teacher details.', 'error'); },
+        error: (e) => { this.logger.error('Error fetching teacher:', e); this.toast.error('Error', 'Failed to load teacher details.'); },
       });
     } else {
       this.selectedClass = '1';
@@ -114,7 +115,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => { this.exams = data; this.cdr.markForCheck(); },
-        error: (e) => { this.logger.error('Error loading exams:', e); Swal.fire('Error', 'Failed to load exams.', 'error'); },
+        error: (e) => { this.logger.error('Error loading exams:', e); this.toast.error('Error', 'Failed to load exams.'); },
       });
   }
 
@@ -135,7 +136,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
           this.students = studentList.map((s: any) => ({ studentId: s.studentId, name: s.name }));
           this.cdr.markForCheck();
         },
-        error: (e) => { this.logger.error('Error loading exam data:', e); Swal.fire('Error', 'Failed to load exam data.', 'error'); },
+        error: (e) => { this.logger.error('Error loading exam data:', e); this.toast.error('Error', 'Failed to load exam data.'); },
       });
     }
   }
@@ -146,7 +147,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => { this.examSubjects = data; this.cdr.markForCheck(); },
-        error: (e) => { this.logger.error('Error loading exam subjects:', e); Swal.fire('Error', 'Failed to load exam subjects.', 'error'); },
+        error: (e) => { this.logger.error('Error loading exam subjects:', e); this.toast.error('Error', 'Failed to load exam subjects.'); },
       });
   }
 
@@ -169,7 +170,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
           });
           this.cdr.markForCheck();
         },
-        error: (e) => { this.logger.error('Error loading students for subject:', e); Swal.fire('Error', 'Failed to load students for this subject.', 'error'); },
+        error: (e) => { this.logger.error('Error loading students for subject:', e); this.toast.error('Error', 'Failed to load students for this subject.'); },
       });
   }
 
@@ -192,7 +193,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
           });
           this.cdr.markForCheck();
         },
-        error: (e) => { this.logger.error('Error loading subjects for student:', e); Swal.fire('Error', 'Failed to load subjects for this student.', 'error'); },
+        error: (e) => { this.logger.error('Error loading subjects for student:', e); this.toast.error('Error', 'Failed to load subjects for this student.'); },
       });
   }
 
@@ -213,7 +214,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
       }));
 
     if (entries.length === 0) {
-      Swal.fire('No Changes', 'No marks were modified.', 'info');
+      this.toast.info('No Changes', 'No marks were modified.');
       return;
     }
 
@@ -226,12 +227,12 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
         const msg = `Saved: ${result.saved}, Updated: ${result.updated}` +
           (result.errors.length ? `, Errors: ${result.errors.length}` : '');
-        Swal.fire('Marks Saved', msg, result.errors.length ? 'warning' : 'success');
+        result.errors.length ? this.toast.warning('Marks Saved', msg) : this.toast.success('Marks Saved', msg);
       },
       error: (e) => {
         this.saving = false;
         this.logger.error('Error saving marks:', e);
-        Swal.fire('Error', 'Failed to save marks.', 'error');
+        this.toast.error('Error', 'Failed to save marks.');
         this.cdr.markForCheck();
       },
     });
@@ -254,7 +255,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
       }));
 
     if (entries.length === 0) {
-      Swal.fire('No Changes', 'No marks were modified.', 'info');
+      this.toast.info('No Changes', 'No marks were modified.');
       return;
     }
 
@@ -265,12 +266,12 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
         // Sync snapshot so a second save won't re-send the same changes
         entries.forEach(e => { this.originalMarksB[e.examSubjectEntryId] = e.marksObtained; });
         this.cdr.markForCheck();
-        Swal.fire('Marks Saved', `Saved: ${result.saved}, Updated: ${result.updated}`, 'success');
+        this.toast.success('Marks Saved', `Saved: ${result.saved}, Updated: ${result.updated}`);
       },
       error: (e) => {
         this.saving = false;
         this.logger.error('Error saving marks:', e);
-        Swal.fire('Error', 'Failed to save marks.', 'error');
+        this.toast.error('Error', 'Failed to save marks.');
         this.cdr.markForCheck();
       },
     });

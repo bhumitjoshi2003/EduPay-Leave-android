@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { ExamConfigService, ExamConfig, ExamSubjectEntry } from '../../services/exam-config.service';
 import { LoggerService } from '../../services/logger.service';
 import { FeesCalculationService } from '../../services/fees-calculation.service';
@@ -42,7 +42,8 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
     private examService: ExamConfigService,
     private feesCalc: FeesCalculationService,
     private cdr: ChangeDetectorRef,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -86,7 +87,7 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
           this.logger.error('Error loading exams:', e);
           this.isLoadingExams = false;
           this.cdr.markForCheck();
-          Swal.fire('Error', 'Failed to load exams.', 'error');
+          this.toast.error('Error', 'Failed to load exams.');
         },
       });
   }
@@ -126,21 +127,20 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error adding exam:', e);
-          Swal.fire('Error', 'Could not add exam. It may already exist.', 'error');
+          this.toast.error('Error', 'Could not add exam. It may already exist.');
         },
       });
   }
 
   deleteExam(id: number): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Delete exam?',
-      text: 'All subject entries and marks for this exam will be deleted.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Delete',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      message: 'All subject entries and marks for this exam will be deleted.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true,
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.examService.deleteExam(id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.exams = this.exams.filter(e => e.id !== id);
@@ -150,7 +150,7 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error deleting exam:', e);
-          Swal.fire('Error', 'Could not delete exam.', 'error');
+          this.toast.error('Error', 'Could not delete exam.');
         },
       });
     });
@@ -165,7 +165,7 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
   addExamSubject(examId: number): void {
     const s = this.newSubject[examId];
     if (!s?.subjectName.trim() || !s.maxMarks || !s.examDate) {
-      Swal.fire('Incomplete', 'Please fill in subject name, max marks, and exam date.', 'warning');
+      this.toast.warning('Incomplete', 'Please fill in subject name, max marks, and exam date.');
       return;
     }
     this.examService.addExamSubject(examId, s.subjectName.trim(), s.maxMarks, s.examDate)
@@ -178,7 +178,7 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error adding exam subject:', e);
-          Swal.fire('Error', 'Could not add subject. It may already exist for this exam.', 'error');
+          this.toast.error('Error', 'Could not add subject. It may already exist for this exam.');
         },
       });
   }
@@ -210,15 +210,14 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
   }
 
   deleteExamSubject(examId: number, entryId: number): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Remove subject?',
-      text: 'This will delete the subject entry and all marks recorded for it.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Delete',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      message: 'This will delete the subject entry and all marks recorded for it.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true,
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.examService.deleteExamSubject(entryId).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.examSubjects[examId] = this.examSubjects[examId].filter(e => e.id !== entryId);
@@ -226,7 +225,7 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error deleting exam subject:', e);
-          Swal.fire('Error', 'Could not delete subject entry.', 'error');
+          this.toast.error('Error', 'Could not delete subject entry.');
         },
       });
     });

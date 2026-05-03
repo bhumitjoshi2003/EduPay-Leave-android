@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import {
   SubjectConfigService,
   ClassSubject,
@@ -49,7 +49,8 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
   constructor(
     private service: SubjectConfigService,
     private cdr: ChangeDetectorRef,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -72,7 +73,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
   loadClassSubjects(): void {
     this.service.getClassSubjects(this.selectedClass).pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => { this.classSubjects = data; this.cdr.markForCheck(); },
-      error: (e) => { this.logger.error('Error loading class subjects:', e); Swal.fire('Error', 'Failed to load subjects.', 'error'); },
+      error: (e) => { this.logger.error('Error loading class subjects:', e); this.toast.error('Error', 'Failed to load subjects.'); },
     });
   }
 
@@ -92,21 +93,20 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
       },
       error: (e) => {
         this.logger.error('Error adding subject:', e);
-        Swal.fire('Error', 'Could not add subject. It may already exist.', 'error');
+        this.toast.error('Error', 'Could not add subject. It may already exist.');
       },
     });
   }
 
   deleteClassSubject(id: number): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Delete subject?',
-      text: 'This will remove it from the class.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Delete',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      message: 'This will remove it from the class.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true,
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.service.deleteClassSubject(id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.classSubjects = this.classSubjects.filter(s => s.id !== id);
@@ -114,7 +114,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error deleting subject:', e);
-          Swal.fire('Error', 'Could not delete subject.', 'error');
+          this.toast.error('Error', 'Could not delete subject.');
         },
       });
     });
@@ -125,7 +125,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
   loadStreams(): void {
     this.service.getStreams().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => { this.streams = data; this.cdr.markForCheck(); },
-      error: (e) => { this.logger.error('Error loading streams:', e); Swal.fire('Error', 'Failed to load streams.', 'error'); },
+      error: (e) => { this.logger.error('Error loading streams:', e); this.toast.error('Error', 'Failed to load streams.'); },
     });
   }
 
@@ -144,21 +144,20 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
       },
       error: (e) => {
         this.logger.error('Error adding stream:', e);
-        Swal.fire('Error', 'Could not add stream. It may already exist.', 'error');
+        this.toast.error('Error', 'Could not add stream. It may already exist.');
       },
     });
   }
 
   deleteStream(id: number): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Delete stream?',
-      text: 'This will remove the stream and all its core subjects.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Delete',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      message: 'This will remove the stream and all its core subjects.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true,
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.service.deleteStream(id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.streams = this.streams.filter(s => s.id !== id);
@@ -166,7 +165,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error deleting stream:', e);
-          Swal.fire('Error', 'Could not delete stream.', 'error');
+          this.toast.error('Error', 'Could not delete stream.');
         },
       });
     });
@@ -186,21 +185,20 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
       },
       error: (e) => {
         this.logger.error('Error adding core subject:', e);
-        Swal.fire('Error', 'Could not add subject.', 'error');
+        this.toast.error('Error', 'Could not add subject.');
       },
     });
   }
 
   deleteCoreSubject(streamId: number, subjectId: number): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Delete subject?',
-      text: 'This will remove the core subject from the stream.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Delete',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      message: 'This will remove the core subject from the stream.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true,
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.service.deleteCoreSubject(subjectId).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.streams = this.streams.map(s =>
@@ -210,7 +208,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error deleting core subject:', e);
-          Swal.fire('Error', 'Could not delete subject.', 'error');
+          this.toast.error('Error', 'Could not delete subject.');
         },
       });
     });
@@ -221,7 +219,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
   loadOptionalGroups(): void {
     this.service.getOptionalGroups().pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => { this.optionalGroups = data; this.cdr.markForCheck(); },
-      error: (e) => { this.logger.error('Error loading optional groups:', e); Swal.fire('Error', 'Failed to load optional groups.', 'error'); },
+      error: (e) => { this.logger.error('Error loading optional groups:', e); this.toast.error('Error', 'Failed to load optional groups.'); },
     });
   }
 
@@ -240,20 +238,19 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
       },
       error: (e) => {
         this.logger.error('Error adding group:', e);
-        Swal.fire('Error', 'Could not add group.', 'error');
+        this.toast.error('Error', 'Could not add group.');
       },
     });
   }
 
   deleteOptionalGroup(id: number): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Delete group?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Delete',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true,
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.service.deleteOptionalGroup(id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.optionalGroups = this.optionalGroups.filter(g => g.id !== id);
@@ -261,7 +258,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error deleting group:', e);
-          Swal.fire('Error', 'Could not delete group.', 'error');
+          this.toast.error('Error', 'Could not delete group.');
         },
       });
     });
@@ -281,21 +278,20 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
       },
       error: (e) => {
         this.logger.error('Error adding optional subject:', e);
-        Swal.fire('Error', 'Could not add subject.', 'error');
+        this.toast.error('Error', 'Could not add subject.');
       },
     });
   }
 
   deleteOptionalSubject(groupId: number, subjectId: number): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Delete subject?',
-      text: 'This will remove the subject from the group.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Delete',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      message: 'This will remove the subject from the group.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true,
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.service.deleteOptionalSubject(subjectId).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.optionalGroups = this.optionalGroups.map(g =>
@@ -305,7 +301,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error deleting optional subject:', e);
-          Swal.fire('Error', 'Could not delete subject.', 'error');
+          this.toast.error('Error', 'Could not delete subject.');
         },
       });
     });

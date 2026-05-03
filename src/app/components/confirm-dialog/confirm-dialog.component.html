@@ -1,0 +1,35 @@
+<div class="cd-root">
+  <!-- Icon -->
+  <div class="cd-icon-wrap">
+    <span class="material-icons cd-icon" [ngClass]="iconClass">{{ iconName }}</span>
+  </div>
+
+  <!-- Title -->
+  <h2 class="cd-title">{{ data.title }}</h2>
+
+  <!-- Body: HTML or plain text -->
+  <div class="cd-body">
+    <div *ngIf="data.html; else plainMsg" [innerHTML]="data.html"></div>
+    <ng-template #plainMsg>
+      <p *ngIf="data.message" class="cd-message">{{ data.message }}</p>
+    </ng-template>
+  </div>
+
+  <!-- Actions -->
+  <div class="cd-actions" [class.single]="!data.cancelText">
+    <button
+      *ngIf="data.cancelText"
+      mat-stroked-button
+      class="cd-btn-cancel"
+      (click)="cancel()">
+      {{ data.cancelText }}
+    </button>
+    <button
+      mat-flat-button
+      class="cd-btn-confirm"
+      [class.danger]="data.danger"
+      (click)="confirm()">
+      {{ data.confirmText || 'OK' }}
+    </button>
+  </div>
+</div>

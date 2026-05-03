@@ -12,6 +12,71 @@ body {
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+/* ── edu-dialog: shared panel class for confirm / select-month dialogs ── */
+.edu-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 20px !important;
+  overflow: hidden;
+}
+
+.edu-dialog .mat-mdc-dialog-container {
+  padding: 0 !important;
+}
+
+/* Select-month dialog reuses confirm-dialog styles */
+.edu-dialog .cd-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 20px;
+  text-align: center;
+}
+
+.edu-dialog .cd-icon-wrap {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.edu-dialog .cd-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px;
+}
+
+.edu-dialog .cd-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.edu-dialog .cd-btn-cancel {
+  flex: 1;
+  height: 42px;
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+}
+
+.edu-dialog .cd-btn-confirm {
+  flex: 1;
+  height: 42px;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  background-color: #1e3a5f !important;
+  color: #fff !important;
+}
+
+.edu-dialog .cd-btn-confirm.danger {
+  background-color: #dc2626 !important;
+}
+
 /* ── Print: hide dashboard shell, show only the report card ── */
 @media print {
   @page {

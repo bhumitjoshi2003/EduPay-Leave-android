@@ -1,0 +1,26 @@
+<div class="cd-root">
+  <div class="cd-icon-wrap">
+    <span class="material-icons" style="font-size:32px;color:#2563eb">calendar_month</span>
+  </div>
+
+  <h2 class="cd-title">{{ data.title }}</h2>
+
+  <mat-form-field appearance="outline" style="width:100%;margin-bottom:4px">
+    <mat-label>Select Month</mat-label>
+    <mat-select [(ngModel)]="selected" (ngModelChange)="error = false">
+      <mat-option *ngFor="let opt of data.options" [value]="opt.value">
+        {{ opt.label }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <p *ngIf="error" style="color:#dc2626;font-size:12px;margin:0 0 12px;text-align:left">
+    Please select a month.
+  </p>
+
+  <div class="cd-actions">
+    <button mat-stroked-button class="cd-btn-cancel" (click)="cancel()">Cancel</button>
+    <button mat-flat-button class="cd-btn-confirm" (click)="confirm()">
+      {{ data.confirmText || 'Confirm' }}
+    </button>
+  </div>
+</div>

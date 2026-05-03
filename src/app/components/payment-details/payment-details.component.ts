@@ -6,7 +6,7 @@ import { PaymentHistoryDetails } from '../../interfaces/payment-response';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { Share } from '@capacitor/share';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-payment-details',
@@ -28,7 +28,8 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     private router: Router,
     private paymentHistoryService: PaymentHistoryService,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -116,7 +117,7 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
       await Share.share({ title: 'Fee Receipt', text, dialogTitle: 'Share Fee Receipt' });
     } catch (e: any) {
       if (e?.message !== 'Share canceled') {
-        Swal.fire('Error', 'Could not open share sheet.', 'error');
+        this.toast.error('Error', 'Could not open share sheet.');
       }
     }
   }

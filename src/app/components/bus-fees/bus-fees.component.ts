@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { BusFeesService, BusFee } from '../../services/bus-fees.service';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthStateService } from '../../auth/auth-state.service';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-bus-fees',
@@ -27,7 +27,8 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   constructor(
     private busFeesService: BusFeesService,
     private authStateService: AuthStateService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) { }
 
   ngOnDestroy(): void {
@@ -63,24 +64,20 @@ export class BusFeesComponent implements OnInit, OnDestroy {
       error: () => {
         this.isLoading = false;
         this.cdr.markForCheck();
-        Swal.fire('Error', 'Failed to load bus fee structure.', 'error');
+        this.toast.error('Error', 'Failed to load bus fee structure.');
       }
     });
   }
 
   changeSession(session: string): void {
     if (this.isEditing) {
-      Swal.fire({
+      this.toast.confirm({
         title: 'Confirm Navigation',
-        text: 'Unsaved changes will be lost. Do you want to continue?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, continue!',
-        cancelButtonText: 'No, stay here',
-      }).then((result) => {
-        if (result.isConfirmed) {
+        message: 'Unsaved changes will be lost. Do you want to continue?',
+        confirmText: 'Yes, continue!',
+        cancelText: 'No, stay here',
+      }).then((confirmed) => {
+        if (confirmed) {
           this.currentSession = session;
           this.isNewSession = false;
           this.isEditing = false;
@@ -101,19 +98,15 @@ export class BusFeesComponent implements OnInit, OnDestroy {
     const lastYear = parseInt(lastYearStr);
     const newYear = `${lastYear + 1}-${lastYear + 2}`; // Corrected newYear calculation
 
-    Swal.fire({
+    this.toast.confirm({
       title: 'Start New Academic Year?',
-      text: `Are you sure to start a new academic year: ${newYear}?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Yes, start!',
-      cancelButtonText: 'No, cancel',
-    }).then((result) => {
-      if (result.isConfirmed) {
+      message: `Are you sure to start a new academic year: ${newYear}?`,
+      confirmText: 'Yes, start!',
+      cancelText: 'No, cancel',
+    }).then((confirmed) => {
+      if (confirmed) {
         if (this.academicYears.includes(newYear)) {
-          Swal.fire('Info', 'This academic year already exists.', 'info');
+          this.toast.info('Info', 'This academic year already exists.');
           return;
         }
         this.academicYears.push(newYear);
@@ -146,17 +139,13 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   edit(): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Enable Edit Mode?',
-      text: 'Do you want to enable editing of the bus fee structure?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Yes, enable!',
-      cancelButtonText: 'No, cancel',
-    }).then((result) => {
-      if (result.isConfirmed) {
+      message: 'Do you want to enable editing of the bus fee structure?',
+      confirmText: 'Yes, enable!',
+      cancelText: 'No, cancel',
+    }).then((confirmed) => {
+      if (confirmed) {
         this.isEditing = true;
         this.cdr.markForCheck();
       }
@@ -164,23 +153,21 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   save(): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Save Changes?',
-      text: 'Do you want to save the changes you have made to the bus fees?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Save',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
-      if (result.isConfirmed) {
+      message: 'Do you want to save the changes you have made to the bus fees?',
+      confirmText: 'Save',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (confirmed) {
         this.isEditing = false;
         this.isNewSession = false;
         this.cdr.markForCheck();
         this.busFeesService.updateBusFees(this.currentSession, this.busFeeStructures).subscribe(() => {
           this.originalBusFees = JSON.parse(JSON.stringify(this.busFeeStructures));
-          Swal.fire('Saved!', `Bus fees for ${this.currentSession} saved successfully.`, 'success');
+          this.toast.success('Saved!', `Bus fees for ${this.currentSession} saved successfully.`);
         }, (error) => {
-          Swal.fire('Error!', 'Failed to save the bus fees.', 'error');
+          this.toast.error('Error!', 'Failed to save the bus fees.');
         });
       }
     });
@@ -194,29 +181,26 @@ export class BusFeesComponent implements OnInit, OnDestroy {
     const confirmButtonText = 'Yes, discard!';
     const cancelButtonText = 'No, continue editing!';
 
-    Swal.fire({
-      title: title,
-      text: text,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: confirmButtonText,
-      cancelButtonText: cancelButtonText,
-    }).then((result) => {
-      if (result.isConfirmed) {
+    this.toast.confirm({
+      title,
+      message: text,
+      confirmText: confirmButtonText,
+      cancelText: cancelButtonText,
+      danger: true,
+    }).then((confirmed) => {
+      if (confirmed) {
         this.isEditing = false;
-        const wasNewSession = this.isNewSession; // Store the value before resetting
+        const wasNewSession = this.isNewSession;
         this.isNewSession = false;
 
         if (wasNewSession) {
           if (this.academicYears.length > 0) {
-            this.academicYears.pop(); // Remove the newly added year
+            this.academicYears.pop();
           }
           if (this.academicYears.length > 0) {
             this.currentSession = this.academicYears[this.academicYears.length - 1];
             this.cdr.markForCheck();
-            this.fetchBusFees(); // Reload data for the previous session
+            this.fetchBusFees();
           } else {
             this.currentSession = '';
             this.busFeeStructures = [];
@@ -226,7 +210,7 @@ export class BusFeesComponent implements OnInit, OnDestroy {
           this.busFeeStructures = JSON.parse(JSON.stringify(this.originalBusFees));
           this.cdr.markForCheck();
         }
-        Swal.fire('Cancelled!', 'Bus fee changes have been discarded.', 'info');
+        this.toast.info('Cancelled!', 'Bus fee changes have been discarded.');
       }
     });
   }

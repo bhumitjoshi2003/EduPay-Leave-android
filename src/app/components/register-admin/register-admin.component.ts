@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
@@ -24,42 +24,23 @@ export class RegisterAdminComponent {
     dob: ''
   };
 
-  constructor(private adminService: AdminService, private router: Router) { }
+  constructor(private adminService: AdminService, private router: Router, private toast: ToastService) { }
 
   onSubmit(form: NgForm): void {
     if (form.invalid) {
       Object.values(form.controls).forEach(control => control.markAsTouched());
 
-      Swal.fire({
-        icon: 'error',
-        title: 'Form Invalid',
-        text: 'Please fill in all required fields correctly.',
-        confirmButtonColor: '#1f6f8b'
-      });
+      this.toast.warning('Form Invalid', 'Please fill in all required fields correctly.');
       return;
     }
 
-    Swal.fire({
-      title: 'Registering...',
-      text: 'Creating administrator account...',
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading()
-    });
-
     this.adminService.createAdmin(this.adminData).subscribe({
       next: () => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'New Administrator has been registered.',
-          timer: 2000,
-          showConfirmButton: false
-        }).then(() => {
-          this.router.navigate(['/dashboard/admin-list']);
-        });
+        this.toast.success('Success!', 'New Administrator has been registered.');
+        this.router.navigate(['/dashboard/admin-list']);
       },
       error: (err) => {
-        Swal.fire('Error', err.error?.message || 'Failed to register admin. Check if ID/Email exists.', 'error');
+        this.toast.error('Error', err.error?.message || 'Failed to register admin. Check if ID/Email exists.');
       }
     });
   }

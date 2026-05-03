@@ -6,7 +6,7 @@ import { AuthStateService } from '../../auth/auth-state.service';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { LoggerService } from '../../services/logger.service';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 
 interface Student {
   studentId: string;
@@ -40,7 +40,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
     private router: Router,
     private authStateService: AuthStateService,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) { }
 
   ngOnDestroy(): void {
@@ -78,7 +79,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
         this.logger.error('Error fetching teacher details:', error);
         this.isLoading = false;
         this.cdr.markForCheck();
-        Swal.fire('Error', 'Failed to load teacher details. Please try again.', 'error');
+        this.toast.error('Error', 'Failed to load teacher details. Please try again.');
       }
     });
   }
@@ -100,7 +101,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
         this.logger.error('Error loading active students:', err);
         this.isLoading = false;
         this.cdr.markForCheck();
-        Swal.fire('Error', 'Failed to load students. Please try again.', 'error');
+        this.toast.error('Error', 'Failed to load students. Please try again.');
       }
     });
 

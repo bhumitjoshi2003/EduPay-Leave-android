@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 
 interface Teacher {
   teacherId: string;
@@ -31,7 +31,8 @@ export class TeacherListComponent implements OnInit, OnDestroy {
     private router: Router,
     private authStateService: AuthStateService,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -73,7 +74,7 @@ export class TeacherListComponent implements OnInit, OnDestroy {
         this.logger.error('Error fetching all teachers:', error);
         this.isLoading = false;
         this.cdr.markForCheck();
-        Swal.fire('Error', 'Failed to load teachers. Please try again.', 'error');
+        this.toast.error('Error', 'Failed to load teachers. Please try again.');
       }
     });
   }

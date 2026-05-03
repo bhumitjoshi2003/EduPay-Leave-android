@@ -17,7 +17,7 @@ import { ComingSoonComponent } from '../coming-soon/coming-soon.component';
 import { MODULE_MESSAGES } from '../../config/module-messages.config';
 import { Subject, takeUntil } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-payment-history',
@@ -59,7 +59,8 @@ export class PaymentHistoryComponent implements OnInit, OnDestroy {
     private paymentHistoryService: PaymentHistoryService,
     private authStateService: AuthStateService,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) { }
 
   ngOnDestroy(): void {
@@ -155,7 +156,7 @@ export class PaymentHistoryComponent implements OnInit, OnDestroy {
 
   downloadPaymentReceipt(paymentId: string): void {
     if (Capacitor.isNativePlatform()) {
-      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Downloading receipts is not supported on the mobile app. Please use the web version.' });
+      this.toast.info('Not Available', 'Downloading receipts is not supported on the mobile app. Please use the web version.');
       return;
     }
     this.loading = true;

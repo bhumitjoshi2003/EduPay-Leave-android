@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { StudentService, PromotionPreviewGroup, PromotionAction, PromotionResult } from '../../services/student.service';
 import { LoggerService } from '../../services/logger.service';
 
@@ -36,7 +36,8 @@ export class StudentPromotionComponent implements OnInit, OnDestroy {
   constructor(
     private studentService: StudentService,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -68,7 +69,7 @@ export class StudentPromotionComponent implements OnInit, OnDestroy {
         this.logger.error('Error loading promotion preview:', e);
         this.isLoading = false;
         this.cdr.markForCheck();
-        Swal.fire('Error', 'Failed to load students for promotion.', 'error');
+        this.toast.error('Error', 'Failed to load students for promotion.');
       }
     });
   }
@@ -95,7 +96,7 @@ export class StudentPromotionComponent implements OnInit, OnDestroy {
     const detained = this.detainedCount;
     const passedOut = this.passOutCount;
 
-    Swal.fire({
+    this.toast.confirm({
       title: 'Confirm Promotion',
       html: `
         <p style="margin-bottom:12px;color:#374151;">This will update <strong>${total}</strong> students:</p>
@@ -106,14 +107,11 @@ export class StudentPromotionComponent implements OnInit, OnDestroy {
         </div>
         <p style="margin-top:14px;font-size:0.85rem;color:#ef4444;font-weight:600;">This action cannot be undone easily. Please verify before confirming.</p>
       `,
+      confirmText: 'Yes, Execute Promotion',
+      cancelText: 'Cancel',
       icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#1d4ed8',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, Execute Promotion',
-      cancelButtonText: 'Cancel',
-    }).then((res) => {
-      if (!res.isConfirmed) return;
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.doExecute();
     });
   }
@@ -134,7 +132,7 @@ export class StudentPromotionComponent implements OnInit, OnDestroy {
         this.logger.error('Error executing promotion:', e);
         this.isExecuting = false;
         this.cdr.markForCheck();
-        Swal.fire('Error', 'Promotion failed. Please try again.', 'error');
+        this.toast.error('Error', 'Promotion failed. Please try again.');
       }
     });
   }

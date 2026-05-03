@@ -9,7 +9,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { MarksService, ExamResult } from '../../services/marks.service';
 import { LoggerService } from '../../services/logger.service';
 import { Capacitor } from '@capacitor/core';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-report-card',
@@ -43,6 +43,7 @@ export class ReportCardComponent implements OnInit, OnDestroy {
     private marksService: MarksService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
+    private toast: ToastService,
     @Inject(PLATFORM_ID) private platformId: object
   ) { }
 
@@ -143,7 +144,7 @@ export class ReportCardComponent implements OnInit, OnDestroy {
 
   print(): void {
     if (Capacitor.isNativePlatform()) {
-      Swal.fire({ icon: 'info', title: 'Not Available', text: 'Printing is not supported on the mobile app. Please use the web version.' });
+      this.toast.info('Not Available', 'Printing is not supported on the mobile app. Please use the web version.');
       return;
     }
     if (isPlatformBrowser(this.platformId)) {

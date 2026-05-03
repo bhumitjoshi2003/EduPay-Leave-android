@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { StudentStreamService, StudentStreamOverview } from '../../services/student-stream.service';
 import { SubjectConfigService, AcademicStream, OptionalSubjectGroup } from '../../services/subject-config.service';
 import { LoggerService } from '../../services/logger.service';
@@ -34,7 +34,8 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
     private streamService: StudentStreamService,
     private subjectService: SubjectConfigService,
     private cdr: ChangeDetectorRef,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -92,7 +93,7 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
 
   saveAssignment(student: StudentStreamOverview): void {
     if (!this.editStreamId || !this.editOptionalSubjectId) {
-      Swal.fire('Incomplete', 'Please select both a stream and an optional subject.', 'warning');
+      this.toast.warning('Incomplete', 'Please select both a stream and an optional subject.');
       return;
     }
 
@@ -114,24 +115,22 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
         );
         this.cancelEdit();
         this.cdr.markForCheck();
-        Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
+        this.toast.success('Saved');
       },
       error: (e) => {
         this.logger.error('Error saving stream:', e);
-        Swal.fire('Error', 'Could not save assignment.', 'error');
+        this.toast.error('Error', 'Could not save assignment.');
       },
     });
   }
 
   removeAssignment(studentId: string): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Remove stream assignment?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Remove',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      confirmText: 'Remove',
+      danger: true
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.streamService.deleteStream(studentId).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           // Immutable update so OnPush detects the change
@@ -144,7 +143,7 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
         },
         error: (e) => {
           this.logger.error('Error removing stream:', e);
-          Swal.fire('Error', 'Could not remove assignment.', 'error');
+          this.toast.error('Error', 'Could not remove assignment.');
         },
       });
     });

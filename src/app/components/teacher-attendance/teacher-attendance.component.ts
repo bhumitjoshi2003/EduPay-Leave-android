@@ -7,7 +7,7 @@ import { CommonModule, formatDate } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { AttendanceData } from '../../interfaces/atendance-data';
 import { AttendanceService } from '../../services/attendance.service';
 import { AuthStateService } from '../../auth/auth-state.service';
@@ -59,7 +59,8 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     private teacherService: TeacherService,
     private authStateService: AuthStateService,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) { }
 
   ngOnDestroy(): void {
@@ -102,7 +103,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
         this.loadStudentsAndApplyAttendance();
       },
       error: () => {
-        Swal.fire('Error', 'Failed to fetch teacher details.', 'error');
+        this.toast.error('Error', 'Failed to fetch teacher details.');
       },
     });
   }
@@ -138,7 +139,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.logger.error('Error loading students:', error);
-        Swal.fire('Error', 'Failed to load students.', 'error');
+        this.toast.error('Error', 'Failed to load students.');
       },
     });
   }
@@ -213,7 +214,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
           },
           error: (leavesError) => {
             this.logger.error('Error loading leaves after attendance failed:', leavesError);
-            Swal.fire('Error', 'Failed to load attendance or leave data.', 'error');
+            this.toast.error('Error', 'Failed to load attendance or leave data.');
           },
         });
       },
@@ -249,16 +250,13 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   }
 
   saveAttendance(): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Confirm Save',
-      text: 'Are you sure you want to save the attendance?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, save it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
+      message: 'Are you sure you want to save the attendance?',
+      confirmText: 'Yes, save it!',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (confirmed) {
         const attendanceData: AttendanceData[] = this.students
           .filter((student) => student.absent)
           .map((student) => ({
@@ -277,24 +275,12 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
 
         this.attendanceService.saveAttendance(attendanceData).subscribe({
           next: () => {
-            Swal.fire({
-              title: 'Attendance Saved!',
-              text: 'Attendance data saved successfully.',
-              icon: 'success',
-              timer: 2000,
-              showConfirmButton: false,
-            });
+            this.toast.success('Attendance Saved!', 'Attendance data saved successfully.');
             this.applyAttendanceAndLeavesToStudents();
           },
           error: (error) => {
             this.logger.error('Error saving attendance:', error);
-            Swal.fire({
-              title: 'Error!',
-              text: error.error || 'Failed to save attendance. Please try again.',
-              icon: 'error',
-              timer: 2000,
-              showConfirmButton: false,
-            });
+            this.toast.error('Error!', error.error || 'Failed to save attendance. Please try again.');
           },
         });
       }
@@ -329,35 +315,32 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
 
   deleteAttendance(): void {
     if (!this.isDateWithinAllowedRange()) {
-      Swal.fire('Not Allowed', 'You can only delete attendance for today or yesterday.', 'warning');
+      this.toast.warning('Not Allowed', 'You can only delete attendance for today or yesterday.');
       return;
     }
 
     if (this.isSunday(this.attendanceDate)) {
-      Swal.fire('Invalid Date', 'Cannot delete attendance for Sundays.', 'info');
+      this.toast.info('Invalid Date', 'Cannot delete attendance for Sundays.');
       return;
     }
 
-    Swal.fire({
+    this.toast.confirm({
       title: 'Confirm Deletion',
-      text: 'Are you sure you want to delete the attendance for this date?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-    }).then((result) => {
-      if (result.isConfirmed) {
+      message: 'Are you sure you want to delete the attendance for this date?',
+      confirmText: 'Yes, delete it!',
+      cancelText: 'Cancel',
+      danger: true,
+    }).then((confirmed) => {
+      if (confirmed) {
         const formattedDate = formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en');
         this.attendanceService.deleteAttendanceByDateAndClass(formattedDate, this.selectedClass).subscribe({
           next: () => {
-            Swal.fire('Deleted!', 'Attendance has been deleted.', 'success');
+            this.toast.success('Deleted!', 'Attendance has been deleted.');
             this.loadStudentsAndApplyAttendance(); // refresh the student list
           },
           error: (error) => {
             this.logger.error('Error deleting attendance:', error);
-            Swal.fire('Error', error.error || 'Failed to delete attendance.', 'error');
+            this.toast.error('Error', error.error || 'Failed to delete attendance.');
           },
         });
       }

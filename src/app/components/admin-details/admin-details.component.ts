@@ -6,7 +6,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../../auth/auth.service';
 import { AuthStateService } from '../../auth/auth-state.service';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { environment } from '../../../environments/environment';
 
 interface Admin {
@@ -59,7 +59,8 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
     private adminService: AdminService,
     private authService: AuthService,
     private authStateService: AuthStateService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -91,7 +92,7 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
         this.updatedDetails = { ...data };
         this.cdr.markForCheck();
       },
-      error: () => Swal.fire('Error', 'Could not load admin details', 'error')
+      error: () => this.toast.error('Error', 'Could not load admin details')
     });
   }
 
@@ -125,7 +126,7 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
   saveAdmin(form: NgForm): void {
     if (form.invalid) {
       form.control.markAllAsTouched();
-      Swal.fire('Error', 'Please correct the invalid fields.', 'error');
+      this.toast.error('Error', 'Please correct the invalid fields.');
       return;
     }
 
@@ -133,22 +134,20 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
       ? this.adminService.createAdmin(this.updatedDetails!)
       : this.adminService.updateAdmin(this.adminId, this.updatedDetails!);
 
-    Swal.fire({
+    this.toast.confirm({
       title: 'Confirm Save',
-      text: 'Save administrator details?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Save'
-    }).then((result) => {
-      if (result.isConfirmed) {
+      message: 'Save administrator details?',
+      confirmText: 'Yes, Save'
+    }).then((confirmed) => {
+      if (confirmed) {
         action.pipe(takeUntil(this.ngUnsubscribe)).subscribe({
           next: () => {
-            Swal.fire('Saved!', 'Admin details updated successfully.', 'success');
+            this.toast.success('Saved!', 'Admin details updated successfully.');
             this.isEditing = false;
             this.updatedDetails = { ...this.adminDetails! };
             this.cdr.markForCheck();
           },
-          error: (err) => Swal.fire('Error', err.error?.message || 'Server error occurred', 'error')
+          error: (err) => this.toast.error('Error', err.error?.message || 'Server error occurred')
         });
       }
     });
@@ -171,19 +170,19 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
 
   submitPasswordChange(): void {
     if (this.cpShowOldField && !this.cpOldPw) {
-      Swal.fire('Error', 'Current password is required to verify identity.', 'error');
+      this.toast.error('Error', 'Current password is required to verify identity.');
       return;
     }
     if (!this.cpNewPw || !this.cpConfirmPw) {
-      Swal.fire('Error', 'New password and confirmation are required.', 'error');
+      this.toast.error('Error', 'New password and confirmation are required.');
       return;
     }
     if (this.cpNewPw.length < 6) {
-      Swal.fire('Error', 'New password must be at least 6 characters.', 'error');
+      this.toast.error('Error', 'New password must be at least 6 characters.');
       return;
     }
     if (this.cpNewPw !== this.cpConfirmPw) {
-      Swal.fire('Error', 'New passwords do not match.', 'error');
+      this.toast.error('Error', 'New passwords do not match.');
       return;
     }
     const isSuperAdminResettingOther = (this.loggedInUserRole === 'SUPER_ADMIN' && this.loggedInUserId !== this.adminId);
@@ -196,25 +195,23 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
     this.authService.changePassword(payload).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
       next: () => {
         this.closePasswordModal();
-        Swal.fire('Success', 'Password updated successfully', 'success');
+        this.toast.success('Success', 'Password updated successfully');
       },
-      error: (err) => Swal.fire('Error', err.error || 'Failed to update password', 'error')
+      error: (err) => this.toast.error('Error', err.error || 'Failed to update password')
     });
   }
 
   deleteAdmin(): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Are you sure?',
-      text: "This action cannot be undone!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'Yes, Delete Admin'
-    }).then((result) => {
-      if (result.isConfirmed) {
+      message: 'This action cannot be undone!',
+      confirmText: 'Yes, Delete Admin',
+      danger: true
+    }).then((confirmed) => {
+      if (confirmed) {
         this.adminService.deleteAdmin(this.adminId).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
           next: () => {
-            Swal.fire('Deleted', 'Administrator removed.', 'success');
+            this.toast.success('Deleted', 'Administrator removed.');
             this.router.navigate(['/dashboard/admin-list']);
           }
         });
@@ -257,12 +254,12 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
         }
         this.photoUploading = false;
         this.cdr.markForCheck();
-        Swal.fire({ icon: 'success', title: 'Photo updated!', timer: 1500, showConfirmButton: false });
+        this.toast.success('Photo updated!');
       },
       error: () => {
         this.photoUploading = false;
         this.cdr.markForCheck();
-        Swal.fire({ icon: 'error', title: 'Upload failed', text: 'Could not upload photo. Please try again.' });
+        this.toast.error('Upload failed', 'Could not upload photo. Please try again.');
       }
     });
   }

@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject, forkJoin, takeUntil } from 'rxjs';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 
 import { AuthStateService } from '../../auth/auth-state.service';
 import { TeacherService } from '../../services/teacher.service';
@@ -47,6 +47,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     private leaveService: LeaveService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -131,7 +132,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
         },
         error: e => {
           this.logger.error('Approve leave error:', e);
-          Swal.fire('Error', 'Failed to approve leave. Please try again.', 'error');
+          this.toast.error('Error', 'Failed to approve leave. Please try again.');
         }
       });
   }
@@ -147,7 +148,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
         },
         error: e => {
           this.logger.error('Reject leave error:', e);
-          Swal.fire('Error', 'Failed to reject leave. Please try again.', 'error');
+          this.toast.error('Error', 'Failed to reject leave. Please try again.');
         }
       });
   }

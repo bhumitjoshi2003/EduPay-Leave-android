@@ -5,7 +5,7 @@ import { EMPTY, Subject, takeUntil } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { StudentService } from '../../services/student.service';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
+import { ToastService } from '../../services/toast.service';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../auth/auth.service';
 
@@ -31,7 +31,8 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
     private studentService: StudentService,
     private router: Router,
     private authService: AuthService,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private toast: ToastService
   ) {
     this.studentForm = this.fb.group({
       studentId: ['', Validators.required],
@@ -81,19 +82,14 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
             map(() => tempPassword),
             catchError((authError) => {
               this.logger.error('Error registering user in auth service:', authError);
-              Swal.fire('Error', 'Student record created but account setup failed. Please retry.', 'error');
+              this.toast.error('Error', 'Student record created but account setup failed. Please retry.');
               return EMPTY;
             })
           );
         })
       ).subscribe({
         next: (tempPassword) => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Student Registered!',
-            html: `Registration complete.<br><br><b>Temporary Password:</b><br><code style="font-size:1.1em;letter-spacing:0.05em">${tempPassword}</code><br><small>Share this with the student. They should change it on first login.</small>`,
-            confirmButtonText: 'Done'
-          });
+          this.toast.success('Student Registered!', `Registration complete. Temporary Password: ${tempPassword} — Share this with the student. They should change it on first login.`);
           this.studentForm.reset();
           this.isBusUser = false;
         },
@@ -103,15 +99,11 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
           if (error.status === 409) {
             errorMessage = error.error;
           }
-          Swal.fire({ icon: 'error', title: 'Error!', text: errorMessage });
+          this.toast.error('Error!', errorMessage);
         }
       });
     } else {
-      Swal.fire({
-        icon: 'error',
-        title: 'Validation Error!',
-        text: 'Please fill in all the required fields correctly.',
-      });
+      this.toast.error('Validation Error!', 'Please fill in all the required fields correctly.');
     }
   }
 

@@ -1,0 +1,106 @@
+.cd-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 20px;
+  text-align: center;
+}
+
+/* Icon */
+.cd-icon-wrap {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  background: #f3f4f6;
+}
+
+.cd-icon {
+  font-size: 32px !important;
+}
+
+.icon-warning  { color: #d97706; }
+.icon-danger   { color: #dc2626; }
+.icon-question { color: #2563eb; }
+.icon-info     { color: #2563eb; }
+.icon-success  { color: #16a34a; }
+
+.icon-warning  ~ *, .cd-icon-wrap:has(.icon-warning)  { background: #fffbeb !important; }
+
+/* Scoped icon-wrap background by icon type */
+:host .icon-warning  { color: #d97706; }
+:host .icon-danger   { color: #dc2626; }
+:host .icon-question { color: #2563eb; }
+:host .icon-info     { color: #2563eb; }
+:host .icon-success  { color: #16a34a; }
+
+/* Title */
+.cd-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px;
+  line-height: 1.3;
+}
+
+/* Body */
+.cd-body {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.cd-message {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* Rich HTML content */
+.cd-body ::ng-deep p  { margin: 0 0 6px; font-size: 14px; color: #4b5563; line-height: 1.55; }
+.cd-body ::ng-deep ul { text-align: left; padding-left: 20px; margin: 4px 0 10px; }
+.cd-body ::ng-deep li { font-size: 13.5px; color: #374151; margin-bottom: 2px; }
+.cd-body ::ng-deep table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cd-body ::ng-deep td   { padding: 5px 8px; }
+.cd-body ::ng-deep strong { color: #111827; }
+
+/* Actions */
+.cd-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.cd-actions.single {
+  justify-content: center;
+}
+
+.cd-btn-cancel {
+  flex: 1;
+  height: 42px;
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  border-color: #d1d5db !important;
+}
+
+.cd-btn-confirm {
+  flex: 1;
+  height: 42px;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  background-color: #1e3a5f !important;
+  color: #fff !important;
+}
+
+.cd-btn-confirm.danger {
+  background-color: #dc2626 !important;
+}
+
+.cd-actions.single .cd-btn-confirm {
+  max-width: 200px;
+}
