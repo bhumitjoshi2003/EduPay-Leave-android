@@ -96,15 +96,14 @@
   position:sticky; top:0; z-index:100;
   display:flex; align-items:center; justify-content:space-between;
   padding:calc(14px + env(safe-area-inset-top,0px)) 20px 14px;
-  background:rgba(224,242,254,0.88);
-  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(186,230,253,0.6);
+  background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);
+  border-bottom:1px solid rgba(79,189,189,0.2);
 }
 .lp-brand{ display:flex; align-items:center; gap:9px; }
 .lp-brand-logo{ height:32px; width:auto; object-fit:contain; }
 .lp-brand-name{
   font-size:1.05rem; font-weight:800;
-  color:#1e3a5f; letter-spacing:-.3px;
+  color:#ffffff; letter-spacing:-.3px;
 }
 .lp-nav-btn{
   display:inline-flex; align-items:center; gap:5px;
@@ -356,6 +355,18 @@
 }
 .lp-card-hero-amber::before{
   background:radial-gradient(circle at top right,rgba(245,158,11,.2),transparent 60%);
+}
+.lp-card-hero-cyan{
+  background:linear-gradient(135deg,#0c4a6e 0%,#0369a1 55%,#0284c7 100%);
+}
+.lp-card-hero-cyan::before{
+  background:radial-gradient(circle at top right,rgba(56,189,248,.2),transparent 60%);
+}
+.lp-card-hero-green{
+  background:linear-gradient(135deg,#14532d 0%,#166534 55%,#15803d 100%);
+}
+.lp-card-hero-green::before{
+  background:radial-gradient(circle at top right,rgba(74,222,128,.2),transparent 60%);
 }
 .lp-card-hero-left{
   display:flex; align-items:flex-start; gap:16px; position:relative; z-index:1;
@@ -726,6 +737,12 @@
 .lp-link-btn:active{ color:#64748b; }
 .lp-forgot-btn{ color:#1e3a5f; }
 .lp-demo-note{ font-size:.72rem; color:#94a3b8; font-weight:500; }
+
+/* Forgot-password sheet icon */
+.lp-fp-icon{
+  font-size:2.2rem; text-align:center; margin-bottom:10px;
+  filter:drop-shadow(0 3px 6px rgba(30,58,95,.15));
+}
 
 /* ── SweetAlert overrides ────────────────────────────────────────────── */
 .swal2-container{ z-index:9999 !important; }

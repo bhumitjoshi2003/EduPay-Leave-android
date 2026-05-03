@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -14,6 +15,8 @@ import { App } from '@capacitor/app';
 export class AppComponent implements OnInit, OnDestroy {
   title = 'ias';
 
+  constructor(private router: Router) {}
+
   async ngOnInit() {
     if (Capacitor.isNativePlatform()) {
       await StatusBar.setOverlaysWebView({ overlay: false });
@@ -26,6 +29,21 @@ export class AppComponent implements OnInit, OnDestroy {
           window.history.back();
         } else {
           App.exitApp();
+        }
+      });
+
+      // Handle deep links — e.g. password-reset email clicking in Android
+      App.addListener('appUrlOpen', ({ url }) => {
+        try {
+          const parsed = new URL(url);
+          if (parsed.pathname === '/reset-password') {
+            const token = parsed.searchParams.get('token');
+            if (token) {
+              this.router.navigate(['/reset-password'], { queryParams: { token } });
+            }
+          }
+        } catch {
+          // malformed URL — ignore
         }
       });
     }
