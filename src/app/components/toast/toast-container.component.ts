@@ -56,7 +56,7 @@ import { Subject, takeUntil } from 'rxjs';
   styles: [`
     .toast-wrap {
       position: fixed;
-      top: 20px;
+      top: calc(env(safe-area-inset-top, 0px) + 20px);
       left: 50%;
       transform: translateX(-50%);
       z-index: 99999;
