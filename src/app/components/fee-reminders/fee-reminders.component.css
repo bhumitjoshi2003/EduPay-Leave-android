@@ -432,6 +432,10 @@
   .fr-page-btn { padding: 8px 14px; }
   .fr-page-info { min-width: auto; }
 
+  /* Remove horizontal scroll */
+  .fr-table-wrap { overflow-x: hidden; }
+  .fr-table { min-width: unset; }
+
   .fr-table thead { display: none; }
   .fr-table td {
     display: flex;
@@ -458,4 +462,42 @@
   .row-critical { border-left: 4px solid #dc2626 !important; }
   .row-warning  { border-left: 4px solid #d97706 !important; }
   .row-mild     { border-left: 4px solid #0369a1 !important; }
+
+  /* Split Student cell into two separate labeled rows */
+  .fr-table td[data-label="Student"] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding-bottom: 4px;
+  }
+  .fr-table td[data-label="Student"]::before {
+    display: none;
+  }
+  .fr-student-name::before {
+    content: 'Name';
+    display: block;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.78rem;
+    margin-bottom: 1px;
+  }
+  .fr-student-name {
+    width: 100%;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .fr-student-id {
+    width: 100%;
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+  .fr-student-id::before {
+    content: 'Student ID';
+    display: block;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.78rem;
+    margin-bottom: 1px;
+  }
 }
