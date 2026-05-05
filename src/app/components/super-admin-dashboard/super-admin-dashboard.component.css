@@ -1,0 +1,321 @@
+.sa-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px 16px 80px;
+  font-family: inherit;
+}
+
+.sa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sa-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────── */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  padding: 9px 18px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-btn.active { color: #4361ee; border-bottom-color: #4361ee; }
+
+/* ── Stats grid ──────────────────────────────────────────────────── */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.stat-card.wide { grid-column: 1 / -1; }
+
+.stat-icon {
+  font-size: 1.6rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.c-blue   { background: #dbeafe; }
+.c-green  { background: #d1fae5; }
+.c-indigo { background: #e0e7ff; }
+.c-amber  { background: #fef3c7; }
+.c-teal   { background: #ccfbf1; }
+.c-red    { background: #fee2e2; }
+.c-purple { background: #f3e8ff; }
+.c-dark   { background: #e5e7eb; }
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────── */
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  padding: 20px;
+}
+
+.mt-16 { margin-top: 16px; }
+.mb-16 { margin-bottom: 16px; }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* ── School pill list (overview) ─────────────────────────────────── */
+
+.school-pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.school-pill {
+  padding: 5px 12px;
+  background: #f3f4f6;
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.school-pill.inactive { opacity: .55; }
+
+.plan-tag {
+  font-size: 0.7rem;
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 1px 6px;
+  border-radius: 99px;
+  font-weight: 600;
+}
+
+/* ── Schools toolbar ─────────────────────────────────────────────── */
+
+.schools-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+/* ── School card ─────────────────────────────────────────────────── */
+
+.school-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.school-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.school-card-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.school-card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.school-short {
+  font-size: 0.8rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 1px 8px;
+  border-radius: 99px;
+}
+
+.school-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.razorpay-ok { color: #059669; font-weight: 500; }
+
+/* ── Inline sub edit ─────────────────────────────────────────────── */
+
+.sub-edit-panel {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 12px;
+  padding-top: 14px;
+}
+
+/* ── Forms ───────────────────────────────────────────────────────── */
+
+.section-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 12px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-grid.compact { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+.form-group { display: flex; flex-direction: column; }
+
+.form-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 5px;
+}
+
+.form-control {
+  padding: 8px 10px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.form-control:focus { border-color: #4361ee; }
+select.form-control { appearance: auto; }
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+
+.btn {
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.btn.btn-sm { padding: 6px 14px; font-size: 0.82rem; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.btn-primary   { background: #4361ee; color: #fff; }
+.btn-secondary { background: #f3f4f6; color: #374151; }
+.btn-outline   { background: transparent; border: 1.5px solid #4361ee; color: #4361ee; }
+
+/* ── Badges ──────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.badge-success { background: #d1fae5; color: #065f46; }
+.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-info    { background: #dbeafe; color: #1e40af; }
+.badge-neutral { background: #f3f4f6; color: #374151; }
+
+/* ── States ──────────────────────────────────────────────────────── */
+
+.loading-state, .empty-state {
+  text-align: center;
+  padding: 40px 16px;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 560px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-card.wide { grid-column: 1; }
+  .form-grid, .form-grid.compact { grid-template-columns: 1fr; }
+  .school-card-header { flex-direction: column; }
+}

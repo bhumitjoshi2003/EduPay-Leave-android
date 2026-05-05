@@ -95,6 +95,13 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['TEACHER', 'ADMIN'] }
       },
 
+      // ── Super Admin ───────────────────────────────────────────────────
+      {
+        path: 'super-admin-dashboard',
+        loadComponent: () => import('./components/super-admin-dashboard/super-admin-dashboard.component').then(m => m.SuperAdminDashboardComponent),
+        canActivate: [roleGuard], data: { roles: ['SUPER_ADMIN'] }
+      },
+
       // ── School settings ───────────────────────────────────────────────
       {
         path: 'school-settings',

@@ -1,0 +1,231 @@
+<div class="sa-container">
+
+  <!-- Header -->
+  <div class="sa-header">
+    <h2>Super Admin</h2>
+    <button class="btn btn-sm btn-outline" (click)="loadOverview()" [disabled]="loading">
+      Refresh
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">
+      Overview
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'schools'" (click)="activeTab = 'schools'">
+      Schools ({{ schools.length }})
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">Loading…</div>
+
+  <!-- ── Overview Tab ──────────────────────────────────────────────────── -->
+  <ng-container *ngIf="!loading && activeTab === 'overview'">
+
+    <div class="stats-grid" *ngIf="stats">
+      <div class="stat-card">
+        <div class="stat-icon c-blue">🏫</div>
+        <div class="stat-body">
+          <div class="stat-value">{{ stats.totalSchools }}</div>
+          <div class="stat-label">Total Schools</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon c-green">✅</div>
+        <div class="stat-body">
+          <div class="stat-value">{{ stats.activeSchools }}</div>
+          <div class="stat-label">Active Schools</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon c-indigo">🎓</div>
+        <div class="stat-body">
+          <div class="stat-value">{{ stats.totalStudents | number }}</div>
+          <div class="stat-label">Total Students</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon c-amber">👩‍🏫</div>
+        <div class="stat-body">
+          <div class="stat-value">{{ stats.totalTeachers | number }}</div>
+          <div class="stat-label">Total Teachers</div>
+        </div>
+      </div>
+      <div class="stat-card wide">
+        <div class="stat-icon c-green">💰</div>
+        <div class="stat-body">
+          <div class="stat-value">{{ formatCurrency(stats.revenueThisMonth) }}</div>
+          <div class="stat-label">Revenue This Month</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick school summary -->
+    <div class="card mt-16" *ngIf="schools.length > 0">
+      <div class="card-header">
+        <h3>Schools at a Glance</h3>
+        <button class="btn btn-sm btn-outline" (click)="activeTab = 'schools'">Manage →</button>
+      </div>
+      <div class="school-pill-list">
+        <span *ngFor="let s of schools" class="school-pill" [class.inactive]="!s.active">
+          {{ s.name }}
+          <span class="plan-tag">{{ s.plan }}</span>
+        </span>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ── Schools Tab ───────────────────────────────────────────────────── -->
+  <ng-container *ngIf="!loading && activeTab === 'schools'">
+
+    <!-- Onboard button -->
+    <div class="schools-toolbar">
+      <button class="btn btn-primary" (click)="openOnboardForm()" *ngIf="!showOnboardForm">
+        + Onboard New School
+      </button>
+    </div>
+
+    <!-- Onboard Form -->
+    <div class="card mb-16" *ngIf="showOnboardForm">
+      <div class="card-header">
+        <h3>Onboard New School</h3>
+      </div>
+
+      <div class="section-label">School Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>School Name *</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.name" placeholder="Full school name">
+        </div>
+        <div class="form-group">
+          <label>Short Name</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.shortName" placeholder="e.g. IAS">
+        </div>
+        <div class="form-group">
+          <label>Board</label>
+          <select class="form-control" [(ngModel)]="onboardForm.boardType">
+            <option value="">— Select —</option>
+            <option *ngFor="let b of boardTypes" [value]="b">{{ b }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input class="form-control" type="email" [(ngModel)]="onboardForm.email" placeholder="school@example.com">
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.phoneNumber" placeholder="10-digit">
+        </div>
+        <div class="form-group">
+          <label>Website</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.website" placeholder="https://...">
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1">
+          <label>Address</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.address" placeholder="Street / Village">
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.city">
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.state">
+        </div>
+        <div class="form-group">
+          <label>Pincode</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.pincode">
+        </div>
+      </div>
+
+      <div class="section-label mt-16">Admin Account</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Admin User ID *</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.adminUserId" placeholder="e.g. admin001">
+        </div>
+        <div class="form-group">
+          <label>Admin Email *</label>
+          <input class="form-control" type="email" [(ngModel)]="onboardForm.adminEmail" placeholder="admin@school.com">
+        </div>
+        <div class="form-group">
+          <label>Admin Password *</label>
+          <input class="form-control" type="password" [(ngModel)]="onboardForm.adminPassword" placeholder="Temporary password">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="cancelOnboard()" [disabled]="onboarding">Cancel</button>
+        <button class="btn btn-primary" (click)="submitOnboard()" [disabled]="onboarding">
+          {{ onboarding ? 'Onboarding…' : 'Onboard School' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Schools List -->
+    <div *ngIf="schools.length === 0 && !loadingSchools" class="empty-state">
+      No schools found. Onboard your first school above.
+    </div>
+
+    <div *ngFor="let school of schools" class="school-card">
+      <!-- School header row -->
+      <div class="school-card-header">
+        <div class="school-card-info">
+          <span class="school-card-name">{{ school.name }}</span>
+          <span *ngIf="school.shortName" class="school-short">{{ school.shortName }}</span>
+          <span class="badge" [class.badge-success]="school.active" [class.badge-warning]="!school.active">
+            {{ school.active ? 'Active' : 'Inactive' }}
+          </span>
+          <span class="badge badge-info">{{ school.plan }}</span>
+          <span *ngIf="school.boardType" class="badge badge-neutral">{{ school.boardType }}</span>
+        </div>
+        <button class="btn btn-sm btn-outline" (click)="openSubEdit(school)" *ngIf="editingSchoolId !== school.id">
+          Edit Subscription
+        </button>
+      </div>
+
+      <!-- School meta -->
+      <div class="school-card-meta">
+        <span *ngIf="school.email">📧 {{ school.email }}</span>
+        <span *ngIf="school.phoneNumber">📞 {{ school.phoneNumber }}</span>
+        <span *ngIf="school.city">📍 {{ school.city }}<ng-container *ngIf="school.state">, {{ school.state }}</ng-container></span>
+        <span *ngIf="school.razorpayConfigured" class="razorpay-ok">💳 Razorpay configured</span>
+      </div>
+
+      <!-- Inline subscription edit -->
+      <div class="sub-edit-panel" *ngIf="editingSchoolId === school.id">
+        <div class="form-grid compact">
+          <div class="form-group">
+            <label>Plan</label>
+            <select class="form-control" [(ngModel)]="subForm.plan">
+              <option *ngFor="let p of plans" [value]="p">{{ p }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Max Students</label>
+            <input class="form-control" type="number" [(ngModel)]="subForm.maxStudents" placeholder="Leave blank = no change">
+          </div>
+          <div class="form-group">
+            <label>Expiry Date</label>
+            <input class="form-control" type="date" [(ngModel)]="subForm.expiryDate">
+          </div>
+          <div class="form-group" style="display:flex; align-items:center; gap:10px; padding-top:24px;">
+            <input type="checkbox" [(ngModel)]="subForm.active" id="active-{{ school.id }}">
+            <label for="active-{{ school.id }}" style="margin:0; font-weight:500;">Active</label>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary btn-sm" (click)="cancelSubEdit()" [disabled]="savingSub">Cancel</button>
+          <button class="btn btn-primary btn-sm" (click)="saveSub()" [disabled]="savingSub">
+            {{ savingSub ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

@@ -146,6 +146,9 @@
 
     <!-- SUPER_ADMIN -->
     <ng-container *ngIf="isSuperAdmin()">
+      <a class="bnav-item" routerLink="/dashboard/super-admin-dashboard" routerLinkActive="bnav-active">
+        <mat-icon>home</mat-icon><span>Home</span>
+      </a>
       <a class="bnav-item" routerLink="/dashboard/admin-list" routerLinkActive="bnav-active">
         <mat-icon>admin_panel_settings</mat-icon><span>Admins</span>
       </a>
