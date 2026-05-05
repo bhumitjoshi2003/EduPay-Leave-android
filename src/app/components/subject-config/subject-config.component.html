@@ -17,7 +17,7 @@
   <div class="sc-header">
     <div class="sc-tabs">
       <button class="sc-tab" [class.active]="activeTab === 'class'" (click)="setTab('class')">Class Subjects</button>
-      <button class="sc-tab" [class.active]="activeTab === 'streams'" (click)="setTab('streams')">Streams (11–12)</button>
+      <button class="sc-tab" [class.active]="activeTab === 'streams'" (click)="setTab('streams')">Stream</button>
       <button class="sc-tab" [class.active]="activeTab === 'optional'" (click)="setTab('optional')">Optional Groups</button>
     </div>
   </div>
@@ -72,7 +72,7 @@
             <span>{{ subj.subjectName }}</span>
             <button class="btn-delete" (click)="deleteCoreSubject(stream.id, subj.id)" [attr.aria-label]="'Delete subject ' + subj.subjectName">&#x2715;</button>
           </li>
-          <li *ngIf="stream.coreSubjects.length === 0" class="sc-empty">No core subjects yet.</li>
+          <li *ngIf="!stream.coreSubjects?.length" class="sc-empty">No core subjects yet.</li>
         </ul>
       </div>
     </div>
@@ -81,7 +81,7 @@
 
   <!-- OPTIONAL GROUPS TAB -->
   <div *ngIf="activeTab === 'optional'" class="sc-body">
-    <p class="sc-hint">Optional groups let students in Class 11–12 pick one subject from a defined list (e.g. Physical Education, Hindi, or Computer Science).</p>
+    <p class="sc-hint">Optional groups let students pick one subject from a defined list (e.g. Physical Education, Hindi, or Computer Science).</p>
 
     <div class="sc-add-row">
       <input [(ngModel)]="newGroupName" placeholder="Group name (e.g. Elective)" (keyup.enter)="addOptionalGroup()" aria-label="New optional group name" />
@@ -108,7 +108,7 @@
             <span>{{ subj.subjectName }}</span>
             <button class="btn-delete" (click)="deleteOptionalSubject(group.id, subj.id)" [attr.aria-label]="'Delete subject ' + subj.subjectName">&#x2715;</button>
           </li>
-          <li *ngIf="group.subjects.length === 0" class="sc-empty">No subjects in this group yet.</li>
+          <li *ngIf="!group.subjects?.length" class="sc-empty">No subjects in this group yet.</li>
         </ul>
       </div>
     </div>

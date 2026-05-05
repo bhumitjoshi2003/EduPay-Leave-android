@@ -129,7 +129,10 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
 
   loadStreams(): void {
     this.service.getStreams().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => { this.streams = data; this.cdr.markForCheck(); },
+      next: (data) => {
+        this.streams = (data ?? []).map(s => ({ ...s, coreSubjects: s.coreSubjects ?? [] }));
+        this.cdr.markForCheck();
+      },
       error: (e) => { this.logger.error('Error loading streams:', e); this.toast.error('Error', 'Failed to load streams.'); },
     });
   }
@@ -143,7 +146,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
     if (!name) return;
     this.service.addStream(name).pipe(takeUntil(this.destroy$)).subscribe({
       next: (s) => {
-        this.streams = [...this.streams, s];
+        this.streams = [...this.streams, { ...s, coreSubjects: s.coreSubjects ?? [] }];
         this.newStreamName = '';
         this.cdr.markForCheck();
       },
@@ -223,7 +226,10 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
 
   loadOptionalGroups(): void {
     this.service.getOptionalGroups().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => { this.optionalGroups = data; this.cdr.markForCheck(); },
+      next: (data) => {
+        this.optionalGroups = (data ?? []).map(g => ({ ...g, subjects: g.subjects ?? [] }));
+        this.cdr.markForCheck();
+      },
       error: (e) => { this.logger.error('Error loading optional groups:', e); this.toast.error('Error', 'Failed to load optional groups.'); },
     });
   }
@@ -237,7 +243,7 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
     if (!name) return;
     this.service.addOptionalGroup(name).pipe(takeUntil(this.destroy$)).subscribe({
       next: (g) => {
-        this.optionalGroups = [...this.optionalGroups, g];
+        this.optionalGroups = [...this.optionalGroups, { ...g, subjects: g.subjects ?? [] }];
         this.newGroupName = '';
         this.cdr.markForCheck();
       },
