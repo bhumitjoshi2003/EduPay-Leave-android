@@ -41,12 +41,21 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   fetchAcademicYears(): void {
-    this.busFeesService.getAcademicYears().pipe(takeUntil(this.destroy$)).subscribe(years => {
-      this.academicYears = years;
-      if (this.academicYears.length > 0) {
-        this.currentSession = this.academicYears[this.academicYears.length - 1];
+    this.busFeesService.getAcademicYears().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (years) => {
+        this.academicYears = years;
+        if (this.academicYears.length > 0) {
+          this.currentSession = this.academicYears[this.academicYears.length - 1];
+          this.fetchBusFees();
+        } else {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      },
+      error: () => {
+        this.isLoading = false;
         this.cdr.markForCheck();
-        this.fetchBusFees();
+        this.toast.error('Error', 'Failed to load academic sessions.');
       }
     });
   }

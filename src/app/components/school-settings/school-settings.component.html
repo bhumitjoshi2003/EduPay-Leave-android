@@ -150,6 +150,7 @@
       </div>
       <p style="font-size:0.85rem;color:#6b7280;margin:0 0 16px">
         Define the classes for your school. Use the arrows to set the display order — this order is used everywhere (student list, attendance, fees, etc.).
+        Toggle <strong>Stream</strong> to include a class in the stream assignment section (e.g. Class 11 &amp; 12).
       </p>
 
       <div *ngIf="loadingClasses" style="text-align:center;padding:24px;color:#6b7280">Loading…</div>
@@ -165,6 +166,13 @@
           <div *ngFor="let cls of managedClasses; let i = index; let first = first; let last = last" class="class-row">
             <span class="class-order-num">{{ i + 1 }}</span>
             <span class="class-name">{{ cls.name }}</span>
+            <button *ngIf="isAdmin"
+              class="stream-toggle-btn"
+              [class.stream-toggle-active]="cls.streamEligible"
+              (click)="toggleStreamEligible(cls)"
+              title="{{ cls.streamEligible ? 'Remove from stream assignment' : 'Add to stream assignment' }}">
+              Stream
+            </button>
             <div class="class-actions" *ngIf="isAdmin">
               <button class="icon-btn" (click)="moveClass(i, 'up')" [disabled]="first" title="Move up">▲</button>
               <button class="icon-btn" (click)="moveClass(i, 'down')" [disabled]="last" title="Move down">▼</button>

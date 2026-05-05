@@ -231,6 +231,26 @@ select.form-control { appearance: auto; }
 .icon-btn.danger { color: #ef4444; border-color: #fca5a5; }
 .icon-btn.danger:not(:disabled):hover { background: #fef2f2; }
 
+.stream-toggle-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.stream-toggle-btn:hover { background: #f3f4f6; }
+.stream-toggle-btn.stream-toggle-active {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+.stream-toggle-btn.stream-toggle-active:hover { background: #bfdbfe; }
+
 .add-class-row {
   display: flex;
   gap: 10px;

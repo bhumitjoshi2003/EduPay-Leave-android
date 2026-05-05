@@ -38,7 +38,7 @@
     *ngIf="!isLoading && activeStudents.length === 0 && newStudents.length === 0 && inactiveStudents.length === 0">
     <div class="sl-empty-icon">🔍</div>
     <p class="sl-empty-title">No students found</p>
-    <p class="sl-empty-sub">No students found for the selected class</p>
+    <p class="sl-empty-sub">{{ classList.length === 0 ? 'No classes configured yet. Go to School Settings → Classes to add them first.' : 'No students found for the selected class.' }}</p>
   </div>
 
   <!-- ── Active Students ───────────────────────────────────────────── -->

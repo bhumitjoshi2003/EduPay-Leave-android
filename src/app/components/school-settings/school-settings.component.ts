@@ -238,6 +238,24 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  toggleStreamEligible(cls: SchoolClass): void {
+    const newValue = !cls.streamEligible;
+    this.schoolService.toggleStreamEligible(cls.id, newValue).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (updated) => {
+        this.managedClasses = this.managedClasses.map(c => c.id === updated.id ? updated : c);
+        this.cdr.markForCheck();
+        this.toast.success(
+          newValue ? 'Stream Eligible' : 'Removed',
+          `"${cls.name}" ${newValue ? 'added to' : 'removed from'} stream assignment.`
+        );
+      },
+      error: (e) => {
+        this.logger.error('Failed to toggle stream eligibility', e);
+        this.toast.error('Error', 'Could not update stream eligibility.');
+      }
+    });
+  }
+
   onTabChange(tab: 'general' | 'classes' | 'razorpay'): void {
     this.activeTab = tab;
     if (tab === 'classes' && this.managedClasses.length === 0 && !this.loadingClasses) {

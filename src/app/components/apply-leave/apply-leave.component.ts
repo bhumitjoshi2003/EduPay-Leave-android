@@ -10,7 +10,6 @@ import { LeaveRequest } from '../../interfaces/leave-request';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { PaginatedResponse } from '../../services/payment-history.service';
 import { Subject, takeUntil } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 
 
 @Component({
@@ -94,19 +93,25 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
 
   getStudentId(): void {
     const user = this.authStateService.getUser();
-    if (user) {
-      this.studentId = user.userId;
-      this.studentService.getStudent(this.studentId).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (student) => {
-          this.className = student.className;
-          this.cdr.markForCheck();
-          this.loadStudentLeaves();
-        },
-        error: (error) => {
-          this.logger.error('Error fetching student details:', error);
-        }
-      });
+    if (!user) {
+      this.isLoading = false;
+      this.cdr.markForCheck();
+      return;
     }
+    this.studentId = user.userId;
+    this.studentService.getStudent(this.studentId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (student) => {
+        this.studentName = student.name;
+        this.className = student.className;
+        this.cdr.markForCheck();
+        this.loadStudentLeaves();
+      },
+      error: (error) => {
+        this.logger.error('Error fetching student details:', error);
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   loadStudentLeaves(): void {
@@ -243,20 +248,14 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.studentService.getStudent(this.studentId).pipe(
-        takeUntil(this.destroy$),
-        switchMap((student) => {
-          this.studentName = student.name;
-          const leaveRequest: LeaveRequest = {
-            studentId: this.studentId,
-            studentName: this.studentName,
-            leaveDate: formattedLeaveDate,
-            reason: finalReason,
-            className: this.className,
-          };
-          return this.leaveService.applyLeave(leaveRequest);
-        })
-      ).subscribe({
+      const leaveRequest: LeaveRequest = {
+        studentId: this.studentId,
+        studentName: this.studentName,
+        leaveDate: formattedLeaveDate,
+        reason: finalReason,
+        className: this.className,
+      };
+      this.leaveService.applyLeave(leaveRequest).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response) => {
           this.leaveForm.reset();
           this.reasonControl?.setValue('');

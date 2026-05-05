@@ -60,11 +60,23 @@ export class StudentListComponent implements OnInit, OnDestroy {
       this.teacherId = user.userId;
 
       if (this.loggedInUserRole === 'ADMIN') {
-        this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-          this.classList = classes;
-          this.selectedClass = localStorage.getItem('lastSelectedClass') || classes[0] || '';
-          this.cdr.markForCheck();
-          if (this.selectedClass) this.loadStudents();
+        this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+          next: (classes) => {
+            this.classList = classes;
+            this.selectedClass = localStorage.getItem('lastSelectedClass') || classes[0] || '';
+            this.cdr.markForCheck();
+            if (this.selectedClass) {
+              this.loadStudents();
+            } else {
+              // No classes configured yet — stop the loader and show empty state
+              this.isLoading = false;
+              this.cdr.markForCheck();
+            }
+          },
+          error: () => {
+            this.isLoading = false;
+            this.cdr.markForCheck();
+          }
         });
       } else if (this.loggedInUserRole === 'TEACHER') {
         this.getTeacherClassAndLoadStudents();

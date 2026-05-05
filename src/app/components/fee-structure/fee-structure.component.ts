@@ -45,12 +45,21 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   }
 
   fetchSessions(): void {
-    this.feeStructureService.getAcademicYears().pipe(takeUntil(this.destroy$)).subscribe(sessions => {
-      this.sessions = sessions;
-      if (this.sessions.length > 0) {
-        this.currentSession = this.sessions[this.sessions.length - 1];
+    this.feeStructureService.getAcademicYears().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (sessions) => {
+        this.sessions = sessions;
+        if (this.sessions.length > 0) {
+          this.currentSession = this.sessions[this.sessions.length - 1];
+          this.fetchFeeStructures();
+        } else {
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      },
+      error: () => {
+        this.isLoading = false;
         this.cdr.markForCheck();
-        this.fetchFeeStructures();
+        this.toast.error('Error', 'Failed to load academic sessions.');
       }
     });
   }

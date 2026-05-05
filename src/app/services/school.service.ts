@@ -8,6 +8,7 @@ export interface SchoolClass {
   name: string;
   displayOrder: number;
   active: boolean;
+  streamEligible: boolean;
 }
 
 export interface SchoolSettings {
@@ -70,6 +71,10 @@ export class SchoolService {
 
   reorderClasses(orderedIds: number[]): Observable<any> {
     return this.http.patch(`${this.baseUrl}/classes/reorder`, orderedIds);
+  }
+
+  toggleStreamEligible(id: number, eligible: boolean): Observable<SchoolClass> {
+    return this.http.patch<SchoolClass>(`${this.baseUrl}/classes/${id}/stream-eligible`, { eligible });
   }
 
   getSettings(): Observable<SchoolSettings> {

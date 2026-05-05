@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { ToastService } from '../../services/toast.service';
 
 interface Teacher {
@@ -64,16 +65,15 @@ export class TeacherListComponent implements OnInit, OnDestroy {
   loadAllTeachers(): void {
     this.isLoading = true;
     this.cdr.markForCheck();
-    this.teacherService.getAllTeachers().pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+    this.teacherService.getAllTeachers().pipe(
+      takeUntil(this.ngUnsubscribe),
+      finalize(() => { this.isLoading = false; this.cdr.markForCheck(); })
+    ).subscribe({
       next: (teachers) => {
         this.teachers = teachers;
-        this.isLoading = false;
-        this.cdr.markForCheck();
       },
       error: (error) => {
         this.logger.error('Error fetching all teachers:', error);
-        this.isLoading = false;
-        this.cdr.markForCheck();
         this.toast.error('Error', 'Failed to load teachers. Please try again.');
       }
     });

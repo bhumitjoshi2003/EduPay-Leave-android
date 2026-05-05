@@ -15,7 +15,7 @@
 
   <!-- ── Controls card ──────────────────────────────────────────────── -->
   <div class="bf-card">
-    <div class="bf-controls">
+    <div class="bf-controls" *ngIf="!isLoading">
       <div class="bf-control-group">
         <label class="bf-label">Session</label>
         <select class="bf-select" [(ngModel)]="currentSession" (change)="changeSession(currentSession)">
@@ -39,11 +39,18 @@
     <!-- Loading -->
     <div class="bf-loading" *ngIf="isLoading">
       <div class="bf-spinner"></div>
-      <p>Loading fee structure...</p>
+      <p>Loading bus fees...</p>
+    </div>
+
+    <!-- No sessions yet -->
+    <div class="bf-empty-state" *ngIf="!isLoading && academicYears.length === 0">
+      <div class="bf-empty-icon">🚌</div>
+      <p class="bf-empty-title">No bus fee structure yet</p>
+      <p class="bf-empty-sub">No academic sessions have been configured. Use <strong>+ New Year</strong> to set up the first session.</p>
     </div>
 
     <!-- Table -->
-    <div class="bf-table-wrap" *ngIf="!isLoading">
+    <div class="bf-table-wrap" *ngIf="!isLoading && academicYears.length > 0">
       <table class="bf-table">
         <thead>
           <tr>

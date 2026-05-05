@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { ToastService } from '../../services/toast.service';
-import { StudentStreamService, StudentStreamOverview } from '../../services/student-stream.service';
+import { StudentStreamService, StudentStreamOverview, EligibleStudentsResponse } from '../../services/student-stream.service';
 import { SubjectConfigService, AcademicStream, OptionalSubjectGroup } from '../../services/subject-config.service';
 import { LoggerService } from '../../services/logger.service';
-import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-student-stream',
@@ -19,13 +18,11 @@ import { SchoolService } from '../../services/school.service';
 export class StudentStreamComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  classOptions: string[] = [];
-  selectedClass = '';
-
   students: StudentStreamOverview[] = [];
   streams: AcademicStream[] = [];
   optionalGroups: OptionalSubjectGroup[] = [];
   loading = false;
+  noEligibleClasses = false;
 
   editingStudentId: string | null = null;
   editStreamId: number | null = null;
@@ -36,16 +33,10 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
     private subjectService: SubjectConfigService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
-    private toast: ToastService,
-    private schoolService: SchoolService
+    private toast: ToastService
   ) { }
 
   ngOnInit(): void {
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-      this.classOptions = classes;
-      if (!this.selectedClass && classes.length > 0) this.selectedClass = classes[0];
-      this.cdr.markForCheck();
-    });
     forkJoin([
       this.subjectService.getStreams(),
       this.subjectService.getOptionalGroups(),
@@ -67,12 +58,14 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
 
   loadStudents(): void {
     this.loading = true;
+    this.noEligibleClasses = false;
     this.students = [];
-    this.streamService.getClassStreamOverview(this.selectedClass)
+    this.streamService.getEligibleStudents()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (data) => {
-          this.students = data;
+        next: (res: EligibleStudentsResponse) => {
+          this.students = res.students;
+          this.noEligibleClasses = res.eligibleClassCount === 0;
           this.loading = false;
           this.cdr.markForCheck();
         },

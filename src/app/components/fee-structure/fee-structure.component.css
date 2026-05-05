@@ -243,3 +243,12 @@ app-bus-fees {
   .fs-action-buttons { justify-content: stretch; }
   .fs-btn { flex: 1; text-align: center; }
 }
+
+.fs-empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6b7280;
+}
+.fs-empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.fs-empty-title { font-size: 1.1rem; font-weight: 600; color: #374151; margin: 0 0 8px; }
+.fs-empty-sub { font-size: 0.9rem; margin: 0; line-height: 1.5; }

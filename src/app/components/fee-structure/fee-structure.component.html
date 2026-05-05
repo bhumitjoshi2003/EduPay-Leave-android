@@ -14,7 +14,7 @@
   </div>
 
   <!-- ── Controls ──────────────────────────────────────────────────── -->
-  <div class="fs-controls">
+  <div class="fs-controls" *ngIf="!isLoading">
     <div class="fs-controls-row">
 
       <div class="fs-control-group">
@@ -51,8 +51,15 @@
     <p>Loading fee structure...</p>
   </div>
 
+  <!-- ── No sessions yet ───────────────────────────────────────────── -->
+  <div class="fs-empty-state" *ngIf="!isLoading && sessions.length === 0">
+    <div class="fs-empty-icon">📋</div>
+    <p class="fs-empty-title">No fee structure yet</p>
+    <p class="fs-empty-sub">No academic sessions have been configured for this school. Use <strong>+ New Year</strong> to set up the first session.</p>
+  </div>
+
   <!-- ── Fee Table ─────────────────────────────────────────────────── -->
-  <div class="fs-table-wrap" *ngIf="!isLoading">
+  <div class="fs-table-wrap" *ngIf="!isLoading && sessions.length > 0">
     <div class="fs-table-scroll">
       <table class="fs-table" aria-label="Fee structure table">
         <thead>
