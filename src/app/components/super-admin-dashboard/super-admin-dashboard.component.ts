@@ -16,12 +16,12 @@ interface DashboardStats {
 
 interface OnboardForm {
   name: string;
-  shortName: string;
+  slug: string;
   address: string;
   city: string;
   state: string;
   pincode: string;
-  phoneNumber: string;
+  phone: string;
   email: string;
   website: string;
   boardType: string;
@@ -136,8 +136,8 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
   submitOnboard(): void {
     const f = this.onboardForm;
-    if (!f.name.trim() || !f.adminUserId.trim() || !f.adminEmail.trim() || !f.adminPassword.trim()) {
-      this.toast.error('Validation', 'School name, admin user ID, email and password are required.');
+    if (!f.name.trim() || !f.slug.trim() || !f.adminUserId.trim() || !f.adminEmail.trim() || !f.adminPassword.trim()) {
+      this.toast.error('Validation', 'School name, slug, admin user ID, email and password are required.');
       return;
     }
     this.onboarding = true;
@@ -208,10 +208,14 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
+  generateSlug(): void {
+    this.onboardForm.slug = this.onboardForm.name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  }
+
   private emptyOnboardForm(): OnboardForm {
     return {
-      name: '', shortName: '', address: '', city: '', state: '', pincode: '',
-      phoneNumber: '', email: '', website: '', boardType: '',
+      name: '', slug: '', address: '', city: '', state: '', pincode: '',
+      phone: '', email: '', website: '', boardType: '',
       adminUserId: '', adminEmail: '', adminPassword: '',
     };
   }

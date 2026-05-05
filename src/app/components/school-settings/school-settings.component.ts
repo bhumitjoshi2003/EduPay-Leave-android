@@ -76,12 +76,12 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     if (!this.settings) return;
     this.editForm = {
       name: this.settings.name,
-      shortName: this.settings.shortName,
+      slug: this.settings.slug,
       address: this.settings.address,
       city: this.settings.city,
       state: this.settings.state,
       pincode: this.settings.pincode,
-      phoneNumber: this.settings.phoneNumber,
+      phone: this.settings.phone,
       email: this.settings.email,
       website: this.settings.website,
       boardType: this.settings.boardType,

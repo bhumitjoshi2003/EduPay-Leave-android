@@ -36,8 +36,8 @@
             <p>{{ settings.name || '—' }}</p>
           </div>
           <div class="info-item">
-            <label>Short Name</label>
-            <p>{{ settings.shortName || '—' }}</p>
+            <label>Short Name / Slug</label>
+            <p>{{ settings.slug || '—' }}</p>
           </div>
           <div class="info-item">
             <label>Board / Affiliation</label>
@@ -49,7 +49,7 @@
           </div>
           <div class="info-item">
             <label>Phone</label>
-            <p>{{ settings.phoneNumber || '—' }}</p>
+            <p>{{ settings.phone || '—' }}</p>
           </div>
           <div class="info-item">
             <label>Website</label>
@@ -90,8 +90,8 @@
             <input class="form-control" type="text" [(ngModel)]="editForm.name" placeholder="Full school name">
           </div>
           <div class="form-group">
-            <label>Short Name</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.shortName" placeholder="e.g. IAS">
+            <label>Short Name / Slug</label>
+            <input class="form-control" type="text" [(ngModel)]="editForm.slug" placeholder="e.g. ias">
           </div>
           <div class="form-group">
             <label>Board / Affiliation</label>
@@ -106,7 +106,7 @@
           </div>
           <div class="form-group">
             <label>Phone</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.phoneNumber" placeholder="10-digit number">
+            <input class="form-control" type="text" [(ngModel)]="editForm.phone" placeholder="10-digit number">
           </div>
           <div class="form-group">
             <label>Website</label>

@@ -1,21 +1,26 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface SchoolSettings {
   id: number;
   name: string;
-  shortName: string;
+  slug: string;
   address: string;
   city: string;
   state: string;
   pincode: string;
-  phoneNumber: string;
+  phone: string;
   email: string;
   website: string;
+  logoUrl: string;
+  themeColor: string;
+  contactPersonName: string;
   boardType: string;
   plan: string;
+  maxStudents: number;
+  expiryDate: string;
   active: boolean;
   razorpayConfigured: boolean;
 }
@@ -68,7 +73,12 @@ export class SchoolService {
     return this.http.post<SchoolSettings>(`${this.superAdminUrl}/schools`, data);
   }
 
-  updateSubscription(schoolId: number, data: any): Observable<SchoolSettings> {
-    return this.http.patch<SchoolSettings>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, data);
+  updateSubscription(schoolId: number, data: { plan?: string; maxStudents?: number; expiryDate?: string; active?: boolean }): Observable<SchoolSettings> {
+    let params = new HttpParams();
+    if (data.plan !== undefined) params = params.set('plan', data.plan);
+    if (data.maxStudents !== undefined) params = params.set('maxStudents', String(data.maxStudents));
+    if (data.expiryDate !== undefined) params = params.set('expiryDate', data.expiryDate);
+    if (data.active !== undefined) params = params.set('active', String(data.active));
+    return this.http.patch<SchoolSettings>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, null, { params });
   }
 }

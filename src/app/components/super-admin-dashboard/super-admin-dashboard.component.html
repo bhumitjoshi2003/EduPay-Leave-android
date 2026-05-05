@@ -98,11 +98,12 @@
       <div class="form-grid">
         <div class="form-group">
           <label>School Name *</label>
-          <input class="form-control" type="text" [(ngModel)]="onboardForm.name" placeholder="Full school name">
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.name" placeholder="Full school name" (blur)="generateSlug()">
         </div>
         <div class="form-group">
-          <label>Short Name</label>
-          <input class="form-control" type="text" [(ngModel)]="onboardForm.shortName" placeholder="e.g. IAS">
+          <label>Slug *</label>
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.slug" placeholder="e.g. ias" (blur)="!onboardForm.slug && generateSlug()">
+          <small style="color:#6b7280">Unique identifier, auto-filled from name. Lowercase, hyphens only.</small>
         </div>
         <div class="form-group">
           <label>Board</label>
@@ -117,7 +118,7 @@
         </div>
         <div class="form-group">
           <label>Phone</label>
-          <input class="form-control" type="text" [(ngModel)]="onboardForm.phoneNumber" placeholder="10-digit">
+          <input class="form-control" type="text" [(ngModel)]="onboardForm.phone" placeholder="10-digit">
         </div>
         <div class="form-group">
           <label>Website</label>
@@ -175,7 +176,7 @@
       <div class="school-card-header">
         <div class="school-card-info">
           <span class="school-card-name">{{ school.name }}</span>
-          <span *ngIf="school.shortName" class="school-short">{{ school.shortName }}</span>
+          <span *ngIf="school.slug" class="school-short">{{ school.slug }}</span>
           <span class="badge" [class.badge-success]="school.active" [class.badge-warning]="!school.active">
             {{ school.active ? 'Active' : 'Inactive' }}
           </span>
@@ -190,7 +191,7 @@
       <!-- School meta -->
       <div class="school-card-meta">
         <span *ngIf="school.email">📧 {{ school.email }}</span>
-        <span *ngIf="school.phoneNumber">📞 {{ school.phoneNumber }}</span>
+        <span *ngIf="school.phone">📞 {{ school.phone }}</span>
         <span *ngIf="school.city">📍 {{ school.city }}<ng-container *ngIf="school.state">, {{ school.state }}</ng-container></span>
         <span *ngIf="school.razorpayConfigured" class="razorpay-ok">💳 Razorpay configured</span>
       </div>
