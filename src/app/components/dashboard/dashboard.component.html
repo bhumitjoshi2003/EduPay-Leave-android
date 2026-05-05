@@ -6,15 +6,19 @@
       <img src="EdunexifyLogo.png" alt="Edunexify" class="hdr-brand-logo" />
       <div class="hdr-brand-text">
         <span class="hdr-brand-name">Edunexify</span>
-        <span class="hdr-school-row">
+        <span class="hdr-school-row" *ngIf="!isSuperAdmin()">
           <img src="MONO_png.png" alt="" class="hdr-school-icon" />
           <span class="hdr-school-name">Indra Academy</span>
+        </span>
+        <span class="hdr-school-row" *ngIf="isSuperAdmin()">
+          <span class="hdr-school-name">Platform Admin</span>
         </span>
       </div>
     </div>
 
     <div class="hdr-controls">
       <button class="hdr-bell" (click)="navigateToNoticeBoard()" title="Notice Board"
+        *ngIf="!isSuperAdmin()"
         [matBadge]="unreadNotificationCount" [matBadgeHidden]="unreadNotificationCount === 0" matBadgeColor="warn"
         matBadgeSize="small">
         <mat-icon>notifications_none</mat-icon>
@@ -148,12 +152,6 @@
     <ng-container *ngIf="isSuperAdmin()">
       <a class="bnav-item" routerLink="/dashboard/super-admin-dashboard" routerLinkActive="bnav-active">
         <mat-icon>home</mat-icon><span>Home</span>
-      </a>
-      <a class="bnav-item" routerLink="/dashboard/admin-list" routerLinkActive="bnav-active">
-        <mat-icon>admin_panel_settings</mat-icon><span>Admins</span>
-      </a>
-      <a class="bnav-item" routerLink="/dashboard/notice" routerLinkActive="bnav-active">
-        <mat-icon>campaign</mat-icon><span>Notice</span>
       </a>
       <a class="bnav-item" routerLink="/dashboard/audit-logs" routerLinkActive="bnav-active">
         <mat-icon>security</mat-icon><span>Audit</span>
@@ -325,25 +323,9 @@
 
         <!-- SUPER_ADMIN more items -->
         <ng-container *ngIf="isSuperAdmin()">
-          <a class="more-item" routerLink="/dashboard/analytics" (click)="closeMoreMenu()">
-            <div class="more-icon-bg c-blue"><mat-icon>bar_chart</mat-icon></div>
-            <span>Analytics</span>
-          </a>
-          <a class="more-item" routerLink="/dashboard/fee-structure" (click)="closeMoreMenu()">
-            <div class="more-icon-bg c-green"><mat-icon>receipt_long</mat-icon></div>
-            <span>Fee Structure</span>
-          </a>
-          <a class="more-item" routerLink="/dashboard/timetable" (click)="closeMoreMenu()">
-            <div class="more-icon-bg c-indigo"><mat-icon>schedule</mat-icon></div>
-            <span>Timetable</span>
-          </a>
-          <a class="more-item" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
-            <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
-            <span>Event Calendar</span>
-          </a>
-          <a class="more-item" routerLink="/dashboard/school-settings" (click)="closeMoreMenu()">
-            <div class="more-icon-bg c-teal"><mat-icon>business</mat-icon></div>
-            <span>School Settings</span>
+          <a class="more-item" routerLink="/dashboard/audit-logs" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-dark"><mat-icon>security</mat-icon></div>
+            <span>Audit Logs</span>
           </a>
         </ng-container>
 

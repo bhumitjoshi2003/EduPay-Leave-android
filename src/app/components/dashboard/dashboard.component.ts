@@ -143,6 +143,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.logger.error('Error fetching admin details:', error);
         }
       });
+    } else if (this.Role === 'SUPER_ADMIN') {
+      this.Name = 'Super Admin';
+      this.cdr.markForCheck();
     }
   }
 
@@ -212,6 +215,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   fetchUnreadCount(): void {
+    if (this.Role === 'SUPER_ADMIN') return;
     this.notificationService.getUnreadNotificationCount()
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe({
