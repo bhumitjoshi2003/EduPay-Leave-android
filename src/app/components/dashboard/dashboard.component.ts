@@ -179,7 +179,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       } else if (this.Role === 'ADMIN') {
         this.router.navigate(['/dashboard/admin-dashboard']);
       } else if (this.Role === 'SUPER_ADMIN') {
-        this.router.navigate(['/dashboard/admin-list']);
+        this.router.navigate(['/dashboard/super-admin-dashboard']);
       } else {
         this.router.navigate(['/dashboard']);
       }

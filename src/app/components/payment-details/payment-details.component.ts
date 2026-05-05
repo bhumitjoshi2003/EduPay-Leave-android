@@ -99,7 +99,7 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     if (!this.paymentDetails) return;
     const d = this.paymentDetails;
     const lines = this.feeLines().map(l => `  ${l.label}: ₹${l.amount.toFixed(2)}`).join('\n');
-    const text = `🏫 Indra Academy — Fee Receipt\n` +
+    const text = `🏫 ${d.schoolName || 'School'} — Fee Receipt\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
       `Student : ${d.studentName} (${d.studentId})\n` +
       `Class   : ${d.className}\n` +

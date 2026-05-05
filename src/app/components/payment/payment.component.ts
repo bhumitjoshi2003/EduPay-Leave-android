@@ -108,8 +108,8 @@ export class PaymentComponent {
           key: response.razorpayKey,
           amount: response.amount,
           currency: 'INR',
-          name: 'Indra Academy Sr. Sec. School',
-          description: 'IAS Fee Payment',
+          name: response.schoolName,
+          description: 'Fee Payment',
           order_id: response.orderId,
           prefill: {
             name: this.studentDetails.name || '',

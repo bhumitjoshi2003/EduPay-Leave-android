@@ -8,6 +8,7 @@ export interface RazorpayOrderResponse {
   razorpayKey: string;
   amount: number;
   orderId: string;
+  schoolName: string;
 }
 
 export interface RazorpayPaymentResponse {
