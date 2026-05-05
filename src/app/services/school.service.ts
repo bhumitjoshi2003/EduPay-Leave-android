@@ -31,6 +31,9 @@ export interface SchoolSettings {
   expiryDate: string;
   active: boolean;
   razorpayConfigured: boolean;
+  adminUserId?: string;
+  createdAt?: string;
+  onboardedBy?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -110,5 +113,17 @@ export class SchoolService {
     if (data.expiryDate !== undefined) params = params.set('expiryDate', data.expiryDate);
     if (data.active !== undefined) params = params.set('active', String(data.active));
     return this.http.patch<SchoolSettings>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, null, { params });
+  }
+
+  updateSchoolAll(schoolId: number, data: Partial<SchoolSettings> & { newAdminPassword?: string }): Observable<SchoolSettings> {
+    return this.http.put<SchoolSettings>(`${this.superAdminUrl}/schools/${schoolId}`, data);
+  }
+
+  resetAdminPassword(schoolId: number, newPassword: string): Observable<void> {
+    return this.http.patch<void>(`${this.superAdminUrl}/schools/${schoolId}/admin-password`, { newPassword });
+  }
+
+  deleteSchool(schoolId: number): Observable<void> {
+    return this.http.delete<void>(`${this.superAdminUrl}/schools/${schoolId}`);
   }
 }

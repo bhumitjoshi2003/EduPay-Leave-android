@@ -19,14 +19,14 @@
       <div class="bf-control-group">
         <label class="bf-label">Session</label>
         <select class="bf-select" [(ngModel)]="currentSession" (change)="changeSession(currentSession)">
-          <option *ngFor="let session of academicYears; trackBy: trackBySession" [value]="session">{{ session }}</option>
+          <option *ngFor="let session of academicYears; trackBy: trackBySession" [value]="session">{{ session }}
+          </option>
         </select>
       </div>
       <div class="bf-actions">
-        <button *ngIf="!(isNewSession || isEditing) && canEdit()"
-          class="bf-btn bf-btn-secondary" (click)="startNewAcademicYear()">＋ New Year</button>
-        <button *ngIf="!isEditing && canEdit()"
-          class="bf-btn bf-btn-primary" (click)="edit()">✎ Edit</button>
+        <button *ngIf="!(isNewSession || isEditing) && canEdit()" class="bf-btn bf-btn-secondary"
+          (click)="startNewAcademicYear()">＋ New Year</button>
+        <button *ngIf="!isEditing && canEdit()" class="bf-btn bf-btn-primary" (click)="edit()">✎ Edit</button>
         <ng-container *ngIf="isEditing && canEdit()">
           <button class="bf-btn bf-btn-success" (click)="save()">✓ Save</button>
           <button class="bf-btn bf-btn-danger" (click)="cancel()">✕ Cancel</button>
@@ -45,8 +45,7 @@
     <!-- No sessions yet -->
     <div class="bf-empty-state" *ngIf="!isLoading && academicYears.length === 0">
       <div class="bf-empty-icon">🚌</div>
-      <p class="bf-empty-title">No bus fee structure yet</p>
-      <p class="bf-empty-sub">No academic sessions have been configured. Use <strong>+ New Year</strong> to set up the first session.</p>
+      <p class="bf-empty-title">No bus fee structure found</p>
     </div>
 
     <!-- Table -->

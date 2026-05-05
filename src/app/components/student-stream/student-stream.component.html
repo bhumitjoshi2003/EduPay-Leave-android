@@ -6,7 +6,7 @@
       <div class="ss-hero-icon">🎓</div>
       <div>
         <h1 class="ss-hero-title">Stream Assignment</h1>
-        <p class="ss-hero-sub">Assign streams &amp; optional subjects to stream-eligible class students</p>
+        <p class="ss-hero-sub">Assign streams &amp; optional subjects to students in stream-eligible classes</p>
       </div>
     </div>
     <div class="ss-blob ss-blob-1"></div>
@@ -18,7 +18,7 @@
   <div *ngIf="loading" class="ss-loading">Loading students…</div>
   <div *ngIf="!loading && noEligibleClasses" class="ss-empty">
     No stream-eligible classes configured yet.<br>
-    <small>Go to School Settings → Classes and toggle <strong>Stream</strong> on the classes you want here (e.g. Class 11 &amp; 12).</small>
+    <small>Go to <strong>Classes</strong> (More → Classes) and toggle <strong>Stream</strong> on the classes you want to include.</small>
   </div>
   <div *ngIf="!loading && !noEligibleClasses && students.length === 0" class="ss-empty">No active students found in stream-eligible classes.</div>
 

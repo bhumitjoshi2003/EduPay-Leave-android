@@ -1,254 +1,215 @@
-<div class="settings-container">
+<div class="ss-page">
 
-  <div class="settings-header">
-    <h2>School Settings</h2>
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <div class="ss-hero">
+    <div class="ss-hero-left">
+      <div class="ss-hero-icon">🏫</div>
+      <div>
+        <h1 class="ss-hero-title">School Settings</h1>
+        <p class="ss-hero-sub">Manage your school's profile and integrations</p>
+      </div>
+    </div>
+    <div class="ss-blob ss-blob-1"></div>
+    <div class="ss-blob ss-blob-2"></div>
   </div>
 
-  <!-- Loading -->
-  <div *ngIf="loading" class="loading-state">Loading settings…</div>
+  <!-- ── Loading ───────────────────────────────────────────────────── -->
+  <div class="ss-loading" *ngIf="loading">
+    <div class="ss-spinner"></div>
+    <p>Loading settings…</p>
+  </div>
 
-  <!-- Loaded -->
   <ng-container *ngIf="!loading && settings">
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab-btn" [class.active]="activeTab === 'general'" (click)="onTabChange('general')">
+    <!-- ── Tabs ──────────────────────────────────────────────────────── -->
+    <div class="ss-tabs">
+      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'general'" (click)="onTabChange('general')">
         General
       </button>
-      <button class="tab-btn" [class.active]="activeTab === 'classes'" (click)="onTabChange('classes')">
-        Classes
-      </button>
-      <button class="tab-btn" [class.active]="activeTab === 'razorpay'" (click)="onTabChange('razorpay')">
+      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'razorpay'" (click)="onTabChange('razorpay')">
         Razorpay
       </button>
     </div>
 
-    <!-- ── General tab ─────────────────────────────────────────────────── -->
-    <div class="card" *ngIf="activeTab === 'general'">
+    <!-- ── General tab ─────────────────────────────────────────────── -->
+    <ng-container *ngIf="activeTab === 'general'">
 
       <!-- VIEW mode -->
       <ng-container *ngIf="!isEditing">
-        <div class="card-header">
-          <h3>School Information</h3>
-          <button class="btn btn-outline" (click)="startEdit()" *ngIf="isAdmin">Edit</button>
-        </div>
+        <div class="ss-card">
+          <div class="ss-card-header">
+            <div class="ss-card-title-row">
+              <span class="ss-card-icon">📋</span>
+              <h2 class="ss-card-title">School Information</h2>
+            </div>
+            <button class="ss-edit-btn" (click)="startEdit()" *ngIf="isAdmin">Edit</button>
+          </div>
 
-        <div class="info-grid">
-          <div class="info-item">
-            <label>School Name</label>
-            <p>{{ settings.name || '—' }}</p>
+          <!-- Status + plan pills -->
+          <div class="ss-pill-row">
+            <span class="ss-pill ss-pill-plan">{{ settings.plan }}</span>
+            <span class="ss-pill" [class.ss-pill-active]="settings.active" [class.ss-pill-inactive]="!settings.active">
+              {{ settings.active ? 'Active' : 'Inactive' }}
+            </span>
           </div>
-          <div class="info-item">
-            <label>Short Name / Slug</label>
-            <p>{{ settings.slug || '—' }}</p>
-          </div>
-          <div class="info-item">
-            <label>Board / Affiliation</label>
-            <p>{{ settings.boardType || '—' }}</p>
-          </div>
-          <div class="info-item">
-            <label>Email</label>
-            <p>{{ settings.email || '—' }}</p>
-          </div>
-          <div class="info-item">
-            <label>Phone</label>
-            <p>{{ settings.phone || '—' }}</p>
-          </div>
-          <div class="info-item">
-            <label>Website</label>
-            <p>{{ settings.website || '—' }}</p>
-          </div>
-          <div class="info-item">
-            <label>Address</label>
-            <p>{{ settings.address || '—' }}</p>
-          </div>
-          <div class="info-item">
-            <label>City / State / PIN</label>
-            <p>{{ settings.city || '—' }}, {{ settings.state || '—' }} – {{ settings.pincode || '—' }}</p>
-          </div>
-          <div class="info-item">
-            <label>Subscription Plan</label>
-            <p><span class="badge badge-info">{{ settings.plan }}</span></p>
-          </div>
-          <div class="info-item">
-            <label>Status</label>
-            <p>
-              <span class="badge" [class.badge-success]="settings.active" [class.badge-warning]="!settings.active">
-                {{ settings.active ? 'Active' : 'Inactive' }}
-              </span>
-            </p>
+
+          <div class="ss-info-grid">
+            <div class="ss-info-item">
+              <span class="ss-info-label">School Name</span>
+              <span class="ss-info-value">{{ settings.name || '—' }}</span>
+            </div>
+            <div class="ss-info-item">
+              <span class="ss-info-label">Short Name / Slug</span>
+              <span class="ss-info-value">{{ settings.slug || '—' }}</span>
+            </div>
+            <div class="ss-info-item">
+              <span class="ss-info-label">Board / Affiliation</span>
+              <span class="ss-info-value">{{ settings.boardType || '—' }}</span>
+            </div>
+            <div class="ss-info-item">
+              <span class="ss-info-label">Email</span>
+              <span class="ss-info-value">{{ settings.email || '—' }}</span>
+            </div>
+            <div class="ss-info-item">
+              <span class="ss-info-label">Phone</span>
+              <span class="ss-info-value">{{ settings.phone || '—' }}</span>
+            </div>
+            <div class="ss-info-item">
+              <span class="ss-info-label">Website</span>
+              <span class="ss-info-value">{{ settings.website || '—' }}</span>
+            </div>
+            <div class="ss-info-item ss-full">
+              <span class="ss-info-label">Address</span>
+              <span class="ss-info-value">{{ settings.address || '—' }}</span>
+            </div>
+            <div class="ss-info-item">
+              <span class="ss-info-label">City</span>
+              <span class="ss-info-value">{{ settings.city || '—' }}</span>
+            </div>
+            <div class="ss-info-item">
+              <span class="ss-info-label">State / PIN</span>
+              <span class="ss-info-value">{{ settings.state || '—' }} – {{ settings.pincode || '—' }}</span>
+            </div>
           </div>
         </div>
       </ng-container>
 
       <!-- EDIT mode -->
       <ng-container *ngIf="isEditing">
-        <div class="card-header">
-          <h3>Edit School Information</h3>
-        </div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label>School Name *</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.name" placeholder="Full school name">
-          </div>
-          <div class="form-group">
-            <label>Short Name / Slug</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.slug" placeholder="e.g. ias">
-          </div>
-          <div class="form-group">
-            <label>Board / Affiliation</label>
-            <select class="form-control" [(ngModel)]="editForm.boardType">
-              <option value="">— Select —</option>
-              <option *ngFor="let b of boardTypes" [value]="b">{{ b }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input class="form-control" type="email" [(ngModel)]="editForm.email" placeholder="school@example.com">
-          </div>
-          <div class="form-group">
-            <label>Phone</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.phone" placeholder="10-digit number">
-          </div>
-          <div class="form-group">
-            <label>Website</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.website" placeholder="https://...">
-          </div>
-          <div class="form-group" style="grid-column: 1 / -1">
-            <label>Address</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.address" placeholder="Street, Village, etc.">
-          </div>
-          <div class="form-group">
-            <label>City</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.city" placeholder="City">
-          </div>
-          <div class="form-group">
-            <label>State</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.state" placeholder="State">
-          </div>
-          <div class="form-group">
-            <label>Pincode</label>
-            <input class="form-control" type="text" [(ngModel)]="editForm.pincode" placeholder="6-digit PIN">
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn btn-secondary" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
-          <button class="btn btn-primary" (click)="saveSettings()" [disabled]="saving">
-            {{ saving ? 'Saving…' : 'Save Changes' }}
-          </button>
-        </div>
-      </ng-container>
-
-    </div>
-
-    <!-- ── Classes tab ───────────────────────────────────────────────────── -->
-    <div class="card" *ngIf="activeTab === 'classes'">
-      <div class="card-header">
-        <h3>Class List</h3>
-      </div>
-      <p style="font-size:0.85rem;color:#6b7280;margin:0 0 16px">
-        Define the classes for your school. Use the arrows to set the display order — this order is used everywhere (student list, attendance, fees, etc.).
-        Toggle <strong>Stream</strong> to include a class in the stream assignment section (e.g. Class 11 &amp; 12).
-      </p>
-
-      <div *ngIf="loadingClasses" style="text-align:center;padding:24px;color:#6b7280">Loading…</div>
-
-      <div *ngIf="!loadingClasses">
-
-        <!-- Class rows -->
-        <div *ngIf="managedClasses.length === 0" style="color:#6b7280;font-size:0.9rem;margin-bottom:16px">
-          No classes added yet. Add your first class below.
-        </div>
-
-        <div class="class-list">
-          <div *ngFor="let cls of managedClasses; let i = index; let first = first; let last = last" class="class-row">
-            <span class="class-order-num">{{ i + 1 }}</span>
-            <span class="class-name">{{ cls.name }}</span>
-            <button *ngIf="isAdmin"
-              class="stream-toggle-btn"
-              [class.stream-toggle-active]="cls.streamEligible"
-              (click)="toggleStreamEligible(cls)"
-              title="{{ cls.streamEligible ? 'Remove from stream assignment' : 'Add to stream assignment' }}">
-              Stream
-            </button>
-            <div class="class-actions" *ngIf="isAdmin">
-              <button class="icon-btn" (click)="moveClass(i, 'up')" [disabled]="first" title="Move up">▲</button>
-              <button class="icon-btn" (click)="moveClass(i, 'down')" [disabled]="last" title="Move down">▼</button>
-              <button class="icon-btn danger" (click)="removeClass(cls)" title="Remove">✕</button>
+        <div class="ss-card">
+          <div class="ss-card-header">
+            <div class="ss-card-title-row">
+              <span class="ss-card-icon">✏️</span>
+              <h2 class="ss-card-title">Edit School Information</h2>
             </div>
           </div>
-        </div>
 
-        <!-- Save order button -->
-        <div *ngIf="isAdmin && managedClasses.length > 1" style="margin:12px 0 20px">
-          <button class="btn btn-outline btn-sm" (click)="saveOrder()" [disabled]="savingOrder">
-            {{ savingOrder ? 'Saving…' : 'Save Order' }}
-          </button>
-        </div>
+          <div class="ss-form-grid">
+            <div class="ss-form-group ss-full">
+              <label>School Name *</label>
+              <input class="ss-input" type="text" [(ngModel)]="editForm.name" placeholder="Full school name">
+            </div>
+            <div class="ss-form-group">
+              <label>Short Name / Slug</label>
+              <input class="ss-input" type="text" [(ngModel)]="editForm.slug" placeholder="e.g. ias">
+            </div>
+            <div class="ss-form-group">
+              <label>Board / Affiliation</label>
+              <select class="ss-input" [(ngModel)]="editForm.boardType">
+                <option value="">— Select —</option>
+                <option *ngFor="let b of boardTypes" [value]="b">{{ b }}</option>
+              </select>
+            </div>
+            <div class="ss-form-group">
+              <label>Email</label>
+              <input class="ss-input" type="email" [(ngModel)]="editForm.email" placeholder="school@example.com">
+            </div>
+            <div class="ss-form-group">
+              <label>Phone</label>
+              <input class="ss-input" type="text" [(ngModel)]="editForm.phone" placeholder="10-digit number">
+            </div>
+            <div class="ss-form-group ss-full">
+              <label>Website</label>
+              <input class="ss-input" type="text" [(ngModel)]="editForm.website" placeholder="https://...">
+            </div>
+            <div class="ss-form-group ss-full">
+              <label>Address</label>
+              <input class="ss-input" type="text" [(ngModel)]="editForm.address" placeholder="Street, Village, etc.">
+            </div>
+            <div class="ss-form-group">
+              <label>City</label>
+              <input class="ss-input" type="text" [(ngModel)]="editForm.city" placeholder="City">
+            </div>
+            <div class="ss-form-group">
+              <label>State</label>
+              <input class="ss-input" type="text" [(ngModel)]="editForm.state" placeholder="State">
+            </div>
+            <div class="ss-form-group">
+              <label>Pincode</label>
+              <input class="ss-input" type="text" [(ngModel)]="editForm.pincode" placeholder="6-digit PIN">
+            </div>
+          </div>
 
-        <!-- Add class form -->
-        <div class="add-class-row" *ngIf="isAdmin">
-          <input class="form-control" type="text" [(ngModel)]="newClassName"
-            placeholder="New class name, e.g. Grade 10"
-            (keyup.enter)="addNewClass()">
-          <button class="btn btn-primary btn-sm" (click)="addNewClass()" [disabled]="addingClass || !newClassName.trim()">
-            {{ addingClass ? 'Adding…' : 'Add' }}
-          </button>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ── Razorpay tab ──────────────────────────────────────────────────── -->
-    <div class="card" *ngIf="activeTab === 'razorpay'">
-      <div class="card-header">
-        <h3>Razorpay Integration</h3>
-      </div>
-
-      <div class="razorpay-status">
-        <span class="badge" [class.badge-success]="settings.razorpayConfigured" [class.badge-warning]="!settings.razorpayConfigured">
-          {{ settings.razorpayConfigured ? 'Keys Configured' : 'Not Configured' }}
-        </span>
-        <span *ngIf="settings.razorpayConfigured">
-          School-specific Razorpay keys are active. Payments use these keys.
-        </span>
-        <span *ngIf="!settings.razorpayConfigured">
-          No school-specific keys. Payments fall back to platform-default keys.
-        </span>
-      </div>
-
-      <ng-container *ngIf="isAdmin">
-        <hr class="separator">
-        <h4 style="margin: 0 0 16px; font-size: 0.95rem; color: #374151;">
-          {{ settings.razorpayConfigured ? 'Update Keys' : 'Configure Keys' }}
-        </h4>
-        <p style="font-size: 0.85rem; color: #6b7280; margin: 0 0 20px;">
-          Keys are stored encrypted and the secret is never returned to the browser.
-          Enter both Key ID and Key Secret together to update.
-        </p>
-
-        <div class="form-group">
-          <label>Razorpay Key ID</label>
-          <input class="form-control" type="text" [(ngModel)]="razorpayKeyId" placeholder="rzp_live_...">
-        </div>
-        <div class="form-group">
-          <label>Razorpay Key Secret</label>
-          <input class="form-control" type="password" [(ngModel)]="razorpayKeySecret" placeholder="Your key secret">
-        </div>
-
-        <div class="form-actions">
-          <button class="btn btn-primary" (click)="saveRazorpayKeys()" [disabled]="savingRazorpay">
-            {{ savingRazorpay ? 'Saving…' : settings.razorpayConfigured ? 'Update Keys' : 'Save Keys' }}
-          </button>
+          <div class="ss-form-actions">
+            <button class="ss-btn ss-btn-ghost" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
+            <button class="ss-btn ss-btn-primary" (click)="saveSettings()" [disabled]="saving">
+              {{ saving ? 'Saving…' : 'Save Changes' }}
+            </button>
+          </div>
         </div>
       </ng-container>
 
-      <p *ngIf="!isAdmin" style="color: #6b7280; font-size: 0.9rem; margin: 8px 0 0;">
-        Contact your school administrator to configure Razorpay keys.
-      </p>
-    </div>
+    </ng-container>
+
+    <!-- ── Razorpay tab ─────────────────────────────────────────────── -->
+    <ng-container *ngIf="activeTab === 'razorpay'">
+      <div class="ss-card">
+        <div class="ss-card-header">
+          <div class="ss-card-title-row">
+            <span class="ss-card-icon">💳</span>
+            <h2 class="ss-card-title">Razorpay Integration</h2>
+          </div>
+        </div>
+
+        <!-- Status banner -->
+        <div class="ss-rzp-status" [class.ss-rzp-configured]="settings.razorpayConfigured" [class.ss-rzp-unconfigured]="!settings.razorpayConfigured">
+          <span class="ss-rzp-dot"></span>
+          <div>
+            <p class="ss-rzp-status-title">{{ settings.razorpayConfigured ? 'Keys Configured' : 'Not Configured' }}</p>
+            <p class="ss-rzp-status-sub">
+              {{ settings.razorpayConfigured
+                ? 'School-specific Razorpay keys are active. All payments use these keys.'
+                : 'No school-specific keys set. Payments fall back to platform-default keys.' }}
+            </p>
+          </div>
+        </div>
+
+        <ng-container *ngIf="isAdmin">
+          <div class="ss-divider"></div>
+          <p class="ss-rzp-note">
+            Keys are stored encrypted. The secret is never returned to the browser.
+            Enter both Key ID and Key Secret together to update.
+          </p>
+          <div class="ss-form-group">
+            <label>Razorpay Key ID</label>
+            <input class="ss-input" type="text" [(ngModel)]="razorpayKeyId" placeholder="rzp_live_...">
+          </div>
+          <div class="ss-form-group">
+            <label>Razorpay Key Secret</label>
+            <input class="ss-input" type="password" [(ngModel)]="razorpayKeySecret" placeholder="Your key secret">
+          </div>
+          <div class="ss-form-actions">
+            <button class="ss-btn ss-btn-primary" (click)="saveRazorpayKeys()" [disabled]="savingRazorpay">
+              {{ savingRazorpay ? 'Saving…' : settings.razorpayConfigured ? 'Update Keys' : 'Save Keys' }}
+            </button>
+          </div>
+        </ng-container>
+
+        <p class="ss-rzp-readonly" *ngIf="!isAdmin">
+          Contact your school administrator to configure Razorpay keys.
+        </p>
+      </div>
+    </ng-container>
 
   </ng-container>
 

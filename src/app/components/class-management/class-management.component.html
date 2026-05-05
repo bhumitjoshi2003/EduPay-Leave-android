@@ -1,0 +1,103 @@
+<div class="cm-page">
+
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <div class="cm-hero">
+    <div class="cm-hero-left">
+      <div class="cm-hero-icon">🏫</div>
+      <div>
+        <h1 class="cm-hero-title">Classes</h1>
+        <p class="cm-hero-sub">{{ classes.length }} class{{ classes.length !== 1 ? 'es' : '' }} configured</p>
+      </div>
+    </div>
+    <div class="cm-blob cm-blob-1"></div>
+    <div class="cm-blob cm-blob-2"></div>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────────────── -->
+  <div class="cm-loading" *ngIf="isLoading">
+    <div class="cm-spinner"></div>
+    <p>Loading classes…</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- ── Info banner ────────────────────────────────────────────── -->
+    <div class="cm-info-banner">
+      <span class="cm-info-icon">ℹ️</span>
+      <span>The order set here is used everywhere — student list, attendance, fees, exams.
+        Toggle <strong>Stream</strong> to include a class in stream assignment (e.g. Class 11 &amp; 12).</span>
+    </div>
+
+    <!-- ── Class list ─────────────────────────────────────────────── -->
+    <div class="cm-card">
+      <div class="cm-card-header">
+        <h2 class="cm-card-title">All Classes</h2>
+        <span class="cm-count">{{ classes.length }}</span>
+      </div>
+
+      <!-- Empty state -->
+      <div class="cm-empty" *ngIf="classes.length === 0">
+        <div class="cm-empty-icon">📭</div>
+        <p class="cm-empty-title">No classes yet</p>
+        <p class="cm-empty-sub">Add your first class below to get started.</p>
+      </div>
+
+      <!-- Rows -->
+      <div class="cm-list" *ngIf="classes.length > 0">
+        <div class="cm-row" *ngFor="let cls of classes; let i = index; let first = first; let last = last; trackBy: trackById">
+
+          <span class="cm-order">{{ i + 1 }}</span>
+
+          <span class="cm-name">{{ cls.name }}</span>
+
+          <!-- Stream badge (view-only for sub-admin) -->
+          <button *ngIf="isAdmin"
+            class="cm-stream-btn"
+            [class.cm-stream-on]="cls.streamEligible"
+            (click)="toggleStreamEligible(cls)"
+            [title]="cls.streamEligible ? 'Remove from stream assignment' : 'Add to stream assignment'">
+            Stream
+          </button>
+          <span *ngIf="!isAdmin && cls.streamEligible" class="cm-stream-badge">Stream</span>
+
+          <!-- Reorder + delete (admin only) -->
+          <div class="cm-actions" *ngIf="isAdmin">
+            <button class="cm-icon-btn" (click)="moveClass(i, 'up')" [disabled]="first" title="Move up">▲</button>
+            <button class="cm-icon-btn" (click)="moveClass(i, 'down')" [disabled]="last" title="Move down">▼</button>
+            <button class="cm-icon-btn cm-danger" (click)="removeClass(cls)" title="Remove class">✕</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Save order -->
+      <div class="cm-save-order" *ngIf="isAdmin && classes.length > 1">
+        <button class="cm-btn cm-btn-outline" (click)="saveOrder()" [disabled]="savingOrder">
+          {{ savingOrder ? 'Saving…' : '💾 Save Order' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Add class (admin only) ─────────────────────────────────── -->
+    <div class="cm-add-card" *ngIf="isAdmin">
+      <h3 class="cm-add-title">Add New Class</h3>
+      <div class="cm-add-row">
+        <input
+          class="cm-input"
+          type="text"
+          [(ngModel)]="newClassName"
+          placeholder="e.g. Class 10, Grade 8, LKG…"
+          (keyup.enter)="addNewClass()"
+          [disabled]="addingClass">
+        <button
+          class="cm-btn cm-btn-primary"
+          (click)="addNewClass()"
+          [disabled]="addingClass || !newClassName.trim()">
+          {{ addingClass ? 'Adding…' : 'Add' }}
+        </button>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

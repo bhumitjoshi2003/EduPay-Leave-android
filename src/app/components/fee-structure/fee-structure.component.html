@@ -26,12 +26,11 @@
       </div>
 
       <div class="fs-action-buttons">
-        <button *ngIf="!(isNewSessionStarted || isEditing) && canEdit()"
-          class="fs-btn fs-btn-secondary" (click)="startNewAcademicYear()">
+        <button *ngIf="!(isNewSessionStarted || isEditing) && canEdit()" class="fs-btn fs-btn-secondary"
+          (click)="startNewAcademicYear()">
           ＋ New Year
         </button>
-        <button *ngIf="!isEditing && canEdit()"
-          class="fs-btn fs-btn-primary" (click)="edit()">
+        <button *ngIf="!isEditing && canEdit()" class="fs-btn fs-btn-primary" (click)="edit()">
           ✎ Edit
         </button>
         <ng-container *ngIf="isEditing">
@@ -54,8 +53,7 @@
   <!-- ── No sessions yet ───────────────────────────────────────────── -->
   <div class="fs-empty-state" *ngIf="!isLoading && sessions.length === 0">
     <div class="fs-empty-icon">📋</div>
-    <p class="fs-empty-title">No fee structure yet</p>
-    <p class="fs-empty-sub">No academic sessions have been configured for this school. Use <strong>+ New Year</strong> to set up the first session.</p>
+    <p class="fs-empty-title">No fee structure found</p>
   </div>
 
   <!-- ── Fee Table ─────────────────────────────────────────────────── -->

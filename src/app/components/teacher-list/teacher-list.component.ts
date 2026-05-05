@@ -70,7 +70,7 @@ export class TeacherListComponent implements OnInit, OnDestroy {
       finalize(() => { this.isLoading = false; this.cdr.markForCheck(); })
     ).subscribe({
       next: (teachers) => {
-        this.teachers = teachers;
+        this.teachers = teachers ?? [];
       },
       error: (error) => {
         this.logger.error('Error fetching all teachers:', error);

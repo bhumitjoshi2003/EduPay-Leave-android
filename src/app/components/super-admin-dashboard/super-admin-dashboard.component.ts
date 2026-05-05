@@ -5,6 +5,7 @@ import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { SchoolService, SchoolSettings } from '../../services/school.service';
 import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
+import Swal from 'sweetalert2';
 
 interface DashboardStats {
   totalSchools: number;
@@ -30,11 +31,25 @@ interface OnboardForm {
   adminPassword: string;
 }
 
-interface SubscriptionForm {
+interface EditSchoolForm {
+  // School info
+  name: string;
+  boardType: string;
+  email: string;
+  phone: string;
+  website: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  contactPersonName: string;
+  // Subscription
   plan: string;
   maxStudents: number | null;
   expiryDate: string;
   active: boolean;
+  // Password change
+  newAdminPassword: string;
 }
 
 @Component({
@@ -52,19 +67,19 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
   stats: DashboardStats | null = null;
   schools: SchoolSettings[] = [];
   loading = false;
-  loadingSchools = false;
 
   // Onboard form
   showOnboardForm = false;
   onboarding = false;
   onboardForm: OnboardForm = this.emptyOnboardForm();
 
-  // Subscription edit
+  // Edit form
   editingSchoolId: number | null = null;
-  subForm: SubscriptionForm = { plan: '', maxStudents: null, expiryDate: '', active: true };
-  savingSub = false;
+  editForm: EditSchoolForm = this.emptyEditForm();
+  saving = false;
+  showPasswordField = false;
 
-  readonly plans = ['FREE', 'BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE'];
+  readonly plans = ['TRIAL', 'FREE', 'BASIC', 'STANDARD', 'PREMIUM', 'ENTERPRISE'];
   readonly boardTypes = ['CBSE', 'ICSE', 'STATE', 'IB', 'IGCSE', 'OTHER'];
 
   constructor(
@@ -105,29 +120,12 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadSchools(): void {
-    this.loadingSchools = true;
-    this.cdr.markForCheck();
-    this.schoolService.listAllSchools().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (list) => {
-        this.schools = list;
-        this.loadingSchools = false;
-        this.cdr.markForCheck();
-      },
-      error: (e) => {
-        this.logger.error('Error loading schools', e);
-        this.toast.error('Error', 'Failed to load schools.');
-        this.loadingSchools = false;
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  // ── Onboarding ───────────────────────────────────────────────────────────
+  // ── Onboarding ──────────────────────────────────────────────────────────────
 
   openOnboardForm(): void {
     this.onboardForm = this.emptyOnboardForm();
     this.showOnboardForm = true;
+    this.editingSchoolId = null;
   }
 
   cancelOnboard(): void {
@@ -152,7 +150,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       },
       error: (e) => {
         this.logger.error('Error onboarding school', e);
-        const msg = e?.error ?? 'Failed to onboard school. Please try again.';
+        const msg = e?.error?.message ?? e?.error ?? 'Failed to onboard school.';
         this.toast.error('Error', typeof msg === 'string' ? msg : 'Failed to onboard school.');
         this.onboarding = false;
         this.cdr.markForCheck();
@@ -160,57 +158,155 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ── Subscription ─────────────────────────────────────────────────────────
+  // ── Edit School ─────────────────────────────────────────────────────────────
 
-  openSubEdit(school: SchoolSettings): void {
+  openEdit(school: SchoolSettings): void {
     this.editingSchoolId = school.id;
-    this.subForm = {
-      plan: school.plan ?? 'FREE',
-      maxStudents: null,
-      expiryDate: '',
+    this.showOnboardForm = false;
+    this.showPasswordField = false;
+    this.editForm = {
+      name: school.name ?? '',
+      boardType: school.boardType ?? '',
+      email: school.email ?? '',
+      phone: school.phone ?? '',
+      website: school.website ?? '',
+      address: school.address ?? '',
+      city: school.city ?? '',
+      state: school.state ?? '',
+      pincode: school.pincode ?? '',
+      contactPersonName: school.contactPersonName ?? '',
+      plan: school.plan ?? 'TRIAL',
+      maxStudents: school.maxStudents ?? null,
+      expiryDate: school.expiryDate ?? '',
       active: school.active,
+      newAdminPassword: '',
     };
     this.cdr.markForCheck();
   }
 
-  cancelSubEdit(): void {
+  cancelEdit(): void {
     this.editingSchoolId = null;
+    this.showPasswordField = false;
   }
 
-  saveSub(): void {
+  saveEdit(): void {
     if (!this.editingSchoolId) return;
-    const payload: any = {
-      plan: this.subForm.plan,
-      active: this.subForm.active,
-    };
-    if (this.subForm.maxStudents != null) payload.maxStudents = this.subForm.maxStudents;
-    if (this.subForm.expiryDate) payload.expiryDate = this.subForm.expiryDate;
+    const f = this.editForm;
 
-    this.savingSub = true;
+    if (!f.name.trim()) {
+      this.toast.error('Validation', 'School name is required.');
+      return;
+    }
+
+    this.saving = true;
     this.cdr.markForCheck();
-    this.schoolService.updateSubscription(this.editingSchoolId, payload)
+
+    const payload: any = {
+      name: f.name.trim(),
+      boardType: f.boardType || null,
+      email: f.email || null,
+      phone: f.phone || null,
+      website: f.website || null,
+      address: f.address || null,
+      city: f.city || null,
+      state: f.state || null,
+      pincode: f.pincode || null,
+      contactPersonName: f.contactPersonName || null,
+      plan: f.plan || null,
+      maxStudents: f.maxStudents ?? null,
+      expiryDate: f.expiryDate || null,
+      active: f.active,
+    };
+
+    this.schoolService.updateSchoolAll(this.editingSchoolId, payload)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (updated) => {
           this.schools = this.schools.map(s => s.id === updated.id ? updated : s);
-          this.editingSchoolId = null;
-          this.savingSub = false;
-          this.toast.success('Saved', 'Subscription updated.');
-          this.cdr.markForCheck();
+
+          // If password also needs reset
+          if (f.newAdminPassword.trim()) {
+            this.schoolService.resetAdminPassword(this.editingSchoolId!, f.newAdminPassword.trim())
+              .pipe(takeUntil(this.destroy$)).subscribe({
+                next: () => {
+                  this.toast.success('Saved', 'School updated and admin password changed.');
+                  this.saving = false;
+                  this.editingSchoolId = null;
+                  this.showPasswordField = false;
+                  this.cdr.markForCheck();
+                },
+                error: (e) => {
+                  this.logger.error('Error resetting password', e);
+                  this.toast.error('Warning', 'School info saved, but password reset failed.');
+                  this.saving = false;
+                  this.editingSchoolId = null;
+                  this.showPasswordField = false;
+                  this.cdr.markForCheck();
+                }
+              });
+          } else {
+            this.toast.success('Saved', 'School updated successfully.');
+            this.saving = false;
+            this.editingSchoolId = null;
+            this.showPasswordField = false;
+            this.cdr.markForCheck();
+          }
         },
         error: (e) => {
-          this.logger.error('Error updating subscription', e);
-          this.toast.error('Error', 'Failed to update subscription.');
-          this.savingSub = false;
+          this.logger.error('Error updating school', e);
+          const msg = e?.error?.message ?? 'Failed to update school.';
+          this.toast.error('Error', typeof msg === 'string' ? msg : 'Failed to update school.');
+          this.saving = false;
           this.cdr.markForCheck();
         }
       });
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
+  confirmDelete(school: SchoolSettings): void {
+    Swal.fire({
+      title: 'Deactivate School?',
+      html: `This will deactivate <strong>${school.name}</strong> and prevent login for all its users.<br><small style="color:#9ca3af">This action cannot be undone easily.</small>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, deactivate',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+      this.schoolService.deleteSchool(school.id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.schools = this.schools.map(s =>
+            s.id === school.id ? { ...s, active: false } : s
+          );
+          if (this.editingSchoolId === school.id) this.editingSchoolId = null;
+          this.toast.success('Done', `"${school.name}" has been deactivated.`);
+          this.cdr.markForCheck();
+        },
+        error: (e) => {
+          this.logger.error('Error deactivating school', e);
+          this.toast.error('Error', 'Failed to deactivate school.');
+          this.cdr.markForCheck();
+        }
+      });
+    });
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
 
   generateSlug(): void {
-    this.onboardForm.slug = this.onboardForm.name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    this.onboardForm.slug = this.onboardForm.name.trim().toLowerCase()
+      .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   }
+
+  get activeCount(): number {
+    return this.schools.filter(s => s.active).length;
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+  }
+
+  trackById(_: number, item: SchoolSettings): number { return item.id; }
 
   private emptyOnboardForm(): OnboardForm {
     return {
@@ -220,11 +316,12 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  get activeCount(): number {
-    return this.schools.filter(s => s.active).length;
-  }
-
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+  private emptyEditForm(): EditSchoolForm {
+    return {
+      name: '', boardType: '', email: '', phone: '', website: '',
+      address: '', city: '', state: '', pincode: '', contactPersonName: '',
+      plan: 'TRIAL', maxStudents: null, expiryDate: '', active: true,
+      newAdminPassword: '',
+    };
   }
 }

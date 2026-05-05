@@ -56,7 +56,9 @@
     </div>
 
     <div class="vl-filter-actions">
-      <button class="vl-btn-clear" (click)="clearFilter()">✕ Clear Filters</button>
+      <button class="vl-btn-clear" (click)="clearFilter()">
+        <span class="vl-clear-icon">×</span> Clear
+      </button>
       <div class="vl-filter-meta" *ngIf="totalElements > 0">
         <span>{{ totalElements }} results</span>
         <span class="vl-filter-sep">·</span>

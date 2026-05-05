@@ -108,6 +108,11 @@ export const routes: Routes = [
         loadComponent: () => import('./components/school-settings/school-settings.component').then(m => m.SchoolSettingsComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
       },
+      {
+        path: 'class-management',
+        loadComponent: () => import('./components/class-management/class-management.component').then(m => m.ClassManagementComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }
+      },
 
       // ── Admin-only routes ─────────────────────────────────────────────
       {
