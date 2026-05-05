@@ -6,6 +6,7 @@ import { SchoolService, SchoolClass } from '../../services/school.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-class-management',
@@ -89,18 +90,35 @@ export class ClassManagementComponent implements OnInit, OnDestroy {
   }
 
   removeClass(cls: SchoolClass): void {
-    this.schoolService.deleteClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.classes = this.classes.filter(c => c.id !== cls.id);
-        this.schoolService.invalidateClasses();
-        this.toast.success('Removed', `"${cls.name}" removed.`);
-        this.cdr.markForCheck();
-      },
-      error: (e) => {
-        this.logger.error('Failed to delete class', e);
-        this.toast.error('Error', 'Could not remove class.');
-        this.cdr.markForCheck();
-      }
+    Swal.fire({
+      title: `Remove "${cls.name}"?`,
+      text: 'This will remove the class. You can re-add it later.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, remove',
+      cancelButtonText: 'Cancel',
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+      this.schoolService.deleteClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.classes = this.classes.filter(c => c.id !== cls.id);
+          this.schoolService.invalidateClasses();
+          this.toast.success('Removed', `"${cls.name}" removed.`);
+          this.cdr.markForCheck();
+        },
+        error: (e) => {
+          this.logger.error('Failed to delete class', e);
+          const reason = e?.error?.message;
+          if (reason) {
+            Swal.fire({ title: 'Cannot Remove Class', text: reason, icon: 'error', confirmButtonColor: '#4f46e5' });
+          } else {
+            this.toast.error('Error', 'Could not remove class.');
+          }
+          this.cdr.markForCheck();
+        }
+      });
     });
   }
 

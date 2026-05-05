@@ -571,6 +571,13 @@ select.sa-input { appearance: auto; }
 .sa-btn-danger:hover { background: #fee2e2; }
 .sa-btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
+.sa-btn-activate {
+  border-color: #bbf7d0 !important;
+  background: #f0fdf4 !important;
+  color: #16a34a !important;
+}
+.sa-btn-activate:hover { background: #dcfce7 !important; }
+
 /* ── Empty State ─────────────────────────────────────────────────── */
 .sa-empty {
   display: flex;

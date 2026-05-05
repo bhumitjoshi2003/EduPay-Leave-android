@@ -261,30 +261,37 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  confirmDelete(school: SchoolSettings): void {
+  confirmToggleActive(school: SchoolSettings): void {
+    const isActive = school.active;
     Swal.fire({
-      title: 'Deactivate School?',
-      html: `This will deactivate <strong>${school.name}</strong> and prevent login for all its users.<br><small style="color:#9ca3af">This action cannot be undone easily.</small>`,
+      title: isActive ? 'Deactivate School?' : 'Activate School?',
+      html: isActive
+        ? `This will deactivate <strong>${school.name}</strong> and prevent login for all its users.`
+        : `This will reactivate <strong>${school.name}</strong> and restore access for all its users.`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#dc2626',
+      confirmButtonColor: isActive ? '#dc2626' : '#16a34a',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, deactivate',
+      confirmButtonText: isActive ? 'Yes, deactivate' : 'Yes, activate',
       cancelButtonText: 'Cancel',
     }).then((result) => {
       if (!result.isConfirmed) return;
       this.schoolService.deleteSchool(school.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
+          const newActive = !isActive;
           this.schools = this.schools.map(s =>
-            s.id === school.id ? { ...s, active: false } : s
+            s.id === school.id ? { ...s, active: newActive } : s
           );
-          if (this.editingSchoolId === school.id) this.editingSchoolId = null;
-          this.toast.success('Done', `"${school.name}" has been deactivated.`);
+          // Also update the edit form so the checkbox reflects the new state
+          if (this.editingSchoolId === school.id) {
+            this.editForm = { ...this.editForm, active: newActive };
+          }
+          this.toast.success('Done', `"${school.name}" has been ${newActive ? 'activated' : 'deactivated'}.`);
           this.cdr.markForCheck();
         },
         error: (e) => {
-          this.logger.error('Error deactivating school', e);
-          this.toast.error('Error', 'Failed to deactivate school.');
+          this.logger.error('Error toggling school active state', e);
+          this.toast.error('Error', `Failed to ${isActive ? 'deactivate' : 'activate'} school.`);
           this.cdr.markForCheck();
         }
       });

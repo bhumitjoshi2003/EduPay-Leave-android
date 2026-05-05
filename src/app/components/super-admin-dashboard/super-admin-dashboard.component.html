@@ -312,8 +312,9 @@
           </div>
 
           <div class="sa-edit-actions">
-            <button class="sa-btn-danger" (click)="confirmDelete(school)" [disabled]="saving">
-              🗑 Deactivate School
+            <button class="sa-btn-danger" [class.sa-btn-activate]="!school.active"
+                    (click)="confirmToggleActive(school)" [disabled]="saving">
+              {{ school.active ? '🚫 Deactivate School' : '✅ Activate School' }}
             </button>
             <div class="sa-edit-actions-right">
               <button class="sa-btn-secondary" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
