@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
 import { PaymentHistoryService, PaginatedResponse } from '../../services/payment-history.service';
+import { SchoolService } from '../../services/school.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -41,9 +42,7 @@ export class PaymentHistoryAdminComponent implements OnInit, OnDestroy {
   comingSoonConfig = MODULE_MESSAGES.paymentHistory;
   showFeesModule: boolean = true;
   filteredPayments: PaymentHistory[] = [];
-  classList: string[] = [
-    'Play group', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
-  ];
+  classList: string[] = [];
   selectedClass: string = 'all';
   selectedDate: Date | null = null;
   loading: boolean = true;
@@ -59,9 +58,13 @@ export class PaymentHistoryAdminComponent implements OnInit, OnDestroy {
   totalPages: number = 0;
   pageSizes: number[] = [5, 10, 20, 50];
 
-  constructor(private router: Router, private paymentHistoryService: PaymentHistoryService, private datePipe: DatePipe, private logger: LoggerService, private cdr: ChangeDetectorRef, private toast: ToastService) { }
+  constructor(private router: Router, private paymentHistoryService: PaymentHistoryService, private datePipe: DatePipe, private logger: LoggerService, private cdr: ChangeDetectorRef, private toast: ToastService, private schoolService: SchoolService) { }
 
   ngOnInit(): void {
+    this.schoolService.getClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
     this.fetchPaymentHistory();
 
     this.studentIdInputSubject.pipe(

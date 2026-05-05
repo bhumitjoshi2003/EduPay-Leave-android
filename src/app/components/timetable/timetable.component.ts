@@ -12,6 +12,7 @@ import { TimetableEntry } from '../../interfaces/timetable';
 import { Teacher } from '../../interfaces/teacher';
 import { ToastService } from '../../services/toast.service';
 import { Capacitor } from '@capacitor/core';
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-timetable',
@@ -35,10 +36,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
     THURSDAY: 'Thursday', FRIDAY: 'Friday', SATURDAY: 'Saturday'
   };
   readonly periodOptions = [4, 5, 6, 7, 8, 9, 10];
-  readonly classList = [
-    'Play group', 'Nursery', 'LKG', 'UKG',
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'
-  ];
+  classList: string[] = [];
 
   maxPeriods: number = parseInt(localStorage.getItem(this.PERIODS_KEY) ?? '8', 10);
 
@@ -80,7 +78,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
     private authStateService: AuthStateService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) {}
 
   ngOnInit(): void {
@@ -88,6 +87,11 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.role = user?.role ?? '';
     this.userId = user?.userId ?? '';
     this.userClassName = user?.className ?? '';
+
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
 
     if (this.isStudent()) {
       this.selectedClass = this.userClassName;

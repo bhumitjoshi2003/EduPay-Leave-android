@@ -6,6 +6,7 @@ import { ToastService } from '../../services/toast.service';
 import { StudentStreamService, StudentStreamOverview } from '../../services/student-stream.service';
 import { SubjectConfigService, AcademicStream, OptionalSubjectGroup } from '../../services/subject-config.service';
 import { LoggerService } from '../../services/logger.service';
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-student-stream',
@@ -18,8 +19,8 @@ import { LoggerService } from '../../services/logger.service';
 export class StudentStreamComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  classOptions = ['11', '12'];
-  selectedClass = '11';
+  classOptions: string[] = [];
+  selectedClass = '';
 
   students: StudentStreamOverview[] = [];
   streams: AcademicStream[] = [];
@@ -35,10 +36,16 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
     private subjectService: SubjectConfigService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) { }
 
   ngOnInit(): void {
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+      this.classOptions = classes;
+      if (!this.selectedClass && classes.length > 0) this.selectedClass = classes[0];
+      this.cdr.markForCheck();
+    });
     forkJoin([
       this.subjectService.getStreams(),
       this.subjectService.getOptionalGroups(),

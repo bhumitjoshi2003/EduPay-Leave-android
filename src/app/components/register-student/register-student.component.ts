@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EMPTY, Subject, takeUntil } from 'rxjs';
@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../auth/auth.service';
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-register-student',
@@ -20,11 +21,7 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   studentForm: FormGroup;
   isBusUser = false;
-  classList: string[] = [
-    'Play group', 'Nursery', 'LKG', 'UKG',
-    '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', '10', '11', '12'
-  ];
+  classList: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -32,7 +29,9 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
     private router: Router,
     private authService: AuthService,
     private logger: LoggerService,
-    private toast: ToastService
+    private toast: ToastService,
+    private cdr: ChangeDetectorRef,
+    private schoolService: SchoolService
   ) {
     this.studentForm = this.fb.group({
       studentId: ['', Validators.required],
@@ -56,6 +55,10 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
     this.studentForm.get('takesBus')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => {
       this.isBusUser = value;
       if (this.isBusUser) {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TeacherService } from '../../services/teacher.service';
@@ -7,8 +7,9 @@ import { ToastService } from '../../services/toast.service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../auth/auth.service';
-import { EMPTY } from 'rxjs';
+import { EMPTY, Subject, takeUntil } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-register-teacher',
@@ -18,13 +19,10 @@ import { catchError, map, switchMap } from 'rxjs/operators';
   styleUrls: ['./register-teacher.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RegisterTeacherComponent implements OnInit {
+export class RegisterTeacherComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   teacherForm: FormGroup;
-  classList: string[] = [
-    'Play group', 'Nursery', 'LKG', 'UKG',
-    '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', '10', '11', '12'
-  ];
+  classList: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -32,7 +30,9 @@ export class RegisterTeacherComponent implements OnInit {
     private router: Router,
     private authService: AuthService,
     private logger: LoggerService,
-    private toast: ToastService
+    private toast: ToastService,
+    private cdr: ChangeDetectorRef,
+    private schoolService: SchoolService
   ) {
     this.teacherForm = this.fb.group({
       teacherId: ['', Validators.required],
@@ -46,6 +46,15 @@ export class RegisterTeacherComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onSubmit() {

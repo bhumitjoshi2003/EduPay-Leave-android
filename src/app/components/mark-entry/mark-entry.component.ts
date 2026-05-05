@@ -11,8 +11,7 @@ import { TeacherService } from '../../services/teacher.service';
 import { StudentService } from '../../services/student.service';
 import { FeesCalculationService } from '../../services/fees-calculation.service';
 import { LoggerService } from '../../services/logger.service';
-
-const ALL_CLASSES = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-mark-entry',
@@ -27,7 +26,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
 
   mode: 'subject' | 'student' = 'subject';
   role = '';
-  classOptions = ALL_CLASSES;
+  classOptions: string[] = [];
   sessions: string[] = [];
 
   selectedSession = '';
@@ -60,7 +59,8 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     private feesCalc: FeesCalculationService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) { }
 
   ngOnInit(): void {
@@ -69,8 +69,8 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     this.role = user?.role ?? '';
 
     if (this.role === 'TEACHER') {
-      const teacherId = user!.userId;
-      this.teacherService.getTeacher(teacherId).pipe(takeUntil(this.destroy$)).subscribe({
+      // Teacher: get their assigned class, then also load class options for display
+      this.teacherService.getTeacher(user!.userId).pipe(takeUntil(this.destroy$)).subscribe({
         next: (t) => {
           this.selectedClass = t.classTeacher ?? '';
           this.cdr.markForCheck();
@@ -78,9 +78,18 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
         },
         error: (e) => { this.logger.error('Error fetching teacher:', e); this.toast.error('Error', 'Failed to load teacher details.'); },
       });
+      this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+        this.classOptions = classes;
+        this.cdr.markForCheck();
+      });
     } else {
-      this.selectedClass = '1';
-      this.loadExams();
+      // Admin: load class list, default to first class
+      this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+        this.classOptions = classes;
+        if (!this.selectedClass && classes.length > 0) this.selectedClass = classes[0];
+        this.cdr.markForCheck();
+        this.loadExams();
+      });
     }
   }
 

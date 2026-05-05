@@ -9,6 +9,7 @@ import { ToastService } from '../../services/toast.service';
 import { Subject, takeUntil } from 'rxjs';
 import { Location } from '@angular/common';
 import { environment } from '../../../environments/environment';
+import { SchoolService } from '../../services/school.service';
 
 interface StudentDetails {
   studentId?: string;
@@ -69,11 +70,7 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     { value: 7, label: 'October' }, { value: 8, label: 'November' }, { value: 9, label: 'December' },
     { value: 10, label: 'January' }, { value: 11, label: 'February' }, { value: 12, label: 'March' }
   ];
-  classList: string[] = [
-    'Play group', 'Nursery', 'LKG', 'UKG',
-    '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', '10', '11', '12'
-  ];
+  classList: string[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -83,10 +80,15 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     private location: Location,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) { }
 
   ngOnInit(): void {
+    this.schoolService.getClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
     this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
       this.studentId = params['studentId'];
       if (this.studentId) {

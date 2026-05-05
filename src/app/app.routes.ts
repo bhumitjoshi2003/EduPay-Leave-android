@@ -95,6 +95,13 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['TEACHER', 'ADMIN'] }
       },
 
+      // ── School settings ───────────────────────────────────────────────
+      {
+        path: 'school-settings',
+        loadComponent: () => import('./components/school-settings/school-settings.component').then(m => m.SchoolSettingsComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+      },
+
       // ── Admin-only routes ─────────────────────────────────────────────
       {
         path: 'payment-history-admin',

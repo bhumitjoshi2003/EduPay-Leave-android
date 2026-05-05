@@ -9,6 +9,7 @@ import { ComingSoonComponent } from '../coming-soon/coming-soon.component';
 import { MODULE_MESSAGES } from '../../config/module-messages.config';
 import { ToastService } from '../../services/toast.service';
 import { Capacitor } from '@capacitor/core';
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-fee-reminders',
@@ -21,10 +22,7 @@ import { Capacitor } from '@capacitor/core';
 export class FeeRemindersComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  readonly classList = [
-    'Play group', 'Nursery', 'LKG', 'UKG',
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'
-  ];
+  classList: string[] = [];
 
   comingSoonConfig = MODULE_MESSAGES.feesReminder;
   showFeesReminderModule: boolean = true;
@@ -51,11 +49,16 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
     private feeReminderService: FeeReminderService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) { }
 
   ngOnInit(): void {
     this.initSessions();
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
     this.loadOverdue();
   }
 

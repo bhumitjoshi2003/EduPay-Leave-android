@@ -8,6 +8,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { Subject, takeUntil } from 'rxjs';
+import { SchoolService } from '../../services/school.service';
 
 export const dateRangeValidator: ValidatorFn = (control: AbstractControl): { [key: string]: boolean } | null => {
   const startDate = control.get('startDate')?.value;
@@ -43,8 +44,9 @@ export class EventFormComponent implements OnInit, OnDestroy {
   isEditMode: boolean = false;
   eventId: number | null = null;
 
+  readonly staticAudiences = ['ALL', 'TEACHERS', 'STUDENTS'];
   categories: string[] = ['Academic', 'Sports', 'Cultural', 'Social', 'Holiday', 'Meeting', 'Other'];
-  targetAudiences: string[] = ['ALL', 'TEACHERS', 'STUDENTS', 'Play group', 'NURSERY', 'LGK', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+  targetAudiences: string[] = [...this.staticAudiences];
 
   // Image related properties
   selectedFile: File | null = null;
@@ -59,7 +61,8 @@ export class EventFormComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private logger: LoggerService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private schoolService: SchoolService
   ) {
     this.eventForm = this.fb.group({
       title: ['', Validators.required],
@@ -82,6 +85,10 @@ export class EventFormComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+      this.targetAudiences = [...this.staticAudiences, ...classes];
+      this.cdr.markForCheck();
+    });
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const id = params.get('id');
       if (id) {

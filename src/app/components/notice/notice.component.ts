@@ -8,6 +8,7 @@ import { Notification } from '../../interfaces/notification';
 import { UserNotification } from '../../interfaces/user-notification';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-notice',
@@ -52,22 +53,24 @@ export class NoticeComponent implements OnInit, OnDestroy {
   submitting = false;
   loading = false;
 
-  classList: string[] = [
-    'Play group', 'Nursery', 'LKG', 'UKG',
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
-  ];
+  classList: string[] = [];
 
   constructor(
     private notificationService: NotificationService,
     private authStateService: AuthStateService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) { }
 
   ngOnInit(): void {
     const user = this.authStateService.getUser();
     this.role = user?.role ?? '';
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
     this.loadData();
   }
 

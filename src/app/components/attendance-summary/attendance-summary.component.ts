@@ -9,6 +9,7 @@ import { AuthStateService } from '../../auth/auth-state.service';
 import { LoggerService } from '../../services/logger.service';
 import { Capacitor } from '@capacitor/core';
 import { ToastService } from '../../services/toast.service';
+import { SchoolService } from '../../services/school.service';
 import {
   StudentAttendanceSummary, ClassAttendanceSummary, MonthlyBreakdown,
   DailyDetail, CalendarCell, CellStatus
@@ -61,10 +62,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
   /** Shared cache so we don't re-fetch on re-expand */
   private dailyDetailCache = new Map<string, DailyDetail>();
 
-  readonly classList = [
-    'Play group', 'Nursery', 'LKG', 'UKG',
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'
-  ];
+  classList: string[] = [];
   readonly months = [
     { value: 1, label: 'January' }, { value: 2, label: 'February' }, { value: 3, label: 'March' },
     { value: 4, label: 'April' }, { value: 5, label: 'May' }, { value: 6, label: 'June' },
@@ -82,7 +80,8 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     private authStateService: AuthStateService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) {}
 
   ngOnInit(): void {
@@ -90,6 +89,11 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     this.role = user?.role ?? '';
     this.userId = user?.userId ?? '';
     this.userClassName = user?.className ?? '';
+
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
 
     this.initSessions();
     this.initYears();

@@ -1,0 +1,194 @@
+<div class="settings-container">
+
+  <div class="settings-header">
+    <h2>School Settings</h2>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">Loading settings…</div>
+
+  <!-- Loaded -->
+  <ng-container *ngIf="!loading && settings">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn" [class.active]="activeTab === 'general'" (click)="activeTab = 'general'">
+        General
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'razorpay'" (click)="activeTab = 'razorpay'">
+        Razorpay
+      </button>
+    </div>
+
+    <!-- ── General tab ─────────────────────────────────────────────────── -->
+    <div class="card" *ngIf="activeTab === 'general'">
+
+      <!-- VIEW mode -->
+      <ng-container *ngIf="!isEditing">
+        <div class="card-header">
+          <h3>School Information</h3>
+          <button class="btn btn-outline" (click)="startEdit()" *ngIf="isAdmin">Edit</button>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <label>School Name</label>
+            <p>{{ settings.name || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Short Name</label>
+            <p>{{ settings.shortName || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Board / Affiliation</label>
+            <p>{{ settings.boardType || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Email</label>
+            <p>{{ settings.email || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Phone</label>
+            <p>{{ settings.phoneNumber || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Website</label>
+            <p>{{ settings.website || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Address</label>
+            <p>{{ settings.address || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <label>City / State / PIN</label>
+            <p>{{ settings.city || '—' }}, {{ settings.state || '—' }} – {{ settings.pincode || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Subscription Plan</label>
+            <p><span class="badge badge-info">{{ settings.plan }}</span></p>
+          </div>
+          <div class="info-item">
+            <label>Status</label>
+            <p>
+              <span class="badge" [class.badge-success]="settings.active" [class.badge-warning]="!settings.active">
+                {{ settings.active ? 'Active' : 'Inactive' }}
+              </span>
+            </p>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- EDIT mode -->
+      <ng-container *ngIf="isEditing">
+        <div class="card-header">
+          <h3>Edit School Information</h3>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>School Name *</label>
+            <input class="form-control" type="text" [(ngModel)]="editForm.name" placeholder="Full school name">
+          </div>
+          <div class="form-group">
+            <label>Short Name</label>
+            <input class="form-control" type="text" [(ngModel)]="editForm.shortName" placeholder="e.g. IAS">
+          </div>
+          <div class="form-group">
+            <label>Board / Affiliation</label>
+            <select class="form-control" [(ngModel)]="editForm.boardType">
+              <option value="">— Select —</option>
+              <option *ngFor="let b of boardTypes" [value]="b">{{ b }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input class="form-control" type="email" [(ngModel)]="editForm.email" placeholder="school@example.com">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input class="form-control" type="text" [(ngModel)]="editForm.phoneNumber" placeholder="10-digit number">
+          </div>
+          <div class="form-group">
+            <label>Website</label>
+            <input class="form-control" type="text" [(ngModel)]="editForm.website" placeholder="https://...">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1">
+            <label>Address</label>
+            <input class="form-control" type="text" [(ngModel)]="editForm.address" placeholder="Street, Village, etc.">
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input class="form-control" type="text" [(ngModel)]="editForm.city" placeholder="City">
+          </div>
+          <div class="form-group">
+            <label>State</label>
+            <input class="form-control" type="text" [(ngModel)]="editForm.state" placeholder="State">
+          </div>
+          <div class="form-group">
+            <label>Pincode</label>
+            <input class="form-control" type="text" [(ngModel)]="editForm.pincode" placeholder="6-digit PIN">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-secondary" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
+          <button class="btn btn-primary" (click)="saveSettings()" [disabled]="saving">
+            {{ saving ? 'Saving…' : 'Save Changes' }}
+          </button>
+        </div>
+      </ng-container>
+
+    </div>
+
+    <!-- ── Razorpay tab ──────────────────────────────────────────────────── -->
+    <div class="card" *ngIf="activeTab === 'razorpay'">
+      <div class="card-header">
+        <h3>Razorpay Integration</h3>
+      </div>
+
+      <div class="razorpay-status">
+        <span class="badge" [class.badge-success]="settings.razorpayConfigured" [class.badge-warning]="!settings.razorpayConfigured">
+          {{ settings.razorpayConfigured ? 'Keys Configured' : 'Not Configured' }}
+        </span>
+        <span *ngIf="settings.razorpayConfigured">
+          School-specific Razorpay keys are active. Payments use these keys.
+        </span>
+        <span *ngIf="!settings.razorpayConfigured">
+          No school-specific keys. Payments fall back to platform-default keys.
+        </span>
+      </div>
+
+      <ng-container *ngIf="isAdmin">
+        <hr class="separator">
+        <h4 style="margin: 0 0 16px; font-size: 0.95rem; color: #374151;">
+          {{ settings.razorpayConfigured ? 'Update Keys' : 'Configure Keys' }}
+        </h4>
+        <p style="font-size: 0.85rem; color: #6b7280; margin: 0 0 20px;">
+          Keys are stored encrypted and the secret is never returned to the browser.
+          Enter both Key ID and Key Secret together to update.
+        </p>
+
+        <div class="form-group">
+          <label>Razorpay Key ID</label>
+          <input class="form-control" type="text" [(ngModel)]="razorpayKeyId" placeholder="rzp_live_...">
+        </div>
+        <div class="form-group">
+          <label>Razorpay Key Secret</label>
+          <input class="form-control" type="password" [(ngModel)]="razorpayKeySecret" placeholder="Your key secret">
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" (click)="saveRazorpayKeys()" [disabled]="savingRazorpay">
+            {{ savingRazorpay ? 'Saving…' : settings.razorpayConfigured ? 'Update Keys' : 'Save Keys' }}
+          </button>
+        </div>
+      </ng-container>
+
+      <p *ngIf="!isAdmin" style="color: #6b7280; font-size: 0.9rem; margin: 8px 0 0;">
+        Contact your school administrator to configure Razorpay keys.
+      </p>
+    </div>
+
+  </ng-container>
+
+</div>

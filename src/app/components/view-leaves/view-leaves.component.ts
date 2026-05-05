@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, switchMap, Observable, debounceTime, distinctUntilChanged } from 'rxjs';
 import { TeacherService } from '../../services/teacher.service';
 import { AuthStateService } from '../../auth/auth-state.service';
+import { SchoolService } from '../../services/school.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -38,9 +39,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
   filteredLeaves: LeaveApplication[] = [];
   isLoading: boolean = true;
 
-  classList: string[] = [
-    'Play group', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
-  ];
+  classList: string[] = [];
   selectedClass: string = 'all';
   selectedDate: Date | null = null;
   studentIdFilter: string = '';
@@ -61,10 +60,15 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
     private authStateService: AuthStateService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) { }
 
   ngOnInit(): void {
+    this.schoolService.getClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
     this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe(params => {
       const studentIdFromParams = params['studentId'];
       if (studentIdFromParams) {

@@ -4,6 +4,7 @@ import { LeaveService } from '../../services/leave.service';
 import { StudentService } from '../../services/student.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, formatDate } from '@angular/common';
+import { SchoolService } from '../../services/school.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -46,10 +47,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   loggedInUserRole: string = '';
   hasStudents: boolean = false;
 
-  classList: string[] = [
-    'Play group', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4',
-    '5', '6', '7', '8', '9', '10', '11', '12'
-  ];
+  classList: string[] = [];
 
 
   constructor(
@@ -60,7 +58,8 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     private authStateService: AuthStateService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) { }
 
   ngOnDestroy(): void {
@@ -70,6 +69,10 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.attendanceDate = this.getTodayDateWithoutTime();
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+      this.classList = classes;
+      this.cdr.markForCheck();
+    });
     this.getUserRoleAndLoadData();
   }
 
@@ -87,7 +90,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
       this.teacherId = user.userId;
 
       if (this.loggedInUserRole === 'ADMIN') {
-        this.selectedClass = localStorage.getItem('lastSelectedClass') || this.classList[0];
+        this.selectedClass = localStorage.getItem('lastSelectedClass') || '';
         this.loadStudentsAndApplyAttendance();
       } else {
         this.getTeacherClassAndLoadStudents();

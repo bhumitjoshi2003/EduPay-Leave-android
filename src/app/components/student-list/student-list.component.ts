@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
+import { SchoolService } from '../../services/school.service';
 
 interface Student {
   studentId: string;
@@ -30,9 +31,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
   teacherId: string = '';
   loggedInUserRole: string = '';
   selectedClass: string = '';
-  classList: string[] = [
-    'Play group', 'Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'
-  ];
+  classList: string[] = [];
 
   constructor(
     private studentService: StudentService,
@@ -41,7 +40,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
     private authStateService: AuthStateService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) { }
 
   ngOnDestroy(): void {
@@ -60,8 +60,12 @@ export class StudentListComponent implements OnInit, OnDestroy {
       this.teacherId = user.userId;
 
       if (this.loggedInUserRole === 'ADMIN') {
-        this.selectedClass = localStorage.getItem('lastSelectedClass') || this.classList[0];
-        this.loadStudents();
+        this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+          this.classList = classes;
+          this.selectedClass = localStorage.getItem('lastSelectedClass') || classes[0] || '';
+          this.cdr.markForCheck();
+          if (this.selectedClass) this.loadStudents();
+        });
       } else if (this.loggedInUserRole === 'TEACHER') {
         this.getTeacherClassAndLoadStudents();
       }

@@ -9,8 +9,7 @@ import { AuthStateService } from '../../auth/auth-state.service';
 import { TeacherService } from '../../services/teacher.service';
 import { FeesCalculationService } from '../../services/fees-calculation.service';
 import { LoggerService } from '../../services/logger.service';
-
-const ALL_CLASSES = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-class-results',
@@ -24,7 +23,7 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   role = '';
-  classOptions = ALL_CLASSES;
+  classOptions: string[] = [];
   sessions: string[] = [];
 
   selectedSession = '';
@@ -44,7 +43,8 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
     private feesCalc: FeesCalculationService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private schoolService: SchoolService
   ) { }
 
   ngOnInit(): void {
@@ -61,9 +61,17 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
         },
         error: (e) => this.logger.error('Error fetching teacher:', e),
       });
+      this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+        this.classOptions = classes;
+        this.cdr.markForCheck();
+      });
     } else {
-      this.selectedClass = '1';
-      this.loadExams();
+      this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
+        this.classOptions = classes;
+        if (!this.selectedClass && classes.length > 0) this.selectedClass = classes[0];
+        this.cdr.markForCheck();
+        this.loadExams();
+      });
     }
   }
 
