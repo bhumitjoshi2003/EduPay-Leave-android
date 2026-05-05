@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { SchoolService, SchoolSettings } from '../../services/school.service';
+import { SchoolService, SchoolSettings, SchoolClass } from '../../services/school.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
@@ -29,9 +29,16 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   editForm: Partial<SchoolSettings> = {};
 
   // Razorpay tab
-  activeTab: 'general' | 'razorpay' = 'general';
+  activeTab: 'general' | 'classes' | 'razorpay' = 'general';
   razorpayKeyId = '';
   razorpayKeySecret = '';
+
+  // Classes tab
+  managedClasses: SchoolClass[] = [];
+  loadingClasses = false;
+  newClassName = '';
+  addingClass = false;
+  savingOrder = false;
 
   readonly boardTypes = ['CBSE', 'ICSE', 'STATE', 'IB', 'IGCSE', 'OTHER'];
 
@@ -142,6 +149,100 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  // ── Class management ──────────────────────────────────────────────────────
+
+  loadManagedClasses(): void {
+    this.loadingClasses = true;
+    this.cdr.markForCheck();
+    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (list) => {
+        this.managedClasses = list;
+        this.loadingClasses = false;
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to load classes', e);
+        this.loadingClasses = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  addNewClass(): void {
+    const name = this.newClassName.trim();
+    if (!name) return;
+    this.addingClass = true;
+    this.cdr.markForCheck();
+    this.schoolService.addClass(name).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (c) => {
+        this.managedClasses = [...this.managedClasses, c];
+        this.newClassName = '';
+        this.addingClass = false;
+        this.schoolService.invalidateClasses();
+        this.toast.success('Added', `Class "${c.name}" added.`);
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to add class', e);
+        this.toast.error('Error', 'Could not add class. It may already exist.');
+        this.addingClass = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  removeClass(cls: SchoolClass): void {
+    this.schoolService.deleteClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.managedClasses = this.managedClasses.filter(c => c.id !== cls.id);
+        this.schoolService.invalidateClasses();
+        this.toast.success('Removed', `Class "${cls.name}" removed.`);
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to delete class', e);
+        this.toast.error('Error', 'Could not remove class.');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  moveClass(index: number, direction: 'up' | 'down'): void {
+    const swap = direction === 'up' ? index - 1 : index + 1;
+    if (swap < 0 || swap >= this.managedClasses.length) return;
+    const list = [...this.managedClasses];
+    [list[index], list[swap]] = [list[swap], list[index]];
+    this.managedClasses = list;
+    this.cdr.markForCheck();
+  }
+
+  saveOrder(): void {
+    this.savingOrder = true;
+    this.cdr.markForCheck();
+    const ids = this.managedClasses.map(c => c.id);
+    this.schoolService.reorderClasses(ids).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.savingOrder = false;
+        this.schoolService.invalidateClasses();
+        this.toast.success('Saved', 'Class order saved.');
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to reorder classes', e);
+        this.toast.error('Error', 'Could not save order.');
+        this.savingOrder = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  onTabChange(tab: 'general' | 'classes' | 'razorpay'): void {
+    this.activeTab = tab;
+    if (tab === 'classes' && this.managedClasses.length === 0 && !this.loadingClasses) {
+      this.loadManagedClasses();
+    }
   }
 
   get isAdmin(): boolean {

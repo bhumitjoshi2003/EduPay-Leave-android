@@ -12,10 +12,13 @@
 
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn" [class.active]="activeTab === 'general'" (click)="activeTab = 'general'">
+      <button class="tab-btn" [class.active]="activeTab === 'general'" (click)="onTabChange('general')">
         General
       </button>
-      <button class="tab-btn" [class.active]="activeTab === 'razorpay'" (click)="activeTab = 'razorpay'">
+      <button class="tab-btn" [class.active]="activeTab === 'classes'" (click)="onTabChange('classes')">
+        Classes
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'razorpay'" (click)="onTabChange('razorpay')">
         Razorpay
       </button>
     </div>
@@ -138,6 +141,56 @@
         </div>
       </ng-container>
 
+    </div>
+
+    <!-- ── Classes tab ───────────────────────────────────────────────────── -->
+    <div class="card" *ngIf="activeTab === 'classes'">
+      <div class="card-header">
+        <h3>Class List</h3>
+      </div>
+      <p style="font-size:0.85rem;color:#6b7280;margin:0 0 16px">
+        Define the classes for your school. Use the arrows to set the display order — this order is used everywhere (student list, attendance, fees, etc.).
+      </p>
+
+      <div *ngIf="loadingClasses" style="text-align:center;padding:24px;color:#6b7280">Loading…</div>
+
+      <div *ngIf="!loadingClasses">
+
+        <!-- Class rows -->
+        <div *ngIf="managedClasses.length === 0" style="color:#6b7280;font-size:0.9rem;margin-bottom:16px">
+          No classes added yet. Add your first class below.
+        </div>
+
+        <div class="class-list">
+          <div *ngFor="let cls of managedClasses; let i = index; let first = first; let last = last" class="class-row">
+            <span class="class-order-num">{{ i + 1 }}</span>
+            <span class="class-name">{{ cls.name }}</span>
+            <div class="class-actions" *ngIf="isAdmin">
+              <button class="icon-btn" (click)="moveClass(i, 'up')" [disabled]="first" title="Move up">▲</button>
+              <button class="icon-btn" (click)="moveClass(i, 'down')" [disabled]="last" title="Move down">▼</button>
+              <button class="icon-btn danger" (click)="removeClass(cls)" title="Remove">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save order button -->
+        <div *ngIf="isAdmin && managedClasses.length > 1" style="margin:12px 0 20px">
+          <button class="btn btn-outline btn-sm" (click)="saveOrder()" [disabled]="savingOrder">
+            {{ savingOrder ? 'Saving…' : 'Save Order' }}
+          </button>
+        </div>
+
+        <!-- Add class form -->
+        <div class="add-class-row" *ngIf="isAdmin">
+          <input class="form-control" type="text" [(ngModel)]="newClassName"
+            placeholder="New class name, e.g. Grade 10"
+            (keyup.enter)="addNewClass()">
+          <button class="btn btn-primary btn-sm" (click)="addNewClass()" [disabled]="addingClass || !newClassName.trim()">
+            {{ addingClass ? 'Adding…' : 'Add' }}
+          </button>
+        </div>
+
+      </div>
     </div>
 
     <!-- ── Razorpay tab ──────────────────────────────────────────────────── -->

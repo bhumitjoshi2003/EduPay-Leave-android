@@ -3,6 +3,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, shareReplay } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface SchoolClass {
+  id: number;
+  name: string;
+  displayOrder: number;
+  active: boolean;
+}
+
 export interface SchoolSettings {
   id: number;
   name: string;
@@ -42,9 +49,27 @@ export class SchoolService {
     return this.classes$;
   }
 
-  /** Call this when class list may have changed (e.g. after onboarding a student). */
+  /** Call this when class list may have changed (e.g. after adding/deleting a class). */
   invalidateClasses(): void {
     this.classes$ = null;
+  }
+
+  // ── Class management (ADMIN only) ────────────────────────────────────────
+
+  getManagedClasses(): Observable<SchoolClass[]> {
+    return this.http.get<SchoolClass[]>(`${this.baseUrl}/classes/manage`);
+  }
+
+  addClass(name: string): Observable<SchoolClass> {
+    return this.http.post<SchoolClass>(`${this.baseUrl}/classes`, { name });
+  }
+
+  deleteClass(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/classes/${id}`);
+  }
+
+  reorderClasses(orderedIds: number[]): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/classes/reorder`, orderedIds);
   }
 
   getSettings(): Observable<SchoolSettings> {
