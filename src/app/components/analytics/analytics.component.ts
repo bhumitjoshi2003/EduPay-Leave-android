@@ -3,13 +3,15 @@ import {
   Component, OnDestroy, OnInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables, ChartConfiguration, ChartData } from 'chart.js';
 import {
-  DashboardAnalyticsService, DashboardStats, FeeTrend, ClassStats
+  DashboardAnalyticsService, DashboardStats, FeeTrend, ClassStats, AttendanceTrend
 } from '../../services/dashboard-analytics.service';
+import { SchoolService } from '../../services/school.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { AdminService } from '../../services/admin.service';
 import { LoggerService } from '../../services/logger.service';
@@ -25,7 +27,7 @@ const PALETTE = [
 @Component({
   selector: 'app-analytics',
   standalone: true,
-  imports: [CommonModule, RouterLink, BaseChartDirective],
+  imports: [CommonModule, FormsModule, RouterLink, BaseChartDirective],
   templateUrl: './analytics.component.html',
   styleUrl: './analytics.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -92,8 +94,35 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
     cutout: '62%',
   };
 
+  // ── Attendance trend (line) ───────────────────────────────────
+  classList: string[] = [];
+  selectedTrendClass = '';
+  trendMode: 'weekly' | 'monthly' = 'monthly';
+  isTrendLoading = false;
+  attendanceTrendData: ChartData<'line'> = { labels: [], datasets: [] };
+  attendanceTrendOptions: ChartConfiguration<'line'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `${Number(ctx.parsed.y).toFixed(1)}%` } }
+    },
+    scales: {
+      y: {
+        beginAtZero: false,
+        min: 0,
+        max: 100,
+        grid: { color: 'rgba(0,0,0,0.04)' },
+        ticks: { callback: val => `${val}%` }
+      },
+      x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 30 } }
+    },
+    elements: { line: { tension: 0.35 }, point: { radius: 4, hoverRadius: 6 } }
+  };
+
   constructor(
     private analyticsService: DashboardAnalyticsService,
+    private schoolService: SchoolService,
     private authState: AuthStateService,
     private adminService: AdminService,
     private cdr: ChangeDetectorRef,
@@ -107,6 +136,16 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({ next: a => { this.adminName = a.name; this.cdr.markForCheck(); } });
     }
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => {
+        this.classList = classes;
+        if (classes.length > 0) {
+          this.selectedTrendClass = classes[0];
+          this.loadAttendanceTrend();
+        }
+        this.cdr.markForCheck();
+      }
+    });
     this.loadAll();
   }
 
@@ -164,6 +203,51 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
         borderWidth: 2,
         borderRadius: 6,
         borderSkipped: false,
+      }]
+    };
+  }
+
+  loadAttendanceTrend(): void {
+    if (!this.selectedTrendClass) return;
+    this.isTrendLoading = true;
+    this.cdr.markForCheck();
+    this.analyticsService.getAttendanceTrend(this.selectedTrendClass, this.trendMode)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: data => {
+          this.buildAttendanceTrend(data);
+          this.isTrendLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: e => {
+          this.logger.error('Attendance trend load error:', e);
+          this.isTrendLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  onTrendClassChange(): void { this.loadAttendanceTrend(); }
+  onTrendModeChange(mode: 'weekly' | 'monthly'): void {
+    this.trendMode = mode;
+    this.loadAttendanceTrend();
+  }
+
+  private buildAttendanceTrend(data: AttendanceTrend[]): void {
+    const hasData = data.some(d => d.attendanceRate > 0);
+    const color = '#059669';
+    this.attendanceTrendData = {
+      labels: data.map(d => d.period),
+      datasets: [{
+        data: data.map(d => d.attendanceRate),
+        borderColor: color,
+        backgroundColor: hasData ? 'rgba(5,150,105,0.10)' : 'transparent',
+        fill: true,
+        pointBackgroundColor: data.map(d =>
+          d.attendanceRate >= 85 ? '#059669' : d.attendanceRate >= 70 ? '#d97706' : d.attendanceRate > 0 ? '#dc2626' : '#94a3b8'
+        ),
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
       }]
     };
   }

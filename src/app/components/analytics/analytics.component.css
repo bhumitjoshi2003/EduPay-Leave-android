@@ -264,6 +264,66 @@
 
 .an-donut-body { height: 280px; }
 
+/* ── Full-width chart card ───────────────────────────────────────── */
+.an-chart-full {
+  grid-column: 1 / -1;
+}
+
+/* ── Attendance trend controls ───────────────────────────────────── */
+.an-trend-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.an-trend-select {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #1e293b;
+  background: #f8fafc;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+}
+.an-trend-select:focus { border-color: #059669; }
+
+.an-trend-toggle {
+  display: flex;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.an-toggle-btn {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+.an-toggle-btn:first-child { border-right: 1.5px solid #e2e8f0; }
+.an-toggle-active {
+  background: #059669;
+  color: #fff;
+}
+
+.an-trend-body { height: 260px; }
+
+.an-trend-loading {
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ── Quick actions ───────────────────────────────────────────────── */
 .an-quick-grid {
   display: grid;

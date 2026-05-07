@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -23,6 +23,11 @@ export interface ClassStats {
   attendanceRate: number;
 }
 
+export interface AttendanceTrend {
+  period: string;
+  attendanceRate: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DashboardAnalyticsService {
   private base = `${environment.apiUrl}/dashboard`;
@@ -39,5 +44,10 @@ export class DashboardAnalyticsService {
 
   getClassStats(): Observable<ClassStats[]> {
     return this.http.get<ClassStats[]>(`${this.base}/class-stats`);
+  }
+
+  getAttendanceTrend(className: string, mode: 'weekly' | 'monthly'): Observable<AttendanceTrend[]> {
+    const params = new HttpParams().set('className', className).set('mode', mode);
+    return this.http.get<AttendanceTrend[]>(`${this.base}/attendance-trend`, { params });
   }
 }

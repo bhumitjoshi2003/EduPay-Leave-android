@@ -123,6 +123,31 @@
 
     </div>
 
+    <!-- ── Attendance Trend ─────────────────────────────────────────── -->
+    <div class="an-chart-card an-chart-full">
+      <div class="an-chart-header">
+        <div>
+          <h3 class="an-chart-title">Attendance Trend</h3>
+          <p class="an-chart-sub">Attendance % over time for the selected class</p>
+        </div>
+        <div class="an-trend-controls">
+          <select class="an-trend-select" [(ngModel)]="selectedTrendClass" (ngModelChange)="onTrendClassChange()">
+            <option *ngFor="let c of classList" [value]="c">Class {{ c }}</option>
+          </select>
+          <div class="an-trend-toggle">
+            <button class="an-toggle-btn" [class.an-toggle-active]="trendMode === 'monthly'" (click)="onTrendModeChange('monthly')">Monthly</button>
+            <button class="an-toggle-btn" [class.an-toggle-active]="trendMode === 'weekly'" (click)="onTrendModeChange('weekly')">Weekly</button>
+          </div>
+        </div>
+      </div>
+      <div class="an-chart-body an-trend-body" *ngIf="!isTrendLoading">
+        <canvas baseChart [data]="attendanceTrendData" [options]="attendanceTrendOptions" type="line"></canvas>
+      </div>
+      <div class="an-trend-loading" *ngIf="isTrendLoading">
+        <div class="an-spinner"></div>
+      </div>
+    </div>
+
     <!-- ── Charts row 2 ───────────────────────────────────────────── -->
     <div class="an-charts-row">
 
