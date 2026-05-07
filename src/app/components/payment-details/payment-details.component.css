@@ -49,14 +49,21 @@
 }
 .pd-back-btn:active { background: rgba(255,255,255,0.28); }
 
-.pd-share-btn {
+.pd-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pd-share-btn,
+.pd-pdf-btn {
   display: flex;
   align-items: center;
   gap: 6px;
   background: rgba(255,255,255,0.18);
   border: 1.5px solid rgba(255,255,255,0.4);
   border-radius: 20px;
-  padding: 7px 16px;
+  padding: 7px 14px;
   color: #fff;
   font-size: 0.82rem;
   font-weight: 700;
@@ -64,7 +71,9 @@
   font-family: inherit;
   transition: background 0.15s;
 }
-.pd-share-btn:active { background: rgba(255,255,255,0.28); }
+.pd-share-btn:active,
+.pd-pdf-btn:active { background: rgba(255,255,255,0.28); }
+.pd-pdf-btn:disabled { opacity: 0.55; cursor: default; }
 
 .pd-hero-center {
   display: flex;
