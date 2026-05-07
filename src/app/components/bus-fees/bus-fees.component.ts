@@ -125,11 +125,11 @@ export class BusFeesComponent implements OnInit, OnDestroy {
           return;
         }
         this.academicYears.push(newYear);
-        this.cdr.markForCheck();
-        this.fetchBusFees();
         this.currentSession = newYear;
+        this.busFeeStructures = [];
         this.isEditing = true;
         this.isNewSession = true;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -178,11 +178,14 @@ export class BusFeesComponent implements OnInit, OnDestroy {
         this.isEditing = false;
         this.isNewSession = false;
         this.cdr.markForCheck();
-        this.busFeesService.updateBusFees(this.currentSession, this.busFeeStructures).subscribe(() => {
-          this.originalBusFees = JSON.parse(JSON.stringify(this.busFeeStructures));
-          this.toast.success('Saved!', `Bus fees for ${this.currentSession} saved successfully.`);
-        }, (error) => {
-          this.toast.error('Error!', 'Failed to save the bus fees.');
+        this.busFeesService.updateBusFees(this.currentSession, this.busFeeStructures).pipe(takeUntil(this.destroy$)).subscribe({
+          next: () => {
+            this.originalBusFees = JSON.parse(JSON.stringify(this.busFeeStructures));
+            this.toast.success('Saved!', `Bus fees for ${this.currentSession} saved successfully.`);
+          },
+          error: () => {
+            this.toast.error('Error!', 'Failed to save the bus fees.');
+          }
         });
       }
     });

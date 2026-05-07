@@ -116,10 +116,8 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
       if (confirmed) {
         this.isNewSessionStarted = true;
         this.newSessionYear = nextSession;
-
-        const latestSession = this.sessions[this.sessions.length - 1];
-        const newFeeStructures = this.feeStructures.map(fee => ({ ...fee, academicYear: nextSession }));
-
+        // Copy previous year's fee rows into the new session (className stays, fees are editable)
+        this.feeStructures = this.feeStructures.map(fee => ({ ...fee, id: undefined, academicYear: nextSession }));
         this.sessions.push(nextSession);
         this.currentSession = nextSession;
         this.isEditing = true;
@@ -234,15 +232,18 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
 
   addRow(): void {
     if (this.isEditing) {
+      const prev = this.feeStructures.length > 0
+        ? this.feeStructures[this.feeStructures.length - 1]
+        : null;
       this.feeStructures.push({
         academicYear: this.currentSession,
-        className: 'New Class',
-        tuitionFee: 0,
-        admissionFee: 0,
-        annualCharges: 0,
-        ecaProject: 0,
-        examinationFee: 0,
-        labCharges: 0,
+        className: '',
+        tuitionFee: prev?.tuitionFee ?? 0,
+        admissionFee: prev?.admissionFee ?? 0,
+        annualCharges: prev?.annualCharges ?? 0,
+        ecaProject: prev?.ecaProject ?? 0,
+        examinationFee: prev?.examinationFee ?? 0,
+        labCharges: prev?.labCharges ?? 0,
       });
       this.cdr.markForCheck();
     }
@@ -251,11 +252,12 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   removeRow(): void {
     if (this.isEditing && this.feeStructures.length > 0) {
       this.feeStructures.pop();
+      this.cdr.markForCheck();
     }
   }
 
   trackBySession(index: number, session: string): string { return session; }
-  trackByClassName(index: number, fee: FeeStructure): string { return fee.className; }
+  trackByIndex(index: number): number { return index; }
 
   canEdit(): boolean {
     return this.authStateService.getUserRole() === 'ADMIN';
