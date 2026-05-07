@@ -1,21 +1,42 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ── Stack trace readability ────────────────────────────────────────────────
+# Keep file names and line numbers so crash reports are useful.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ── Capacitor core ────────────────────────────────────────────────────────
+# The Capacitor bridge exposes Java methods to the WebView JS layer.
+# Stripping these breaks every plugin call.
+-keep class com.getcapacitor.** { *; }
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+-keepclassmembers class com.getcapacitor.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ── App package ───────────────────────────────────────────────────────────
+-keep class in.edunexify.app.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ── WebView JavaScript Interface ──────────────────────────────────────────
+# Any method annotated @JavascriptInterface must not be renamed or removed.
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# ── Firebase (push notifications) ─────────────────────────────────────────
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
+
+# ── AndroidX / Jetpack ────────────────────────────────────────────────────
+-keep class androidx.** { *; }
+-dontwarn androidx.**
+
+# ── Splash screen ─────────────────────────────────────────────────────────
+-keep class androidx.core.splashscreen.** { *; }
+
+# ── Kotlin (if any Kotlin plugins are added later) ────────────────────────
+-keep class kotlin.** { *; }
+-dontwarn kotlin.**
+
+# ── Suppress common harmless warnings ─────────────────────────────────────
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
