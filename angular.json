@@ -15,7 +15,12 @@
           "options": {
             "allowedCommonJsDependencies": [
               "sweetalert2",
-              "file-saver"
+              "file-saver",
+              "canvg",
+              "html2canvas",
+              "raf",
+              "rgbcolor",
+              "core-js"
             ],
             "outputPath": "dist/ias",
             "index": "src/index.html",

@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil, filter, skip, distinctUntilChanged, map } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { NetworkService } from '../../services/network.service';
 import { ToastService } from '../../services/toast.service';
 

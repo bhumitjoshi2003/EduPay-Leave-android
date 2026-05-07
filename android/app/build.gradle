@@ -4,6 +4,7 @@ apply plugin: 'com.android.application'
 def versionProps = new Properties()
 file('../../version.properties').withInputStream { versionProps.load(it) }
 
+
 android {
     namespace = "in.edunexify.app"
     compileSdk = rootProject.ext.compileSdkVersion
