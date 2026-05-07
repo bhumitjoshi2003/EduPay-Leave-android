@@ -29,7 +29,8 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
   sessions: string[] = [];
   selectedSession = '';
   selectedClass = '';
-  minDaysOverdue = 0;   // 0 = all, 30 = 30+ days, 60 = 60+ days
+  minDaysOverdue = 0;      // 0 = all, 30 = 30+ days, 60 = 60+ days
+  minUnpaidMonths = 0;     // 0 = all, 1 = 1+, 2 = 2+, 3 = 3+, 6 = 6+
 
   allStudents: OverdueStudent[] = [];
   isLoading = false;
@@ -84,6 +85,7 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
     return this.allStudents.filter(s => {
       if (this.selectedClass && s.className !== this.selectedClass) return false;
       if (this.minDaysOverdue && s.daysOverdue < this.minDaysOverdue) return false;
+      if (this.minUnpaidMonths && s.unpaidMonths.length < this.minUnpaidMonths) return false;
       return true;
     });
   }
@@ -107,6 +109,10 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
 
   get warningCount(): number {
     return this.filteredStudents.filter(s => s.daysOverdue >= 30 && s.daysOverdue < 60).length;
+  }
+
+  get defaulterCount(): number {
+    return this.filteredStudents.filter(s => s.unpaidMonths.length >= 3).length;
   }
 
   // ── Pagination helpers ───────────────────────────────────────────

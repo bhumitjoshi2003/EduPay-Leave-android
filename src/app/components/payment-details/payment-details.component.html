@@ -44,11 +44,32 @@
     </div>
   </div>
 
-  <!-- ── Loading ───────────────────────────────────────────────────── -->
-  <div class="pd-loading" *ngIf="loading">
-    <div class="pd-spinner"></div>
-    <p>Loading receipt...</p>
-  </div>
+  <!-- ── Skeleton ─────────────────────────────────────────────────── -->
+  <ng-container *ngIf="loading">
+    <div class="pd-card">
+      <span class="sk-shimmer" style="width:120px;height:14px;margin-bottom:16px"></span>
+      <div class="pd-grid">
+        <div *ngFor="let _ of [1,2,3,4]" style="display:flex;flex-direction:column;gap:6px">
+          <span class="sk-shimmer" style="width:70px;height:11px"></span>
+          <span class="sk-shimmer" style="width:90%;height:14px"></span>
+        </div>
+      </div>
+    </div>
+    <div class="pd-card">
+      <span class="sk-shimmer" style="width:100px;height:14px;margin-bottom:16px"></span>
+      <div *ngFor="let _ of [1,2,3,4,5]" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0">
+        <span class="sk-shimmer" style="width:45%;height:12px"></span>
+        <span class="sk-shimmer" style="width:25%;height:12px"></span>
+      </div>
+    </div>
+    <div class="pd-card">
+      <span class="sk-shimmer" style="width:130px;height:14px;margin-bottom:16px"></span>
+      <div *ngFor="let _ of [1,2,3]" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+        <span class="sk-shimmer" style="width:80px;height:11px"></span>
+        <span class="sk-shimmer" style="width:65%;height:13px"></span>
+      </div>
+    </div>
+  </ng-container>
 
   <!-- ── Error ─────────────────────────────────────────────────────── -->
   <div class="pd-error" *ngIf="error && !loading">

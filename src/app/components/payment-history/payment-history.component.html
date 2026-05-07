@@ -1,10 +1,22 @@
 <div *ngIf="showFeesModule; else comingSoonTemplate">
   <div class="ph-page">
 
-    <!-- ── Full-page Loading ─────────────────────────────────────────── -->
-    <div class="ph-loading" *ngIf="loading && paymentHistory.length === 0">
-      <div class="ph-spinner"></div>
-      <span>Loading payment history…</span>
+    <!-- ── Skeleton ─────────────────────────────────────────────────── -->
+    <div class="ph-section" *ngIf="loading && paymentHistory.length === 0">
+      <span class="sk-shimmer" style="width:110px;height:16px;margin-bottom:14px"></span>
+      <div class="ph-list">
+        <div class="ph-card" *ngFor="let _ of [1,2,3,4,5,6]" style="cursor:default;pointer-events:none">
+          <div class="sk-shimmer" style="width:44px;height:44px;border-radius:50%;flex-shrink:0"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+            <span class="sk-shimmer" style="width:62%;height:13px"></span>
+            <span class="sk-shimmer" style="width:42%;height:10px"></span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <span class="sk-shimmer" style="width:68px;height:15px"></span>
+            <span class="sk-shimmer" style="width:56px;height:21px;border-radius:20px"></span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <ng-container *ngIf="!loading || paymentHistory.length > 0">

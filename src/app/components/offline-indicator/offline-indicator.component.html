@@ -1,0 +1,66 @@
+<div class="oi-overlay" *ngIf="isVisible" [class.oi-leaving]="isLeaving">
+
+  <!-- Starfield layers -->
+  <div class="oi-stars oi-stars-1"></div>
+  <div class="oi-stars oi-stars-2"></div>
+  <div class="oi-stars oi-stars-3"></div>
+
+  <!-- Floating dust particles -->
+  <div class="oi-particles">
+    <span class="oi-p" *ngFor="let _ of [1,2,3,4,5,6,7,8]"></span>
+  </div>
+
+  <div class="oi-stage">
+
+    <!-- Pulsing signal rings -->
+    <div class="oi-rings">
+      <div class="oi-ring oi-ring-1"></div>
+      <div class="oi-ring oi-ring-2"></div>
+      <div class="oi-ring oi-ring-3"></div>
+    </div>
+
+    <!-- Broken signal icon -->
+    <div class="oi-icon-wrap">
+      <svg class="oi-signal-svg" viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer arc — broken, flickering -->
+        <path class="oi-arc oi-arc-outer"
+          d="M 8 62 Q 50 8 92 62"
+          stroke="#7c3aed" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="12 8" />
+        <!-- Middle arc — faded -->
+        <path class="oi-arc oi-arc-mid"
+          d="M 23 72 Q 50 36 77 72"
+          stroke="#a78bfa" stroke-width="6" stroke-linecap="round" />
+        <!-- Inner arc — visible -->
+        <path class="oi-arc oi-arc-inner"
+          d="M 38 80 Q 50 64 62 80"
+          stroke="#c4b5fd" stroke-width="6" stroke-linecap="round" />
+        <!-- Center dot -->
+        <circle class="oi-dot" cx="50" cy="86" r="5" fill="#7c3aed" />
+        <!-- X slash over outer arc -->
+        <line class="oi-cross" x1="68" y1="16" x2="84" y2="32"
+          stroke="#ef4444" stroke-width="5" stroke-linecap="round" />
+        <line class="oi-cross" x1="84" y1="16" x2="68" y2="32"
+          stroke="#ef4444" stroke-width="5" stroke-linecap="round" />
+      </svg>
+    </div>
+
+    <!-- Copy -->
+    <h1 class="oi-title">Signal Lost</h1>
+    <p class="oi-subtitle">
+      You've drifted offline.<br>
+      Check your connection and try again.
+    </p>
+
+    <!-- Retry -->
+    <button class="oi-retry-btn" (click)="retry()">
+      <svg class="oi-retry-icon" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-3.63"/>
+      </svg>
+      Try Again
+    </button>
+
+  </div>
+</div>

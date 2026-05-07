@@ -1,0 +1,242 @@
+.ss-page {
+  padding-bottom: 24px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Hero ────────────────────────────────────────────────────────── */
+.ss-hero {
+  position: relative;
+  background: linear-gradient(135deg, #1e1065 0%, #4c1d95 50%, #7c3aed 100%);
+  border-radius: 20px;
+  padding: 28px 24px 36px;
+  margin: 0 0 0;
+  overflow: hidden;
+  color: #fff;
+}
+
+.ss-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.ss-blob-1 { width: 140px; height: 140px; background: #fff;    top: -40px; right: -30px; }
+.ss-blob-2 { width: 90px;  height: 90px;  background: #c4b5fd; bottom: -25px; left: 30%; }
+
+.ss-hero-inner { position: relative; z-index: 1; }
+
+.ss-hero-title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: 0.01em;
+}
+
+.ss-hero-sub {
+  font-size: 0.88rem;
+  opacity: 0.82;
+  margin: 0;
+}
+
+/* ── Search bar ──────────────────────────────────────────────────── */
+.ss-search-wrap {
+  padding: 0 0 4px;
+  margin-top: -20px;
+}
+
+.ss-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 0 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.13), 0 0 0 2px transparent;
+  transition: box-shadow 0.2s ease;
+  min-height: 56px;
+}
+
+.ss-search-box.ss-focused {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.13), 0 0 0 2px rgba(124, 58, 237, 0.3);
+}
+
+.ss-search-icon {
+  width: 20px;
+  height: 20px;
+  color: #9ca3af;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.ss-search-box.ss-focused .ss-search-icon {
+  color: #7c3aed;
+}
+
+.ss-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: #111827;
+  background: transparent;
+  padding: 16px 0;
+}
+
+.ss-input::placeholder { color: #9ca3af; }
+
+.ss-clear-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ss-clear-btn:hover { color: #374151; background: #f3f4f6; }
+
+.ss-clear-btn svg { width: 16px; height: 16px; }
+
+.ss-hint {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+/* ── Results count ───────────────────────────────────────────────── */
+.ss-results-count {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin: 16px 0 10px;
+  font-weight: 500;
+}
+
+/* ── Result cards ────────────────────────────────────────────────── */
+.ss-results { margin-top: 8px; }
+
+.ss-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.04);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ss-card:active {
+  transform: scale(0.985);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+
+.ss-sk-card { cursor: default; pointer-events: none; }
+
+.ss-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ss-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ss-card-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ss-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.ss-card-id {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.ss-meta-dot { color: #d1d5db; font-size: 0.8rem; }
+
+.ss-card-class {
+  font-size: 0.78rem;
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+/* Status chips */
+.ss-status-chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+.ss-status-active   { background: #dcfce7; color: #15803d; }
+.ss-status-upcoming { background: #eff6ff; color: #1d4ed8; }
+.ss-status-inactive { background: #f1f5f9; color: #64748b; }
+
+.ss-arrow {
+  width: 18px;
+  height: 18px;
+  color: #d1d5db;
+  flex-shrink: 0;
+}
+
+/* ── Empty / Idle / Error states ─────────────────────────────────── */
+.ss-empty, .ss-idle, .ss-error {
+  text-align: center;
+  padding: 48px 24px 24px;
+}
+
+.ss-empty-icon, .ss-idle-icon { font-size: 3rem; margin-bottom: 12px; }
+
+.ss-empty-title, .ss-idle-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 6px;
+}
+
+.ss-empty-sub, .ss-idle-sub {
+  font-size: 0.87rem;
+  color: #6b7280;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 280px;
+  display: inline-block;
+}
+
+.ss-error p {
+  color: #dc2626;
+  font-size: 0.9rem;
+}

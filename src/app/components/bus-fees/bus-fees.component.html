@@ -36,10 +36,24 @@
       </div>
     </div>
 
-    <!-- Loading -->
-    <div class="bf-loading" *ngIf="isLoading">
-      <div class="bf-spinner"></div>
-      <p>Loading bus fees...</p>
+    <!-- Skeleton -->
+    <div class="bf-table-wrap" *ngIf="isLoading">
+      <table class="bf-table" aria-hidden="true">
+        <thead>
+          <tr>
+            <th>Min Distance (km)</th>
+            <th>Max Distance (km)</th>
+            <th>Fee (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let _ of [1,2,3,4,5,6,7]">
+            <td><span class="sk-shimmer" style="width:60px;height:13px"></span></td>
+            <td><span class="sk-shimmer" style="width:60px;height:13px"></span></td>
+            <td><span class="sk-shimmer" style="width:70px;height:13px"></span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- No sessions yet -->

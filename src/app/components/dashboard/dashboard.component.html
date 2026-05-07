@@ -17,6 +17,9 @@
     </div>
 
     <div class="hdr-controls">
+      <button *ngIf="isAdmin()" class="hdr-search-btn" (click)="navigateToStudentSearch()" title="Search Students">
+        <mat-icon>search</mat-icon>
+      </button>
       <button class="hdr-bell" (click)="navigateToNoticeBoard()" title="Notice Board"
         *ngIf="!isSuperAdmin()"
         [matBadge]="unreadNotificationCount" [matBadgeHidden]="unreadNotificationCount === 0" matBadgeColor="warn"

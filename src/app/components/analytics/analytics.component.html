@@ -1,10 +1,21 @@
 <div class="an-page">
 
-  <!-- ── Loading ─────────────────────────────────────────────────── -->
-  <div class="an-loading" *ngIf="isLoading">
-    <div class="an-spinner"></div>
-    <span>Loading dashboard…</span>
-  </div>
+  <!-- ── Skeleton ─────────────────────────────────────────────────── -->
+  <ng-container *ngIf="isLoading">
+    <!-- Hero skeleton -->
+    <div class="sk-shimmer" style="height:130px;border-radius:20px;margin-bottom:20px"></div>
+    <!-- Stat cards skeleton -->
+    <div class="an-stats-grid">
+      <div class="sk-shimmer" *ngFor="let _ of [1,2,3,4,5,6]" style="height:100px;border-radius:16px"></div>
+    </div>
+    <!-- Chart row skeleton -->
+    <div class="an-charts-row" style="margin-top:20px">
+      <div class="sk-shimmer" style="height:260px;border-radius:16px;flex:1"></div>
+      <div class="sk-shimmer" style="height:260px;border-radius:16px;flex:1"></div>
+    </div>
+    <!-- Attendance trend skeleton -->
+    <div class="sk-shimmer" style="height:320px;border-radius:16px;margin-top:20px"></div>
+  </ng-container>
 
   <p class="an-error" *ngIf="error && !isLoading">{{ error }}</p>
 

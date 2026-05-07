@@ -1,0 +1,105 @@
+<div class="ss-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="ss-hero">
+    <div class="ss-blob ss-blob-1"></div>
+    <div class="ss-blob ss-blob-2"></div>
+    <div class="ss-hero-inner">
+      <h1 class="ss-hero-title">Find a Student</h1>
+      <p class="ss-hero-sub">Search by name or student ID across all classes</p>
+    </div>
+  </div>
+
+  <!-- ── Search Bar ─────────────────────────────────────────────────── -->
+  <div class="ss-search-wrap">
+    <div class="ss-search-box" [class.ss-focused]="query.length > 0">
+
+      <svg class="ss-search-icon" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+
+      <input
+        class="ss-input"
+        type="text"
+        [(ngModel)]="query"
+        (ngModelChange)="onQueryChange()"
+        placeholder="Search name or student ID…"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      />
+
+      <button *ngIf="query.length > 0" class="ss-clear-btn" (click)="clearSearch()" aria-label="Clear search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+    </div>
+    <p class="ss-hint" *ngIf="query.length === 1">Type at least 2 characters to search</p>
+  </div>
+
+  <!-- ── Loading skeleton ───────────────────────────────────────────── -->
+  <div class="ss-results" *ngIf="isLoading">
+    <div class="ss-card ss-sk-card" *ngFor="let _ of [1,2,3,4,5]">
+      <div class="sk-shimmer" style="width:44px;height:44px;border-radius:50%;flex-shrink:0"></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+        <span class="sk-shimmer" style="width:55%;height:14px"></span>
+        <span class="sk-shimmer" style="width:38%;height:11px"></span>
+      </div>
+      <span class="sk-shimmer" style="width:56px;height:22px;border-radius:10px"></span>
+    </div>
+  </div>
+
+  <!-- ── Results ────────────────────────────────────────────────────── -->
+  <div class="ss-results" *ngIf="!isLoading && results.length > 0">
+    <p class="ss-results-count">{{ results.length }} result{{ results.length !== 1 ? 's' : '' }} for "{{ query }}"</p>
+
+    <div class="ss-card"
+      *ngFor="let s of results; trackBy: trackByStudentId"
+      (click)="viewStudent(s.studentId)">
+
+      <div class="ss-avatar">{{ getInitial(s.name) }}</div>
+
+      <div class="ss-card-info">
+        <span class="ss-card-name">{{ s.name }}</span>
+        <div class="ss-card-meta">
+          <span class="ss-card-id">{{ s.studentId }}</span>
+          <span class="ss-meta-dot">·</span>
+          <span class="ss-card-class">Class {{ s.className }}</span>
+        </div>
+      </div>
+
+      <span class="ss-status-chip" [ngClass]="getStatusClass(s.status)">
+        {{ getStatusLabel(s.status) }}
+      </span>
+
+      <svg class="ss-arrow" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+
+    </div>
+  </div>
+
+  <!-- ── Empty ──────────────────────────────────────────────────────── -->
+  <div class="ss-empty" *ngIf="!isLoading && hasSearched && results.length === 0 && !error">
+    <div class="ss-empty-icon">🔍</div>
+    <p class="ss-empty-title">No students found</p>
+    <p class="ss-empty-sub">No match for "{{ query }}". Try a different name or ID.</p>
+  </div>
+
+  <!-- ── Error ──────────────────────────────────────────────────────── -->
+  <div class="ss-error" *ngIf="error && !isLoading">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- ── Idle state ─────────────────────────────────────────────────── -->
+  <div class="ss-idle" *ngIf="!isLoading && !hasSearched && !error && query.length < 2">
+    <div class="ss-idle-icon">👨‍🎓</div>
+    <p class="ss-idle-title">Search across all classes</p>
+    <p class="ss-idle-sub">Find any student instantly by name or ID — no need to know their class first.</p>
+  </div>
+
+</div>

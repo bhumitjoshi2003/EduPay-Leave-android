@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Student } from '../interfaces/student';
@@ -90,6 +90,11 @@ export class StudentService {
 
   executePromotion(decisions: { studentId: string; action: PromotionAction }[]): Observable<PromotionResult> {
     return this.http.post<PromotionResult>(`${this.baseUrl}/promotion/execute`, { decisions });
+  }
+
+  searchStudents(query: string): Observable<Student[]> {
+    const params = new HttpParams().set('q', query);
+    return this.http.get<Student[]>(`${this.baseUrl}/search`, { params });
   }
 
 }

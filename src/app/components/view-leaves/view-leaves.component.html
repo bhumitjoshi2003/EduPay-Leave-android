@@ -71,10 +71,22 @@
     </div>
   </div>
 
-  <!-- ── Loading ──────────────────────────────────────────────────── -->
-  <div class="vl-loading" *ngIf="isLoading">
-    <div class="vl-spinner"></div>
-    <p>Loading leave applications...</p>
+  <!-- ── Skeleton ─────────────────────────────────────────────────── -->
+  <div class="vl-section" *ngIf="isLoading">
+    <div class="vl-list">
+      <div class="vl-card" *ngFor="let _ of [1,2,3,4,5]" style="pointer-events:none">
+        <div class="sk-shimmer" style="width:44px;height:58px;border-radius:10px;flex-shrink:0"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:7px;padding:2px 8px">
+          <span class="sk-shimmer" style="width:54%;height:14px"></span>
+          <span class="sk-shimmer" style="width:68%;height:11px"></span>
+          <span class="sk-shimmer" style="width:42%;height:10px"></span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
+          <span class="sk-shimmer" style="width:72px;height:22px;border-radius:12px"></span>
+          <span class="sk-shimmer" style="width:80px;height:30px;border-radius:8px"></span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ── Empty State ────────────────────────────────────────────────── -->

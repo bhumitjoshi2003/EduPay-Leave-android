@@ -16,10 +16,22 @@
     <div class="tl-blob tl-blob-2"></div>
   </div>
 
-  <!-- ── Loading ──────────────────────────────────────────────────────── -->
-  <div class="tl-loading" *ngIf="isLoading">
-    <div class="tl-spinner"></div>
-    <p>Loading teachers...</p>
+  <!-- ── Skeleton ─────────────────────────────────────────────────────── -->
+  <div class="tl-section" *ngIf="isLoading">
+    <div class="tl-section-header">
+      <span class="sk-shimmer" style="width:100px;height:14px"></span>
+      <span class="sk-shimmer" style="width:22px;height:14px;border-radius:10px"></span>
+    </div>
+    <div class="tl-list">
+      <div class="tl-card" *ngFor="let _ of [1,2,3,4,5,6]" style="cursor:default;pointer-events:none">
+        <div class="sk-shimmer" style="width:44px;height:44px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+          <span class="sk-shimmer" style="width:52%;height:13px"></span>
+          <span class="sk-shimmer" style="width:36%;height:10px"></span>
+        </div>
+        <span class="sk-shimmer" style="width:16px;height:16px;border-radius:4px"></span>
+      </div>
+    </div>
   </div>
 
   <!-- ── Empty ──────────────────────────────────────────────────────── -->

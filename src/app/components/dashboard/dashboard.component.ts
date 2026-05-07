@@ -231,6 +231,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard/notice']);
   }
 
+  navigateToStudentSearch(): void {
+    this.router.navigate(['/dashboard/student-search']);
+  }
+
   getRoleLabel(): string {
     const labels: Record<string, string> = {
       'STUDENT': 'Student',

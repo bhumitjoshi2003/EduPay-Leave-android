@@ -63,6 +63,13 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['TEACHER', 'ADMIN'] }
       },
 
+      // ── Admin global search ───────────────────────────────────────────
+      {
+        path: 'student-search',
+        loadComponent: () => import('./components/student-search/student-search.component').then(m => m.StudentSearchComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+
       // ── Shared list / detail routes (Teacher + Admin) ─────────────────
       {
         path: 'student-list',

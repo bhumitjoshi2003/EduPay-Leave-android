@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastContainerComponent } from './components/toast/toast-container.component';
+import { OfflineIndicatorComponent } from './components/offline-indicator/offline-indicator.component';
 import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -9,7 +10,7 @@ import { App } from '@capacitor/app';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastContainerComponent],
+  imports: [RouterOutlet, ToastContainerComponent, OfflineIndicatorComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

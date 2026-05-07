@@ -27,10 +27,25 @@
     </div>
   </div>
 
-  <!-- ── Loading ──────────────────────────────────────────────────────── -->
-  <div class="sl-loading" *ngIf="isLoading">
-    <div class="sl-spinner"></div>
-    <p>Loading students...</p>
+  <!-- ── Skeleton ─────────────────────────────────────────────────────── -->
+  <div *ngIf="isLoading">
+    <div class="sl-section" *ngFor="let _ of [1,2]">
+      <div class="sl-section-header">
+        <span class="sk-shimmer" style="width:10px;height:10px;border-radius:50%"></span>
+        <span class="sk-shimmer" style="width:55px;height:13px"></span>
+        <span class="sk-shimmer" style="width:22px;height:13px"></span>
+      </div>
+      <div class="sl-list">
+        <div class="sl-card" *ngFor="let __ of [1,2,3,4]" style="cursor:default;pointer-events:none">
+          <div class="sk-shimmer" style="width:42px;height:42px;border-radius:50%;flex-shrink:0"></div>
+          <div class="sl-card-info" style="flex:1;gap:6px">
+            <span class="sk-shimmer" style="width:55%;height:13px"></span>
+            <span class="sk-shimmer" style="width:38%;height:10px"></span>
+          </div>
+          <span class="sk-shimmer" style="width:16px;height:16px;border-radius:4px"></span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ── Empty ──────────────────────────────────────────────────────── -->

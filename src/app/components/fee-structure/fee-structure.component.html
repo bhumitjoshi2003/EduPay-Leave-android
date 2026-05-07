@@ -44,10 +44,29 @@
     </div>
   </div>
 
-  <!-- ── Loading ─────────────────────────────────────────────────── -->
-  <div class="fs-loading" *ngIf="isLoading">
-    <div class="fs-spinner"></div>
-    <p>Loading fee structure...</p>
+  <!-- ── Skeleton ─────────────────────────────────────────────────── -->
+  <div class="fs-table-wrap" *ngIf="isLoading">
+    <div class="fs-table-scroll">
+      <table class="fs-table" aria-hidden="true">
+        <thead>
+          <tr>
+            <th>Class</th><th>Tuition Fee</th><th>Admission Fee</th>
+            <th>Annual Charges</th><th>E.C.A (Project)</th><th>Examination Fee</th><th>Lab Charges</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let _ of [1,2,3,4,5,6,7,8]">
+            <td><span class="sk-shimmer" style="width:52px;height:13px"></span></td>
+            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
+            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
+            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
+            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
+            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
+            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- ── No sessions yet ───────────────────────────────────────────── -->
