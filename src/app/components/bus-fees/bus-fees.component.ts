@@ -102,10 +102,16 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   startNewAcademicYear(): void {
-    const lastSession = this.academicYears[this.academicYears.length - 1];
-    const [lastYearStr] = lastSession.split('-');
-    const lastYear = parseInt(lastYearStr);
-    const newYear = `${lastYear + 1}-${lastYear + 2}`; // Corrected newYear calculation
+    let newYear: string;
+    if (this.academicYears.length === 0) {
+      const y = new Date().getFullYear();
+      newYear = `${y}-${y + 1}`;
+    } else {
+      const lastSession = this.academicYears[this.academicYears.length - 1];
+      const [lastYearStr] = lastSession.split('-');
+      const lastYear = parseInt(lastYearStr);
+      newYear = `${lastYear + 1}-${lastYear + 2}`;
+    }
 
     this.toast.confirm({
       title: 'Start New Academic Year?',

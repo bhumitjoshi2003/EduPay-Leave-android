@@ -30,7 +30,7 @@
           (click)="startNewAcademicYear()">
           ＋ New Year
         </button>
-        <button *ngIf="!isEditing && canEdit()" class="fs-btn fs-btn-primary" (click)="edit()">
+        <button *ngIf="!isEditing && canEdit() && sessions.length > 0" class="fs-btn fs-btn-primary" (click)="edit()">
           ✎ Edit
         </button>
         <ng-container *ngIf="isEditing">

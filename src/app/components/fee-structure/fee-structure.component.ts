@@ -129,6 +129,11 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   }
 
   getNextAvailableSession(): string {
+    if (this.sessions.length === 0) {
+      const y = new Date().getFullYear();
+      return `${y}-${y + 1}`;
+    }
+
     let [startYear, endYear] = this.sessions[this.sessions.length - 1].split('-').map(Number);
 
     while (this.sessions.includes(`${startYear + 1}-${endYear + 1}`)) {
@@ -162,15 +167,24 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
       cancelText: 'Cancel',
     }).then((confirmed) => {
       if (confirmed) {
+        const wasNewSession = this.isNewSessionStarted;
         this.isEditing = false;
         this.isNewSessionStarted = false;
         this.cdr.markForCheck();
-        this.feeStructureService.updateFeeStructures(this.currentSession, this.feeStructures).subscribe(() => {
-          this.originalFeeStructure = JSON.parse(JSON.stringify(this.feeStructures));
-          this.toast.success('Saved!', `Fee structure for ${this.currentSession} saved successfully.`);
-        }, (error) => {
-          this.toast.error('Error!', 'Failed to save the fee structure.');
-          this.logger.error('Error saving fee structure:', error);
+
+        const save$ = wasNewSession
+          ? this.feeStructureService.createNewSession('', this.currentSession, this.feeStructures)
+          : this.feeStructureService.updateFeeStructures(this.currentSession, this.feeStructures);
+
+        save$.pipe(takeUntil(this.destroy$)).subscribe({
+          next: () => {
+            this.originalFeeStructure = JSON.parse(JSON.stringify(this.feeStructures));
+            this.toast.success('Saved!', `Fee structure for ${this.currentSession} saved successfully.`);
+          },
+          error: (error) => {
+            this.toast.error('Error!', 'Failed to save the fee structure.');
+            this.logger.error('Error saving fee structure:', error);
+          }
         });
       }
     });

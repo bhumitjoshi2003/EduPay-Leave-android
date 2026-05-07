@@ -26,7 +26,7 @@
       <div class="bf-actions">
         <button *ngIf="!(isNewSession || isEditing) && canEdit()" class="bf-btn bf-btn-secondary"
           (click)="startNewAcademicYear()">＋ New Year</button>
-        <button *ngIf="!isEditing && canEdit()" class="bf-btn bf-btn-primary" (click)="edit()">✎ Edit</button>
+        <button *ngIf="!isEditing && canEdit() && academicYears.length > 0" class="bf-btn bf-btn-primary" (click)="edit()">✎ Edit</button>
         <ng-container *ngIf="isEditing && canEdit()">
           <button class="bf-btn bf-btn-success" (click)="save()">✓ Save</button>
           <button class="bf-btn bf-btn-danger" (click)="cancel()">✕ Cancel</button>
