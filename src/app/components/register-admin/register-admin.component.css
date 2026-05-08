@@ -90,6 +90,10 @@
   gap: 5px;
 }
 
+.ra-field-full {
+  grid-column: 1 / -1;
+}
+
 .ra-label {
   font-size: 0.8rem;
   font-weight: 700;

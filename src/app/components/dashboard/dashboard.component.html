@@ -156,8 +156,8 @@
       <a class="bnav-item" routerLink="/dashboard/super-admin-dashboard" routerLinkActive="bnav-active">
         <mat-icon>home</mat-icon><span>Home</span>
       </a>
-      <a class="bnav-item" routerLink="/dashboard/audit-logs" routerLinkActive="bnav-active">
-        <mat-icon>security</mat-icon><span>Audit</span>
+      <a class="bnav-item" routerLink="/dashboard/admin-list" routerLinkActive="bnav-active">
+        <mat-icon>admin_panel_settings</mat-icon><span>Admins</span>
       </a>
     </ng-container>
 
@@ -326,13 +326,37 @@
             <div class="more-icon-bg c-teal"><mat-icon>business</mat-icon></div>
             <span>School Settings</span>
           </a>
+          <a class="more-item" routerLink="/dashboard/analytics" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-indigo"><mat-icon>insights</mat-icon></div>
+            <span>Analytics</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/bus-fees" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-teal"><mat-icon>directions_bus</mat-icon></div>
+            <span>Bus Fees</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/student-promotion" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-amber"><mat-icon>upgrade</mat-icon></div>
+            <span>Promotion</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/register-admin" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-dark"><mat-icon>manage_accounts</mat-icon></div>
+            <span>Add Admin</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/student-search" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-purple"><mat-icon>manage_search</mat-icon></div>
+            <span>Find Student</span>
+          </a>
         </ng-container>
 
         <!-- SUPER_ADMIN more items -->
         <ng-container *ngIf="isSuperAdmin()">
-          <a class="more-item" routerLink="/dashboard/audit-logs" (click)="closeMoreMenu()">
-            <div class="more-icon-bg c-dark"><mat-icon>security</mat-icon></div>
-            <span>Audit Logs</span>
+          <a class="more-item" routerLink="/dashboard/register-admin" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-dark"><mat-icon>manage_accounts</mat-icon></div>
+            <span>Add Admin</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/admin-list" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-indigo"><mat-icon>admin_panel_settings</mat-icon></div>
+            <span>Admins</span>
           </a>
         </ng-container>
 

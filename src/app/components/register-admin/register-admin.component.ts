@@ -2,8 +2,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
+import { SchoolService, SchoolSettings } from '../../services/school.service';
+import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-register-admin',
@@ -13,28 +15,66 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   styleUrl: './register-admin.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RegisterAdminComponent {
-  // Initializing with empty strings for the registration form
+export class RegisterAdminComponent implements OnInit {
   adminData = {
     adminId: '',
     name: '',
     email: '',
     phoneNumber: '',
     gender: '',
-    dob: ''
+    dob: '',
+    schoolId: null as number | null
   };
 
-  constructor(private adminService: AdminService, private router: Router, private toast: ToastService) { }
+  isSuperAdmin = false;
+  schools: SchoolSettings[] = [];
+  schoolsLoading = false;
+
+  constructor(
+    private adminService: AdminService,
+    private schoolService: SchoolService,
+    private authState: AuthStateService,
+    private router: Router,
+    private toast: ToastService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.isSuperAdmin = this.authState.getUserRole() === 'SUPER_ADMIN';
+    if (this.isSuperAdmin) {
+      this.schoolsLoading = true;
+      this.schoolService.listAllSchools().subscribe({
+        next: (schools) => {
+          this.schools = schools.filter(s => s.active);
+          this.schoolsLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.schoolsLoading = false;
+          this.cdr.markForCheck();
+          this.toast.error('Error', 'Failed to load school list.');
+        }
+      });
+    }
+  }
+
+  schoolLabel(school: SchoolSettings): string {
+    return `${school.name}  ·  ${school.slug}`;
+  }
 
   onSubmit(form: NgForm): void {
     if (form.invalid) {
       Object.values(form.controls).forEach(control => control.markAsTouched());
-
       this.toast.warning('Form Invalid', 'Please fill in all required fields correctly.');
       return;
     }
 
-    this.adminService.createAdmin(this.adminData).subscribe({
+    if (this.isSuperAdmin && !this.adminData.schoolId) {
+      this.toast.warning('Validation', 'Please select a school for this admin.');
+      return;
+    }
+
+    this.adminService.createAdmin(this.adminData as any).subscribe({
       next: () => {
         this.toast.success('Success!', 'New Administrator has been registered.');
         this.router.navigate(['/dashboard/admin-list']);

@@ -16,7 +16,6 @@ import { ToastService } from '../../services/toast.service';
 import { from, concatMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { LeaveApplication, LeaveService, PaginatedResponse } from '../../services/leave.service';
-import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-view-leaves',
@@ -223,17 +222,15 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    Swal.fire({
+    this.toast.confirm({
       title: 'Delete All Leaves?',
       html: `This will delete <strong>${deletable.length}</strong> leave application(s) on this page. Approved leaves are skipped.`,
       icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, delete all!',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      danger: true,
+      confirmText: 'Yes, delete all!',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
       from(deletable).pipe(
         concatMap(leave => this.leaveService.deleteLeaveById(leave.id)),
         takeUntil(this.ngUnsubscribe)
@@ -253,17 +250,15 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
   }
 
   deleteLeave(leaveId: number): void {
-    Swal.fire({
+    this.toast.confirm({
       title: 'Delete Leave?',
-      text: 'This leave application will be permanently deleted.',
+      message: 'This leave application will be permanently deleted.',
       icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      danger: true,
+      confirmText: 'Yes, delete it!',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.leaveService.deleteLeaveById(leaveId).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
         next: (response) => {
           this.toast.success('Deleted!', response);
@@ -280,17 +275,15 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
   editLeaveStatus(leave: LeaveApplication): void {
     const newStatus = leave.status === 'APPROVED' ? 'REJECTED' : 'APPROVED';
     const isApprove = newStatus === 'APPROVED';
-    Swal.fire({
+    this.toast.confirm({
       title: 'Change Leave Status?',
       html: `Mark <strong>${leave.studentName}</strong> (${leave.leaveDate}) as <strong>${newStatus}</strong>?`,
       icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: isApprove ? '#16a34a' : '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: `Yes, mark ${newStatus.toLowerCase()}`,
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      danger: !isApprove,
+      confirmText: `Yes, mark ${newStatus.toLowerCase()}`,
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.leaveService.updateLeaveStatus(leave.id, newStatus)
         .pipe(takeUntil(this.ngUnsubscribe))
         .subscribe({
@@ -309,17 +302,15 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
 
   updateLeaveStatus(leave: LeaveApplication, status: 'APPROVED' | 'REJECTED'): void {
     const isApprove = status === 'APPROVED';
-    Swal.fire({
+    this.toast.confirm({
       title: isApprove ? 'Approve Leave?' : 'Reject Leave?',
       html: `<strong>${leave.studentName}</strong> &mdash; ${leave.leaveDate}`,
       icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: isApprove ? '#16a34a' : '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: isApprove ? 'Yes, approve' : 'Yes, reject',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      danger: !isApprove,
+      confirmText: isApprove ? 'Yes, approve' : 'Yes, reject',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.leaveService.updateLeaveStatus(leave.id, status)
         .pipe(takeUntil(this.ngUnsubscribe))
         .subscribe({

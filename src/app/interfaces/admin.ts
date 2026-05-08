@@ -5,6 +5,7 @@ export interface Admin {
     phoneNumber: string;
     dob: string;
     gender: string;
+    schoolId?: number;
     createdAt?: string;
     updatedAt?: string;
     photoUrl?: string;

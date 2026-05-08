@@ -175,6 +175,7 @@ export class BusFeesComponent implements OnInit, OnDestroy {
       cancelText: 'Cancel',
     }).then((confirmed) => {
       if (confirmed) {
+        const wasNewSession = this.isNewSession;
         this.isEditing = false;
         this.isNewSession = false;
         this.cdr.markForCheck();
@@ -184,7 +185,11 @@ export class BusFeesComponent implements OnInit, OnDestroy {
             this.toast.success('Saved!', `Bus fees for ${this.currentSession} saved successfully.`);
           },
           error: () => {
-            this.toast.error('Error!', 'Failed to save the bus fees.');
+            // Restore editing state so the user can retry without losing their work.
+            this.isEditing = true;
+            this.isNewSession = wasNewSession;
+            this.cdr.markForCheck();
+            this.toast.error('Error!', 'Failed to save. Please check your connection and try again.');
           }
         });
       }

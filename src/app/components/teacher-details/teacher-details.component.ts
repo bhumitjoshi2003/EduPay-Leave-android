@@ -245,6 +245,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
 
   closePasswordModal(): void {
     this.showPasswordModal = false;
+    this.cdr.markForCheck();
   }
 
   submitPasswordChange(): void {

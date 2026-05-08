@@ -170,20 +170,23 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
         this.isNewSessionStarted = false;
         this.cdr.markForCheck();
 
-        const save$ = wasNewSession
-          ? this.feeStructureService.createNewSession('', this.currentSession, this.feeStructures)
-          : this.feeStructureService.updateFeeStructures(this.currentSession, this.feeStructures);
-
-        save$.pipe(takeUntil(this.destroy$)).subscribe({
-          next: () => {
-            this.originalFeeStructure = JSON.parse(JSON.stringify(this.feeStructures));
-            this.toast.success('Saved!', `Fee structure for ${this.currentSession} saved successfully.`);
-          },
-          error: (error) => {
-            this.toast.error('Error!', 'Failed to save the fee structure.');
-            this.logger.error('Error saving fee structure:', error);
-          }
-        });
+        // Always use PUT — updateFeeStructures handles new sessions correctly
+        // (delete-first is a no-op when no existing records; then inserts new rows).
+        this.feeStructureService.updateFeeStructures(this.currentSession, this.feeStructures)
+          .pipe(takeUntil(this.destroy$)).subscribe({
+            next: () => {
+              this.originalFeeStructure = JSON.parse(JSON.stringify(this.feeStructures));
+              this.toast.success('Saved!', `Fee structure for ${this.currentSession} saved successfully.`);
+            },
+            error: (error) => {
+              // Restore editing state so the user can retry without losing their work.
+              this.isEditing = true;
+              this.isNewSessionStarted = wasNewSession;
+              this.cdr.markForCheck();
+              this.toast.error('Error!', 'Failed to save. Please check your connection and try again.');
+              this.logger.error('Error saving fee structure:', error);
+            }
+          });
       }
     });
   }

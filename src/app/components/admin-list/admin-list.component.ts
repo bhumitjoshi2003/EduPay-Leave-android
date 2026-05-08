@@ -97,13 +97,13 @@ export class AdminListComponent implements OnInit, OnDestroy {
       danger: true
     }).then(confirmed => {
       if (confirmed) {
-        this.adminService.deleteAdmin(adminId).subscribe({
+        this.adminService.deleteAdmin(adminId).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
           next: () => {
             this.admins = this.admins.filter(a => a.adminId !== adminId);
             this.cdr.markForCheck();
             this.toast.success('Deleted!', 'Admin has been deleted.');
           },
-          error: (err) => this.toast.error('Error', 'Failed to delete admin.')
+          error: () => this.toast.error('Error', 'Failed to delete admin.')
         });
       }
     });

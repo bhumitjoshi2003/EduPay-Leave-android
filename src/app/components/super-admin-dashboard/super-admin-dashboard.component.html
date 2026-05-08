@@ -109,64 +109,120 @@
         </div>
 
         <div class="sa-section-label">School Details</div>
+        <form #onboardRef="ngForm" novalidate>
         <div class="sa-form-grid">
           <div class="sa-form-group">
             <label>School Name *</label>
-            <input class="sa-input" type="text" [(ngModel)]="onboardForm.name" placeholder="Full school name" (blur)="generateSlug()">
+            <input class="sa-input" type="text" name="schoolName" [(ngModel)]="onboardForm.name"
+              #schoolName="ngModel" required placeholder="Full school name"
+              (blur)="generateSlug()" [class.sa-input-error]="schoolName.invalid && schoolName.touched">
+            <small class="sa-field-error" *ngIf="schoolName.invalid && schoolName.touched">School name is required.</small>
           </div>
           <div class="sa-form-group">
             <label>Slug *</label>
-            <input class="sa-input" type="text" [(ngModel)]="onboardForm.slug" placeholder="e.g. ias">
-            <small class="sa-hint">Unique identifier. Lowercase, hyphens only.</small>
+            <input class="sa-input" type="text" name="slug" [(ngModel)]="onboardForm.slug"
+              #slug="ngModel" required pattern="^[a-z0-9][a-z0-9-]*$" placeholder="e.g. ias"
+              [class.sa-input-error]="slug.invalid && slug.touched">
+            <small class="sa-hint" *ngIf="!(slug.invalid && slug.touched)">Unique identifier. Lowercase, hyphens only.</small>
+            <small class="sa-field-error" *ngIf="slug.errors?.['required'] && slug.touched">Slug is required.</small>
+            <small class="sa-field-error" *ngIf="slug.errors?.['pattern'] && slug.touched">Lowercase letters, digits and hyphens only.</small>
           </div>
           <div class="sa-form-group">
             <label>Board</label>
-            <select class="sa-input" [(ngModel)]="onboardForm.boardType">
+            <select class="sa-input" name="boardType" [(ngModel)]="onboardForm.boardType">
               <option value="">— Select —</option>
               <option *ngFor="let b of boardTypes" [value]="b">{{ b }}</option>
             </select>
           </div>
           <div class="sa-form-group">
             <label>Email</label>
-            <input class="sa-input" type="email" [(ngModel)]="onboardForm.email" placeholder="school@example.com">
+            <input class="sa-input" type="email" name="schoolEmail" [(ngModel)]="onboardForm.email"
+              #schoolEmail="ngModel" email placeholder="school@example.com"
+              [class.sa-input-error]="schoolEmail.invalid && schoolEmail.touched">
+            <small class="sa-field-error" *ngIf="schoolEmail.invalid && schoolEmail.touched">Enter a valid email address.</small>
           </div>
           <div class="sa-form-group">
             <label>Phone</label>
-            <input class="sa-input" type="text" [(ngModel)]="onboardForm.phone" placeholder="10-digit">
+            <input class="sa-input" type="text" name="schoolPhone" [(ngModel)]="onboardForm.phone"
+              #schoolPhone="ngModel" pattern="^[0-9]{10}$" placeholder="10-digit"
+              [class.sa-input-error]="schoolPhone.invalid && schoolPhone.touched">
+            <small class="sa-field-error" *ngIf="schoolPhone.invalid && schoolPhone.touched">Must be exactly 10 digits.</small>
           </div>
           <div class="sa-form-group">
             <label>Website</label>
-            <input class="sa-input" type="text" [(ngModel)]="onboardForm.website" placeholder="https://...">
+            <input class="sa-input" type="text" name="website" [(ngModel)]="onboardForm.website" placeholder="https://...">
           </div>
           <div class="sa-form-group sa-col-span-2">
             <label>Address</label>
-            <input class="sa-input" type="text" [(ngModel)]="onboardForm.address" placeholder="Street / Village">
+            <input class="sa-input" type="text" name="address" [(ngModel)]="onboardForm.address" placeholder="Street / Village">
           </div>
           <div class="sa-form-group">
             <label>City</label>
-            <input class="sa-input" type="text" [(ngModel)]="onboardForm.city">
+            <input class="sa-input" type="text" name="city" [(ngModel)]="onboardForm.city">
           </div>
           <div class="sa-form-group">
             <label>State</label>
-            <input class="sa-input" type="text" [(ngModel)]="onboardForm.state">
+            <input class="sa-input" type="text" name="state" [(ngModel)]="onboardForm.state">
           </div>
         </div>
 
         <div class="sa-section-label sa-mt16">Admin Account</div>
         <div class="sa-form-grid">
           <div class="sa-form-group">
+            <label>Admin Name *</label>
+            <input class="sa-input" type="text" name="adminName" [(ngModel)]="onboardForm.adminName"
+              #adminName="ngModel" required placeholder="Full name"
+              [class.sa-input-error]="adminName.invalid && adminName.touched">
+            <small class="sa-field-error" *ngIf="adminName.invalid && adminName.touched">Admin name is required.</small>
+          </div>
+          <div class="sa-form-group">
             <label>Admin User ID *</label>
-            <input class="sa-input" type="text" [(ngModel)]="onboardForm.adminUserId" placeholder="e.g. admin001">
+            <input class="sa-input" type="text" name="adminUserId" [(ngModel)]="onboardForm.adminUserId"
+              #adminUserId="ngModel" required placeholder="e.g. admin001"
+              [class.sa-input-error]="adminUserId.invalid && adminUserId.touched">
+            <small class="sa-field-error" *ngIf="adminUserId.invalid && adminUserId.touched">User ID is required.</small>
           </div>
           <div class="sa-form-group">
             <label>Admin Email *</label>
-            <input class="sa-input" type="email" [(ngModel)]="onboardForm.adminEmail" placeholder="admin@school.com">
+            <input class="sa-input" type="email" name="adminEmail" [(ngModel)]="onboardForm.adminEmail"
+              #adminEmail="ngModel" required email placeholder="admin@school.com"
+              [class.sa-input-error]="adminEmail.invalid && adminEmail.touched">
+            <small class="sa-field-error" *ngIf="adminEmail.errors?.['required'] && adminEmail.touched">Email is required.</small>
+            <small class="sa-field-error" *ngIf="adminEmail.errors?.['email'] && adminEmail.touched">Enter a valid email address.</small>
+          </div>
+          <div class="sa-form-group">
+            <label>Admin Phone *</label>
+            <input class="sa-input" type="text" name="adminPhone" [(ngModel)]="onboardForm.adminPhone"
+              #adminPhone="ngModel" required pattern="^[0-9]{10}$" placeholder="10-digit mobile number"
+              [class.sa-input-error]="adminPhone.invalid && adminPhone.touched">
+            <small class="sa-field-error" *ngIf="adminPhone.errors?.['required'] && adminPhone.touched">Phone is required.</small>
+            <small class="sa-field-error" *ngIf="adminPhone.errors?.['pattern'] && adminPhone.touched">Must be exactly 10 digits.</small>
+          </div>
+          <div class="sa-form-group">
+            <label>Date of Birth *</label>
+            <input class="sa-input" type="date" name="adminDob" [(ngModel)]="onboardForm.adminDob"
+              #adminDob="ngModel" required [class.sa-input-error]="adminDob.invalid && adminDob.touched">
+            <small class="sa-field-error" *ngIf="adminDob.invalid && adminDob.touched">Date of birth is required.</small>
+          </div>
+          <div class="sa-form-group">
+            <label>Gender</label>
+            <select class="sa-input" name="adminGender" [(ngModel)]="onboardForm.adminGender">
+              <option value="">— Select —</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           <div class="sa-form-group">
             <label>Admin Password *</label>
-            <input class="sa-input" type="password" [(ngModel)]="onboardForm.adminPassword" placeholder="Temporary password">
+            <input class="sa-input" type="password" name="adminPassword" [(ngModel)]="onboardForm.adminPassword"
+              #adminPassword="ngModel" required minlength="6" placeholder="Temporary password"
+              [class.sa-input-error]="adminPassword.invalid && adminPassword.touched">
+            <small class="sa-field-error" *ngIf="adminPassword.errors?.['required'] && adminPassword.touched">Password is required.</small>
+            <small class="sa-field-error" *ngIf="adminPassword.errors?.['minlength'] && adminPassword.touched">Minimum 6 characters.</small>
           </div>
         </div>
+        </form>
 
         <div class="sa-form-actions">
           <button class="sa-btn-secondary" (click)="cancelOnboard()" [disabled]="onboarding">Cancel</button>

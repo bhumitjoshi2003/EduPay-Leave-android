@@ -4,16 +4,13 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables, ChartConfiguration, ChartData } from 'chart.js';
 import {
-  DashboardAnalyticsService, DashboardStats, FeeTrend, ClassStats, AttendanceTrend
+  DashboardAnalyticsService, FeeTrend, ClassStats, AttendanceTrend
 } from '../../services/dashboard-analytics.service';
 import { SchoolService } from '../../services/school.service';
-import { AuthStateService } from '../../auth/auth-state.service';
-import { AdminService } from '../../services/admin.service';
 import { LoggerService } from '../../services/logger.service';
 
 Chart.register(...registerables);
@@ -27,7 +24,7 @@ const PALETTE = [
 @Component({
   selector: 'app-analytics',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, BaseChartDirective],
+  imports: [CommonModule, FormsModule, BaseChartDirective],
   templateUrl: './analytics.component.html',
   styleUrl: './analytics.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,8 +32,6 @@ const PALETTE = [
 export class AnalyticsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  adminName = '';
-  stats: DashboardStats | null = null;
   isLoading = true;
   error = '';
   today = new Date();
@@ -94,6 +89,31 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
     cutout: '62%',
   };
 
+  // ── Raw data for summary stats ────────────────────────────────
+  private rawClassStats: ClassStats[] = [];
+  private rawFeeTrend: FeeTrend[] = [];
+
+  get totalStudents(): number {
+    return this.rawClassStats.reduce((s, c) => s + c.studentCount, 0);
+  }
+  get avgAttendance(): number {
+    if (!this.rawClassStats.length) return 0;
+    return this.rawClassStats.reduce((s, c) => s + c.attendanceRate, 0) / this.rawClassStats.length;
+  }
+  get totalClasses(): number { return this.rawClassStats.length; }
+  get latestMonthFee(): number {
+    return this.rawFeeTrend.length ? this.rawFeeTrend[this.rawFeeTrend.length - 1].amount : 0;
+  }
+  get latestMonth(): string {
+    return this.rawFeeTrend.length ? this.rawFeeTrend[this.rawFeeTrend.length - 1].month : '';
+  }
+  get attendanceCardStyle(): string {
+    const r = this.avgAttendance;
+    if (r >= 85) return '--c1:#059669;--c2:#34d399';
+    if (r >= 70) return '--c1:#d97706;--c2:#fbbf24';
+    return '--c1:#dc2626;--c2:#f87171';
+  }
+
   // ── Attendance trend (line) ───────────────────────────────────
   classList: string[] = [];
   selectedTrendClass = '';
@@ -123,19 +143,11 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
   constructor(
     private analyticsService: DashboardAnalyticsService,
     private schoolService: SchoolService,
-    private authState: AuthStateService,
-    private adminService: AdminService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
   ) {}
 
   ngOnInit(): void {
-    const user = this.authState.getUser();
-    if (user?.userId) {
-      this.adminService.getAdminById(user.userId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({ next: a => { this.adminName = a.name; this.cdr.markForCheck(); } });
-    }
     this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
       next: classes => {
         this.classList = classes;
@@ -157,12 +169,10 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
   loadAll(): void {
     this.isLoading = true;
     forkJoin([
-      this.analyticsService.getStats(),
       this.analyticsService.getFeeTrend(),
       this.analyticsService.getClassStats(),
     ]).pipe(takeUntil(this.destroy$)).subscribe({
-      next: ([stats, feeTrend, classStats]) => {
-        this.stats = stats;
+      next: ([feeTrend, classStats]) => {
         this.buildFeeTrend(feeTrend);
         this.buildAttendance(classStats);
         this.buildDistribution(classStats);
@@ -170,8 +180,8 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: e => {
-        this.logger.error('Dashboard load error:', e);
-        this.error = 'Failed to load dashboard data. Please refresh.';
+        this.logger.error('Analytics load error:', e);
+        this.error = 'Failed to load analytics data. Please refresh.';
         this.isLoading = false;
         this.cdr.markForCheck();
       }
@@ -179,6 +189,7 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
   }
 
   private buildFeeTrend(data: FeeTrend[]): void {
+    this.rawFeeTrend = data;
     this.feeTrendData = {
       labels: data.map(d => d.month),
       datasets: [{
@@ -194,6 +205,7 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
   }
 
   private buildAttendance(data: ClassStats[]): void {
+    this.rawClassStats = data;
     this.attendanceData = {
       labels: data.map(d => `Cl. ${d.className}`),
       datasets: [{
@@ -265,17 +277,4 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
     };
   }
 
-  get greeting(): string {
-    const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
-
-  get attendanceColor(): string {
-    const r = this.stats?.todayAttendanceRate ?? 0;
-    if (r >= 85) return '#059669';
-    if (r >= 70) return '#d97706';
-    return '#dc2626';
-  }
 }

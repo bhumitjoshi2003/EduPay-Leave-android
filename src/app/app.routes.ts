@@ -53,7 +53,7 @@ export const routes: Routes = [
       {
         path: 'attendance-summary',
         loadComponent: () => import('./components/attendance-summary/attendance-summary.component').then(m => m.AttendanceSummaryComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'SUPER_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN'] }
       },
 
       // ── Teacher routes ────────────────────────────────────────────────
@@ -113,7 +113,7 @@ export const routes: Routes = [
       {
         path: 'school-settings',
         loadComponent: () => import('./components/school-settings/school-settings.component').then(m => m.SchoolSettingsComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
       {
         path: 'class-management',
@@ -155,7 +155,7 @@ export const routes: Routes = [
       {
         path: 'student-promotion',
         loadComponent: () => import('./components/student-promotion/student-promotion.component').then(m => m.StudentPromotionComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
       {
         path: 'teacher-bulk-import',
@@ -182,17 +182,17 @@ export const routes: Routes = [
       {
         path: 'audit-logs',
         loadComponent: () => import('./components/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
       {
         path: 'fee-structure',
         loadComponent: () => import('./components/fee-structure/fee-structure.component').then(m => m.FeeStructureComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'ADMIN', 'SUPER_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'ADMIN'] }
       },
       {
         path: 'bus-fees',
         loadComponent: () => import('./components/bus-fees/bus-fees.component').then(m => m.BusFeesComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
 
       // ── Exam / Results ────────────────────────────────────────────────
@@ -257,21 +257,21 @@ export const routes: Routes = [
       {
         path: 'analytics',
         loadComponent: () => import('./components/analytics/analytics.component').then(m => m.AnalyticsComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
 
       // ── Timetable ─────────────────────────────────────────────────────
       {
         path: 'timetable',
         loadComponent: () => import('./components/timetable/timetable.component').then(m => m.TimetableComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'SUPER_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN'] }
       },
 
       // ── Open to all authenticated users ──────────────────────────────
       {
         path: 'notice',
         loadComponent: () => import('./components/notice/notice.component').then(m => m.NoticeComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUPER_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN'] }
       },
       {
         path: 'event-calendar',

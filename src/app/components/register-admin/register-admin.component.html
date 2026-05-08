@@ -23,6 +23,20 @@
     <form #regForm="ngForm" (ngSubmit)="onSubmit(regForm)" novalidate>
       <div class="ra-grid">
 
+        <div class="ra-field ra-field-full" *ngIf="isSuperAdmin">
+          <label class="ra-label">School <span class="ra-req">*</span></label>
+          <div class="ra-input-wrap">
+            <span class="ra-input-icon">🏫</span>
+            <select name="schoolId" class="ra-input ra-select" [(ngModel)]="adminData.schoolId"
+              #schoolField="ngModel" required [disabled]="schoolsLoading"
+              [class.ra-invalid]="schoolField.invalid && schoolField.touched">
+              <option [ngValue]="null" disabled>{{ schoolsLoading ? 'Loading schools…' : '— Select a school —' }}</option>
+              <option *ngFor="let s of schools" [ngValue]="s.id">{{ schoolLabel(s) }}</option>
+            </select>
+          </div>
+          <small class="ra-error-text" *ngIf="schoolField.invalid && schoolField.touched">School is required</small>
+        </div>
+
         <div class="ra-field">
           <label class="ra-label">Admin ID <span class="ra-req">*</span></label>
           <div class="ra-input-wrap">

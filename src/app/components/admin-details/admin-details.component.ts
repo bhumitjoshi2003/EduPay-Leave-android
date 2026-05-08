@@ -141,11 +141,12 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
     }).then((confirmed) => {
       if (confirmed) {
         action.pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-          next: () => {
-            this.toast.success('Saved!', 'Admin details updated successfully.');
+          next: (savedAdmin) => {
+            this.adminDetails = savedAdmin;
+            this.updatedDetails = { ...savedAdmin };
             this.isEditing = false;
-            this.updatedDetails = { ...this.adminDetails! };
             this.cdr.markForCheck();
+            this.toast.success('Saved!', 'Admin details updated successfully.');
           },
           error: (err) => this.toast.error('Error', err.error?.message || 'Server error occurred')
         });
@@ -166,6 +167,7 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
 
   closePasswordModal(): void {
     this.showPasswordModal = false;
+    this.cdr.markForCheck();
   }
 
   submitPasswordChange(): void {

@@ -6,7 +6,6 @@ import { SchoolService, SchoolClass } from '../../services/school.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
-import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-class-management',
@@ -90,17 +89,15 @@ export class ClassManagementComponent implements OnInit, OnDestroy {
   }
 
   removeClass(cls: SchoolClass): void {
-    Swal.fire({
+    this.toast.confirm({
       title: `Remove "${cls.name}"?`,
-      text: 'This will remove the class. You can re-add it later.',
+      message: 'This will remove the class. You can re-add it later.',
       icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, remove',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      danger: true,
+      confirmText: 'Yes, remove',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.schoolService.deleteClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.classes = this.classes.filter(c => c.id !== cls.id);
@@ -111,11 +108,7 @@ export class ClassManagementComponent implements OnInit, OnDestroy {
         error: (e) => {
           this.logger.error('Failed to delete class', e);
           const reason = e?.error?.message;
-          if (reason) {
-            Swal.fire({ title: 'Cannot Remove Class', text: reason, icon: 'error', confirmButtonColor: '#4f46e5' });
-          } else {
-            this.toast.error('Error', 'Could not remove class.');
-          }
+          this.toast.error('Cannot Remove Class', reason || 'Could not remove class.');
           this.cdr.markForCheck();
         }
       });

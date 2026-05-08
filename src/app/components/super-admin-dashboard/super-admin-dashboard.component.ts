@@ -5,7 +5,6 @@ import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { SchoolService, SchoolSettings } from '../../services/school.service';
 import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
-import Swal from 'sweetalert2';
 
 interface DashboardStats {
   totalSchools: number;
@@ -29,6 +28,10 @@ interface OnboardForm {
   adminUserId: string;
   adminEmail: string;
   adminPassword: string;
+  adminName: string;
+  adminPhone: string;
+  adminDob: string;
+  adminGender: string;
 }
 
 interface EditSchoolForm {
@@ -133,14 +136,14 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   submitOnboard(): void {
-    const f = this.onboardForm;
-    if (!f.name.trim() || !f.slug.trim() || !f.adminUserId.trim() || !f.adminEmail.trim() || !f.adminPassword.trim()) {
-      this.toast.error('Validation', 'School name, slug, admin user ID, email and password are required.');
+    const error = this.validateOnboardForm();
+    if (error) {
+      this.toast.warning('Validation Error', error);
       return;
     }
     this.onboarding = true;
     this.cdr.markForCheck();
-    this.schoolService.onboardSchool(f).pipe(takeUntil(this.destroy$)).subscribe({
+    this.schoolService.onboardSchool(this.onboardForm).pipe(takeUntil(this.destroy$)).subscribe({
       next: (school) => {
         this.schools = [school, ...this.schools];
         this.showOnboardForm = false;
@@ -156,6 +159,42 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  private validateEditForm(): string | null {
+    const f = this.editForm;
+    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRx = /^[0-9]{10}$/;
+
+    if (!f.name.trim())                               return 'School name is required.';
+    if (f.email && !emailRx.test(f.email.trim()))     return 'School email is not valid.';
+    if (f.phone && !phoneRx.test(f.phone.trim()))     return 'School phone must be exactly 10 digits.';
+    if (f.newAdminPassword && f.newAdminPassword.length < 6)
+                                                      return 'New admin password must be at least 6 characters.';
+    return null;
+  }
+
+  private validateOnboardForm(): string | null {
+    const f = this.onboardForm;
+    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRx = /^[0-9]{10}$/;
+    const slugRx  = /^[a-z0-9][a-z0-9-]*$/;
+
+    if (!f.name.trim())                               return 'School name is required.';
+    if (!f.slug.trim())                               return 'Slug is required.';
+    if (!slugRx.test(f.slug.trim()))                  return 'Slug must be lowercase letters, digits, and hyphens only.';
+    if (f.email && !emailRx.test(f.email.trim()))     return 'School email is not valid.';
+    if (f.phone && !phoneRx.test(f.phone.trim()))     return 'School phone must be exactly 10 digits.';
+    if (!f.adminName.trim())                          return 'Admin name is required.';
+    if (!f.adminUserId.trim())                        return 'Admin user ID is required.';
+    if (!f.adminEmail.trim())                         return 'Admin email is required.';
+    if (!emailRx.test(f.adminEmail.trim()))           return 'Admin email is not a valid email address.';
+    if (!f.adminPhone.trim())                         return 'Admin phone is required.';
+    if (!phoneRx.test(f.adminPhone.trim()))           return 'Admin phone must be exactly 10 digits.';
+    if (!f.adminDob)                                  return 'Admin date of birth is required.';
+    if (!f.adminPassword)                             return 'Admin password is required.';
+    if (f.adminPassword.length < 6)                   return 'Admin password must be at least 6 characters.';
+    return null;
   }
 
   // ── Edit School ─────────────────────────────────────────────────────────────
@@ -191,12 +230,14 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
   saveEdit(): void {
     if (!this.editingSchoolId) return;
-    const f = this.editForm;
 
-    if (!f.name.trim()) {
-      this.toast.error('Validation', 'School name is required.');
+    const error = this.validateEditForm();
+    if (error) {
+      this.toast.warning('Validation Error', error);
       return;
     }
+
+    const f = this.editForm;
 
     this.saving = true;
     this.cdr.markForCheck();
@@ -263,19 +304,17 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
   confirmToggleActive(school: SchoolSettings): void {
     const isActive = school.active;
-    Swal.fire({
+    this.toast.confirm({
       title: isActive ? 'Deactivate School?' : 'Activate School?',
       html: isActive
         ? `This will deactivate <strong>${school.name}</strong> and prevent login for all its users.`
         : `This will reactivate <strong>${school.name}</strong> and restore access for all its users.`,
       icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: isActive ? '#dc2626' : '#16a34a',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: isActive ? 'Yes, deactivate' : 'Yes, activate',
-      cancelButtonText: 'Cancel',
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+      danger: isActive,
+      confirmText: isActive ? 'Yes, deactivate' : 'Yes, activate',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
       this.schoolService.deleteSchool(school.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           const newActive = !isActive;
@@ -320,6 +359,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       name: '', slug: '', address: '', city: '', state: '', pincode: '',
       phone: '', email: '', website: '', boardType: '',
       adminUserId: '', adminEmail: '', adminPassword: '',
+      adminName: '', adminPhone: '', adminDob: '', adminGender: '',
     };
   }
 

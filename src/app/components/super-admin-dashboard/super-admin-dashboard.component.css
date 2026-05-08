@@ -399,6 +399,18 @@ select.sa-input { appearance: auto; }
   color: #94a3b8;
 }
 
+.sa-input-error {
+  border-color: #ef4444 !important;
+  background: #fff5f5 !important;
+}
+
+.sa-field-error {
+  font-size: 0.7rem;
+  color: #ef4444;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
 .sa-active-toggle {
   justify-content: flex-end;
   padding-bottom: 4px;
