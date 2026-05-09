@@ -24,7 +24,7 @@ import { SchoolService } from '../../services/school.service';
 })
 export class TimetableComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private readonly PERIODS_KEY = 'tt_maxPeriods';
+  private readonly TIMES_KEY = 'tt_showTimes';
 
   role = '';
   userId = '';
@@ -35,37 +35,33 @@ export class TimetableComponent implements OnInit, OnDestroy {
     MONDAY: 'Monday', TUESDAY: 'Tuesday', WEDNESDAY: 'Wednesday',
     THURSDAY: 'Thursday', FRIDAY: 'Friday', SATURDAY: 'Saturday'
   };
-  readonly periodOptions = [4, 5, 6, 7, 8, 9, 10];
+  readonly dayAbbr: Record<string, string> = {
+    MONDAY: 'Mon', TUESDAY: 'Tue', WEDNESDAY: 'Wed',
+    THURSDAY: 'Thu', FRIDAY: 'Fri', SATURDAY: 'Sat'
+  };
+  readonly dayLetter: Record<string, string> = {
+    MONDAY: 'M', TUESDAY: 'T', WEDNESDAY: 'W',
+    THURSDAY: 'T', FRIDAY: 'F', SATURDAY: 'S'
+  };
+  readonly allPeriods = Array.from({ length: 15 }, (_, i) => i + 1);
+
   classList: string[] = [];
-
-  maxPeriods: number = parseInt(localStorage.getItem(this.PERIODS_KEY) ?? '8', 10);
-
-  get allPeriods(): number[] {
-    return Array.from({ length: this.maxPeriods }, (_, i) => i + 1);
-  }
-
-  /** Students only see rows that have at least one entry. Admin sees all rows. */
-  get visiblePeriods(): number[] {
-    if (this.isAdmin()) return this.allPeriods;
-    const populated = new Set(this.entries.map(e => e.periodNumber));
-    return this.allPeriods.filter(p => populated.has(p));
-  }
-
-  // Class view — one entry per cell
   selectedClass = '';
-  entries: TimetableEntry[] = [];
-  grid: Record<string, Record<number, TimetableEntry>> = {};
+  selectedDay = 'MONDAY';
+  todayDay = '';
 
-  // Teacher view grouped by day
+  showTimes: boolean = (typeof localStorage !== 'undefined')
+    ? localStorage.getItem(this.TIMES_KEY) !== 'false'
+    : true;
+
+  entries: TimetableEntry[] = [];
   teacherEntries: TimetableEntry[] = [];
   teacherGrid: Record<string, TimetableEntry[]> = {};
 
   isLoading = false;
   error: string | null = null;
-
   teachers: Teacher[] = [];
 
-  // Modal state
   showModal = false;
   isEditMode = false;
   modalForm: TimetableEntry = this.emptyForm();
@@ -87,6 +83,10 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.role = user?.role ?? '';
     this.userId = user?.userId ?? '';
     this.userClassName = user?.className ?? '';
+
+    const dayMap = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+    this.todayDay = dayMap[new Date().getDay()];
+    this.selectedDay = this.days.includes(this.todayDay) ? this.todayDay : this.days[0];
 
     this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
       this.classList = classes;
@@ -112,9 +112,88 @@ export class TimetableComponent implements OnInit, OnDestroy {
     return this.role === 'ADMIN' || this.role === 'SUB_ADMIN' || this.role === 'SUPER_ADMIN';
   }
 
-  onMaxPeriodsChange(): void {
-    localStorage.setItem(this.PERIODS_KEY, String(this.maxPeriods));
+  onDaySelect(day: string): void {
+    this.selectedDay = day;
     this.cdr.markForCheck();
+  }
+
+  toggleTimes(): void {
+    this.showTimes = !this.showTimes;
+    localStorage.setItem(this.TIMES_KEY, String(this.showTimes));
+    this.cdr.markForCheck();
+  }
+
+  get dayEntries(): TimetableEntry[] {
+    return this.entries
+      .filter(e => e.day === this.selectedDay)
+      .sort((a, b) => a.periodNumber - b.periodNumber);
+  }
+
+  get teacherDayEntries(): TimetableEntry[] {
+    return this.teacherGrid[this.selectedDay] ?? [];
+  }
+
+  // ── Subject icon ─────────────────────────────────────────────────
+
+  getSubjectIcon(name: string): string {
+    const n = name.toLowerCase();
+    if (n.includes('physics'))                                               return '⚛️';
+    if (n.includes('chemistry'))                                             return '🧪';
+    if (n.includes('biology'))                                               return '🧬';
+    if (n.includes('math'))                                                  return '🔢';
+    if (n.includes('english'))                                               return '📖';
+    if (n.includes('hindi'))                                                 return '📝';
+    if (n.includes('sanskrit') || n.includes('third language'))             return '🕉️';
+    if (n.includes('computer science') || n.includes('informatics'))        return '💻';
+    if (n.includes('information technology') || n === 'it'
+      || n.includes('artificial intelligence') || n.includes(' ai'))        return '🖥️';
+    if (n.includes('drawing') || n.includes('art'))                         return '🎨';
+    if (n.includes('music'))                                                 return '🎵';
+    if (n.includes('physical education') || n === 'pt' || n === 'pe'
+      || n.includes('sport'))                                                return '⚽';
+    if (n.includes('evs') || n.includes('environmental'))                   return '🌱';
+    if (n.includes('general knowledge') || n === 'gk')                      return '💡';
+    if (n.includes('computer'))                                              return '💻';
+    if (n.includes('science'))                                               return '🔬';
+    if (n.includes('social science') || n === 'sst')                        return '🌍';
+    if (n.includes('history'))                                               return '📜';
+    if (n.includes('geography'))                                             return '🗺️';
+    if (n.includes('political science') || n.includes('civics'))            return '⚖️';
+    if (n.includes('economics'))                                             return '📈';
+    if (n.includes('accountancy') || n.includes('accounting'))              return '📊';
+    if (n.includes('business'))                                              return '💼';
+    if (n.includes('sociology'))                                             return '👥';
+    if (n.includes('psychology'))                                            return '🧠';
+    return '📚';
+  }
+
+  // ── Subject colour class ─────────────────────────────────────────
+
+  getSubjectClass(name: string): string {
+    const n = name.toLowerCase();
+    if (n.includes('physics'))                                               return 'physics';
+    if (n.includes('chemistry'))                                             return 'chemistry';
+    if (n.includes('biology'))                                               return 'biology';
+    if (n.includes('math'))                                                  return 'maths';
+    if (n.includes('english'))                                               return 'english';
+    if (n.includes('hindi'))                                                 return 'hindi';
+    if (n.includes('sanskrit') || n.includes('third language'))             return 'sanskrit';
+    if (n.includes('computer') || n.includes('informatics')
+      || n.includes('information technology')
+      || n.includes('artificial intelligence'))                              return 'computer';
+    if (n.includes('drawing') || n.includes('art') || n.includes('music')) return 'arts';
+    if (n.includes('physical education') || n === 'pt' || n === 'pe'
+      || n.includes('sport'))                                                return 'pe';
+    if (n.includes('evs') || n.includes('environmental')
+      || n.includes('science'))                                              return 'science';
+    if (n.includes('social science') || n === 'sst' || n.includes('history')
+      || n.includes('geography') || n.includes('civics')
+      || n.includes('political'))                                            return 'sst';
+    if (n.includes('general knowledge') || n === 'gk')                      return 'gk';
+    if (n.includes('economics') || n.includes('accountancy')
+      || n.includes('business'))                                             return 'commerce';
+    if (n.includes('sociology') || n.includes('psychology'))                return 'social';
+    return 'default';
   }
 
   // ── Data loading ─────────────────────────────────────────────────
@@ -124,14 +203,12 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.error = null;
     this.entries = [];
-    this.grid = {};
     this.cdr.markForCheck();
 
     this.timetableService.getClassTimetable(this.selectedClass)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (data) => {
           this.entries = data;
-          this.buildGrid(data);
           this.isLoading = false;
           this.cdr.markForCheck();
         },
@@ -173,15 +250,6 @@ export class TimetableComponent implements OnInit, OnDestroy {
       });
   }
 
-  private buildGrid(data: TimetableEntry[]): void {
-    this.grid = {};
-    for (const day of this.days) this.grid[day] = {};
-    for (const entry of data) {
-      if (!this.grid[entry.day]) this.grid[entry.day] = {};
-      this.grid[entry.day][entry.periodNumber] = entry;
-    }
-  }
-
   private buildTeacherGrid(data: TimetableEntry[]): void {
     this.teacherGrid = {};
     for (const day of this.days) {
@@ -191,23 +259,17 @@ export class TimetableComponent implements OnInit, OnDestroy {
     }
   }
 
-  getCell(day: string, period: number): TimetableEntry | null {
-    return this.grid[day]?.[period] ?? null;
-  }
-
   hasAnyEntry(): boolean { return this.entries.length > 0; }
-  hasTeacherEntries(day: string): boolean { return (this.teacherGrid[day]?.length ?? 0) > 0; }
   hasAnyTeacherEntry(): boolean { return this.teacherEntries.length > 0; }
 
   // ── Modal ────────────────────────────────────────────────────────
 
-  openCreate(day: string, period: number): void {
+  openAddPeriod(): void {
     if (!this.isAdmin()) return;
     this.isEditMode = false;
     this.modalForm = this.emptyForm();
     this.modalForm.className = this.selectedClass;
-    this.modalForm.day = day;
-    this.modalForm.periodNumber = period;
+    this.modalForm.day = this.selectedDay;
     this.modalError = null;
     this.showModal = true;
     this.cdr.markForCheck();
@@ -234,7 +296,6 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
   saveEntry(): void {
     this.modalError = null;
-
     if (!this.modalForm.subjectName?.trim()) {
       this.modalError = 'Subject name is required.'; return;
     }
@@ -307,13 +368,12 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
   private emptyForm(): TimetableEntry {
     return {
-      className: '', day: 'MONDAY', periodNumber: 1,
+      className: '', day: this.selectedDay ?? 'MONDAY', periodNumber: 1,
       startTime: '', endTime: '', subjectName: '', teacherId: ''
     };
   }
 
   trackByDay(_: number, day: string): string { return day; }
-  trackByPeriod(_: number, p: number): number { return p; }
   trackByEntry(_: number, e: TimetableEntry): string {
     return `${e.id ?? e.day + e.periodNumber}`;
   }
