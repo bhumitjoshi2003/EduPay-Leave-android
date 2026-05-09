@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { Subject, takeUntil } from 'rxjs';
 import { SchoolService } from '../../services/school.service';
+import { ToastService } from '../../services/toast.service';
 
 export const dateRangeValidator: ValidatorFn = (control: AbstractControl): { [key: string]: boolean } | null => {
   const startDate = control.get('startDate')?.value;
@@ -62,7 +63,8 @@ export class EventFormComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private toast: ToastService
   ) {
     this.eventForm = this.fb.group({
       title: ['', Validators.required],
@@ -254,7 +256,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
           },
           error: (uploadError) => {
             this.logger.error('Error uploading image:', uploadError);
-            alert('Failed to upload image. Event not saved.');
+            this.toast.error('Upload Failed', 'Failed to upload image. Event not saved.');
           }
         });
       } else {
@@ -284,7 +286,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.logger.error('Error updating event:', err);
-          alert('Failed to update event. Please try again.');
+          this.toast.error('Update Failed', 'Failed to update event. Please try again.');
         }
       });
     } else {
@@ -294,7 +296,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.logger.error('Error creating event:', err);
-          alert('Failed to create event. Please try again.');
+          this.toast.error('Create Failed', 'Failed to create event. Please try again.');
         }
       });
     }
