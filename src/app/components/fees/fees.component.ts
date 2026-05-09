@@ -4,8 +4,9 @@ import { CommonModule } from '@angular/common';
 import { PaymentComponent } from "../payment/payment.component";
 import { ChangeDetectionStrategy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { FeesService } from '../../services/fees.service';
-import { FeeStructureService } from '../../services/fee-structure.service';
+import { FeeStructureService, FeeStructure } from '../../services/fee-structure.service';
 import { StudentService } from '../../services/student.service';
+import { Student } from '../../interfaces/student';
 import { BusFeesService } from '../../services/bus-fees.service';
 import { ToastService } from '../../services/toast.service';
 import { PaymentData } from '../../interfaces/payment-data';
@@ -224,7 +225,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
-  private buildMonthViewModel(fee: StudentFee, feeStructure: any): MonthViewModel {
+  private buildMonthViewModel(fee: StudentFee, feeStructure: FeeStructure): MonthViewModel {
     const isApril = fee.month === 1;
     return {
       ...fee,
@@ -360,7 +361,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
         this.feeStructureService.getFeeStructure(this.session, this.className)
       ]).pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: ([student, feeStructure]) => {
+          next: ([student, feeStructure]: [Student, FeeStructure]) => {
             this.studentName = student.name;
             if (feeStructure) {
               this.selectedMonthDetails = {
