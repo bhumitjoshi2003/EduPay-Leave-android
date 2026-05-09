@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { ToastService } from '../../services/toast.service';
-import { StudentStreamService, StudentStreamOverview, EligibleStudentsResponse } from '../../services/student-stream.service';
+import { StudentStreamService, StudentStreamOverview } from '../../services/student-stream.service';
 import { SubjectConfigService, AcademicStream, OptionalSubjectGroup } from '../../services/subject-config.service';
+import { SchoolService, SchoolClass } from '../../services/school.service';
 import { LoggerService } from '../../services/logger.service';
 
 @Component({
@@ -18,6 +19,8 @@ import { LoggerService } from '../../services/logger.service';
 export class StudentStreamComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
+  eligibleClasses: SchoolClass[] = [];
+  selectedClass = '';
   students: StudentStreamOverview[] = [];
   streams: AcademicStream[] = [];
   optionalGroups: OptionalSubjectGroup[] = [];
@@ -31,6 +34,7 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
   constructor(
     private streamService: StudentStreamService,
     private subjectService: SubjectConfigService,
+    private schoolService: SchoolService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
     private toast: ToastService
@@ -40,12 +44,18 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
     forkJoin([
       this.subjectService.getStreams(),
       this.subjectService.getOptionalGroups(),
+      this.schoolService.getManagedClasses(),
     ]).pipe(takeUntil(this.destroy$)).subscribe({
-      next: ([streams, groups]) => {
+      next: ([streams, groups, classes]) => {
         this.streams = streams;
         this.optionalGroups = groups;
+        this.eligibleClasses = classes.filter(c => c.streamEligible && c.active);
+        this.noEligibleClasses = this.eligibleClasses.length === 0;
+        if (this.eligibleClasses.length > 0) {
+          this.selectedClass = this.eligibleClasses[0].name;
+          this.loadStudents();
+        }
         this.cdr.markForCheck();
-        this.loadStudents();
       },
       error: (e) => this.logger.error('Error loading config:', e),
     });
@@ -56,16 +66,21 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  onClassSelect(className: string): void {
+    this.selectedClass = className;
+    this.cancelEdit();
+    this.loadStudents();
+  }
+
   loadStudents(): void {
+    if (!this.selectedClass) return;
     this.loading = true;
-    this.noEligibleClasses = false;
     this.students = [];
-    this.streamService.getEligibleStudents()
+    this.streamService.getClassStreamOverview(this.selectedClass)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (res: EligibleStudentsResponse) => {
-          this.students = res.students;
-          this.noEligibleClasses = res.eligibleClassCount === 0;
+        next: (data) => {
+          this.students = data;
           this.loading = false;
           this.cdr.markForCheck();
         },
@@ -92,8 +107,8 @@ export class StudentStreamComponent implements OnInit, OnDestroy {
   }
 
   saveAssignment(student: StudentStreamOverview): void {
-    if (!this.editStreamId || !this.editOptionalSubjectId) {
-      this.toast.warning('Incomplete', 'Please select both a stream and an optional subject.');
+    if (!this.editStreamId) {
+      this.toast.warning('Incomplete', 'Please select a stream.');
       return;
     }
 

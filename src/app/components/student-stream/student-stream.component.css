@@ -30,6 +30,44 @@
 .ss-hero-title { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
 .ss-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.8); margin: 3px 0 0; }
 
+/* ── Class chips ──────────────────────────────────────────────────── */
+.ss-chips-wrap {
+  margin: 0 0 14px;
+}
+
+.ss-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ss-chip {
+  padding: 7px 18px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 20px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.ss-chip:hover {
+  background: #fef3c7;
+  border-color: #b45309;
+  color: #78350f;
+}
+
+.ss-chip.ss-chip-active {
+  background: linear-gradient(135deg, #78350f, #b45309);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(120, 53, 15, 0.25);
+}
+
 /* ── Card ─────────────────────────────────────────────────────────── */
 .ss-card {
   background: #fff;

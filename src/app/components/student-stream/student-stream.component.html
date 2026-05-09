@@ -13,6 +13,15 @@
     <div class="ss-blob ss-blob-2"></div>
   </div>
 
+  <!-- Class chips -->
+  <div class="ss-chips-wrap" *ngIf="!noEligibleClasses">
+    <div class="ss-chips">
+      <button *ngFor="let c of eligibleClasses; trackBy: trackById"
+        class="ss-chip" [class.ss-chip-active]="selectedClass === c.name"
+        (click)="onClassSelect(c.name)">{{ c.name }}</button>
+    </div>
+  </div>
+
   <div class="ss-card">
 
   <div *ngIf="loading" class="ss-loading">Loading students…</div>
@@ -20,16 +29,15 @@
     No stream-eligible classes configured yet.<br>
     <small>Go to <strong>Classes</strong> (More → Classes) and toggle <strong>Stream</strong> on the classes you want to include.</small>
   </div>
-  <div *ngIf="!loading && !noEligibleClasses && students.length === 0" class="ss-empty">No active students found in stream-eligible classes.</div>
+  <div *ngIf="!loading && !noEligibleClasses && students.length === 0" class="ss-empty">No students found for Class {{ selectedClass }}.</div>
 
-  <!-- Desktop / Tablet Table -->
+  <!-- Table -->
   <div *ngIf="!loading && students.length > 0" class="ss-table-wrapper">
     <table class="ss-table">
       <thead>
         <tr>
           <th>Student ID</th>
           <th>Name</th>
-          <th>Class</th>
           <th>Stream</th>
           <th>Optional Subject</th>
           <th>Actions</th>
@@ -41,7 +49,6 @@
           <ng-container *ngIf="editingStudentId !== student.studentId">
             <td data-label="Student ID">{{ student.studentId }}</td>
             <td data-label="Name">{{ student.studentName }}</td>
-            <td data-label="Class">{{ student.className || '—' }}</td>
             <td data-label="Stream">
               <span *ngIf="student.streamName" class="ss-stream-badge">{{ student.streamName }}</span>
               <span *ngIf="!student.streamName" class="ss-unassigned">Not assigned</span>
@@ -59,7 +66,6 @@
           <ng-container *ngIf="editingStudentId === student.studentId">
             <td data-label="Student ID">{{ student.studentId }}</td>
             <td data-label="Name">{{ student.studentName }}</td>
-            <td data-label="Class">{{ student.className || '—' }}</td>
             <td data-label="Stream">
               <select [(ngModel)]="editStreamId" class="ss-select">
                 <option [ngValue]="null">— Stream —</option>

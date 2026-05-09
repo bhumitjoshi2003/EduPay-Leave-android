@@ -98,7 +98,17 @@ Use `switchMap` + a `Subject` to cancel stale in-flight requests on rapid user a
 
 ### UI
 
-Angular Material + ngx-bootstrap. Toast/confirm dialogs via `ToastService` (wraps SweetAlert2) — never use `Swal` directly. `MatDialog` for modal dialogs (e.g., `WelcomeDialogComponent` shown once on first dashboard load via `localStorage` flag).
+Angular Material + ngx-bootstrap. **All** toast banners and confirmation dialogs go through `ToastService` — **never use SweetAlert2 (`Swal`) directly anywhere in the codebase**.
+
+- `ToastService` (`src/app/services/toast.service.ts`) — `BehaviorSubject<Toast[]>` for toast banners + `MatDialog` for confirm/alert dialogs
+  - `toast.success/error/warning/info(title, message?)` — queues a toast banner
+  - `toast.confirm(data: ConfirmDialogData): Promise<boolean>` — opens `ConfirmDialogComponent`
+  - `toast.selectMonth(data): Promise<number|null>` — opens `SelectMonthDialogComponent` (used in teacher-attendance)
+- `ToastContainerComponent` (`src/app/components/toast/toast-container.component.ts`) — renders the toast stack; mounted in `app.component.html`
+- `ConfirmDialogComponent` (`src/app/components/confirm-dialog/`) — MatDialog modal for confirmations/alerts
+- `SelectMonthDialogComponent` (`src/app/components/select-month-dialog/`) — MatDialog month picker
+
+`MatDialog` is also used for `WelcomeDialogComponent` (shown once on first dashboard load via `localStorage` flag).
 
 ### Forms
 
@@ -110,8 +120,8 @@ Reactive forms (`ReactiveFormsModule`, `FormBuilder`) for complex forms. Templat
 
 ### Fee Management
 - `fees.component.ts` — per-student fee tracker; session-based; STUDENT sees own fees, ADMIN navigates via `:studentId` param; uses `StudentFee` and `FeeStructure` typed interfaces
-- `fee-structure.component.ts` — admin edits class-wise fee structure per academic year; `canEdit()` checks `ADMIN` role only; new session uses POST (`createNewSession`), edits use PUT (`updateFeeStructures`); handles empty sessions (first-time school setup)
-- `bus-fees.component.ts` — admin edits distance-based bus fee slabs per academic year; same session pattern as fee-structure; handles empty sessions
+- `fee-structure.component.ts` — admin edits class-wise fee structure per academic year; `canEdit()` checks `ADMIN` role only; always uses PUT (`updateFeeStructures`) — the backend handles both new and existing sessions correctly; on save error the editing state is restored so the user can retry without losing work
+- `bus-fees.component.ts` — admin edits distance-based bus fee slabs per academic year; same session pattern as fee-structure; on save error editing state is restored
 - `payment.component.ts` — Razorpay integration; order created server-side; public key fetched from backend; signature verified server-side; Razorpay script lazy-loaded
 - `payment-history.component.ts` / `payment-history-admin.component.ts` — paginated payment history
 - `fee-reminders.component.ts` — admin sends push notification reminders to fee defaulters
@@ -201,3 +211,24 @@ Every repository query filters by `schoolId`. `SecurityUtil.getSchoolId()` extra
 - If build hangs at `:app:packageRelease` — run `./gradlew --stop`, clear `android/.gradle` and `android/app/build`, then retry
 - Signed APK via Android Studio "Generate Signed Bundle/APK" UI (signing config is NOT in build.gradle — handled by the IDE wizard)
 - Output: `android/app/build/outputs/apk/release/` (APK) or `android/app/build/outputs/bundle/release/` (AAB)
+
+---
+
+## Recent Fixes Applied (May 2026)
+
+### Super Admin
+- `super-admin-dashboard`: Onboard form now collects all required admin fields (`adminName`, `adminPhone`, `adminDob`, `adminGender`) with full validation before submission
+- `register-admin`: SUPER_ADMIN sees a school dropdown (filtered to active schools) to assign the new admin; `Admin` interface has optional `schoolId?` field
+- Backend `AdminController` already handles `schoolId` from request body when caller is SUPER_ADMIN (falls back to JWT school for ADMIN)
+
+### Admin
+- `admin-details`: Save now applies the server-returned object to local state (prevents stale data); `closePasswordModal` calls `cdr.markForCheck()` for OnPush
+- `analytics`: Removed redundant `getStats()` + admin name fetch; summary stat cards now computed from `classStats` and `feeTrend` data already loaded
+- `fee-structure`: Switched from conditional POST/PUT to always-PUT; save error restores editing state so user can retry
+- `bus-fees`: Save error restores editing state so user can retry
+- `student-details` / `teacher-details`: `closePasswordModal` calls `cdr.markForCheck()`
+- `admin-list`: `deleteAdmin` subscription now uses `pipe(takeUntil(ngUnsubscribe))` to prevent memory leak
+
+### Global
+- Removed all direct `Swal` usage from `super-admin-dashboard`, `view-leaves`, `class-management` — all dialogs/toasts now go through `ToastService`
+- `app.routes.ts`: SUPER_ADMIN removed from school-specific routes (attendance-summary, school-settings, student-promotion, audit-logs, fee-structure, bus-fees, analytics, timetable, notice)

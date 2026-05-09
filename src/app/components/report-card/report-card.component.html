@@ -1,9 +1,20 @@
 <div class="rc-page">
 
-  <!-- ── Toolbar (hidden on print) ─────────────────────────────────── -->
-  <div class="rc-toolbar no-print">
-    <button class="rc-btn-back" (click)="goBack()">&#8592; Back</button>
-    <button class="rc-btn-print" (click)="print()">&#128438; Print / Save as PDF</button>
+  <!-- ── Hero (hidden on print) ────────────────────────────────────── -->
+  <div class="rc-hero no-print">
+    <div class="rc-hero-left">
+      <div class="rc-hero-icon">📄</div>
+      <div>
+        <h1 class="rc-hero-title">Report Card</h1>
+        <p class="rc-hero-sub">Academic performance report</p>
+      </div>
+    </div>
+    <div class="rc-hero-actions">
+      <button class="rc-btn-back" (click)="goBack()">&#8592; Back</button>
+      <button class="rc-btn-print" (click)="print()">&#128438; Print / Save as PDF</button>
+    </div>
+    <div class="rc-blob rc-blob-1"></div>
+    <div class="rc-blob rc-blob-2"></div>
   </div>
 
   <!-- ── Loading ────────────────────────────────────────────────────── -->
