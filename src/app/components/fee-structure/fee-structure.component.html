@@ -94,31 +94,31 @@
           <tr *ngFor="let fee of feeStructures; trackBy: trackByIndex">
             <td data-label="Class">
               <input *ngIf="isEditing" class="fs-input" type="text" [(ngModel)]="fee.className" />
-              <span *ngIf="!isEditing" class="fs-cell-val fs-class-name">{{ fee.className }}</span>
+              <span *ngIf="!isEditing" class="fs-class-badge">{{ fee.className }}</span>
             </td>
             <td data-label="Tuition Fee">
               <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.tuitionFee" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.tuitionFee }}</span>
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.tuitionFee | number }}</span>
             </td>
             <td data-label="Admission Fee">
               <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.admissionFee" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.admissionFee }}</span>
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.admissionFee | number }}</span>
             </td>
             <td data-label="Annual Charges">
               <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.annualCharges" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.annualCharges }}</span>
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.annualCharges | number }}</span>
             </td>
             <td data-label="E.C.A">
               <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.ecaProject" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.ecaProject }}</span>
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.ecaProject | number }}</span>
             </td>
             <td data-label="Exam Fee">
               <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.examinationFee" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.examinationFee }}</span>
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.examinationFee | number }}</span>
             </td>
             <td data-label="Lab Charges">
               <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.labCharges" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.labCharges }}</span>
+              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.labCharges | number }}</span>
             </td>
           </tr>
         </tbody>
@@ -126,9 +126,5 @@
     </div>
   </div>
 
-  <!-- ── Bus Fees ───────────────────────────────────────────────────── -->
-  <div class="fs-bus-wrap">
-    <app-bus-fees></app-bus-fees>
-  </div>
 
 </div>

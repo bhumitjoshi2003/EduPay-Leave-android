@@ -115,11 +115,14 @@
           <span class="pt-footer-amount">₹{{ totalAmountToPay }}</span>
         </div>
         <div class="pt-admin-controls">
-          <mat-form-field appearance="outline" style="width: 160px;">
-            <mat-label>Amount Received</mat-label>
-            <input matInput type="number" [(ngModel)]="manualPaymentAmount">
-          </mat-form-field>
-          <button mat-raised-button color="accent" (click)="markAsManuallyPaid()">Mark as Paid</button>
+          <div class="pt-amount-field">
+            <label class="pt-amount-label">Amount Received</label>
+            <div class="pt-amount-input-wrap">
+              <span class="pt-amount-prefix">₹</span>
+              <input class="pt-amount-input" type="number" [(ngModel)]="manualPaymentAmount" placeholder="0">
+            </div>
+          </div>
+          <button class="pt-mark-paid-btn" (click)="markAsManuallyPaid()">✓ Mark as Paid</button>
         </div>
       </div>
     </ng-template>

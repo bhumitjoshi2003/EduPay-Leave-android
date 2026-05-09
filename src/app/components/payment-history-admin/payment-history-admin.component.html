@@ -10,6 +10,10 @@
           <p class="pha-hero-sub">All student fee transactions</p>
         </div>
       </div>
+      <div class="pha-hero-stat" *ngIf="totalElements > 0">
+        <span class="pha-hero-num">{{ totalElements }}</span>
+        <span class="pha-hero-lbl">Payments</span>
+      </div>
       <div class="pha-blob pha-blob-1"></div>
       <div class="pha-blob pha-blob-2"></div>
     </div>
@@ -28,7 +32,6 @@
     <!-- ── Filters ────────────────────────────────────────────────── -->
     <div class="pha-filter-card">
       <div class="pha-filter-row">
-
         <div class="pha-filter-group">
           <label class="pha-filter-label">Filter by Date</label>
           <mat-form-field appearance="outline" class="pha-mat-field">
@@ -40,25 +43,22 @@
             <mat-datepicker #picker></mat-datepicker>
           </mat-form-field>
         </div>
-
         <div class="pha-filter-group">
           <label class="pha-filter-label">Student ID</label>
           <mat-form-field appearance="outline" class="pha-mat-field">
-            <input matInput [(ngModel)]="studentIdFilter" (input)="onStudentIdInput()"
-              placeholder="Search by ID…">
+            <input matInput [(ngModel)]="studentIdFilter" (input)="onStudentIdInput()" placeholder="Search by ID…">
           </mat-form-field>
         </div>
-
         <button class="pha-clear-btn" (click)="clearFilter()">Clear</button>
       </div>
     </div>
 
-    <!-- ── Loading / Error ──────────────────────────────────────── -->
+    <!-- ── Loading / Error ───────────────────────────────────────── -->
     <div class="pha-loading" *ngIf="loading">
       <div class="pha-spinner"></div>
       <span>Loading payments…</span>
     </div>
-    <p class="pha-error" *ngIf="error">{{ error }}</p>
+    <div class="pha-error" *ngIf="error">⚠️ {{ error }}</div>
 
     <!-- ── Action Bar ─────────────────────────────────────────────── -->
     <div class="pha-action-bar" *ngIf="!loading && totalElements > 0">
@@ -71,37 +71,82 @@
       </div>
     </div>
 
-    <!-- ── Payment Cards ─────────────────────────────────────────── -->
-    <div class="pha-list" *ngIf="!loading && filteredPayments.length > 0">
-      <div *ngFor="let p of filteredPayments; trackBy: trackByPaymentId"
-        class="pha-card" (click)="viewPaymentDetails(p.paymentId)">
+    <!-- ── Transactions ───────────────────────────────────────────── -->
+    <ng-container *ngIf="!loading && filteredPayments.length > 0">
 
-        <div class="pha-card-left">
-          <div class="pha-amount-circle">₹</div>
+      <!-- Desktop table -->
+      <div class="pha-table-wrap">
+        <div class="pha-table-scroll">
+          <table class="pha-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Student ID</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of filteredPayments; trackBy: trackByPaymentId"
+                class="pha-row" (click)="viewPaymentDetails(p.paymentId)">
+                <td class="pha-td-name">
+                  <div class="pha-row-icon">₹</div>
+                  <span class="pha-row-name">{{ p.studentName }}</span>
+                </td>
+                <td class="pha-td-sid">{{ p.studentId }}</td>
+                <td class="pha-td-amount">{{ p.amountPaid | currency:'INR':'symbol':'1.0-0' }}</td>
+                <td class="pha-td-date">{{ p.paymentDate | date:'d MMM yyyy' }}</td>
+                <td>
+                  <span class="pha-badge"
+                    [class.pha-badge-success]="p.status.toLowerCase() === 'success'"
+                    [class.pha-badge-failed]="p.status.toLowerCase() !== 'success'">
+                    {{ p.status | uppercase }}
+                  </span>
+                </td>
+                <td>
+                  <button class="pha-dl-btn"
+                    (click)="downloadPaymentReceipt(p.paymentId, $event)"
+                    title="Download receipt" aria-label="Download receipt">⬇</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        <div class="pha-card-body">
-          <div class="pha-card-top">
-            <span class="pha-student-name">{{ p.studentName }}</span>
-            <span class="pha-status-chip"
-              [class.pha-status-success]="p.status.toLowerCase() === 'success'"
-              [class.pha-status-failed]="p.status.toLowerCase() !== 'success'">
-              {{ p.status | uppercase }}
-            </span>
-          </div>
-          <div class="pha-card-mid">
-            <span class="pha-amount">₹{{ p.amountPaid | number }}</span>
-          </div>
-          <div class="pha-card-bottom">
-            <span class="pha-student-id">{{ p.studentId }}</span>
-            <span class="pha-date">{{ p.paymentDate | date:'dd MMM yyyy' }}</span>
-          </div>
-        </div>
-
-        <button class="pha-dl-btn" (click)="downloadPaymentReceipt(p.paymentId, $event)"
-          aria-label="Download receipt">⬇</button>
       </div>
-    </div>
+
+      <!-- Mobile cards -->
+      <div class="pha-mobile-list">
+        <div *ngFor="let p of filteredPayments; trackBy: trackByPaymentId"
+          class="pha-card" (click)="viewPaymentDetails(p.paymentId)">
+          <div class="pha-card-left">
+            <div class="pha-amount-circle">₹</div>
+          </div>
+          <div class="pha-card-body">
+            <div class="pha-card-top">
+              <span class="pha-student-name">{{ p.studentName }}</span>
+              <span class="pha-status-chip"
+                [class.pha-status-success]="p.status.toLowerCase() === 'success'"
+                [class.pha-status-failed]="p.status.toLowerCase() !== 'success'">
+                {{ p.status | uppercase }}
+              </span>
+            </div>
+            <div class="pha-card-mid">
+              <span class="pha-amount">{{ p.amountPaid | currency:'INR':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="pha-card-bottom">
+              <span class="pha-student-id">{{ p.studentId }}</span>
+              <span class="pha-date">{{ p.paymentDate | date:'d MMM yyyy' }}</span>
+            </div>
+          </div>
+          <button class="pha-dl-btn"
+            (click)="downloadPaymentReceipt(p.paymentId, $event)"
+            aria-label="Download receipt">⬇</button>
+        </div>
+      </div>
+
+    </ng-container>
 
     <!-- ── Empty ─────────────────────────────────────────────────── -->
     <div class="pha-empty" *ngIf="!loading && !error && filteredPayments.length === 0">
@@ -112,8 +157,7 @@
 
     <!-- ── Pagination ─────────────────────────────────────────────── -->
     <div class="pha-pagination" *ngIf="!loading && totalPages > 1">
-      <button class="pha-page-btn" (click)="prevPage()" [disabled]="currentPage === 0">&#8249; Prev</button>
-
+      <button class="pha-page-btn" (click)="prevPage()" [disabled]="currentPage === 0">‹ Prev</button>
       <ng-container *ngFor="let pageItem of getPaginationDisplayPages(); let i = index; trackBy: trackByIndex">
         <ng-container *ngIf="pageItem !== '...'; else ellipsis">
           <button class="pha-page-btn" [class.pha-page-active]="currentPage === +pageItem"
@@ -121,8 +165,7 @@
         </ng-container>
         <ng-template #ellipsis><span class="pha-ellipsis">…</span></ng-template>
       </ng-container>
-
-      <button class="pha-page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">Next &#8250;</button>
+      <button class="pha-page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">Next ›</button>
     </div>
 
   </div>

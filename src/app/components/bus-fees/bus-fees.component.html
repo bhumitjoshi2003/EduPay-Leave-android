@@ -84,7 +84,7 @@
             </td>
             <td data-label="Fee">
               <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.fees" />
-              <span *ngIf="!isEditing" class="bf-fee-val">₹ {{ fee.fees }}</span>
+              <span *ngIf="!isEditing" class="bf-fee-val">₹ {{ fee.fees | number }}</span>
             </td>
           </tr>
           <tr *ngIf="busFeeStructures.length === 0">

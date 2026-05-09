@@ -1,19 +1,29 @@
 <div *ngIf="showFeesModule; else comingSoonTemplate">
   <div class="ph-page">
 
-    <!-- ── Skeleton ─────────────────────────────────────────────────── -->
-    <div class="ph-section" *ngIf="loading && paymentHistory.length === 0">
-      <span class="sk-shimmer" style="width:110px;height:16px;margin-bottom:14px"></span>
-      <div class="ph-list">
-        <div class="ph-card" *ngFor="let _ of [1,2,3,4,5,6]" style="cursor:default;pointer-events:none">
-          <div class="sk-shimmer" style="width:44px;height:44px;border-radius:50%;flex-shrink:0"></div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-            <span class="sk-shimmer" style="width:62%;height:13px"></span>
-            <span class="sk-shimmer" style="width:42%;height:10px"></span>
+    <!-- ── Skeleton ───────────────────────────────────────────────── -->
+    <div *ngIf="loading && paymentHistory.length === 0">
+      <div class="ph-hero" style="pointer-events:none">
+        <div class="ph-hero-left">
+          <div class="ph-hero-icon">💳</div>
+          <div>
+            <span class="sk-shimmer" style="display:block;width:140px;height:18px;margin-bottom:6px"></span>
+            <span class="sk-shimmer" style="display:block;width:200px;height:12px"></span>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-            <span class="sk-shimmer" style="width:68px;height:15px"></span>
-            <span class="sk-shimmer" style="width:56px;height:21px;border-radius:20px"></span>
+        </div>
+        <div class="ph-blob ph-blob-1"></div>
+        <div class="ph-blob ph-blob-2"></div>
+      </div>
+      <div class="ph-card-wrap">
+        <div class="ph-sk-row" *ngFor="let _ of [1,2,3,4,5,6]">
+          <span class="sk-shimmer" style="width:42px;height:42px;border-radius:12px;flex-shrink:0"></span>
+          <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+            <span class="sk-shimmer" style="width:58%;height:13px"></span>
+            <span class="sk-shimmer" style="width:38%;height:10px"></span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:7px">
+            <span class="sk-shimmer" style="width:72px;height:15px"></span>
+            <span class="sk-shimmer" style="width:54px;height:20px;border-radius:20px"></span>
           </div>
         </div>
       </div>
@@ -21,7 +31,7 @@
 
     <ng-container *ngIf="!loading || paymentHistory.length > 0">
 
-      <!-- ── Hero ─────────────────────────────────────────────────────── -->
+      <!-- ── Hero ──────────────────────────────────────────────────── -->
       <div class="ph-hero">
         <div class="ph-hero-left">
           <div class="ph-hero-icon">💳</div>
@@ -38,62 +48,86 @@
         <div class="ph-blob ph-blob-2"></div>
       </div>
 
-      <!-- ── Error ─────────────────────────────────────────────────────── -->
+      <!-- ── Error ─────────────────────────────────────────────────── -->
       <div class="ph-error" *ngIf="error">
         <span>⚠️</span> {{ error }}
       </div>
 
-      <!-- ── Empty ─────────────────────────────────────────────────────── -->
+      <!-- ── Empty ─────────────────────────────────────────────────── -->
       <div class="ph-empty" *ngIf="paymentHistory.length === 0 && !loading && !error">
         <div class="ph-empty-icon">🧾</div>
         <p class="ph-empty-title">No payment records yet</p>
         <p class="ph-empty-sub">Your fee payment history will appear here once you make your first payment</p>
       </div>
 
-      <!-- ── Payment Cards ─────────────────────────────────────────────── -->
-      <div class="ph-section" *ngIf="paymentHistory.length > 0">
-        <h2 class="ph-section-title">Transactions</h2>
+      <!-- ── Transactions ───────────────────────────────────────────── -->
+      <div class="ph-card-wrap" *ngIf="paymentHistory.length > 0">
+        <div class="ph-card-header">
+          <span class="ph-card-header-title">Transactions</span>
+          <span class="ph-card-header-count">{{ totalElements }} total</span>
+        </div>
 
-        <div class="ph-list">
-          <div class="ph-card"
-            *ngFor="let payment of paymentHistory; trackBy: trackByPaymentId"
+        <!-- Desktop table -->
+        <div class="ph-table-scroll">
+          <table class="ph-table">
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Date & Time</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let payment of paymentHistory; trackBy: trackByPaymentId"
+                (click)="viewPaymentDetails(payment.paymentId)" class="ph-row">
+                <td class="ph-td-id">
+                  <div class="ph-row-icon">₹</div>
+                  <span class="ph-row-id">#{{ payment.paymentId.length > 18 ? (payment.paymentId | slice:0:18) + '…' : payment.paymentId }}</span>
+                </td>
+                <td class="ph-td-date">{{ payment.paymentDate | date:'d MMM yyyy, h:mm a' }}</td>
+                <td class="ph-td-amount">{{ payment.amountPaid | currency:'INR':'symbol':'1.0-0' }}</td>
+                <td>
+                  <span class="ph-badge" [class.ph-badge-success]="payment.status === 'success'">
+                    {{ payment.status | uppercase }}
+                  </span>
+                </td>
+                <td>
+                  <button class="ph-dl-btn"
+                    (click)="downloadPaymentReceipt(payment.paymentId); $event.stopPropagation();"
+                    title="Download receipt" aria-label="Download receipt">⬇</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile cards -->
+        <div class="ph-mobile-list">
+          <div class="ph-m-card" *ngFor="let payment of paymentHistory; trackBy: trackByPaymentId"
             (click)="viewPaymentDetails(payment.paymentId)">
-
-            <div class="ph-card-icon">₹</div>
-
-            <div class="ph-card-info">
-              <span class="ph-card-id">
-                #{{ payment.paymentId.length > 16 ? (payment.paymentId | slice:0:16) + '…' : payment.paymentId }}
-              </span>
-              <span class="ph-card-date">{{ payment.paymentDate | date:'d MMM yyyy, h:mm a' }}</span>
+            <div class="ph-m-icon">₹</div>
+            <div class="ph-m-info">
+              <span class="ph-m-id">#{{ payment.paymentId.length > 16 ? (payment.paymentId | slice:0:16) + '…' : payment.paymentId }}</span>
+              <span class="ph-m-date">{{ payment.paymentDate | date:'d MMM yyyy, h:mm a' }}</span>
             </div>
-
-            <div class="ph-card-right">
-              <span class="ph-card-amount">{{ payment.amountPaid | currency:'INR':'symbol':'1.0-0' }}</span>
-              <span class="ph-card-status" [class.ph-status-success]="payment.status === 'success'">
-                {{ payment.status | uppercase }}
-              </span>
+            <div class="ph-m-right">
+              <span class="ph-m-amount">{{ payment.amountPaid | currency:'INR':'symbol':'1.0-0' }}</span>
+              <span class="ph-badge" [class.ph-badge-success]="payment.status === 'success'">{{ payment.status | uppercase }}</span>
             </div>
-
-            <button class="ph-download-btn"
+            <button class="ph-dl-btn"
               (click)="downloadPaymentReceipt(payment.paymentId); $event.stopPropagation();"
-              title="Download receipt" aria-label="Download receipt">
-              ⬇
-            </button>
-
+              title="Download receipt" aria-label="Download receipt">⬇</button>
           </div>
         </div>
       </div>
 
-      <!-- ── Pagination ─────────────────────────────────────────────────── -->
+      <!-- ── Pagination ─────────────────────────────────────────────── -->
       <div class="ph-pagination" *ngIf="totalPages > 1 && !loading">
-        <button class="ph-page-btn" (click)="previousPage()" [disabled]="currentPage === 0">
-          ← Prev
-        </button>
+        <button class="ph-page-btn" (click)="previousPage()" [disabled]="currentPage === 0">← Prev</button>
         <span class="ph-page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
-        <button class="ph-page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">
-          Next →
-        </button>
+        <button class="ph-page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">Next →</button>
       </div>
 
     </ng-container>

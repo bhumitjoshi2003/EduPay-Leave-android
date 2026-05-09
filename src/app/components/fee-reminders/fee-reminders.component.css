@@ -1,6 +1,7 @@
 .fr-page {
-  padding-bottom: 16px;
   font-family: 'Segoe UI', sans-serif;
+  display: flex; flex-direction: column; gap: 14px;
+  padding-bottom: 16px;
 }
 
 /* ── Hero ─────────────────────────────────────────────────────────── */
@@ -9,7 +10,6 @@
   background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 55%, #f87171 100%);
   border-radius: 20px;
   padding: 24px 20px 28px;
-  margin: 0 0 16px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -61,10 +61,9 @@
 /* ── Controls Card ─────────────────────────────────────────────────── */
 .fr-controls {
   background: #fff;
-  border-radius: 18px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
 
 .fr-controls-row {
@@ -102,27 +101,7 @@
 }
 .fr-select:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.1); outline: none; }
 
-/* ── Loading / Error ─────────────────────────────────────────────── */
-.fr-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  color: #64748b;
-  font-size: 0.9rem;
-  padding: 40px 20px;
-}
-
-.fr-spinner {
-  width: 28px; height: 28px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #dc2626;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  flex-shrink: 0;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
+/* ── Error ───────────────────────────────────────────────────────── */
 .fr-error {
   color: #dc2626;
   font-weight: 600;
@@ -130,16 +109,23 @@
   border: 1px solid #fecaca;
   border-radius: 12px;
   padding: 12px 16px;
-  margin-bottom: 16px;
   font-size: 0.88rem;
 }
+
+/* ── Skeleton shimmer ────────────────────────────────────────────── */
+.sk-shimmer {
+  display: block; border-radius: 6px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.4s infinite;
+}
+@keyframes sk-shimmer { to { background-position: -200% 0; } }
 
 /* ── Stat Cards ──────────────────────────────────────────────────── */
 .fr-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 16px;
 }
 
 .fr-stat-card {
@@ -179,7 +165,6 @@
   background: #fff;
   border-radius: 14px;
   padding: 12px 16px;
-  margin-bottom: 16px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
@@ -235,10 +220,8 @@
 /* ── Table Wrap ──────────────────────────────────────────────────── */
 .fr-table-wrap {
   background: #fff;
-  border-radius: 18px;
-  padding: 18px 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
   overflow-x: auto;
 }
 
@@ -426,14 +409,10 @@
   .fr-table th { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .row-critical { background: #fee2e2 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .row-warning  { background: #fef3c7 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-  .fr-stats { grid-template-columns: repeat(4, 1fr); }
+  .fr-stats { grid-template-columns: repeat(5, 1fr); }
 }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
-@media (max-width: 1023px) {
-  .fr-stats { grid-template-columns: repeat(2, 1fr); }
-}
-
 @media (max-width: 767px) {
   .fr-controls-row { flex-direction: column; align-items: stretch; }
   .fr-select { min-width: unset; width: 100%; }
