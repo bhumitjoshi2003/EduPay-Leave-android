@@ -221,11 +221,9 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   onDateChange(event: any): void {
     const selectedDate = event.value;
     if (selectedDate) {
-      const offset = selectedDate.getTimezoneOffset() * 60000;
-      const adjustedDate = new Date(selectedDate.getTime() - offset);
-      adjustedDate.setHours(0, 0, 0, 0);
-      this.attendanceDate = adjustedDate;
-
+      const date = new Date(selectedDate);
+      date.setHours(0, 0, 0, 0);
+      this.attendanceDate = date;
       this.loadStudentsAndApplyAttendance();
     }
   }

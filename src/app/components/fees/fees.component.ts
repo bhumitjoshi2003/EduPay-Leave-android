@@ -115,16 +115,23 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     this.paymentData = this.feesCalc.createEmptyPaymentData();
     this.academicCurrentMonth = this.feesCalc.getAcademicMonth(this.currentMonth);
     this.role = this.authService.getUserRole();
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      const studentIdFromParams = params['studentId'];
-      if (studentIdFromParams) {
-        this.studentId = studentIdFromParams;
-      }
-    });
-    if (this.role === 'STUDENT') this.getStudentId();
     const today = new Date();
     this.currentAcademicYear = this.feesCalc.getAcademicYear(today);
-    this.fetchSessions();
+
+    if (this.role === 'STUDENT') {
+      // studentId comes from the auth token — available synchronously
+      this.getStudentId();
+      this.fetchSessions();
+    } else {
+      // studentId comes from route params — wait for it before fetching
+      this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+        const studentIdFromParams = params['studentId'];
+        if (studentIdFromParams && studentIdFromParams !== this.studentId) {
+          this.studentId = studentIdFromParams;
+          this.fetchSessions();
+        }
+      });
+    }
   }
 
   ngOnDestroy(): void {

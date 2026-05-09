@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { StudentService } from '../../services/student.service';
 import { TeacherService } from '../../services/teacher.service';
+import { Teacher } from '../../interfaces/teacher';
 import { Router } from '@angular/router';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, switchMap, forkJoin, of, EMPTY } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
 import { SchoolService } from '../../services/school.service';
@@ -24,6 +26,9 @@ interface Student {
 
 export class StudentListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  /** Emits a class name whenever we want to load students for that class.
+   *  switchMap auto-cancels the previous in-flight set of requests. */
+  private loadClass$ = new Subject<string>();
   activeStudents: Student[] = [];
   newStudents: Student[] = [];
   inactiveStudents: Student[] = [];
@@ -50,6 +55,40 @@ export class StudentListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // switchMap cancels any previous in-flight batch when the class changes rapidly
+    this.loadClass$.pipe(
+      takeUntil(this.destroy$),
+      switchMap(className => {
+        this.isLoading = true;
+        this.cdr.markForCheck();
+
+        const active$ = this.studentService.getActiveStudentsByClass(className);
+        const upcoming$ = this.loggedInUserRole === 'ADMIN'
+          ? this.studentService.getNewStudentsByClass(className)
+          : of([] as Student[]);
+        const inactive$ = this.loggedInUserRole === 'ADMIN'
+          ? this.studentService.getInactiveStudentsByClass(className)
+          : of([] as Student[]);
+
+        return forkJoin([active$, upcoming$, inactive$]).pipe(
+          map(([active, upcoming, inactive]) => ({ active, upcoming, inactive })),
+          catchError(err => {
+            this.logger.error('Error loading students:', err);
+            this.toast.error('Error', 'Failed to load students. Please try again.');
+            this.isLoading = false;
+            this.cdr.markForCheck();
+            return EMPTY;
+          })
+        );
+      })
+    ).subscribe(({ active, upcoming, inactive }) => {
+      this.activeStudents = active;
+      this.newStudents = upcoming;
+      this.inactiveStudents = inactive;
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    });
+
     this.getUserRoleAndLoadData();
   }
 
@@ -87,11 +126,11 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
   getTeacherClassAndLoadStudents(): void {
     this.teacherService.getTeacher(this.teacherId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (teacher: any) => {
-        this.selectedClass = teacher.classTeacher;
+      next: (teacher: Teacher) => {
+        this.selectedClass = teacher.classTeacher ?? '';
         this.loadStudents();
       },
-      error: (error: any) => {
+      error: (error: unknown) => {
         this.logger.error('Error fetching teacher details:', error);
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -101,44 +140,10 @@ export class StudentListComponent implements OnInit, OnDestroy {
   }
 
   loadStudents(): void {
-    const classAtRequest = this.selectedClass;
-    localStorage.setItem('lastSelectedClass', classAtRequest);
-    this.isLoading = true;
-    this.cdr.markForCheck();
-
-    this.studentService.getActiveStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (students) => {
-        if (this.selectedClass !== classAtRequest) return;
-        this.activeStudents = students;
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.logger.error('Error loading active students:', err);
-        this.isLoading = false;
-        this.cdr.markForCheck();
-        this.toast.error('Error', 'Failed to load students. Please try again.');
-      }
-    });
-
-    if (this.loggedInUserRole === 'ADMIN') {
-      this.studentService.getNewStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (students) => {
-          if (this.selectedClass !== classAtRequest) return;
-          this.newStudents = students;
-          this.cdr.markForCheck();
-        },
-        error: (err) => this.logger.error('Error loading new students:', err)
-      });
-      this.studentService.getInactiveStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (students) => {
-          if (this.selectedClass !== classAtRequest) return;
-          this.inactiveStudents = students;
-          this.cdr.markForCheck();
-        },
-        error: (err) => this.logger.error('Error loading inactive students:', err)
-      });
-    }
+    localStorage.setItem('lastSelectedClass', this.selectedClass);
+    // Emitting triggers the switchMap pipeline in ngOnInit, which auto-cancels
+    // any in-flight requests from the previous class selection
+    this.loadClass$.next(this.selectedClass);
   }
 
   viewStudentDetails(studentId: string): void {

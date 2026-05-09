@@ -25,7 +25,9 @@ export class AuthStateService {
         this.http.get<UserInfo>(`${this.apiUrl}/me`, { withCredentials: true })
       );
       this.user = userInfo;
-    } catch {
+    } catch (err) {
+      // Expected on app start when no valid session exists (e.g. first visit, expired token)
+      console.warn('[AuthStateService] Could not load current user — treating as logged out:', err);
       this.user = null;
     }
   }

@@ -45,7 +45,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (user?.userId) {
       this.adminService.getAdminById(user.userId)
         .pipe(takeUntil(this.destroy$))
-        .subscribe({ next: a => { this.adminName = a.name; this.cdr.markForCheck(); } });
+        .subscribe({
+          next: a => { this.adminName = a.name; this.cdr.markForCheck(); },
+          error: e => this.logger.error('Failed to load admin name:', e)
+        });
     }
 
     forkJoin([

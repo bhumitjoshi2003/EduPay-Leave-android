@@ -120,7 +120,14 @@ export class PaymentComponent {
           method: { netbanking: true, card: true, upi: true, wallet: false },
           handler: (paymentResponse: RazorpayPaymentResponse) => {
             // Razorpay callbacks fire outside Angular zone — run() brings them back in
-            this.ngZone.run(() => this.verifyPayment(paymentResponse, response));
+            this.ngZone.run(() => {
+              if (!paymentResponse?.razorpay_payment_id) {
+                this.logger.error('Razorpay handler called with missing payment response');
+                this.paymentProcessCompleted.emit();
+                return;
+              }
+              this.verifyPayment(paymentResponse, response);
+            });
           },
           modal: {
             ondismiss: () => {
