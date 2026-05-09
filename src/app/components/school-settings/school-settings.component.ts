@@ -98,6 +98,18 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       this.toast.error('Validation', 'School name is required.');
       return;
     }
+    if (this.editForm.phone && !/^\d{10}$/.test(this.editForm.phone.trim())) {
+      this.toast.warning('Validation', 'Phone number must be exactly 10 digits.');
+      return;
+    }
+    if (this.editForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.editForm.email.trim())) {
+      this.toast.warning('Validation', 'Please enter a valid email address.');
+      return;
+    }
+    if (this.editForm.pincode && !/^\d{6}$/.test(this.editForm.pincode.trim())) {
+      this.toast.warning('Validation', 'Pincode must be exactly 6 digits.');
+      return;
+    }
     this.saving = true;
     this.cdr.markForCheck();
     this.schoolService.updateSettings(this.editForm).pipe(takeUntil(this.destroy$)).subscribe({

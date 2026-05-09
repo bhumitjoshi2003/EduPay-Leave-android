@@ -7,7 +7,7 @@
 /* ── Hero ─────────────────────────────────────────────────────── */
 .pha-hero {
   position: relative;
-  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 55%, #a78bfa 100%);
+  background: linear-gradient(135deg, #14532d 0%, #16a34a 55%, #a3e635 100%);
   border-radius: 20px;
   padding: 22px 24px;
   display: flex; align-items: center; gap: 14px;
@@ -15,7 +15,7 @@
 }
 .pha-blob { position: absolute; border-radius: 50%; opacity: 0.12; pointer-events: none; }
 .pha-blob-1 { width: 140px; height: 140px; background: #fff;    top: -40px; right: -20px; }
-.pha-blob-2 { width: 80px;  height: 80px;  background: #c4b5fd; bottom: -20px; left: 40%; }
+.pha-blob-2 { width: 80px;  height: 80px;  background: #86efac; bottom: -20px; left: 40%; }
 
 .pha-hero-left {
   display: flex; align-items: center; gap: 14px;
@@ -56,9 +56,9 @@
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .pha-chip-active {
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  background: linear-gradient(135deg, #16a34a, #a3e635);
   color: #fff; border-color: transparent;
-  box-shadow: 0 2px 8px rgba(124,58,237,0.3);
+  box-shadow: 0 2px 8px rgba(22,163,74,0.3);
 }
 
 /* ── Filter Card ──────────────────────────────────────────────── */
@@ -95,7 +95,7 @@
 }
 ::ng-deep .pha-mat-field.mat-focused .mdc-notched-outline__leading,
 ::ng-deep .pha-mat-field.mat-focused .mdc-notched-outline__notch,
-::ng-deep .pha-mat-field.mat-focused .mdc-notched-outline__trailing { border-color: #7c3aed !important; }
+::ng-deep .pha-mat-field.mat-focused .mdc-notched-outline__trailing { border-color: #16a34a !important; }
 
 .pha-clear-btn {
   padding: 9px 18px; border: none; border-radius: 10px;
@@ -113,7 +113,7 @@
 }
 .pha-spinner {
   width: 28px; height: 28px;
-  border: 3px solid #e2e8f0; border-top-color: #7c3aed;
+  border: 3px solid #e2e8f0; border-top-color: #16a34a;
   border-radius: 50%; animation: phaSpin 0.8s linear infinite; flex-shrink: 0;
 }
 @keyframes phaSpin { to { transform: rotate(360deg); } }
@@ -144,23 +144,23 @@
 .pha-table { width: 100%; border-collapse: collapse; min-width: 560px; }
 
 .pha-table th {
-  background: #faf5ff; color: #7c3aed;
+  background: #f0fdf4; color: #16a34a;
   padding: 11px 16px; text-align: left;
   font-size: 0.71rem; font-weight: 700;
   letter-spacing: 0.4px; text-transform: uppercase;
-  border-bottom: 2px solid #e9d5ff; white-space: nowrap;
+  border-bottom: 2px solid #bbf7d0; white-space: nowrap;
 }
 .pha-table td {
   padding: 13px 16px; border-bottom: 1px solid #f1f5f9;
   vertical-align: middle; font-size: 0.85rem; color: #374151;
 }
 .pha-table tbody tr:last-child td { border-bottom: none; }
-.pha-table tbody tr:hover td { background: #faf5ff; cursor: pointer; }
+.pha-table tbody tr:hover td { background: #f0fdf4; cursor: pointer; }
 
 .pha-td-name { display: flex; align-items: center; gap: 10px; }
 .pha-row-icon {
   width: 36px; height: 36px; border-radius: 10px;
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  background: linear-gradient(135deg, #16a34a, #a3e635);
   color: #fff; font-size: 1rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
@@ -202,7 +202,7 @@
 
 .pha-amount-circle {
   width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  background: linear-gradient(135deg, #16a34a, #a3e635);
   color: #fff; font-size: 1.1rem; font-weight: 800;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
@@ -241,13 +241,13 @@
 }
 .pha-page-btn {
   padding: 8px 14px; border: none; border-radius: 10px;
-  background: #7c3aed; color: #fff;
+  background: #16a34a; color: #fff;
   font-size: 0.82rem; font-weight: 600; cursor: pointer;
   transition: background 0.15s; font-family: inherit; min-width: 40px;
 }
-.pha-page-btn:active { background: #6d28d9; }
+.pha-page-btn:active { background: #15803d; }
 .pha-page-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
-.pha-page-active { background: #4c1d95 !important; font-weight: 800; }
+.pha-page-active { background: #14532d !important; font-weight: 800; }
 .pha-ellipsis { padding: 8px 4px; color: #94a3b8; font-weight: 600; }
 
 /* ── Tablet breakpoint — switch to table ──────────────────────── */

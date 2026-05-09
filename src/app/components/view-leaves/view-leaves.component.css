@@ -19,7 +19,7 @@
 /* ── Hero ─────────────────────────────────────────────────────────── */
 .vl-hero {
   position: relative;
-  background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 55%, #6366f1 100%);
+  background: linear-gradient(135deg, #134e4a 0%, #0f766e 55%, #2dd4bf 100%);
   border-radius: 20px;
   padding: 24px 20px 28px;
   margin: 0 0 16px;
@@ -37,7 +37,7 @@
   pointer-events: none;
 }
 .vl-blob-1 { width: 130px; height: 130px; background: #fff;    top: -35px; right: -22px; }
-.vl-blob-2 { width: 85px;  height: 85px;  background: #c7d2fe; bottom: -22px; left: 42%; }
+.vl-blob-2 { width: 85px;  height: 85px;  background: #99f6e4; bottom: -22px; left: 42%; }
 
 .vl-hero-left {
   display: flex;
@@ -68,7 +68,7 @@
 .vl-hero-sub {
   margin: 2px 0 0;
   font-size: 0.78rem;
-  color: rgba(165, 180, 252, 0.9);
+  color: rgba(153, 246, 228, 0.9);
 }
 
 .vl-hero-stat {
@@ -93,7 +93,7 @@
   display: block;
   font-size: 0.62rem;
   font-weight: 600;
-  color: rgba(165, 180, 252, 0.9);
+  color: rgba(153, 246, 228, 0.9);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 3px;
@@ -131,10 +131,10 @@
 }
 
 .vl-chip-active {
-  background: linear-gradient(135deg, #4338ca, #6366f1);
+  background: linear-gradient(135deg, #0f766e, #2dd4bf);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.3);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.3);
 }
 
 /* ── Filter Card ──────────────────────────────────────────────────── */
@@ -175,7 +175,22 @@
 
 ::ng-deep .vl-date-field .mat-mdc-text-field-wrapper,
 ::ng-deep .vl-id-field .mat-mdc-text-field-wrapper {
-  border-radius: 10px !important;
+  border-radius: 10px !important; background: #f8fafc !important;
+}
+::ng-deep .vl-date-field .mat-mdc-form-field-infix,
+::ng-deep .vl-id-field .mat-mdc-form-field-infix {
+  padding-top: 7px !important; padding-bottom: 7px !important;
+  min-height: unset !important;
+}
+::ng-deep .vl-date-field input.mat-mdc-input-element,
+::ng-deep .vl-id-field input.mat-mdc-input-element {
+  font-size: 0.84rem !important; color: #374151 !important;
+}
+::ng-deep .vl-date-field .mat-mdc-floating-label,
+::ng-deep .vl-id-field .mat-mdc-floating-label { font-size: 0.84rem !important; }
+::ng-deep .vl-date-field .mat-mdc-icon-button.mat-mdc-button-base,
+::ng-deep .vl-id-field .mat-mdc-icon-button.mat-mdc-button-base {
+  width: 32px !important; height: 32px !important; padding: 4px !important;
 }
 
 ::ng-deep .vl-date-field .mat-mdc-form-field-subscript-wrapper,
@@ -192,7 +207,7 @@
 ::ng-deep .vl-date-field.mat-focused .mdc-notched-outline__trailing,
 ::ng-deep .vl-id-field.mat-focused .mdc-notched-outline__leading,
 ::ng-deep .vl-id-field.mat-focused .mdc-notched-outline__trailing {
-  border-color: #4338ca !important;
+  border-color: #0f766e !important;
 }
 
 .vl-filter-actions {
@@ -300,16 +315,16 @@
   border-radius: 14px;
   background: #f8fafc;
   border: 1px solid #e8edf2;
-  border-left: 3.5px solid #6366f1;
+  border-left: 3.5px solid #2dd4bf;
   transition: box-shadow 0.15s;
 }
-.vl-card:hover { box-shadow: 0 3px 10px rgba(67, 56, 202, 0.1); }
+.vl-card:hover { box-shadow: 0 3px 10px rgba(15, 118, 110, 0.1); }
 
 /* Date badge */
 .vl-date-badge {
   width: 44px; height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #4338ca, #6366f1);
+  background: linear-gradient(135deg, #0f766e, #2dd4bf);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -350,8 +365,8 @@
 }
 
 .vl-class-tag {
-  background: #ede9fe;
-  color: #5b21b6;
+  background: #f0fdfa;
+  color: #0f766e;
   font-weight: 700;
   padding: 1px 7px;
   border-radius: 8px;
@@ -416,7 +431,7 @@
 .vl-btn-approve { background: #dcfce7; color: #15803d; }
 .vl-btn-reject  { background: #fee2e2; color: #dc2626; }
 .vl-btn-edit    { background: #e0f2fe; color: #0369a1; }
-.vl-btn-del     { background: #ede9fe; color: #6366f1; font-size: 0.75rem; }
+.vl-btn-del     { background: #f0fdfa; color: #2dd4bf; font-size: 0.75rem; }
 
 /* ── Pagination ───────────────────────────────────────────────────── */
 .vl-pagination {
@@ -432,7 +447,7 @@
   padding: 8px 16px;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #4338ca, #6366f1);
+  background: linear-gradient(135deg, #0f766e, #2dd4bf);
   color: #fff;
   font-size: 0.82rem;
   font-weight: 600;
@@ -456,13 +471,13 @@
   font-family: inherit;
   display: flex; align-items: center; justify-content: center;
 }
-.vl-page-num:hover { background: #ede9fe; border-color: #6366f1; color: #4338ca; }
+.vl-page-num:hover { background: #f0fdfa; border-color: #2dd4bf; color: #0f766e; }
 
 .vl-page-active {
-  background: linear-gradient(135deg, #4338ca, #6366f1) !important;
+  background: linear-gradient(135deg, #0f766e, #2dd4bf) !important;
   color: #fff !important;
   border-color: transparent !important;
-  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.3);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.3);
 }
 
 .vl-ellipsis { color: #94a3b8; padding: 0 2px; font-size: 0.88rem; }

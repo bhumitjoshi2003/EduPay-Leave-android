@@ -10,7 +10,7 @@
 /* ── Hero ─────────────────────────────────────────────────────── */
 .tt-hero {
   position: relative;
-  background: linear-gradient(135deg, #3b0764 0%, #7c3aed 55%, #a78bfa 100%);
+  background: linear-gradient(135deg, #14532d 0%, #15803d 55%, #4ade80 100%);
   border-radius: 20px;
   padding: 22px 24px;
   display: flex;
@@ -21,7 +21,7 @@
 }
 .tt-blob { position: absolute; border-radius: 50%; opacity: 0.12; pointer-events: none; }
 .tt-blob-1 { width: 140px; height: 140px; background: #fff; top: -40px; right: 80px; }
-.tt-blob-2 { width: 80px; height: 80px; background: #c4b5fd; bottom: -20px; left: 30%; }
+.tt-blob-2 { width: 80px; height: 80px; background: #a7f3d0; bottom: -20px; left: 30%; }
 .tt-hero-left {
   display: flex; align-items: center; gap: 14px;
   position: relative; z-index: 1;
@@ -67,7 +67,7 @@
   min-width: 160px; cursor: pointer;
   transition: border-color 0.2s;
 }
-.tt-select:focus { border-color: #7c3aed; outline: none; }
+.tt-select:focus { border-color: #15803d; outline: none; }
 
 /* Times toggle — shared between admin controls and non-admin bar */
 .tt-times-toggle {
@@ -92,7 +92,7 @@
   background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   transition: left 0.2s;
 }
-.tt-toggle.tt-toggle-on { background: #7c3aed; }
+.tt-toggle.tt-toggle-on { background: #15803d; }
 .tt-toggle.tt-toggle-on::after { left: 21px; }
 
 /* ── Loading / Error ──────────────────────────────────────────── */
@@ -103,7 +103,7 @@
 }
 .tt-spinner {
   width: 22px; height: 22px;
-  border: 3px solid #e2e8f0; border-top-color: #7c3aed;
+  border: 3px solid #e2e8f0; border-top-color: #15803d;
   border-radius: 50%; animation: tt-spin 0.7s linear infinite; flex-shrink: 0;
 }
 @keyframes tt-spin { to { transform: rotate(360deg); } }
@@ -142,14 +142,14 @@
   font-size: 0.85rem; font-weight: 700; color: #475569;
   transition: all 0.18s;
 }
-.tt-day-btn.tt-day-active .tt-day-abbr { color: #7c3aed; }
+.tt-day-btn.tt-day-active .tt-day-abbr { color: #15803d; }
 .tt-day-btn.tt-day-active .tt-day-circle {
-  background: #7c3aed; color: #fff;
-  box-shadow: 0 4px 12px rgba(124,58,237,0.35);
+  background: #15803d; color: #fff;
+  box-shadow: 0 4px 12px rgba(21,128,61,0.35);
 }
 /* Today ring (when not the active selection) */
 .tt-day-btn.tt-day-today .tt-day-circle {
-  border: 2px solid #a78bfa; color: #7c3aed;
+  border: 2px solid #4ade80; color: #15803d;
 }
 
 /* ── Period card list ─────────────────────────────────────────── */
@@ -158,12 +158,12 @@
 }
 
 .tt-period-card {
-  background: var(--card-bg, #f5f3ff);
+  background: var(--card-bg, #f0fdf4);
   border-radius: 16px;
   padding: 14px 16px;
   display: flex; align-items: center; gap: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  border-left: 4px solid var(--card-accent, #7c3aed);
+  border-left: 4px solid var(--card-accent, #15803d);
   position: relative; overflow: hidden;
   transition: transform 0.15s, box-shadow 0.15s;
 }
@@ -177,7 +177,7 @@
 .tt-edit-hint {
   position: absolute; top: 10px; right: 12px;
   font-size: 0.72rem; font-weight: 600;
-  color: var(--card-accent, #7c3aed);
+  color: var(--card-accent, #15803d);
   opacity: 0; transition: opacity 0.15s;
 }
 .tt-period-card.tt-card-clickable:hover .tt-edit-hint { opacity: 1; }
@@ -185,7 +185,7 @@
 /* Icon box */
 .tt-icon-box {
   width: 50px; height: 50px; border-radius: 14px;
-  background: var(--icon-bg, #ede9fe);
+  background: var(--icon-bg, #dcfce7);
   display: flex; align-items: center; justify-content: center;
   font-size: 1.6rem; flex-shrink: 0;
 }
@@ -194,7 +194,7 @@
 .tt-card-info { flex: 1; min-width: 0; }
 .tt-card-subject {
   font-size: 0.98rem; font-weight: 800;
-  color: var(--card-accent, #7c3aed);
+  color: var(--card-accent, #15803d);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tt-card-teacher { font-size: 0.78rem; color: #94a3b8; margin-top: 3px; font-weight: 500; }
@@ -202,7 +202,7 @@
 /* Teacher class badge */
 .tt-class-badge {
   display: inline-block; font-size: 0.66rem; font-weight: 800;
-  background: var(--card-accent, #7c3aed); color: #fff;
+  background: var(--card-accent, #15803d); color: #fff;
   border-radius: 5px; padding: 2px 8px; margin-bottom: 3px; letter-spacing: 0.2px;
 }
 
@@ -237,7 +237,7 @@
 .tt-sc-gk         { --card-bg: #fffbeb; --icon-bg: #fde68a; --card-accent: #d97706; }
 .tt-sc-commerce   { --card-bg: #f8fafc; --icon-bg: #e2e8f0; --card-accent: #475569; }
 .tt-sc-social     { --card-bg: #faf5ff; --icon-bg: #e9d5ff; --card-accent: #9333ea; }
-.tt-sc-default    { --card-bg: #f5f3ff; --icon-bg: #ddd6fe; --card-accent: #6d28d9; }
+.tt-sc-default    { --card-bg: #f0fdf4; --icon-bg: #bbf7d0; --card-accent: #15803d; }
 
 /* ── Empty state ──────────────────────────────────────────────── */
 .tt-day-empty {
@@ -254,14 +254,14 @@
 /* ── Add period button ────────────────────────────────────────── */
 .tt-add-btn {
   width: 100%; padding: 14px;
-  border: 2px dashed #c4b5fd; border-radius: 16px;
-  background: #faf5ff; color: #7c3aed;
+  border: 2px dashed #a7f3d0; border-radius: 16px;
+  background: #f0fdf4; color: #15803d;
   font-size: 0.9rem; font-weight: 700; cursor: pointer;
   font-family: inherit;
   display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: all 0.15s;
 }
-.tt-add-btn:hover { background: #f5f3ff; border-color: #7c3aed; }
+.tt-add-btn:hover { background: #dcfce7; border-color: #15803d; }
 
 /* ══════════════════════════════════════════════════════════════
    MODAL
@@ -285,7 +285,7 @@
 }
 .tt-modal-title {
   margin: 0; font-size: 1.15rem; font-weight: 800; color: #1e293b;
-  border-bottom: 3px solid #7c3aed; padding-bottom: 10px;
+  border-bottom: 3px solid #15803d; padding-bottom: 10px;
 }
 .tt-modal-meta { font-size: 0.82rem; color: #64748b; font-weight: 600; margin-top: -6px; }
 .tt-modal-body { display: flex; flex-direction: column; gap: 12px; }
@@ -300,7 +300,7 @@
   font-size: 0.9rem; background: #fff; color: #1e293b;
   transition: border-color 0.2s;
 }
-.tt-field-input:focus { border-color: #7c3aed; outline: none; }
+.tt-field-input:focus { border-color: #15803d; outline: none; }
 .tt-modal-error {
   margin: 0; font-size: 0.82rem; font-weight: 600; color: #dc2626;
   background: #fef2f2; border: 1px solid #fecaca;
@@ -320,8 +320,8 @@
 .tt-btn-cancel { background: #f1f5f9; color: #475569; }
 .tt-btn-cancel:hover { background: #e2e8f0; }
 .tt-btn-save {
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
-  color: #fff; box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+  background: linear-gradient(135deg, #14532d, #15803d);
+  color: #fff; box-shadow: 0 4px 12px rgba(21,128,61,0.3);
 }
 .tt-btn-save:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
 .tt-btn-delete { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }

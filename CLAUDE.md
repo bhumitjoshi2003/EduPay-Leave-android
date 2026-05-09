@@ -57,11 +57,11 @@ Single protected parent route `/dashboard` guarded by `authGuard`. All feature r
 
 ### Authentication
 
-Custom JWT auth. Tokens stored in `localStorage` (`accessToken`, `refreshToken`).
+Custom JWT auth. Tokens stored as **HTTP-only cookies** (sent/received via `withCredentials: true`). No tokens in `localStorage`. Rotation is handled server-side — the browser automatically stores the new cookies on each refresh response.
 
-- `auth.service.ts` — login, logout, refresh, password reset; decodes JWT via `jwtDecode()` to extract `role` and `userId`
-- `auth.guard.ts` — validates JWT `exp` claim on every `/dashboard` navigation; clears storage and redirects to `/home` on invalid token
-- `auth.interceptor.ts` — injects `Bearer` header; retries once after 401 via refresh endpoint; restricts `withCredentials` to own API only (`environment.apiUrl`); excludes `/login`, `/refresh-token`, `/request-password-reset`, `/reset-password`
+- `auth.service.ts` — login, logout, refresh, password reset; all calls use `withCredentials: true`
+- `auth.guard.ts` — checks in-memory `AuthStateService.isLoggedIn()`; redirects to `/home` if not logged in
+- `auth.interceptor.ts` — retries once after 401 via refresh endpoint; restricts `withCredentials` to own API only (`environment.apiUrl`) — never sent to third-party URLs (e.g. Razorpay CDN); excludes `/login`, `/refresh-token`, `/request-password-reset`, `/reset-password`
 - `auth-state.service.ts` — holds in-memory `UserInfo { userId, role, name, className }`; loaded via `/auth/me` on app init
 
 **Roles:** `STUDENT`, `TEACHER`, `ADMIN`, `SUB_ADMIN`, `SUPER_ADMIN`

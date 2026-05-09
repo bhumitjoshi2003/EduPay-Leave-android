@@ -122,11 +122,21 @@
             </div>
             <div class="ss-form-group">
               <label>Email</label>
-              <input class="ss-input" type="email" [(ngModel)]="editForm.email" placeholder="school@example.com">
+              <input class="ss-input" type="email" [(ngModel)]="editForm.email"
+                     name="ssEmail" email #ssEmail="ngModel"
+                     placeholder="school@example.com">
+              <span class="ss-field-error" *ngIf="ssEmail.invalid && ssEmail.dirty && editForm.email">
+                Enter a valid email address.
+              </span>
             </div>
             <div class="ss-form-group">
               <label>Phone</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.phone" placeholder="10-digit number">
+              <input class="ss-input" type="text" [(ngModel)]="editForm.phone"
+                     name="ssPhone" pattern="[0-9]{10}" #ssPhone="ngModel"
+                     placeholder="10-digit number" maxlength="10">
+              <span class="ss-field-error" *ngIf="ssPhone.invalid && ssPhone.dirty && editForm.phone">
+                Phone must be exactly 10 digits.
+              </span>
             </div>
             <div class="ss-form-group ss-full">
               <label>Website</label>
@@ -146,7 +156,12 @@
             </div>
             <div class="ss-form-group">
               <label>Pincode</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.pincode" placeholder="6-digit PIN">
+              <input class="ss-input" type="text" [(ngModel)]="editForm.pincode"
+                     name="ssPincode" pattern="[0-9]{6}" #ssPincode="ngModel"
+                     placeholder="6-digit PIN" maxlength="6">
+              <span class="ss-field-error" *ngIf="ssPincode.invalid && ssPincode.dirty && editForm.pincode">
+                Pincode must be exactly 6 digits.
+              </span>
             </div>
           </div>
 

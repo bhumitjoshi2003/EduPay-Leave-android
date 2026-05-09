@@ -6,7 +6,7 @@
 /* ── Hero ───────────────────────────────────────────────────────── */
 .al-hero {
   position: relative;
-  background: linear-gradient(135deg, #78350f 0%, #b45309 55%, #d97706 100%);
+  background: linear-gradient(135deg, #134e4a 0%, #0f766e 55%, #2dd4bf 100%);
   border-radius: 20px;
   padding: 28px 22px 32px;
   margin: 0 0 20px;
@@ -32,7 +32,7 @@
 
 .al-blob-2 {
   width: 90px; height: 90px;
-  background: #fcd34d;
+  background: #99f6e4;
   bottom: -20px; left: 30%;
 }
 
@@ -191,8 +191,8 @@
 
 .al-input:focus {
   outline: none;
-  border-color: #d97706;
-  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+  border-color: #2dd4bf;
+  box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
   background: #fff;
 }
 
@@ -220,8 +220,8 @@
 
 .al-textarea:focus {
   outline: none;
-  border-color: #d97706;
-  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+  border-color: #2dd4bf;
+  box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
   background: #fff;
 }
 
@@ -229,7 +229,7 @@
 .al-submit-btn {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #b45309, #d97706);
+  background: linear-gradient(135deg, #0f766e, #2dd4bf);
   color: #fff;
   border: none;
   border-radius: 14px;
@@ -237,7 +237,7 @@
   font-weight: 700;
   cursor: pointer;
   margin-top: 6px;
-  box-shadow: 0 4px 14px rgba(180,83,9,0.35);
+  box-shadow: 0 4px 14px rgba(15,118,110,0.35);
   transition: opacity 0.15s ease, transform 0.15s ease;
   font-family: inherit;
 }
@@ -270,7 +270,7 @@
   align-items: center;
   justify-content: center;
   min-width: 44px;
-  background: linear-gradient(135deg, #b45309, #d97706);
+  background: linear-gradient(135deg, #0f766e, #2dd4bf);
   border-radius: 12px;
   padding: 8px 6px;
   flex-shrink: 0;
@@ -333,7 +333,7 @@
   white-space: nowrap;
 }
 
-.al-status--pending  { background: #fef3c7; color: #b45309; }
+.al-status--pending  { background: #fef3c7; color: #0f766e; }
 .al-status--approved { background: #dcfce7; color: #15803d; }
 .al-status--rejected { background: #fee2e2; color: #dc2626; }
 
@@ -386,7 +386,7 @@
 .al-page-info {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #b45309;
+  color: #0f766e;
   min-width: 48px;
   text-align: center;
 }
@@ -406,7 +406,7 @@
 .al-spinner {
   width: 36px; height: 36px;
   border: 3px solid #e2e8f0;
-  border-top-color: #1f6f8b;
+  border-top-color: #0f766e;
   border-radius: 50%;
   animation: al-spin 0.8s linear infinite;
 }

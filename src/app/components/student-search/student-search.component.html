@@ -97,9 +97,24 @@
 
   <!-- ── Idle state ─────────────────────────────────────────────────── -->
   <div class="ss-idle" *ngIf="!isLoading && !hasSearched && !error && query.length < 2">
-    <div class="ss-idle-icon">👨‍🎓</div>
-    <p class="ss-idle-title">Search across all classes</p>
-    <p class="ss-idle-sub">Find any student instantly by name or ID — no need to know their class first.</p>
+    <p class="ss-idle-label">Search by</p>
+    <div class="ss-hint-grid">
+      <div class="ss-hint-card">
+        <span class="ss-hint-icon">📛</span>
+        <span class="ss-hint-title">Student Name</span>
+        <span class="ss-hint-sub">e.g. "Rohan Sharma"</span>
+      </div>
+      <div class="ss-hint-card">
+        <span class="ss-hint-icon">🪪</span>
+        <span class="ss-hint-title">Student ID</span>
+        <span class="ss-hint-sub">e.g. "STU-2024-001"</span>
+      </div>
+      <div class="ss-hint-card">
+        <span class="ss-hint-icon">🔤</span>
+        <span class="ss-hint-title">Partial Match</span>
+        <span class="ss-hint-sub">Works with 2+ characters</span>
+      </div>
+    </div>
   </div>
 
 </div>

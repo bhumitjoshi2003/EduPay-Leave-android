@@ -6,7 +6,7 @@
 /* ── Hero ────────────────────────────────────────────────────────── */
 .ss-hero {
   position: relative;
-  background: linear-gradient(135deg, #1e1065 0%, #4c1d95 50%, #7c3aed 100%);
+  background: linear-gradient(135deg, #1e3a5f 0%, #0f766e 55%, #2dd4bf 100%);
   border-radius: 20px;
   padding: 28px 24px 36px;
   margin: 0 0 0;
@@ -21,7 +21,7 @@
   pointer-events: none;
 }
 .ss-blob-1 { width: 140px; height: 140px; background: #fff;    top: -40px; right: -30px; }
-.ss-blob-2 { width: 90px;  height: 90px;  background: #c4b5fd; bottom: -25px; left: 30%; }
+.ss-blob-2 { width: 90px;  height: 90px;  background: #99f6e4; bottom: -25px; left: 30%; }
 
 .ss-hero-inner { position: relative; z-index: 1; }
 
@@ -57,7 +57,7 @@
 }
 
 .ss-search-box.ss-focused {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.13), 0 0 0 2px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.13), 0 0 0 2px rgba(15,118,110,0.3);
 }
 
 .ss-search-icon {
@@ -69,7 +69,7 @@
 }
 
 .ss-search-box.ss-focused .ss-search-icon {
-  color: #7c3aed;
+  color: #0f766e;
 }
 
 .ss-input {
@@ -144,7 +144,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  background: linear-gradient(135deg, #0f766e, #2dd4bf);
   color: #fff;
   font-weight: 700;
   font-size: 1.1rem;
@@ -187,7 +187,7 @@
 
 .ss-card-class {
   font-size: 0.78rem;
-  color: #7c3aed;
+  color: #0f766e;
   font-weight: 600;
 }
 
@@ -212,22 +212,22 @@
   flex-shrink: 0;
 }
 
-/* ── Empty / Idle / Error states ─────────────────────────────────── */
-.ss-empty, .ss-idle, .ss-error {
+/* ── Empty / Error states ────────────────────────────────────────── */
+.ss-empty, .ss-error {
   text-align: center;
   padding: 48px 24px 24px;
 }
 
-.ss-empty-icon, .ss-idle-icon { font-size: 3rem; margin-bottom: 12px; }
+.ss-empty-icon { font-size: 3rem; margin-bottom: 12px; }
 
-.ss-empty-title, .ss-idle-title {
+.ss-empty-title {
   font-size: 1.05rem;
   font-weight: 700;
   color: #111827;
   margin: 0 0 6px;
 }
 
-.ss-empty-sub, .ss-idle-sub {
+.ss-empty-sub {
   font-size: 0.87rem;
   color: #6b7280;
   line-height: 1.55;
@@ -240,3 +240,44 @@
   color: #dc2626;
   font-size: 0.9rem;
 }
+
+/* ── Idle hint cards ─────────────────────────────────────────────── */
+.ss-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding-top: 24px;
+}
+
+.ss-idle-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0;
+}
+
+.ss-hint-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.ss-hint-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #e8edf2;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+}
+.ss-hint-card:active { border-color: #2dd4bf; }
+
+.ss-hint-icon  { font-size: 1.5rem; line-height: 1; flex-shrink: 0; }
+.ss-hint-title { font-size: 0.88rem; font-weight: 700; color: #1e293b; }
+.ss-hint-sub   { font-size: 0.75rem; color: #94a3b8; font-weight: 500; margin-top: 2px; }
