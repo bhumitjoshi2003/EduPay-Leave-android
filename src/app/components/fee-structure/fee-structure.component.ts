@@ -244,6 +244,6 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   trackByClassName(index: number, fee: FeeStructure): string { return fee.className; }
 
   canEdit(): boolean {
-    return this.authStateService.getUserRole() === 'SUPER_ADMIN';
+    return this.authStateService.getUserRole() === 'ADMIN';
   }
 }

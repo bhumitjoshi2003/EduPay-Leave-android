@@ -225,7 +225,7 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   canEdit(): boolean {
-    return this.authStateService.getUserRole() === 'SUPER_ADMIN';
+    return this.authStateService.getUserRole() === 'ADMIN';
   }
 
   trackByIndex(index: number): number { return index; }
