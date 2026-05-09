@@ -1,26 +1,19 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RegisterStudentComponent } from '../register-student/register-student.component'; 
+import { RegisterStudentComponent } from '../register-student/register-student.component';
 import { RegisterTeacherComponent } from '../register-teacher/register-teacher.component';
-
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RegisterStudentComponent, RegisterTeacherComponent],
+  imports: [CommonModule, RegisterStudentComponent, RegisterTeacherComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RegisterComponent implements OnInit {
-  showStudentForm: boolean = true;
+export class RegisterComponent {
+  showStudentForm = true;
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
-  toggleForm(type: 'student' | 'teacher') {
-    this.showStudentForm = (type === 'student');
+  toggleForm(type: 'student' | 'teacher'): void {
+    this.showStudentForm = type === 'student';
   }
 }
