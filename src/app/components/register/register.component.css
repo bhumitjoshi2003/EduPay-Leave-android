@@ -1,28 +1,27 @@
+/* ── Page ─────────────────────────────────────────────────────────── */
 .rg-page {
   padding-bottom: 16px;
   font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 /* ── Hero ─────────────────────────────────────────────────────────── */
 .rg-hero {
   position: relative;
   background: linear-gradient(135deg, #064e3b 0%, #059669 55%, #34d399 100%);
-  border-radius: 20px;
-  padding: 24px 20px 28px;
-  margin: 0 0 16px;
+  border-radius: 16px;
+  padding: 14px 16px 18px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   overflow: hidden;
   color: #fff;
+  box-shadow: 0 4px 16px rgba(5,150,105,0.22);
 }
 
-.rg-blob {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.12;
-  pointer-events: none;
-}
+.rg-blob { position: absolute; border-radius: 50%; opacity: 0.12; pointer-events: none; }
 .rg-blob-1 { width: 120px; height: 120px; background: #fff;    top: -30px; right: -20px; }
 .rg-blob-2 { width: 80px;  height: 80px;  background: #6ee7b7; bottom: -20px; left: 40%; }
 
@@ -35,62 +34,127 @@
   z-index: 1;
 }
 
-.rg-hero-icon {
-  font-size: 1.6rem;
+.rg-hero-icon-wrap {
+  font-size: 1.3rem;
   background: rgba(255,255,255,0.18);
-  border-radius: 14px;
-  width: 52px; height: 52px;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 11px;
+  width: 40px; height: 40px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 
+.rg-eyebrow {
+  margin: 0 0 2px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.72);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
 .rg-hero-title {
-  margin: 0;
-  font-size: 1.3rem;
+  margin: 0 0 2px;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #fff;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
 }
 
 .rg-hero-sub {
-  margin: 2px 0 0;
+  margin: 0;
   font-size: 0.75rem;
   color: rgba(255,255,255,0.78);
 }
 
-/* ── Tab Chips ────────────────────────────────────────────────────── */
-.rg-tabs {
+/* ── Tab Selector ────────────────────────────────────────────────── */
+.rg-tab-row {
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  margin-bottom: 16px;
 }
 
-.rg-tab {
-  flex: 1;
-  padding: 11px 16px;
-  border-radius: 14px;
-  border: 1.5px solid #e2e8f0;
+.rg-tab-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: 13px;
+  border: 2px solid #e2e8f0;
   background: #fff;
-  color: #64748b;
-  font-size: 0.88rem;
-  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
   font-family: inherit;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.rg-tab-active {
-  background: linear-gradient(135deg, #059669, #34d399);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 3px 12px rgba(5,150,105,0.3);
-}
-
-/* ── Form Wrapper ─────────────────────────────────────────────────── */
-.rg-form-wrap {
+  text-align: left;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  position: relative;
+  overflow: hidden;
   width: 100%;
+}
+
+.rg-tab-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #064e3b, #059669);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.rg-tab-card:active { opacity: 0.9; }
+
+.rg-tab-card.rg-tab-active {
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(5,150,105,0.28);
+}
+
+.rg-tab-card.rg-tab-active::before { opacity: 1; }
+
+.rg-tab-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.rg-tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.rg-tab-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #1e293b;
+  transition: color 0.2s;
+}
+
+.rg-tab-active .rg-tab-title { color: #fff; }
+
+.rg-tab-check,
+.rg-tab-arrow {
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.rg-tab-check { color: #fff; }
+.rg-tab-arrow { color: #cbd5e1; }
+
+/* ── Form Wrapper ────────────────────────────────────────────────── */
+.rg-form-wrap {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
 }
 
 app-register-student,

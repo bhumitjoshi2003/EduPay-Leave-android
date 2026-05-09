@@ -3,8 +3,11 @@
   <!-- ── Hero ──────────────────────────────────────────────────────── -->
   <div class="rg-hero">
     <div class="rg-hero-left">
-      <div class="rg-hero-icon">📝</div>
-      <div>
+      <div class="rg-hero-icon-wrap">
+        <span>📝</span>
+      </div>
+      <div class="rg-hero-text">
+        <p class="rg-eyebrow">People Management</p>
         <h1 class="rg-hero-title">Register</h1>
         <p class="rg-hero-sub">Add new students or staff members</p>
       </div>
@@ -13,14 +16,27 @@
     <div class="rg-blob rg-blob-2"></div>
   </div>
 
-  <!-- ── Tab Chips ─────────────────────────────────────────────────── -->
-  <div class="rg-tabs">
-    <button class="rg-tab" [class.rg-tab-active]="showStudentForm" (click)="toggleForm('student')">
-      👨‍🎓 Student
+  <!-- ── Tab Selector ──────────────────────────────────────────────── -->
+  <div class="rg-tab-row">
+
+    <button class="rg-tab-card" [class.rg-tab-active]="showStudentForm" (click)="toggleForm('student')">
+      <div class="rg-tab-icon">👨‍🎓</div>
+      <div class="rg-tab-body">
+        <span class="rg-tab-title">Register Student</span>
+        </div>
+      <span class="rg-tab-check" *ngIf="showStudentForm">✓</span>
+      <span class="rg-tab-arrow" *ngIf="!showStudentForm">›</span>
     </button>
-    <button class="rg-tab" [class.rg-tab-active]="!showStudentForm" (click)="toggleForm('teacher')">
-      👨‍🏫 Teacher
+
+    <button class="rg-tab-card" [class.rg-tab-active]="!showStudentForm" (click)="toggleForm('teacher')">
+      <div class="rg-tab-icon">👨‍🏫</div>
+      <div class="rg-tab-body">
+        <span class="rg-tab-title">Register Teacher</span>
+        </div>
+      <span class="rg-tab-check" *ngIf="!showStudentForm">✓</span>
+      <span class="rg-tab-arrow" *ngIf="showStudentForm">›</span>
     </button>
+
   </div>
 
   <!-- ── Form Content ───────────────────────────────────────────────── -->

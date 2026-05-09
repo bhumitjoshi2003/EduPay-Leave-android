@@ -1,8 +1,67 @@
-.pha-page {
+/* ── Container (sidebar always horizontal on Android) ───────────── */
+.pha-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
   font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Sidebar — horizontal strip on Android ───────────────────────── */
+.pha-sidebar {
+  width: 100%;
+  background: linear-gradient(135deg, #0f2d1a 0%, #14532d 100%);
+  border-radius: 16px 16px 0 0;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pha-sidebar-title { display: none; }
+
+.pha-class-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.pha-class-list::-webkit-scrollbar { display: none; }
+
+.pha-class-item { cursor: pointer; flex-shrink: 0; }
+
+.pha-class-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.75);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.pha-class-item.pha-class-active .pha-class-pill {
+  background: rgba(163,230,53,0.28);
+  color: #a3e635;
+  box-shadow: inset 0 0 0 1.5px rgba(163,230,53,0.5);
+}
+
+/* ── Main content area ───────────────────────────────────────────── */
+.pha-page {
+  flex: 1;
+  min-width: 0;
   display: flex; flex-direction: column; gap: 14px;
   padding-bottom: 16px;
 }
+
+/* Android: sidebar is always on top (column), cards keep full radius */
 
 /* ── Hero ─────────────────────────────────────────────────────── */
 .pha-hero {
@@ -39,27 +98,6 @@
 .pha-hero-num  { display: block; font-size: 1.5rem; font-weight: 800; color: #fff; line-height: 1; }
 .pha-hero-lbl  { display: block; font-size: 0.65rem; font-weight: 600; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
 
-/* ── Class Chips ──────────────────────────────────────────────── */
-.pha-chips-wrap { overflow: hidden; }
-.pha-chips {
-  display: flex; gap: 8px;
-  overflow-x: auto; padding: 4px 2px 8px;
-  -webkit-overflow-scrolling: touch; scrollbar-width: none;
-}
-.pha-chips::-webkit-scrollbar { display: none; }
-
-.pha-chip {
-  flex-shrink: 0; padding: 7px 16px; border-radius: 20px;
-  border: 1.5px solid #e2e8f0; background: #fff;
-  color: #64748b; font-size: 0.8rem; font-weight: 600;
-  cursor: pointer; font-family: inherit; white-space: nowrap;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.pha-chip-active {
-  background: linear-gradient(135deg, #16a34a, #a3e635);
-  color: #fff; border-color: transparent;
-  box-shadow: 0 2px 8px rgba(22,163,74,0.3);
-}
 
 /* ── Filter Card ──────────────────────────────────────────────── */
 .pha-filter-card {

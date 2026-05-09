@@ -1,85 +1,77 @@
-<div class="register-teacher-container">
-  <h2>Register New Teacher</h2>
+<div class="rt-wrap">
   <form [formGroup]="teacherForm" (ngSubmit)="onSubmit()">
-    <div class="form-group">
-      <label for="teacherId">Teacher ID <span class="required">*</span></label>
-      <input type="text" id="teacherId" formControlName="teacherId" class="form-control" />
-      <div
-        *ngIf="teacherForm.controls['teacherId'].invalid && (teacherForm.controls['teacherId'].dirty || teacherForm.controls['teacherId'].touched)"
-        class="error-message">
-        Teacher ID is required.
+
+    <!-- Identity -->
+    <div class="rt-section">
+      <p class="rt-section-label">Identity</p>
+      <div class="rt-grid">
+        <div class="rt-field">
+          <label class="rt-label">Teacher ID <span class="rt-req">*</span></label>
+          <input type="text" formControlName="teacherId" class="rt-input">
+          <span class="rt-err" *ngIf="teacherForm.controls['teacherId'].invalid && (teacherForm.controls['teacherId'].dirty || teacherForm.controls['teacherId'].touched)">Teacher ID is required.</span>
+        </div>
+        <div class="rt-field">
+          <label class="rt-label">Full Name <span class="rt-req">*</span></label>
+          <input type="text" formControlName="name" class="rt-input">
+          <span class="rt-err" *ngIf="teacherForm.controls['name'].invalid && (teacherForm.controls['name'].dirty || teacherForm.controls['name'].touched)">Name is required.</span>
+        </div>
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="name">Name <span class="required">*</span></label>
-      <input type="text" id="name" formControlName="name" class="form-control" />
-      <div
-        *ngIf="teacherForm.controls['name'].invalid && (teacherForm.controls['name'].dirty || teacherForm.controls['name'].touched)"
-        class="error-message">
-        Name is required.
+    <!-- Contact -->
+    <div class="rt-section">
+      <p class="rt-section-label">Contact</p>
+      <div class="rt-grid">
+        <div class="rt-field">
+          <label class="rt-label">Email <span class="rt-req">*</span></label>
+          <input type="email" formControlName="email" class="rt-input">
+          <span class="rt-err" *ngIf="teacherForm.controls['email'].invalid && (teacherForm.controls['email'].dirty || teacherForm.controls['email'].touched)">
+            <ng-container *ngIf="teacherForm.controls['email'].errors?.['required']">Email is required.</ng-container>
+            <ng-container *ngIf="teacherForm.controls['email'].errors?.['email']">Invalid email format.</ng-container>
+          </span>
+        </div>
+        <div class="rt-field">
+          <label class="rt-label">Phone Number</label>
+          <input type="text" formControlName="phoneNumber" class="rt-input">
+          <span class="rt-err" *ngIf="teacherForm.controls['phoneNumber'].invalid && (teacherForm.controls['phoneNumber'].dirty || teacherForm.controls['phoneNumber'].touched)">Invalid phone number.</span>
+        </div>
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="email">Email <span class="required">*</span></label>
-      <input type="email" id="email" formControlName="email" class="form-control" />
-      <div
-        *ngIf="teacherForm.controls['email'].invalid && (teacherForm.controls['email'].dirty || teacherForm.controls['email'].touched)"
-        class="error-message">
-        <div *ngIf="teacherForm.controls['email'].errors?.['required']">Email is required.</div>
-        <div *ngIf="teacherForm.controls['email'].errors?.['email']">Invalid email format.</div>
+    <!-- Details -->
+    <div class="rt-section">
+      <p class="rt-section-label">Details</p>
+      <div class="rt-grid">
+        <div class="rt-field">
+          <label class="rt-label">Date of Birth <span class="rt-req">*</span></label>
+          <input type="date" formControlName="dob" class="rt-input">
+          <span class="rt-err" *ngIf="teacherForm.controls['dob'].invalid && (teacherForm.controls['dob'].dirty || teacherForm.controls['dob'].touched)">Date of Birth is required.</span>
+        </div>
+        <div class="rt-field">
+          <label class="rt-label">Gender <span class="rt-req">*</span></label>
+          <select formControlName="gender" class="rt-input rt-select">
+            <option value="" disabled>Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          <span class="rt-err" *ngIf="teacherForm.controls['gender'].invalid && (teacherForm.controls['gender'].dirty || teacherForm.controls['gender'].touched)">Gender is required.</span>
+        </div>
+        <div class="rt-field rt-field-full">
+          <label class="rt-label">Class Teacher Of</label>
+          <select formControlName="classTeacher" class="rt-input rt-select">
+            <option [ngValue]="null">Not Assigned</option>
+            <option *ngFor="let className of classList" [value]="className">{{ className }}</option>
+          </select>
+        </div>
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="phoneNumber">Phone Number</label>
-      <input type="text" id="phoneNumber" formControlName="phoneNumber" class="form-control" />
-      <div
-        *ngIf="teacherForm.controls['phoneNumber'].invalid && (teacherForm.controls['phoneNumber'].dirty || teacherForm.controls['phoneNumber'].touched)"
-        class="error-message">
-        Invalid phone number.
-      </div>
+    <!-- Actions -->
+    <div class="rt-actions">
+      <button type="button" class="rt-btn-cancel" (click)="goBack()">Cancel</button>
+      <button type="submit" class="rt-btn-save">Save Teacher</button>
     </div>
 
-    <div class="form-group">
-      <label for="dob">Date of Birth <span class="required">*</span></label>
-      <input type="date" id="dob" formControlName="dob" class="form-control" />
-      <div
-        *ngIf="teacherForm.controls['dob'].invalid && (teacherForm.controls['dob'].dirty || teacherForm.controls['dob'].touched)"
-        class="error-message">
-        Date of Birth is required.
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="gender">Gender <span class="required">*</span></label>
-      <select id="gender" formControlName="gender" class="form-control">
-        <option value="" disabled>Select Gender <span class="required">*</span></option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-        <option value="Other">Other</option>
-      </select>
-      <div
-        *ngIf="teacherForm.controls['gender'].invalid && (teacherForm.controls['gender'].dirty || teacherForm.controls['gender'].touched)"
-        class="error-message">
-        Gender is required.
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="classTeacher">Class Teacher Of</label>
-      <select id="classTeacher" formControlName="classTeacher" class="form-control">
-        <option [ngValue]="null">Not Assigned</option>
-        <option *ngFor="let className of classList" [value]="className">
-          {{ className }}
-        </option>
-      </select>
-    </div>
-
-    <div class="button-group">
-      <button type="submit" class="save-button">Save Teacher</button>
-      <button type="button" class="cancel-button" (click)="goBack()">Cancel</button>
-    </div>
   </form>
 </div>

@@ -1,746 +1,118 @@
-body {
-    background: linear-gradient(135deg, #e0f7fa, #ffffff);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 20px;
-    box-sizing: border-box;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+/* ── Form Wrapper ─────────────────────────────────────────────── */
+.rt-wrap {
+  padding: 16px 16px 20px;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.register-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 0 15px;
-    box-sizing: border-box;
+/* ── Sections ─────────────────────────────────────────────────── */
+.rt-section {
+  margin-bottom: 18px;
 }
 
-.invalid-field {
-    border-color: #e53e3e !important;
-    background-color: #fff5f5;
+.rt-section-label {
+  margin: 0 0 10px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #059669;
+  padding-left: 9px;
+  border-left: 3px solid #059669;
 }
 
-.error-message {
-    color: #e53e3e;
-    font-size: 0.75rem;
-    font-weight: 500;
+/* ── Grid — always single column on Android ───────────────────── */
+.rt-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
-.required {
-    color: #e53e3e;
+.rt-field-full { grid-column: 1; }
+
+/* ── Field ────────────────────────────────────────────────────── */
+.rt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.form-toggle-nav {
-    display: flex;
-    margin-bottom: 20px;
-    justify-content: center;
-    width: 100%;
-    max-width: 400px;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 5px;
-    margin-top: 20px;
+.rt-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
-.form-toggle-nav button {
-    padding: 10px 20px;
-    font-size: 1rem;
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
-    transition: color 0.3s ease, font-weight 0.3s ease, border-bottom 0.3s ease;
-    color: #555;
-    flex-grow: 1;
-    text-align: center;
-    white-space: nowrap;
+.rt-req { color: #ef4444; }
+
+.rt-input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.2s;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
 }
 
-.form-toggle-nav button:hover {
-    color: #00796b;
+.rt-input:focus {
+  border-color: #059669;
+  background: #fff;
 }
 
-.form-toggle-nav button.active {
-    color: #00796b;
-    font-weight: bold;
-    border-bottom: 2px solid #00796b;
+.rt-select {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%22292%22%20height%3D%22292%22%20viewBox%3D%220%200%20292%20292%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4l-14.2-14.3L146%20182.8%2019.2%2055.1%205%2069.4%20146%20210.6z%22/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  padding-right: 28px;
+  cursor: pointer;
 }
 
-.form-wrapper {
-    width: 100%;
-    padding: 0;
-    margin-bottom: 30px;
+.rt-err {
+  font-size: 0.7rem;
+  color: #ef4444;
+  font-weight: 500;
 }
 
-app-register-student,
-app-register-teacher {
-    display: block;
-    width: 100%;
+/* ── Actions ──────────────────────────────────────────────────── */
+.rt-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 4px;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.rt-btn-cancel,
+.rt-btn-save {
+  flex: 1;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
 }
 
-@media (max-width: 768px) {
-    body {
-        padding: 15px;
-    }
-
-    .register-container {
-        margin: 15px auto;
-        padding: 0 10px;
-    }
-
-    .form-toggle-nav {
-        margin-bottom: 15px;
-        max-width: 350px;
-        margin-top: 15px;
-    }
-
-    .form-toggle-nav button {
-        padding: 8px 15px;
-        font-size: 0.95rem;
-    }
+.rt-btn-cancel {
+  background: #f1f5f9;
+  color: #64748b;
 }
+.rt-btn-cancel:active { background: #e2e8f0; }
 
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-
-    .register-container {
-        margin: 10px auto;
-        padding: 0 5px;
-    }
-
-    .form-toggle-nav {
-        margin-bottom: 10px;
-        max-width: 280px;
-        margin-top: 10px;
-    }
-
-    .form-toggle-nav button {
-        padding: 8px 10px;
-        font-size: 0.85rem;
-    }
+.rt-btn-save {
+  background: linear-gradient(135deg, #059669, #34d399);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(5,150,105,0.28);
 }
-
-.register-student-container {
-    padding: 40px 50px;
-    animation: fadeIn 1s ease-out;
-}
-
-h2 {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 600;
-    color: #00796b;
-    margin-bottom: 40px;
-    position: relative;
-}
-
-h2::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    width: 80px;
-    height: 3px;
-    background-color: #00796b;
-    transform: translateX(-50%);
-    border-radius: 2px;
-    animation: slideIn 1s ease-out forwards;
-}
-
-.form-group {
-    position: relative;
-    margin-bottom: 30px;
-}
-
-label {
-    display: block;
-    color: #757575;
-    font-size: 0.95rem;
-    margin-bottom: 5px;
-}
-
-input.form-control,
-select.form-control {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    font-size: 1rem;
-    background-color: #ffffff;
-    color: #333;
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-}
-
-input.form-control:focus,
-select.form-control:focus {
-    border-color: #00796b;
-    box-shadow: 0 0 5px rgba(0, 121, 107, 0.3);
-    outline: none;
-}
-
-select.form-control {
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%22292%22%20height%3D%22292%22%20viewBox%3D%220%200%20292%20292%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20fill%3D%22%23757575%22%20d%3D%22M287%2069.4l-14.2-14.3L146%20182.8%2019.2%2055.1%205%2069.4%20146%20210.6z%22/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    padding-right: 35px;
-}
-
-.error-message {
-    color: #d32f2f;
-    font-size: 0.8rem;
-    margin-top: 5px;
-}
-
-/* Default button group styles for student form */
-.register-student-container .button-group {
-    display: flex;
-    justify-content: flex-end;
-    /* Align right by default */
-    gap: 15px;
-    margin-top: 30px;
-    flex-wrap: nowrap;
-    /* Keep on one line by default */
-}
-
-/* Default button styles for student form */
-.register-student-container .save-button,
-.register-student-container .cancel-button {
-    padding: 10px 24px;
-    font-size: 1rem;
-    font-weight: 500;
-    border-radius: 8px;
-    cursor: pointer;
-    border: none;
-    color: white;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    min-width: 120px;
-    text-align: center;
-}
-
-.register-student-container .save-button {
-    background-color: #118f80;
-    box-shadow: 0 4px 12px rgba(67, 160, 71, 0.4);
-}
-
-.register-student-container .cancel-button {
-    background-color: #757575;
-    box-shadow: 0 4px 12px rgba(117, 117, 117, 0.4);
-}
-
-.register-student-container .save-button:hover {
-    background-color: #00796b;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(67, 160, 71, 0.6);
-}
-
-.register-student-container .cancel-button:hover {
-    background-color: #616161;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(117, 117, 117, 0.6);
-}
-
-@keyframes slideIn {
-    from {
-        width: 0;
-    }
-
-    to {
-        width: 80px;
-    }
-}
-
-.switch-container {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    cursor: pointer;
-    margin-top: 10px;
-    width: 100%;
-    justify-content: flex-start;
-}
-
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 30px;
-    margin-left: 10px;
-    flex-shrink: 0;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    margin: 0;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-.slider {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #f44336;
-    -webkit-transition: .4s;
-    transition: .4s;
-    border-radius: 30px;
-    overflow: hidden;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 22px;
-    width: 22px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked+.slider {
-    background-color: #4caf50;
-}
-
-input:focus+.slider {
-    box-shadow: 0 0 1px #4caf50;
-}
-
-input:checked+.slider:before {
-    -webkit-transform: translateX(30px);
-    -ms-transform: translateX(30px);
-    transform: translateX(30px);
-}
-
-.slider.round {
-    border-radius: 30px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
-}
-
-.switch-label {
-    margin-bottom: 0;
-    color: #757575;
-    font-size: 0.95rem;
-    display: inline-block;
-    text-align: left;
-}
-
-@media (max-width: 768px) {
-    .register-student-container {
-        padding: 30px 35px;
-    }
-
-    h2 {
-        font-size: 1.8rem;
-        margin-bottom: 30px;
-    }
-
-    h2::after {
-        width: 60px;
-    }
-
-    .form-group {
-        margin-bottom: 25px;
-    }
-
-    label {
-        font-size: 0.9rem;
-    }
-
-    input.form-control,
-    select.form-control {
-        padding: 10px;
-        font-size: 0.95rem;
-        border-radius: 8px;
-    }
-
-    select.form-control {
-        background-position: right 10px center;
-        background-size: 14px;
-        padding-right: 30px;
-    }
-
-    .save-button,
-    .cancel-button {
-        padding: 9px 20px;
-        font-size: 0.95rem;
-        border-radius: 6px;
-    }
-
-    .switch-container {
-        margin-top: 5px;
-    }
-
-    .switch {
-        width: 50px;
-        height: 25px;
-        margin-left: 8px;
-    }
-
-    .slider:before {
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        bottom: 3px;
-    }
-
-    input:checked+.slider:before {
-        transform: translateX(25px);
-    }
-}
-
-@media (max-width: 480px) {
-    .register-student-container {
-        padding: 20px 25px;
-    }
-
-    h2 {
-        font-size: 1.5rem;
-        margin-bottom: 25px;
-    }
-
-    h2::after {
-        width: 50px;
-        bottom: -8px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    label {
-        font-size: 0.85rem;
-    }
-
-    input.form-control,
-    select.form-control {
-        padding: 8px;
-        font-size: 0.9rem;
-        border-radius: 6px;
-    }
-
-    select.form-control {
-        background-position: right 8px center;
-        background-size: 12px;
-        padding-right: 25px;
-    }
-
-    /* Student Form Button Group Mobile Adjustments */
-    .register-student-container .button-group {
-        flex-direction: row;
-        justify-content: flex-end;
-        /* Align to the right */
-        gap: 10px;
-        margin-top: 25px;
-        flex-wrap: nowrap;
-        /* Force buttons onto one line */
-    }
-
-    .register-student-container .save-button,
-    .register-student-container .cancel-button {
-        flex-grow: 0;
-        /* Prevent buttons from growing and wrapping */
-        max-width: 160px;
-        /* Adjust as needed */
-        padding: 10px 15px;
-        font-size: 0.9rem;
-        min-width: unset;
-        /* Allow buttons to shrink if needed, preventing overflow */
-    }
-
-    .error-message {
-        font-size: 0.75rem;
-    }
-
-    .switch-container {
-        align-items: center;
-        justify-content: flex-start;
-    }
-
-    .switch-label {
-        text-align: left;
-    }
-}
-
-.register-teacher-container {
-    padding: 40px 50px;
-    animation: fadeIn 1s ease-out;
-}
-
-h2 {
-    text-align: center;
-    font-size: 2.2rem;
-    font-weight: 600;
-    color: #00796b;
-    margin-bottom: 40px;
-    position: relative;
-}
-
-h2::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    width: 90px;
-    height: 3px;
-    background-color: #00796b;
-    transform: translateX(-50%);
-    border-radius: 2px;
-    animation: slideIn 1s ease-out forwards;
-}
-
-.form-group {
-    position: relative;
-    margin-bottom: 30px;
-}
-
-label {
-    display: block;
-    color: #616161;
-    font-size: 0.95rem;
-    margin-bottom: 5px;
-}
-
-input.form-control,
-select.form-control {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #bbb;
-    border-radius: 10px;
-    font-size: 1rem;
-    background-color: #ffffff;
-    color: #333;
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-}
-
-input.form-control:focus,
-select.form-control:focus {
-    border-color: #00796b;
-    box-shadow: 0 0 5px rgba(24, 161, 155, 0.3);
-    outline: none;
-}
-
-select.form-control {
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%22292%22%20height%3D%22292%22%20viewBox%3D%220%200%20292%20292%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20fill%3D%22%23757575%22%20d%3D%22M287%2069.4l-14.2-14.3L146%20182.8%2019.2%2055.1%205%2069.4%20146%20210.6z%22/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    padding-right: 35px;
-}
-
-.error-message {
-    color: #c62828;
-    font-size: 0.8rem;
-    margin-top: 5px;
-}
-
-/* Default button group styles for teacher form */
-.register-teacher-container .button-group {
-    display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-    margin-top: 30px;
-    flex-wrap: nowrap;
-    /* Keep on one line by default */
-}
-
-/* Default button styles for teacher form */
-.register-teacher-container .save-button,
-.register-teacher-container .cancel-button {
-    padding: 10px 24px;
-    font-size: 1rem;
-    font-weight: 500;
-    border-radius: 8px;
-    cursor: pointer;
-    border: none;
-    color: white;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    min-width: 120px;
-    text-align: center;
-}
-
-.register-teacher-container .save-button {
-    background-color: #08897a;
-    box-shadow: 0 4px 12px rgba(36, 170, 143, 0.4);
-}
-
-.register-teacher-container .cancel-button {
-    background-color: #757575;
-    box-shadow: 0 4px 12px rgba(117, 117, 117, 0.6);
-}
-
-.register-teacher-container .save-button:hover {
-    background-color: #00796b;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(36, 170, 143, 0.4);
-}
-
-.register-teacher-container .cancel-button:hover {
-    background-color: #616161;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(117, 117, 117, 0.6);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        width: 0;
-    }
-
-    to {
-        width: 90px;
-    }
-}
-
-@media (max-width: 768px) {
-    .register-teacher-container {
-        padding: 30px 35px;
-    }
-
-    h2 {
-        font-size: 1.8rem;
-        margin-bottom: 30px;
-    }
-
-    h2::after {
-        width: 70px;
-        bottom: -8px;
-    }
-
-    .form-group {
-        margin-bottom: 25px;
-    }
-
-    label {
-        font-size: 0.9rem;
-    }
-
-    input.form-control,
-    select.form-control {
-        padding: 10px;
-        font-size: 0.95rem;
-        border-radius: 8px;
-    }
-
-    select.form-control {
-        background-position: right 10px center;
-        background-size: 14px;
-        padding-right: 30px;
-    }
-
-    .save-button,
-    .cancel-button {
-        padding: 9px 20px;
-        font-size: 0.95rem;
-        border-radius: 6px;
-    }
-}
-
-@media (max-width: 480px) {
-    .register-teacher-container {
-        padding: 20px 25px;
-    }
-
-    h2 {
-        font-size: 1.5rem;
-        margin-bottom: 25px;
-    }
-
-    h2::after {
-        width: 50px;
-        bottom: -6px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    label {
-        font-size: 0.85rem;
-    }
-
-    input.form-control,
-    select.form-control {
-        padding: 8px;
-        font-size: 0.9rem;
-        border-radius: 6px;
-    }
-
-    select.form-control {
-        background-position: right 8px center;
-        background-size: 12px;
-        padding-right: 25px;
-    }
-
-    /* Teacher Form Button Group Mobile Adjustments */
-    .register-teacher-container .button-group {
-        flex-direction: row;
-        justify-content: flex-end;
-        /* Align to the right */
-        gap: 10px;
-        margin-top: 25px;
-        flex-wrap: nowrap;
-        /* Force buttons onto one line */
-    }
-
-    .register-teacher-container .save-button,
-    .register-teacher-container .cancel-button {
-        flex-grow: 0;
-        /* Prevent buttons from growing and wrapping */
-        max-width: 160px;
-        /* Adjust as needed */
-        padding: 10px 15px;
-        font-size: 0.9rem;
-        min-width: unset;
-        /* Allow buttons to shrink if needed, preventing overflow */
-    }
-
-    .error-message {
-        font-size: 0.75rem;
-    }
-}
+.rt-btn-save:active { opacity: 0.85; }

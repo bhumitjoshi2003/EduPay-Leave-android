@@ -1,124 +1,120 @@
-<div class="register-student-container">
-    <h2>Register New Student</h2>
-    <form [formGroup]="studentForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-            <label for="studentId">Student ID <span class="required">*</span></label>
-            <input type="text" id="studentId" formControlName="studentId" class="form-control">
-            <div *ngIf="studentForm.controls['studentId'].invalid && (studentForm.controls['studentId'].dirty || studentForm.controls['studentId'].touched)"
-                class="error-message">
-                Student ID is required.
-            </div>
-        </div>
+<div class="rs-wrap">
+  <form [formGroup]="studentForm" (ngSubmit)="onSubmit()">
 
-        <div class="form-group">
-            <label for="name">Name <span class="required">*</span></label>
-            <input type="text" id="name" formControlName="name" class="form-control">
-            <div *ngIf="studentForm.controls['name'].invalid && (studentForm.controls['name'].dirty || studentForm.controls['name'].touched)"
-                class="error-message">
-                Name is required.
-            </div>
+    <!-- Identity -->
+    <div class="rs-section">
+      <p class="rs-section-label">Identity</p>
+      <div class="rs-grid">
+        <div class="rs-field">
+          <label class="rs-label">Student ID <span class="rs-req">*</span></label>
+          <input type="text" formControlName="studentId" class="rs-input">
+          <span class="rs-err" *ngIf="studentForm.controls['studentId'].invalid && (studentForm.controls['studentId'].dirty || studentForm.controls['studentId'].touched)">Student ID is required.</span>
         </div>
-
-        <div class="form-group">
-            <label for="email">Email <span class="required">*</span></label>
-            <input type="email" id="email" formControlName="email" class="form-control">
-            <div *ngIf="studentForm.controls['email'].invalid && (studentForm.controls['email'].dirty || studentForm.controls['email'].touched)"
-                class="error-message">
-                <div *ngIf="studentForm.controls['email'].errors?.['required']">Email is required.</div>
-                <div *ngIf="studentForm.controls['email'].errors?.['email']">Invalid email format.</div>
-            </div>
+        <div class="rs-field">
+          <label class="rs-label">Full Name <span class="rs-req">*</span></label>
+          <input type="text" formControlName="name" class="rs-input">
+          <span class="rs-err" *ngIf="studentForm.controls['name'].invalid && (studentForm.controls['name'].dirty || studentForm.controls['name'].touched)">Name is required.</span>
         </div>
+      </div>
+    </div>
 
-        <div class="form-group">
-            <label for="phoneNumber">Phone Number </label>
-            <input type="text" id="phoneNumber" formControlName="phoneNumber" class="form-control">
-            <div *ngIf="studentForm.controls['phoneNumber'].invalid && (studentForm.controls['phoneNumber'].dirty || studentForm.controls['phoneNumber'].touched)"
-                class="error-message">
-                Invalid phone number.
-            </div>
+    <!-- Contact -->
+    <div class="rs-section">
+      <p class="rs-section-label">Contact</p>
+      <div class="rs-grid">
+        <div class="rs-field">
+          <label class="rs-label">Email <span class="rs-req">*</span></label>
+          <input type="email" formControlName="email" class="rs-input">
+          <span class="rs-err" *ngIf="studentForm.controls['email'].invalid && (studentForm.controls['email'].dirty || studentForm.controls['email'].touched)">
+            <ng-container *ngIf="studentForm.controls['email'].errors?.['required']">Email is required.</ng-container>
+            <ng-container *ngIf="studentForm.controls['email'].errors?.['email']">Invalid email format.</ng-container>
+          </span>
         </div>
-
-        <div class="form-group">
-            <label for="dob">Date of Birth <span class="required">*</span></label>
-            <input type="date" id="dob" formControlName="dob" class="form-control">
-            <div *ngIf="studentForm.controls['dob'].invalid && (studentForm.controls['dob'].dirty || studentForm.controls['dob'].touched)"
-                class="error-message">
-                Date of Birth is required.
-            </div>
+        <div class="rs-field">
+          <label class="rs-label">Phone Number</label>
+          <input type="text" formControlName="phoneNumber" class="rs-input">
+          <span class="rs-err" *ngIf="studentForm.controls['phoneNumber'].invalid && (studentForm.controls['phoneNumber'].dirty || studentForm.controls['phoneNumber'].touched)">Invalid phone number.</span>
         </div>
+      </div>
+    </div>
 
-        <div class="form-group">
-            <label for="className">Class <span class="required">*</span></label>
-            <select id="className" formControlName="className" class="form-control">
-                <option value="" disabled selected></option>
-                <option *ngFor="let className of classList" [value]="className">
-                    {{ className }}
-                </option>
-            </select>
-            <div *ngIf="studentForm.controls['className'].invalid && (studentForm.controls['className'].dirty || studentForm.controls['className'].touched)"
-                class="error-message">
-                Class is required.
-            </div>
+    <!-- Academic Details -->
+    <div class="rs-section">
+      <p class="rs-section-label">Academic Details</p>
+      <div class="rs-grid">
+        <div class="rs-field">
+          <label class="rs-label">Date of Birth <span class="rs-req">*</span></label>
+          <input type="date" formControlName="dob" class="rs-input">
+          <span class="rs-err" *ngIf="studentForm.controls['dob'].invalid && (studentForm.controls['dob'].dirty || studentForm.controls['dob'].touched)">Date of Birth is required.</span>
         </div>
-
-        <div class="form-group">
-            <label for="gender">Gender <span class="required">*</span></label>
-            <select id="gender" formControlName="gender" class="form-control">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-            </select>
-            <div *ngIf="studentForm.controls['gender'].invalid && (studentForm.controls['gender'].dirty || studentForm.controls['gender'].touched)"
-                class="error-message">
-                Gender is required.
-            </div>
+        <div class="rs-field">
+          <label class="rs-label">Gender <span class="rs-req">*</span></label>
+          <select formControlName="gender" class="rs-input rs-select">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          <span class="rs-err" *ngIf="studentForm.controls['gender'].invalid && (studentForm.controls['gender'].dirty || studentForm.controls['gender'].touched)">Gender is required.</span>
         </div>
-
-        <div class="form-group">
-            <label for="fatherName">Father's Name</label>
-            <input type="text" id="fatherName" formControlName="fatherName" class="form-control">
+        <div class="rs-field">
+          <label class="rs-label">Class <span class="rs-req">*</span></label>
+          <select formControlName="className" class="rs-input rs-select">
+            <option value="" disabled selected></option>
+            <option *ngFor="let className of classList" [value]="className">{{ className }}</option>
+          </select>
+          <span class="rs-err" *ngIf="studentForm.controls['className'].invalid && (studentForm.controls['className'].dirty || studentForm.controls['className'].touched)">Class is required.</span>
         </div>
-
-        <div class="form-group">
-            <label for="motherName">Mother's Name</label>
-            <input type="text" id="motherName" formControlName="motherName" class="form-control">
+        <div class="rs-field">
+          <label class="rs-label">Joining Date <span class="rs-req">*</span></label>
+          <input type="date" formControlName="joiningDate" class="rs-input">
+          <span class="rs-err" *ngIf="studentForm.controls['joiningDate'].invalid && (studentForm.controls['joiningDate'].dirty || studentForm.controls['joiningDate'].touched)">Joining Date is required.</span>
         </div>
+      </div>
+    </div>
 
-        <div class="form-group">
-            <label for="joiningDate">Joining Date <span class="required">*</span></label>
-            <input type="date" id="joiningDate" formControlName="joiningDate" class="form-control">
-            <div *ngIf="studentForm.controls['joiningDate'].invalid && (studentForm.controls['joiningDate'].dirty || studentForm.controls['joiningDate'].touched)"
-                class="error-message">
-                Joining Date is required.
-            </div>
+    <!-- Parents -->
+    <div class="rs-section">
+      <p class="rs-section-label">Parents</p>
+      <div class="rs-grid">
+        <div class="rs-field">
+          <label class="rs-label">Father's Name</label>
+          <input type="text" formControlName="fatherName" class="rs-input">
         </div>
-
-        <div class="form-group">
-            <label class="switch-label">Need Bus Service</label>
-            <div class="switch-container">
-                <label class="switch">
-                    <input type="checkbox" id="takesBus" formControlName="takesBus">
-                    <span class="slider"></span>
-                </label>
-                <div class="switch-labels">
-                </div>
-            </div>
+        <div class="rs-field">
+          <label class="rs-label">Mother's Name</label>
+          <input type="text" formControlName="motherName" class="rs-input">
         </div>
+      </div>
+    </div>
 
-
-        <div class="form-group" *ngIf="isBusUser">
-            <label for="distance">Distance (KM)</label>
-            <input type="number" id="distance" formControlName="distance" class="form-control"
-                placeholder="Enter distance in KM">
-            <div *ngIf="studentForm.controls['distance'].invalid && (studentForm.controls['distance'].dirty || studentForm.controls['distance'].touched)"
-                class="error-message">
-                Distance is required.
-            </div>
+    <!-- Transport -->
+    <div class="rs-section">
+      <p class="rs-section-label">Transport</p>
+      <div class="rs-bus-row">
+        <div class="rs-bus-left">
+          <span class="rs-bus-icon">🚌</span>
+          <div>
+            <p class="rs-bus-title">Bus Service</p>
+            <p class="rs-bus-sub">Does this student need school transport?</p>
+          </div>
         </div>
+        <label class="rs-toggle">
+          <input type="checkbox" formControlName="takesBus">
+          <span class="rs-toggle-track"></span>
+        </label>
+      </div>
+      <div class="rs-field rs-distance" *ngIf="isBusUser">
+        <label class="rs-label">Distance (KM) <span class="rs-req">*</span></label>
+        <input type="number" formControlName="distance" class="rs-input" placeholder="Enter distance in KM">
+        <span class="rs-err" *ngIf="studentForm.controls['distance'].invalid && (studentForm.controls['distance'].dirty || studentForm.controls['distance'].touched)">Distance is required.</span>
+      </div>
+    </div>
 
-        <div class="button-group">
-            <button type="submit" class="save-button">Save Student</button>
-            <button type="button" class="cancel-button" (click)="goBack()">Cancel</button>
-        </div>
-    </form>
+    <!-- Actions -->
+    <div class="rs-actions">
+      <button type="button" class="rs-btn-cancel" (click)="goBack()">Cancel</button>
+      <button type="submit" class="rs-btn-save">Save Student</button>
+    </div>
+
+  </form>
 </div>
