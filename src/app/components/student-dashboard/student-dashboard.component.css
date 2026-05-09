@@ -30,9 +30,9 @@
 .sd-hero {
   position: relative;
   background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 55%, #0ea5e9 100%);
-  border-radius: 20px;
-  padding: 28px 22px 32px;
-  margin: 0 0 20px;
+  border-radius: 16px;
+  padding: 14px 16px 18px;
+  margin: 0 0 14px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -78,11 +78,11 @@
 }
 
 .sd-hero-name {
-  font-size: 1.45rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: #fff;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
   line-height: 1.2;
 }
 
