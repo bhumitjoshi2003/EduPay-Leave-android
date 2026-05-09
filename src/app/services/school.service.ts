@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, shareReplay } from 'rxjs';
+import { Observable, shareReplay, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface SchoolClass {
@@ -48,7 +49,15 @@ export class SchoolService {
 
   getClasses(): Observable<string[]> {
     if (!this.classes$) {
-      this.classes$ = this.http.get<string[]>(`${this.baseUrl}/classes`).pipe(shareReplay(1));
+      this.classes$ = this.http.get<string[]>(`${this.baseUrl}/classes`).pipe(
+        catchError(err => {
+          // Reset so the next subscriber triggers a fresh HTTP request instead of
+          // replaying the cached error (shareReplay(1) would otherwise replay it forever)
+          this.classes$ = null;
+          return throwError(() => err);
+        }),
+        shareReplay(1)
+      );
     }
     return this.classes$;
   }

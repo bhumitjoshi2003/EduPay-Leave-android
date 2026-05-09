@@ -2,8 +2,9 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestro
 import { LoggerService } from '../../services/logger.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, switchMap, Observable, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { TeacherService } from '../../services/teacher.service';
+import { Teacher } from '../../interfaces/teacher';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { SchoolService } from '../../services/school.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -112,21 +113,20 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
   getTeacherClassAndLoadLeaves(): void {
     this.teacherService.getTeacher(this.loggedInUserId).pipe(
       takeUntil(this.ngUnsubscribe),
-      switchMap((teacher: any) => {
-        this.loggedInUserClass = teacher.classTeacher;
-        this.selectedClass = teacher.classTeacher;
-        return this.fetchLeaves();
-      })
     ).subscribe({
-      next: () => { },
-      error: (error: any) => {
-        this.logger.error('Error fetching teacher details or leaves:', error);
+      next: (teacher: Teacher) => {
+        this.loggedInUserClass = teacher.classTeacher ?? '';
+        this.selectedClass = teacher.classTeacher ?? '';
+        this.fetchLeaves();
+      },
+      error: (error: unknown) => {
+        this.logger.error('Error fetching teacher details:', error);
         this.toast.error('Error!', 'Failed to load teacher details or leave applications.');
       }
     });
   }
 
-  fetchLeaves(): Observable<PaginatedResponse<LeaveApplication>> {
+  fetchLeaves(): void {
     let classFilterToSend: string | undefined = undefined;
 
     if (this.loggedInUserRole === 'ADMIN') {
@@ -166,7 +166,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.cdr.markForCheck();
         },
-        error: (error) => {
+        error: (error: unknown) => {
           this.logger.error('Error loading leave applications:', error);
           this.toast.error('Error!', 'Failed to load leave applications.');
           this.filteredLeaves = [];
@@ -176,7 +176,6 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
-    return leavesObservable;
   }
 
   formatDate(date: Date): string {

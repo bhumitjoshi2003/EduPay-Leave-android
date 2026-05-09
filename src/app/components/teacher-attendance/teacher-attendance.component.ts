@@ -13,7 +13,9 @@ import { AttendanceData } from '../../interfaces/atendance-data';
 import { AttendanceService } from '../../services/attendance.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { TeacherService } from '../../services/teacher.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Teacher } from '../../interfaces/teacher';
+import { Subject, takeUntil, switchMap, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 interface Student {
   studentId: string;
@@ -101,8 +103,8 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
 
   getTeacherClassAndLoadStudents(): void {
     this.teacherService.getTeacher(this.teacherId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (teacher: any) => {
-        this.selectedClass = teacher.classTeacher;
+      next: (teacher: Teacher) => {
+        this.selectedClass = teacher.classTeacher ?? '';
         this.loadStudentsAndApplyAttendance();
       },
       error: () => {
@@ -152,75 +154,51 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     const classAtRequest = this.selectedClass;
     const dateAtRequest = this.attendanceDate;
 
-    this.attendanceService.getAttendanceByDateAndClass(formattedDate, classAtRequest).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (attendanceData) => {
-        if (this.selectedClass !== classAtRequest || this.attendanceDate !== dateAtRequest) return;
-        if (attendanceData && attendanceData.length === 0) {
-          this.disableDeleteButton = true;
+    this.attendanceService.getAttendanceByDateAndClass(formattedDate, classAtRequest).pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        // Attendance fetch failed — fall through to leaves as fallback
+        this.logger.error('Error loading attendance data:', err);
+        return of([] as AttendanceData[]);
+      }),
+      switchMap(attendanceData => {
+        if (attendanceData.length > 0) {
+          // Attendance already saved — apply it directly, no second request
+          return of({ source: 'attendance' as const, leaves: [] as string[], attendance: attendanceData });
         }
-        if (attendanceData && attendanceData.length > 0) {
+        // No saved attendance — pre-fill from approved leaves for the day
+        return this.leaveService.getLeavesByDateAndClass(formattedDate, classAtRequest).pipe(
+          takeUntil(this.destroy$),
+          map(leaves => ({ source: 'leaves' as const, leaves, attendance: [] as AttendanceData[] })),
+          catchError(err => {
+            this.logger.error('No leaves found or error fetching leaves:', err);
+            return of({ source: 'leaves' as const, leaves: [] as string[], attendance: [] as AttendanceData[] });
+          })
+        );
+      })
+    ).subscribe({
+      next: ({ source, attendance, leaves }) => {
+        if (this.selectedClass !== classAtRequest || this.attendanceDate !== dateAtRequest) return;
+
+        if (source === 'attendance') {
           this.disableDeleteButton = false;
           const attendanceMap = new Map<string, AttendanceData>();
-          attendanceData.forEach((attendance) => {
-            attendanceMap.set(attendance.studentId, attendance);
+          attendance.forEach(a => attendanceMap.set(a.studentId, a));
+          this.students.forEach(student => {
+            const att = attendanceMap.get(student.studentId);
+            student.absent = !!att;
+            student.chargePaid = att ? att.chargePaid : true;
           });
-
-          this.students.forEach((student) => {
-            const attendance = attendanceMap.get(student.studentId);
-            if (attendance) {
-              student.absent = true;
-              student.chargePaid = attendance.chargePaid;
-            } else {
-              student.absent = false;
-              student.chargePaid = true;
-            }
-          });
-          this.cdr.markForCheck();
         } else {
-          this.leaveService.getLeavesByDateAndClass(formattedDate, classAtRequest).subscribe({
-            next: (leaves) => {
-              if (this.selectedClass !== classAtRequest || this.attendanceDate !== dateAtRequest) return;
-              this.absentStudents = leaves;
-              this.students.forEach((student) => {
-                if (this.absentStudents.includes(student.studentId)) {
-                  student.absent = true;
-                  student.chargePaid = true;
-                } else {
-                  student.absent = false;
-                  student.chargePaid = true;
-                }
-              });
-              this.cdr.markForCheck();
-            },
-            error: (error) => {
-              this.logger.error('No leaves found or error fetching leaves:', error);
-            },
+          this.disableDeleteButton = true;
+          this.absentStudents = leaves;
+          this.students.forEach(student => {
+            student.absent = leaves.includes(student.studentId);
+            student.chargePaid = true;
           });
         }
-      },
-      error: (error) => {
-        this.logger.error('Error loading attendance data:', error);
-        this.leaveService.getLeavesByDateAndClass(formattedDate, classAtRequest).subscribe({
-          next: (leaves) => {
-            if (this.selectedClass !== classAtRequest || this.attendanceDate !== dateAtRequest) return;
-            this.absentStudents = leaves;
-            this.students.forEach((student) => {
-              if (this.absentStudents.includes(student.studentId)) {
-                student.absent = true;
-                student.chargePaid = true;
-              } else {
-                student.absent = false;
-                student.chargePaid = true;
-              }
-            });
-            this.cdr.markForCheck();
-          },
-          error: (leavesError) => {
-            this.logger.error('Error loading leaves after attendance failed:', leavesError);
-            this.toast.error('Error', 'Failed to load attendance or leave data.');
-          },
-        });
-      },
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -276,7 +254,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
           className: this.selectedClass,
         });
 
-        this.attendanceService.saveAttendance(attendanceData).subscribe({
+        this.attendanceService.saveAttendance(attendanceData).pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
             this.toast.success('Attendance Saved!', 'Attendance data saved successfully.');
             this.applyAttendanceAndLeavesToStudents();
@@ -336,7 +314,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     }).then((confirmed) => {
       if (confirmed) {
         const formattedDate = formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en');
-        this.attendanceService.deleteAttendanceByDateAndClass(formattedDate, this.selectedClass).subscribe({
+        this.attendanceService.deleteAttendanceByDateAndClass(formattedDate, this.selectedClass).pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
             this.toast.success('Deleted!', 'Attendance has been deleted.');
             this.loadStudentsAndApplyAttendance(); // refresh the student list

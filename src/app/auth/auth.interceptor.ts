@@ -10,6 +10,7 @@ import {
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { AuthStateService } from './auth-state.service';
+import { environment } from '../../environments/environment';
 
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take, tap } from 'rxjs/operators';
@@ -38,14 +39,16 @@ export class AuthInterceptor implements HttpInterceptor {
       request.url.includes('/auth/request-password-reset') ||
       request.url.includes('/auth/reset-password');
 
-    const reqWithCredentials = request.clone({ withCredentials: true });
+    // Only attach credentials to our own API — not to third-party URLs (e.g. Razorpay CDN)
+    const isOwnApi = request.url.startsWith(environment.apiUrl);
+    const clonedReq = isOwnApi ? request.clone({ withCredentials: true }) : request;
 
-    return next.handle(reqWithCredentials).pipe(
+    return next.handle(clonedReq).pipe(
       catchError((error: HttpErrorResponse) => {
         // 401 = missing/expired/invalid token → attempt refresh (once)
         // 403 = valid token but wrong role → propagate as-is
         if (error.status === 401 && !isAuthUrl) {
-          return this.handleTokenExpiry(reqWithCredentials, next);
+          return this.handleTokenExpiry(clonedReq, next);
         }
         return throwError(() => error);
       })

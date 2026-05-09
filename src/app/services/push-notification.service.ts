@@ -14,6 +14,10 @@ export class PushNotificationService {
   async init(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
 
+    // Clear any listeners left over from a previous session before adding new ones.
+    // Without this, each re-login stacks another set of handlers → duplicate notifications.
+    await PushNotifications.removeAllListeners();
+
     // Request permission
     const permission = await PushNotifications.requestPermissions();
     if (permission.receive !== 'granted') {
