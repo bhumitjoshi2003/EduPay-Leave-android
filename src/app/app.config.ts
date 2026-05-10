@@ -7,6 +7,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { AuthInterceptor } from './auth/auth.interceptor';
 import { AuthStateService } from './auth/auth-state.service';
 import { GlobalErrorHandler } from './core/global-error-handler';
+import { TenantService } from './services/tenant.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -22,6 +23,24 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
-    provideAppInitializer(() => inject(AuthStateService).loadCurrentUser())
+    provideAppInitializer(() => {
+      const tenantService    = inject(TenantService);
+      const authStateService = inject(AuthStateService);
+
+      return Promise.all([
+        tenantService.init(),
+        authStateService.loadCurrentUser(),
+      ]).then(() => {
+        // Edge case: valid session cookie persists but localStorage was cleared.
+        // Auto-recover the school from the JWT's schoolSlug so all subsequent
+        // API requests include the correct X-School-Slug header.
+        const user = authStateService.getUser();
+        if (user?.schoolSlug && !tenantService.slug) {
+          return tenantService.lookupSchool(user.schoolSlug).then(info => {
+            if (info) tenantService.setSchool(user.schoolSlug!, info);
+          });
+        }
+      });
+    })
   ]
 };

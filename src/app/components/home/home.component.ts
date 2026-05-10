@@ -4,6 +4,7 @@ import { AuthStateService } from '../../auth/auth-state.service';
 import { Router } from '@angular/router';
 import { LoggerService } from '../../services/logger.service';
 import { PushNotificationService } from '../../services/push-notification.service';
+import { TenantService } from '../../services/tenant.service';
 
 import { FormsModule } from '@angular/forms';
 import { DemoService } from '../../services/demo.service';
@@ -24,6 +25,7 @@ export class HomeComponent implements OnInit {
   showLoginForm    = false;
   showDemoForm     = false;
   showForgotForm   = false;
+  showSchoolEntry  = false;
   userId   = '';
   password = '';
   hidePassword = true;
@@ -32,6 +34,9 @@ export class HomeComponent implements OnInit {
   forgotEmail   = '';
   sendingReset  = false;
   sendingDemo   = false;
+
+  schoolInput      = '';
+  lookingUpSchool  = false;
 
   demo = {
     schoolName:   '',
@@ -51,14 +56,75 @@ export class HomeComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private pushNotificationService: PushNotificationService,
     private demoService: DemoService,
-    private toast: ToastService
+    private toast: ToastService,
+    public tenantService: TenantService
   ) { }
 
   ngOnInit() {
     if (this.authStateService.isLoggedIn()) {
       this.authenticated = true;
       this.router.navigate(['/dashboard']);
+      return;
     }
+    // First launch: no school configured yet → show school entry screen
+    if (!this.tenantService.hasStoredSlug) {
+      this.showSchoolEntry = true;
+    }
+  }
+
+  // ── School Entry ───────────────────────────────────────────
+  submitSchoolEntry() {
+    const slug = this.tenantService.parseSlug(this.schoolInput);
+    if (!slug) {
+      this.toast.warning('Invalid URL', 'Please enter your school URL, e.g. indraacademy.edunexify.co.in');
+      return;
+    }
+
+    this.lookingUpSchool = true;
+    this.cdr.markForCheck();
+
+    this.tenantService.lookupSchool(slug).then(info => {
+      this.lookingUpSchool = false;
+      if (!info) {
+        this.toast.error('School Not Found', 'No active school found for that URL. Please check and try again.');
+        this.cdr.markForCheck();
+        return;
+      }
+      this.tenantService.setSchool(slug, info);
+      this.showSchoolEntry = false;
+      this.schoolInput = '';
+      this.cdr.markForCheck();
+    });
+  }
+
+  changeSchool() {
+    this.tenantService.clearSchool();
+    this.showSchoolEntry = true;
+    this.showForgotForm  = false;
+    this.userId   = '';
+    this.password = '';
+    this.cdr.markForCheck();
+  }
+
+  retrySchool() {
+    const slug = this.tenantService.slug;
+    if (!slug) { this.showSchoolEntry = true; this.cdr.markForCheck(); return; }
+    this.lookingUpSchool = true;
+    this.cdr.markForCheck();
+    this.tenantService.lookupSchool(slug).then(info => {
+      this.lookingUpSchool = false;
+      if (!info) {
+        this.toast.error('Still Unavailable', 'Could not reach your school. Check your connection and try again.');
+      } else {
+        this.tenantService.setSchool(slug, info);
+      }
+      this.cdr.markForCheck();
+    });
+  }
+
+  getInitials(name?: string | null): string {
+    if (!name) return '?';
+    return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
   }
 
   login() {
@@ -78,15 +144,26 @@ export class HomeComponent implements OnInit {
     this.authService.login(this.userId, this.password).subscribe({
       next: (response) => {
         this.authStateService.setUser(response);
-        this.authenticated = true;
-        this.showLoginForm = false;
-        this.cdr.markForCheck();
 
-        this.pushNotificationService.init();
+        // If school slug is not stored yet but the login response carries one,
+        // resolve and store it so the X-School-Slug header is sent on all subsequent requests.
+        const afterSchool = (response.schoolSlug && !this.tenantService.slug)
+          ? this.tenantService.lookupSchool(response.schoolSlug).then(info => {
+              if (info) this.tenantService.setSchool(response.schoolSlug!, info);
+            })
+          : Promise.resolve();
 
-        const redirectUrl = localStorage.getItem('redirectUrl') || '/dashboard';
-        localStorage.removeItem('redirectUrl');
-        this.router.navigateByUrl(redirectUrl);
+        afterSchool.then(() => {
+          this.authenticated = true;
+          this.showLoginForm = false;
+          this.cdr.markForCheck();
+
+          this.pushNotificationService.init();
+
+          const redirectUrl = localStorage.getItem('redirectUrl') || '/dashboard';
+          localStorage.removeItem('redirectUrl');
+          this.router.navigateByUrl(redirectUrl);
+        });
       },
       error: (error) => {
         const text = error.status === 0

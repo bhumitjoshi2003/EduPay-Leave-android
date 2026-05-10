@@ -37,6 +37,7 @@ interface OnboardForm {
 interface EditSchoolForm {
   // School info
   name: string;
+  slug: string;
   boardType: string;
   email: string;
   phone: string;
@@ -165,8 +166,10 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     const f = this.editForm;
     const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRx = /^[0-9]{10}$/;
+    const slugRx  = /^[a-z0-9][a-z0-9-]*$/;
 
     if (!f.name.trim())                               return 'School name is required.';
+    if (f.slug.trim() && !slugRx.test(f.slug.trim())) return 'Slug must be lowercase letters, digits, and hyphens only.';
     if (f.email && !emailRx.test(f.email.trim()))     return 'School email is not valid.';
     if (f.phone && !phoneRx.test(f.phone.trim()))     return 'School phone must be exactly 10 digits.';
     if (f.newAdminPassword && f.newAdminPassword.length < 6)
@@ -205,6 +208,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     this.showPasswordField = false;
     this.editForm = {
       name: school.name ?? '',
+      slug: school.slug ?? '',
       boardType: school.boardType ?? '',
       email: school.email ?? '',
       phone: school.phone ?? '',
@@ -244,6 +248,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
     const payload: any = {
       name: f.name.trim(),
+      slug: f.slug.trim() || null,
       boardType: f.boardType || null,
       email: f.email || null,
       phone: f.phone || null,
@@ -365,7 +370,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
   private emptyEditForm(): EditSchoolForm {
     return {
-      name: '', boardType: '', email: '', phone: '', website: '',
+      name: '', slug: '', boardType: '', email: '', phone: '', website: '',
       address: '', city: '', state: '', pincode: '', contactPersonName: '',
       plan: 'TRIAL', maxStudents: null, expiryDate: '', active: true,
       newAdminPassword: '',

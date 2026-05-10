@@ -8,6 +8,7 @@ export interface UserInfo {
   role: string;
   name: string | null;
   className: string | null;
+  schoolSlug: string | null;
 }
 
 @Injectable({

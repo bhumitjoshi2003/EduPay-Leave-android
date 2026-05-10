@@ -284,6 +284,14 @@
               <input class="sa-input" type="text" [(ngModel)]="editForm.name" placeholder="Full school name">
             </div>
             <div class="sa-form-group">
+              <label>Slug</label>
+              <input class="sa-input" type="text" [(ngModel)]="editForm.slug"
+                     placeholder="e.g. indraacademy" autocomplete="off" autocorrect="off"
+                     autocapitalize="none" spellcheck="false">
+              <small class="sa-hint" *ngIf="editForm.slug">URL: <strong>{{ editForm.slug }}.edunexify.co.in</strong></small>
+              <small class="sa-hint" *ngIf="!editForm.slug">Lowercase letters, digits, hyphens. Changing this updates the school's subdomain.</small>
+            </div>
+            <div class="sa-form-group">
               <label>Board</label>
               <select class="sa-input" [(ngModel)]="editForm.boardType">
                 <option value="">— None —</option>

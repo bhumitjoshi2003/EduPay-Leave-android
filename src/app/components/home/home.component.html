@@ -1,3 +1,223 @@
+<!-- ══════════════════════════════════════════════════
+     SCHOOL ENTRY SCREEN — first launch / change school
+══════════════════════════════════════════════════ -->
+@if (showSchoolEntry) {
+<div class="se-page">
+  <div class="se-blob se-blob1"></div>
+  <div class="se-blob se-blob2"></div>
+
+  <div class="se-card">
+    <img src="EdunexifyLogo.png" alt="Edunexify" class="se-logo">
+    <h1 class="se-title">Welcome to<br><span class="se-title-accent">Edunexify</span></h1>
+    <p class="se-sub">Enter your school's URL to sign in</p>
+
+    <div class="lp-field">
+      <label class="lp-label">School URL</label>
+      <div class="lp-input-wrap">
+        <span class="lp-input-ic">🏫</span>
+        <input class="lp-input lp-input-emoji-ic" type="url" inputmode="url"
+               [(ngModel)]="schoolInput"
+               placeholder="e.g. indraacademy.edunexify.co.in"
+               (keydown.enter)="submitSchoolEntry()"
+               [disabled]="lookingUpSchool"
+               autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      </div>
+    </div>
+
+    <button class="lp-submit-btn lp-submit-teal se-submit" (click)="submitSchoolEntry()" [disabled]="lookingUpSchool">
+      @if (lookingUpSchool) {
+        <span class="se-spinner"></span>
+        Connecting…
+      } @else {
+        Continue
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      }
+    </button>
+
+    <p class="se-hint">Don't know your URL? Ask your school administrator.</p>
+  </div>
+
+  <p class="se-powered">
+    <img src="EdunexifyLogo.png" alt="" class="se-powered-logo"> School Management Platform
+  </p>
+</div>
+}
+
+<!-- ══════════════════════════════════════════════════
+     BRANDED LOGIN — school found from stored slug
+══════════════════════════════════════════════════ -->
+@else if (tenantService.isBranded) {
+<div class="sl-page" [style.--sl-accent]="tenantService.school?.themeColor || '#0f766e'">
+
+  <!-- Branded top section -->
+  <div class="sl-top">
+    <div class="sl-top-blob sl-blob1"></div>
+    <div class="sl-top-blob sl-blob2"></div>
+
+    <div class="sl-logo-wrap">
+      @if (tenantService.school?.logoUrl) {
+        <img [src]="tenantService.getLogoUrl(tenantService.school!.logoUrl!)"
+             [alt]="tenantService.school!.name" class="sl-logo-img">
+      } @else {
+        <div class="sl-initials">{{ getInitials(tenantService.school?.name) }}</div>
+      }
+    </div>
+
+    <h1 class="sl-school-name">{{ tenantService.school?.name }}</h1>
+    @if (tenantService.school?.city || tenantService.school?.boardType) {
+      <p class="sl-school-meta">
+        @if (tenantService.school?.city) { {{ tenantService.school!.city }} }
+        @if (tenantService.school?.city && tenantService.school?.boardType) { · }
+        @if (tenantService.school?.boardType) { {{ tenantService.school!.boardType }} }
+      </p>
+    }
+  </div>
+
+  <!-- Login form card -->
+  <div class="sl-form-card">
+    <div class="sl-form-inner">
+      <h2 class="sl-form-title">Sign In</h2>
+      <p class="sl-form-sub">Enter your credentials to continue</p>
+
+      <div class="lp-field">
+        <label class="lp-label">User ID</label>
+        <div class="lp-input-wrap">
+          <span class="lp-input-ic lp-input-ic-svg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <input class="lp-input" type="text" [(ngModel)]="userId"
+                 placeholder="Enter your User ID"
+                 (keydown.enter)="submitLogin()"
+                 autocomplete="username">
+        </div>
+      </div>
+
+      <div class="lp-field">
+        <label class="lp-label">Password</label>
+        <div class="lp-input-wrap">
+          <span class="lp-input-ic lp-input-ic-svg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <input class="lp-input lp-input-pwd" [type]="hidePassword ? 'password' : 'text'"
+                 [(ngModel)]="password"
+                 placeholder="Enter your password"
+                 (keydown.enter)="submitLogin()"
+                 autocomplete="current-password">
+          <button class="lp-eye-btn" type="button" (click)="togglePasswordVisibility()">
+            @if (hidePassword) {
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            }
+          </button>
+        </div>
+      </div>
+
+      <button class="sl-signin-btn" (click)="submitLogin()">
+        Sign In
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+
+      <button class="sl-forgot-link" (click)="forgotPassword()">Forgot Password?</button>
+    </div>
+
+    <div class="sl-footer">
+      <p class="sl-powered-text">
+        Powered by <img src="EdunexifyLogo.png" alt="Edunexify" class="sl-powered-logo"> <strong>Edunexify</strong>
+      </p>
+      <button class="sl-change-btn" (click)="changeSchool()">Change School</button>
+    </div>
+  </div>
+
+  <!-- Forgot Password Bottom Sheet -->
+  @if (showForgotForm) {
+    <div class="lp-overlay" (click)="cancelForgot()"></div>
+    <div class="lp-sheet">
+      <div class="lp-sheet-pill"></div>
+
+      <div class="lp-sheet-brand">
+        <img src="EdunexifyLogo.png" alt="Edunexify" class="lp-sheet-logo">
+        <span class="lp-sheet-brand-name">Edunexify</span>
+      </div>
+
+      <div class="lp-fp-icon">🔑</div>
+      <h2 class="lp-sheet-title">Forgot Password?</h2>
+      <p class="lp-sheet-sub">Enter your User ID and registered email — we'll send a reset link right away.</p>
+
+      <div class="lp-field">
+        <label class="lp-label">User ID <span class="lp-req">*</span></label>
+        <div class="lp-input-wrap">
+          <span class="lp-input-ic lp-input-ic-svg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <input class="lp-input" type="text" [(ngModel)]="forgotUserId" placeholder="Enter your User ID" [disabled]="sendingReset" autocomplete="username">
+        </div>
+      </div>
+
+      <div class="lp-field">
+        <label class="lp-label">Registered Email <span class="lp-req">*</span></label>
+        <div class="lp-input-wrap">
+          <span class="lp-input-ic lp-input-ic-svg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </span>
+          <input class="lp-input" type="email" [(ngModel)]="forgotEmail" placeholder="your@email.com" [disabled]="sendingReset" (keydown.enter)="submitForgot()" autocomplete="email">
+        </div>
+      </div>
+
+      <button class="lp-submit-btn lp-submit-teal" (click)="submitForgot()" [disabled]="sendingReset">
+        @if (!sendingReset) {
+          Send Reset Link
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        } @else {
+          Sending…
+        }
+      </button>
+
+      <div class="lp-sheet-footer">
+        <button class="lp-link-btn" (click)="cancelForgot()">Cancel</button>
+        <span class="lp-demo-note">Check spam if you don't see it ✉️</span>
+      </div>
+    </div>
+  }
+</div>
+}
+
+<!-- ══════════════════════════════════════════════════
+     SCHOOL LOAD ERROR — slug stored but fetch failed
+══════════════════════════════════════════════════ -->
+@else if (tenantService.hasStoredSlug) {
+<div class="sfe-page">
+  <div class="sfe-blob sfe-blob1"></div>
+  <div class="sfe-blob sfe-blob2"></div>
+
+  <div class="sfe-card">
+    <div class="sfe-icon">⚠️</div>
+    <h1 class="sfe-title">Couldn't Load<br>Your School</h1>
+    <p class="sfe-sub">We couldn't connect to your school portal right now. This may be a temporary network issue.</p>
+
+    <button class="sfe-retry-btn" (click)="retrySchool()" [disabled]="lookingUpSchool">
+      @if (lookingUpSchool) {
+        <span class="se-spinner"></span> Retrying…
+      } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Try Again
+      }
+    </button>
+
+    <button class="sfe-change-btn" (click)="changeSchool()">Use a Different School URL</button>
+
+    <div class="sfe-footer">
+      <img src="EdunexifyLogo.png" alt="Edunexify" class="sfe-footer-logo">
+      <span>Edunexify</span>
+    </div>
+  </div>
+</div>
+}
+
+<!-- ══════════════════════════════════════════════════
+     MARKETING PAGE — fallback (branding failed to load)
+══════════════════════════════════════════════════ -->
+@else {
 <div class="lp-page">
 
   <!-- ══════════════════════════════════════════════════
@@ -565,3 +785,4 @@
   }
 
 </div>
+} <!-- end @else marketing page -->

@@ -10,6 +10,7 @@ import {
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { AuthStateService } from './auth-state.service';
+import { TenantService } from '../services/tenant.service';
 import { environment } from '../../environments/environment';
 
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
@@ -28,7 +29,8 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private authStateService: AuthStateService
+    private authStateService: AuthStateService,
+    private tenantService: TenantService
   ) { }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -37,11 +39,26 @@ export class AuthInterceptor implements HttpInterceptor {
       request.url.includes('/auth/login') ||
       request.url.includes('/auth/refresh-token') ||
       request.url.includes('/auth/request-password-reset') ||
-      request.url.includes('/auth/reset-password');
+      request.url.includes('/auth/reset-password') ||
+      request.url.includes('/auth/me');  // /auth/me returns 401 on app init (no cookie yet) — don't retry
 
     // Only attach credentials to our own API — not to third-party URLs (e.g. Razorpay CDN)
     const isOwnApi = request.url.startsWith(environment.apiUrl);
-    const clonedReq = isOwnApi ? request.clone({ withCredentials: true }) : request;
+
+    // Attach credentials + X-School-Slug header so the backend TenantValidationFilter
+    // can validate that the stored school slug matches the JWT's schoolId.
+    // The Android app talks to the absolute API URL so the Host header never carries
+    // a subdomain — the backend reads X-School-Slug instead.
+    let clonedReq: HttpRequest<any>;
+    if (isOwnApi) {
+      const slug = this.tenantService.slug;
+      clonedReq = request.clone({
+        withCredentials: true,
+        ...(slug ? { setHeaders: { 'X-School-Slug': slug } } : {}),
+      });
+    } else {
+      clonedReq = request;
+    }
 
     return next.handle(clonedReq).pipe(
       catchError((error: HttpErrorResponse) => {

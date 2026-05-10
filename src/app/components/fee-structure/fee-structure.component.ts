@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BusFeesComponent } from '../bus-fees/bus-fees.component';
 import { FeeStructure, FeeStructureService } from '../../services/fee-structure.service';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthStateService } from '../../auth/auth-state.service';
@@ -11,7 +10,7 @@ import { LoggerService } from '../../services/logger.service';
 @Component({
   selector: 'app-fee-structure',
   standalone: true,
-  imports: [CommonModule, FormsModule, BusFeesComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './fee-structure.component.html',
   styleUrls: ['./fee-structure.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
