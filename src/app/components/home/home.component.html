@@ -1,52 +1,7 @@
 <!-- ══════════════════════════════════════════════════
-     SCHOOL ENTRY SCREEN — first launch / change school
-══════════════════════════════════════════════════ -->
-@if (showSchoolEntry) {
-<div class="se-page">
-  <div class="se-blob se-blob1"></div>
-  <div class="se-blob se-blob2"></div>
-
-  <div class="se-card">
-    <img src="EdunexifyLogo.png" alt="Edunexify" class="se-logo">
-    <h1 class="se-title">Welcome to<br><span class="se-title-accent">Edunexify</span></h1>
-    <p class="se-sub">Enter your school's URL to sign in</p>
-
-    <div class="lp-field">
-      <label class="lp-label">School URL</label>
-      <div class="lp-input-wrap">
-        <span class="lp-input-ic">🏫</span>
-        <input class="lp-input lp-input-emoji-ic" type="url" inputmode="url"
-               [(ngModel)]="schoolInput"
-               placeholder="e.g. indraacademy.edunexify.co.in"
-               (keydown.enter)="submitSchoolEntry()"
-               [disabled]="lookingUpSchool"
-               autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      </div>
-    </div>
-
-    <button class="lp-submit-btn lp-submit-teal se-submit" (click)="submitSchoolEntry()" [disabled]="lookingUpSchool">
-      @if (lookingUpSchool) {
-        <span class="se-spinner"></span>
-        Connecting…
-      } @else {
-        Continue
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      }
-    </button>
-
-    <p class="se-hint">Don't know your URL? Ask your school administrator.</p>
-  </div>
-
-  <p class="se-powered">
-    <img src="EdunexifyLogo.png" alt="" class="se-powered-logo"> School Management Platform
-  </p>
-</div>
-}
-
-<!-- ══════════════════════════════════════════════════
      BRANDED LOGIN — school found from stored slug
 ══════════════════════════════════════════════════ -->
-@else if (tenantService.isBranded) {
+@if (tenantService.isBranded) {
 <div class="sl-page" [style.--sl-accent]="tenantService.school?.themeColor || '#0f766e'">
 
   <!-- Branded top section -->
@@ -183,39 +138,7 @@
 }
 
 <!-- ══════════════════════════════════════════════════
-     SCHOOL LOAD ERROR — slug stored but fetch failed
-══════════════════════════════════════════════════ -->
-@else if (tenantService.hasStoredSlug) {
-<div class="sfe-page">
-  <div class="sfe-blob sfe-blob1"></div>
-  <div class="sfe-blob sfe-blob2"></div>
-
-  <div class="sfe-card">
-    <div class="sfe-icon">⚠️</div>
-    <h1 class="sfe-title">Couldn't Load<br>Your School</h1>
-    <p class="sfe-sub">We couldn't connect to your school portal right now. This may be a temporary network issue.</p>
-
-    <button class="sfe-retry-btn" (click)="retrySchool()" [disabled]="lookingUpSchool">
-      @if (lookingUpSchool) {
-        <span class="se-spinner"></span> Retrying…
-      } @else {
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        Try Again
-      }
-    </button>
-
-    <button class="sfe-change-btn" (click)="changeSchool()">Use a Different School URL</button>
-
-    <div class="sfe-footer">
-      <img src="EdunexifyLogo.png" alt="Edunexify" class="sfe-footer-logo">
-      <span>Edunexify</span>
-    </div>
-  </div>
-</div>
-}
-
-<!-- ══════════════════════════════════════════════════
-     MARKETING PAGE — fallback (branding failed to load)
+     MARKETING PAGE — fallback / new user / no branding
 ══════════════════════════════════════════════════ -->
 @else {
 <div class="lp-page">

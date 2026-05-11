@@ -40,6 +40,7 @@ export const appConfig: ApplicationConfig = {
             if (info) tenantService.setSchool(user.schoolSlug!, info);
           });
         }
+        return;
       });
     })
   ]

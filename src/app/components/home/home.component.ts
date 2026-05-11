@@ -25,7 +25,6 @@ export class HomeComponent implements OnInit {
   showLoginForm    = false;
   showDemoForm     = false;
   showForgotForm   = false;
-  showSchoolEntry  = false;
   userId   = '';
   password = '';
   hidePassword = true;
@@ -34,9 +33,6 @@ export class HomeComponent implements OnInit {
   forgotEmail   = '';
   sendingReset  = false;
   sendingDemo   = false;
-
-  schoolInput      = '';
-  lookingUpSchool  = false;
 
   demo = {
     schoolName:   '',
@@ -64,62 +60,15 @@ export class HomeComponent implements OnInit {
     if (this.authStateService.isLoggedIn()) {
       this.authenticated = true;
       this.router.navigate(['/dashboard']);
-      return;
     }
-    // First launch: no school configured yet → show school entry screen
-    if (!this.tenantService.hasStoredSlug) {
-      this.showSchoolEntry = true;
-    }
-  }
-
-  // ── School Entry ───────────────────────────────────────────
-  submitSchoolEntry() {
-    const slug = this.tenantService.parseSlug(this.schoolInput);
-    if (!slug) {
-      this.toast.warning('Invalid URL', 'Please enter your school URL, e.g. indraacademy.edunexify.co.in');
-      return;
-    }
-
-    this.lookingUpSchool = true;
-    this.cdr.markForCheck();
-
-    this.tenantService.lookupSchool(slug).then(info => {
-      this.lookingUpSchool = false;
-      if (!info) {
-        this.toast.error('School Not Found', 'No active school found for that URL. Please check and try again.');
-        this.cdr.markForCheck();
-        return;
-      }
-      this.tenantService.setSchool(slug, info);
-      this.showSchoolEntry = false;
-      this.schoolInput = '';
-      this.cdr.markForCheck();
-    });
   }
 
   changeSchool() {
     this.tenantService.clearSchool();
-    this.showSchoolEntry = true;
-    this.showForgotForm  = false;
+    this.showForgotForm = false;
     this.userId   = '';
     this.password = '';
     this.cdr.markForCheck();
-  }
-
-  retrySchool() {
-    const slug = this.tenantService.slug;
-    if (!slug) { this.showSchoolEntry = true; this.cdr.markForCheck(); return; }
-    this.lookingUpSchool = true;
-    this.cdr.markForCheck();
-    this.tenantService.lookupSchool(slug).then(info => {
-      this.lookingUpSchool = false;
-      if (!info) {
-        this.toast.error('Still Unavailable', 'Could not reach your school. Check your connection and try again.');
-      } else {
-        this.tenantService.setSchool(slug, info);
-      }
-      this.cdr.markForCheck();
-    });
   }
 
   getInitials(name?: string | null): string {
