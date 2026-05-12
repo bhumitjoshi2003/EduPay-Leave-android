@@ -7,8 +7,10 @@
       <div class="hdr-brand-text">
         <span class="hdr-brand-name">Edunexify</span>
         <span class="hdr-school-row" *ngIf="!isSuperAdmin()">
-          <img src="MONO_png.png" alt="" class="hdr-school-icon" />
-          <span class="hdr-school-name">Indra Academy</span>
+          <img *ngIf="tenantService.school?.logoUrl"
+               [src]="tenantService.getLogoUrl(tenantService.school!.logoUrl!)"
+               alt="" class="hdr-school-icon" />
+          <span class="hdr-school-name">{{ tenantService.school?.name || 'My School' }}</span>
         </span>
         <span class="hdr-school-row" *ngIf="isSuperAdmin()">
           <span class="hdr-school-name">Platform Admin</span>

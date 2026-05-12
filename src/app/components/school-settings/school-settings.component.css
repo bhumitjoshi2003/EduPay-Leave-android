@@ -348,6 +348,84 @@ select.ss-input { appearance: auto; cursor: pointer; }
 
 @keyframes ss-spin { to { transform: rotate(360deg); } }
 
+/* ── Logo card ──────────────────────────────────────────────────────── */
+.ss-logo-card { padding-bottom: 20px; }
+
+.ss-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.ss-logo-display {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(2,132,199,.15);
+}
+
+.ss-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ss-logo-initials {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0369a1;
+  letter-spacing: .5px;
+}
+
+.ss-logo-badge {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.6);
+  color: #fff;
+  font-size: .6rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.ss-logo-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ss-logo-pick-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ss-logo-hint {
+  font-size: .75rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.ss-logo-readonly {
+  font-size: .82rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .ss-info-grid,

@@ -97,6 +97,12 @@ export class SchoolService {
     return this.http.put<SchoolSettings>(`${this.baseUrl}/settings`, data);
   }
 
+  uploadLogo(file: File): Observable<{ logoUrl: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<{ logoUrl: string }>(`${this.baseUrl}/logo`, form);
+  }
+
   updateRazorpayKeys(keyId: string, keySecret: string): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/razorpay`, { keyId, keySecret });
   }

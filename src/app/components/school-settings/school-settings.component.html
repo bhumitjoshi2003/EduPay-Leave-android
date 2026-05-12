@@ -34,6 +34,52 @@
     <!-- ── General tab ─────────────────────────────────────────────── -->
     <ng-container *ngIf="activeTab === 'general'">
 
+      <!-- Logo card -->
+      <div class="ss-card ss-logo-card">
+        <div class="ss-card-header">
+          <div class="ss-card-title-row">
+            <span class="ss-card-icon">🎨</span>
+            <h2 class="ss-card-title">School Logo</h2>
+          </div>
+        </div>
+
+        <div class="ss-logo-area">
+          <!-- Current / preview logo -->
+          <div class="ss-logo-display">
+            <ng-container *ngIf="logoPreviewUrl; else currentLogo">
+              <img [src]="logoPreviewUrl" class="ss-logo-img" alt="Logo preview">
+              <span class="ss-logo-badge">Preview</span>
+            </ng-container>
+            <ng-template #currentLogo>
+              <ng-container *ngIf="settings!.logoUrl; else logoInitials">
+                <img [src]="tenantService.getLogoUrl(settings!.logoUrl)" class="ss-logo-img" alt="School logo">
+              </ng-container>
+              <ng-template #logoInitials>
+                <div class="ss-logo-initials">{{ getInitials(settings!.name) }}</div>
+              </ng-template>
+            </ng-template>
+          </div>
+
+          <!-- Upload controls (ADMIN only) -->
+          <div class="ss-logo-controls" *ngIf="isAdmin">
+            <ng-container *ngIf="!logoFile">
+              <label class="ss-btn ss-btn-ghost ss-logo-pick-btn" for="logoInput">
+                {{ settings!.logoUrl ? 'Change Logo' : 'Upload Logo' }}
+              </label>
+              <input id="logoInput" type="file" accept="image/*" (change)="onLogoSelected($event)" hidden>
+              <p class="ss-logo-hint">JPG or PNG · square recommended · max 5 MB</p>
+            </ng-container>
+            <ng-container *ngIf="logoFile">
+              <button class="ss-btn ss-btn-primary" (click)="uploadLogo()" [disabled]="uploadingLogo">
+                {{ uploadingLogo ? 'Uploading…' : 'Save Logo' }}
+              </button>
+              <button class="ss-btn ss-btn-ghost" (click)="cancelLogoUpload()" [disabled]="uploadingLogo">Cancel</button>
+            </ng-container>
+          </div>
+          <p class="ss-logo-readonly" *ngIf="!isAdmin && !settings?.logoUrl">No logo uploaded yet.</p>
+        </div>
+      </div>
+
       <!-- VIEW mode -->
       <ng-container *ngIf="!isEditing">
         <div class="ss-card">

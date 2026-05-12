@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { SchoolService, SchoolSettings } from '../../services/school.service';
+import { TenantService } from '../../services/tenant.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
@@ -32,11 +33,17 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   razorpayKeyId = '';
   razorpayKeySecret = '';
 
+  // Logo upload
+  logoPreviewUrl: string | null = null;
+  logoFile: File | null = null;
+  uploadingLogo = false;
+
   readonly boardTypes = ['CBSE', 'ICSE', 'STATE', 'IB', 'IGCSE', 'OTHER'];
 
   constructor(
     private schoolService: SchoolService,
     private authStateService: AuthStateService,
+    public tenantService: TenantService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private logger: LoggerService
@@ -157,6 +164,70 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
 
   onTabChange(tab: 'general' | 'razorpay'): void {
     this.activeTab = tab;
+  }
+
+  onLogoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.toast.warning('Invalid File', 'Please select an image file (JPG, PNG, etc.).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.warning('File Too Large', 'Logo must be under 5 MB.');
+      return;
+    }
+
+    this.logoFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.logoPreviewUrl = e.target?.result as string;
+      this.cdr.markForCheck();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  cancelLogoUpload(): void {
+    this.logoFile = null;
+    this.logoPreviewUrl = null;
+    this.cdr.markForCheck();
+  }
+
+  uploadLogo(): void {
+    if (!this.logoFile) return;
+    this.uploadingLogo = true;
+    this.cdr.markForCheck();
+
+    this.schoolService.uploadLogo(this.logoFile).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res) => {
+        if (this.settings) this.settings.logoUrl = res.logoUrl;
+        this.logoFile = null;
+        this.logoPreviewUrl = null;
+        this.uploadingLogo = false;
+        this.toast.success('Logo Updated', 'School logo has been uploaded successfully.');
+        this.cdr.markForCheck();
+        // Refresh TenantService cache so the branded login screen shows the new logo
+        const slug = this.tenantService.slug;
+        if (slug) {
+          this.tenantService.lookupSchool(slug).then(info => {
+            if (info) this.tenantService.setSchool(slug, info);
+          });
+        }
+      },
+      error: (e) => {
+        this.logger.error('Failed to upload school logo', e);
+        this.toast.error('Upload Failed', e?.error?.message || 'Could not upload logo. Please try again.');
+        this.uploadingLogo = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  getInitials(name?: string | null): string {
+    if (!name) return '?';
+    return name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
   }
 
   get isAdmin(): boolean {
