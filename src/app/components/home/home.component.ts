@@ -90,8 +90,21 @@ export class HomeComponent implements OnInit {
       return;
     }
 
-    this.authService.login(this.userId, this.password).subscribe({
+    // Capture slug now — this is the school whose branded page the user is on (null on generic page)
+    const brandedSlug = this.tenantService.slug;
+
+    this.authService.login(this.userId, this.password, brandedSlug).subscribe({
       next: (response) => {
+        // Option A — frontend safety net: if on a branded page, verify the logged-in
+        // user actually belongs to this school before setting any app state.
+        // The backend (Option B) already rejects mismatches with 403, so this only
+        // fires if something slips through.
+        if (brandedSlug && response.schoolSlug && response.schoolSlug !== brandedSlug) {
+          this.authService.logout().subscribe();
+          this.toast.error('Wrong School', 'This account does not belong to this school. Please use the correct login page.');
+          return;
+        }
+
         this.authStateService.setUser(response);
 
         // If school slug is not stored yet but the login response carries one,
@@ -115,9 +128,16 @@ export class HomeComponent implements OnInit {
         });
       },
       error: (error) => {
-        const text = error.status === 0
-          ? 'Cannot reach the server. Please check your internet connection.'
-          : 'Incorrect User ID or Password.';
+        let text: string;
+        if (error.status === 0) {
+          text = 'Cannot reach the server. Please check your internet connection.';
+        } else if (error.status === 403) {
+          text = typeof error.error === 'string' && error.error.length < 200
+            ? error.error
+            : 'Access denied. Please contact support.';
+        } else {
+          text = 'Incorrect User ID or Password.';
+        }
         this.toast.error('Login Failed', text);
         this.logger.error('Login error:', error);
       }

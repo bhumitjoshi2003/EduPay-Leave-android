@@ -378,6 +378,7 @@
 
 /* ── Form fields ─────────────────────────────────────────────────────── */
 .sl-field { position:relative; z-index:1; display:flex; flex-direction:column; gap:5px; margin-bottom:10px; }
+.sl-field:last-of-type { margin-bottom:28px; }
 .sl-label {
   font-size:.67rem; font-weight:700; color:rgba(255,255,255,.52);
   letter-spacing:.6px; text-transform:uppercase;

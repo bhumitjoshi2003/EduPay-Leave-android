@@ -23,8 +23,10 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/register`, userData, { responseType: 'text' });
   }
 
-  login(userId: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/login`, { userId, password }, { withCredentials: true });
+  login(userId: string, password: string, schoolSlug?: string | null): Observable<any> {
+    const body: Record<string, string> = { userId, password };
+    if (schoolSlug) body['schoolSlug'] = schoolSlug;
+    return this.http.post<any>(`${this.apiUrl}/login`, body, { withCredentials: true });
   }
 
   refreshToken(): Observable<any> {
