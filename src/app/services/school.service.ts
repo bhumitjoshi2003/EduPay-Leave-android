@@ -12,6 +12,56 @@ export interface SchoolClass {
   streamEligible: boolean;
 }
 
+export interface FeatureCatalogItem {
+  featureKey: string;
+  displayName: string;
+  description: string;
+  category: string;
+  isAlwaysOn: boolean;
+}
+
+export interface PlanFeatureChange {
+  id: number;
+  featureKey: string;
+  actionType: string;
+  policy: string;
+  effectiveAt: string;
+  applied: boolean;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface PlanDetail {
+  id: number;
+  name: string;
+  tier: string;
+  isPublic: boolean;
+  isActive: boolean;
+  priorityScore: number;
+  maxStudents: number | null;
+  studentSoftLimitPct: number;
+  studentHardLimitPct: number;
+  maxStaff: number | null;
+  staffSoftLimitPct: number;
+  staffHardLimitPct: number;
+  storageGbLimit: number | null;
+  storageSoftLimitPct: number;
+  storageHardLimitPct: number;
+  monthlyPricePaise: number | null;
+  annualPricePaise: number | null;
+  currency: string;
+  features: FeatureCatalogItem[];
+  pendingChanges: PlanFeatureChange[];
+}
+
+export interface GlobalSubscriptionConfig {
+  gracePeriodDays: number;
+  defaultTrialDays: number;
+  expiryNotifyDays: number;
+  updatedByAdminId: string;
+  updatedAt: string;
+}
+
 export interface SchoolSettings {
   id: number;
   name: string;
@@ -140,5 +190,47 @@ export class SchoolService {
 
   deleteSchool(schoolId: number): Observable<void> {
     return this.http.delete<void>(`${this.superAdminUrl}/schools/${schoolId}`);
+  }
+
+  // ── Plan Management (SUPER_ADMIN) ─────────────────────────────────────────
+
+  getPlans(includeInactive = false): Observable<PlanDetail[]> {
+    return this.http.get<PlanDetail[]>(`${this.superAdminUrl}/plans`, {
+      params: { includeInactive: String(includeInactive) }
+    });
+  }
+
+  createPlan(data: Partial<PlanDetail> & { name: string; tier: string }): Observable<PlanDetail> {
+    return this.http.post<PlanDetail>(`${this.superAdminUrl}/plans`, data);
+  }
+
+  updatePlan(planId: number, data: Partial<PlanDetail>): Observable<PlanDetail> {
+    return this.http.put<PlanDetail>(`${this.superAdminUrl}/plans/${planId}`, data);
+  }
+
+  deactivatePlan(planId: number): Observable<void> {
+    return this.http.delete<void>(`${this.superAdminUrl}/plans/${planId}`);
+  }
+
+  addFeatureToPlan(planId: number, featureKey: string): Observable<void> {
+    return this.http.post<void>(`${this.superAdminUrl}/plans/${planId}/features`, { featureKey });
+  }
+
+  removeFeatureFromPlan(planId: number, featureKey: string, policy: string): Observable<void> {
+    return this.http.delete<void>(`${this.superAdminUrl}/plans/${planId}/features/${featureKey}`, {
+      body: { policy }
+    });
+  }
+
+  getFeatureCatalog(): Observable<FeatureCatalogItem[]> {
+    return this.http.get<FeatureCatalogItem[]>(`${this.superAdminUrl}/features`);
+  }
+
+  getSubscriptionConfig(): Observable<GlobalSubscriptionConfig> {
+    return this.http.get<GlobalSubscriptionConfig>(`${this.superAdminUrl}/subscription-config`);
+  }
+
+  updateSubscriptionConfig(data: Partial<GlobalSubscriptionConfig>): Observable<GlobalSubscriptionConfig> {
+    return this.http.put<GlobalSubscriptionConfig>(`${this.superAdminUrl}/subscription-config`, data);
   }
 }

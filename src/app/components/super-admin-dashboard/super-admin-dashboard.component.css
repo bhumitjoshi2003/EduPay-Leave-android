@@ -616,3 +616,291 @@ select.sa-input { appearance: auto; }
   .sa-edit-actions { flex-direction: column; }
   .sa-edit-actions-right { width: 100%; justify-content: flex-end; }
 }
+
+/* ══════════════ PLANS TAB ══════════════════════════════════════════ */
+
+/* ── Section header ──────────────────────────────────────────────── */
+.sa-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sa-section-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+/* ── Plan card ───────────────────────────────────────────────────── */
+.sa-plan-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  padding: 16px;
+  margin-bottom: 14px;
+  border-left: 4px solid #4f46e5;
+}
+
+.sa-plan-inactive {
+  border-left-color: #e2e8f0;
+  opacity: 0.7;
+}
+
+.sa-plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.sa-plan-header-left { flex: 1; }
+
+.sa-plan-tier-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.sa-plan-tier-badge[data-tier="CAMPUS"]    { background: #d1fae5; color: #065f46; }
+.sa-plan-tier-badge[data-tier="ACADEMY"]   { background: #dbeafe; color: #1e40af; }
+.sa-plan-tier-badge[data-tier="INSTITUTE"] { background: #fef3c7; color: #92400e; }
+.sa-plan-tier-badge[data-tier="CUSTOM"]    { background: #f3e8ff; color: #6d28d9; }
+
+.sa-plan-name {
+  margin: 2px 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.sa-plan-visibility {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.sa-plan-price-col { text-align: right; flex-shrink: 0; }
+
+.sa-plan-price {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.sa-plan-price span,
+.sa-plan-price-annual span {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.sa-plan-price-annual {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* ── Limits ──────────────────────────────────────────────────────── */
+.sa-plan-limits {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  font-size: 0.8rem;
+  color: #374151;
+}
+
+.sa-plan-limit-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sa-limit-pct {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-left: auto;
+}
+
+/* ── Feature list ────────────────────────────────────────────────── */
+.sa-plan-features-section { margin-bottom: 12px; }
+
+.sa-feature-group { margin-bottom: 10px; }
+
+.sa-feature-category {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 5px;
+}
+
+.sa-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sa-feature-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #374151;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.sa-feature-row input[type="checkbox"] { flex-shrink: 0; }
+
+.sa-feature-name { flex: 1; }
+
+.sa-feature-pending-remove .sa-feature-name { text-decoration: line-through; color: #94a3b8; }
+
+.sa-removal-badge {
+  font-size: 0.65rem;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 1px 6px;
+  border-radius: 99px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ── Removal picker ──────────────────────────────────────────────── */
+.sa-removal-picker {
+  background: #fff7ed;
+  border: 1.5px solid #fed7aa;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 0.82rem;
+  color: #374151;
+}
+
+.sa-removal-picker p { margin: 0 0 8px; }
+
+.sa-removal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ── Pending notice ──────────────────────────────────────────────── */
+.sa-pending-notice {
+  font-size: 0.75rem;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+}
+
+/* ── Plan actions ────────────────────────────────────────────────── */
+.sa-plan-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.sa-inactive-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* ── Config section ──────────────────────────────────────────────── */
+.sa-config-section {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 18px;
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+.sa-config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sa-config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sa-config-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sa-config-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ── Modal ───────────────────────────────────────────────────────── */
+.sa-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  padding: 0;
+}
+
+.sa-modal {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 20px 16px 32px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.sa-modal-title {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.sa-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  flex-direction: row-reverse;
+}
+
+@media (max-width: 560px) {
+  .sa-config-grid { grid-template-columns: 1fr; }
+  .sa-plan-header { flex-direction: column; }
+  .sa-plan-price-col { text-align: left; }
+}

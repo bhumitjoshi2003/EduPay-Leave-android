@@ -32,6 +32,10 @@
       <button class="sa-tab" [class.sa-tab-active]="activeTab === 'schools'" (click)="activeTab = 'schools'">
         Schools <span class="sa-tab-count">{{ schools.length }}</span>
       </button>
+      <button class="sa-tab" [class.sa-tab-active]="activeTab === 'plans'"
+              (click)="activeTab = 'plans'; loadPlansTab()">
+        Plans &amp; Config
+      </button>
     </div>
 
     <!-- ══════════════ OVERVIEW TAB ══════════════ -->
@@ -337,7 +341,7 @@
             <div class="sa-form-group">
               <label>Plan</label>
               <select class="sa-input" [(ngModel)]="editForm.plan">
-                <option *ngFor="let p of plans" [value]="p">{{ p }}</option>
+                <option *ngFor="let p of legacyPlans" [value]="p">{{ p }}</option>
               </select>
             </div>
             <div class="sa-form-group">
@@ -392,6 +396,204 @@
       </div>
     </ng-container>
 
+    <!-- ══════════════ PLANS TAB ══════════════ -->
+    <ng-container *ngIf="activeTab === 'plans'">
+
+      <div *ngIf="plansLoading" class="sa-loading">
+        <div class="sa-spinner"></div>
+        <p>Loading plans…</p>
+      </div>
+
+      <ng-container *ngIf="!plansLoading">
+
+        <!-- ── Plans header ── -->
+        <div class="sa-section-header">
+          <h2 class="sa-section-title">Subscription Plans</h2>
+          <button class="sa-btn-primary sa-btn-sm" (click)="openCreatePlan()">+ New Plan</button>
+        </div>
+
+        <!-- ── Plan cards ── -->
+        <div *ngFor="let plan of plans" class="sa-plan-card" [class.sa-plan-inactive]="!plan.isActive">
+
+          <!-- Plan header -->
+          <div class="sa-plan-header">
+            <div class="sa-plan-header-left">
+              <span class="sa-plan-tier-badge" [attr.data-tier]="plan.tier">{{ plan.tier }}</span>
+              <h3 class="sa-plan-name">{{ plan.name }}</h3>
+              <span class="sa-plan-visibility">{{ plan.isPublic ? 'Public' : 'Custom / Hidden' }}</span>
+            </div>
+            <div class="sa-plan-price-col">
+              <div class="sa-plan-price">{{ formatPaise(plan.monthlyPricePaise) }}<span>/mo</span></div>
+              <div class="sa-plan-price-annual">{{ formatPaise(plan.annualPricePaise) }}<span>/yr</span></div>
+            </div>
+          </div>
+
+          <!-- Limits -->
+          <div class="sa-plan-limits">
+            <div class="sa-plan-limit-item">
+              <span>🎓</span>
+              <span>{{ plan.maxStudents != null ? plan.maxStudents + ' students' : 'Unlimited students' }}</span>
+              <span class="sa-limit-pct">soft {{ plan.studentSoftLimitPct }}% · hard {{ plan.studentHardLimitPct }}%</span>
+            </div>
+            <div class="sa-plan-limit-item">
+              <span>👩‍🏫</span>
+              <span>{{ plan.maxStaff != null ? plan.maxStaff + ' staff' : 'Unlimited staff' }}</span>
+            </div>
+            <div class="sa-plan-limit-item">
+              <span>💾</span>
+              <span>{{ plan.storageGbLimit != null ? plan.storageGbLimit + ' GB storage' : 'Unlimited storage' }}</span>
+            </div>
+          </div>
+
+          <!-- Features per category -->
+          <div class="sa-plan-features-section">
+            <div *ngFor="let group of featuresByCategory()" class="sa-feature-group">
+              <div class="sa-feature-category">{{ group.category }}</div>
+              <div class="sa-feature-list">
+                <label *ngFor="let f of group.features" class="sa-feature-row"
+                       [class.sa-feature-pending-remove]="isPlanFeaturePendingRemoval(plan, f.featureKey)">
+                  <input type="checkbox"
+                         [checked]="isPlanFeatureActive(plan, f.featureKey)"
+                         [disabled]="!plan.isActive"
+                         (change)="togglePlanFeature(plan, f.featureKey)">
+                  <span class="sa-feature-name">{{ f.displayName }}</span>
+                  <span *ngIf="isPlanFeaturePendingRemoval(plan, f.featureKey)" class="sa-removal-badge">pending</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Removal policy picker -->
+          <div *ngIf="removingFeatureKey" class="sa-removal-picker">
+            <p>Remove <strong>{{ removingFeatureKey }}</strong> from <strong>{{ plan.name }}</strong>?</p>
+            <select [(ngModel)]="removalPolicy" class="sa-input">
+              <option *ngFor="let p of removalPolicies" [value]="p.value">{{ p.label }}</option>
+            </select>
+            <div class="sa-removal-actions">
+              <button class="sa-btn-danger sa-btn-sm" (click)="confirmRemoveFeature(plan)">Confirm</button>
+              <button class="sa-btn-ghost" (click)="cancelRemoveFeature()">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Pending changes notice -->
+          <div *ngIf="plan.pendingChanges.length > 0" class="sa-pending-notice">
+            ⏳ {{ plan.pendingChanges.length }} pending change(s)
+          </div>
+
+          <!-- Plan actions -->
+          <div class="sa-plan-actions">
+            <button class="sa-btn-edit" (click)="openEditPlan(plan)">Edit limits &amp; pricing</button>
+            <button *ngIf="plan.isActive" class="sa-btn-danger sa-btn-sm" (click)="deactivatePlan(plan)">Deactivate</button>
+            <span *ngIf="!plan.isActive" class="sa-inactive-label">Inactive</span>
+          </div>
+
+        </div>
+
+        <!-- ── Global Subscription Config ── -->
+        <div class="sa-config-section">
+          <div class="sa-section-header">
+            <h2 class="sa-section-title">Global Subscription Settings</h2>
+            <button *ngIf="!editingConfig" class="sa-btn-edit" (click)="startEditConfig()">Edit</button>
+          </div>
+
+          <div class="sa-config-grid" *ngIf="!editingConfig && subscriptionConfig">
+            <div class="sa-config-item">
+              <span class="sa-config-label">Grace Period</span>
+              <span class="sa-config-value">{{ subscriptionConfig.gracePeriodDays }} days</span>
+            </div>
+            <div class="sa-config-item">
+              <span class="sa-config-label">Default Trial Duration</span>
+              <span class="sa-config-value">{{ subscriptionConfig.defaultTrialDays }} days</span>
+            </div>
+            <div class="sa-config-item">
+              <span class="sa-config-label">Expiry Warning</span>
+              <span class="sa-config-value">{{ subscriptionConfig.expiryNotifyDays }} day(s) before</span>
+            </div>
+          </div>
+
+          <div class="sa-form-grid" *ngIf="editingConfig">
+            <div class="sa-form-group">
+              <label>Grace Period (days)</label>
+              <input type="number" [(ngModel)]="configForm.gracePeriodDays" class="sa-input" min="0">
+            </div>
+            <div class="sa-form-group">
+              <label>Default Trial (days)</label>
+              <input type="number" [(ngModel)]="configForm.defaultTrialDays" class="sa-input" min="1">
+            </div>
+            <div class="sa-form-group">
+              <label>Expiry Notification (days before)</label>
+              <input type="number" [(ngModel)]="configForm.expiryNotifyDays" class="sa-input" min="1">
+            </div>
+            <div class="sa-form-actions sa-col-span-2">
+              <button class="sa-btn-secondary" (click)="cancelEditConfig()">Cancel</button>
+              <button class="sa-btn-primary" (click)="saveConfig()">Save</button>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
+    </ng-container>
+
   </ng-container>
+
+  <!-- ── Plan create/edit modal ── -->
+  <div *ngIf="showPlanForm" class="sa-modal-overlay" (click)="cancelPlanForm()">
+    <div class="sa-modal" (click)="$event.stopPropagation()">
+      <h3 class="sa-modal-title">{{ editingPlanId ? 'Edit Plan' : 'New Plan' }}</h3>
+
+      <div class="sa-form-grid">
+        <div class="sa-form-group sa-col-span-2">
+          <label>Plan Name *</label>
+          <input [(ngModel)]="planForm.name" placeholder="e.g. Enterprise Plus" class="sa-input">
+        </div>
+        <div class="sa-form-group">
+          <label>Tier *</label>
+          <select [(ngModel)]="planForm.tier" class="sa-input">
+            <option value="CAMPUS">CAMPUS</option>
+            <option value="ACADEMY">ACADEMY</option>
+            <option value="INSTITUTE">INSTITUTE</option>
+            <option value="CUSTOM">CUSTOM</option>
+          </select>
+        </div>
+        <div class="sa-form-group">
+          <label>Priority Score</label>
+          <input type="number" [(ngModel)]="planForm.priorityScore" placeholder="e.g. 100" class="sa-input">
+        </div>
+        <div class="sa-form-group">
+          <label>Max Students</label>
+          <input type="number" [(ngModel)]="planForm.maxStudents" placeholder="blank = unlimited" class="sa-input">
+        </div>
+        <div class="sa-form-group">
+          <label>Max Staff</label>
+          <input type="number" [(ngModel)]="planForm.maxStaff" placeholder="blank = unlimited" class="sa-input">
+        </div>
+        <div class="sa-form-group">
+          <label>Storage (GB)</label>
+          <input type="number" [(ngModel)]="planForm.storageGbLimit" placeholder="blank = unlimited" class="sa-input">
+        </div>
+        <div class="sa-form-group">
+          <label>Monthly Price (paise)</label>
+          <input type="number" [(ngModel)]="planForm.monthlyPricePaise" placeholder="e.g. 99900 = ₹999" class="sa-input">
+        </div>
+        <div class="sa-form-group sa-col-span-2">
+          <label>Annual Price (paise)</label>
+          <input type="number" [(ngModel)]="planForm.annualPricePaise" placeholder="e.g. 999900 = ₹9999" class="sa-input">
+        </div>
+        <div class="sa-form-group sa-col-span-2">
+          <label class="sa-toggle-label">
+            <input type="checkbox" [(ngModel)]="planForm.isPublic">
+            <span>Show on public pricing page</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="sa-modal-actions">
+        <button class="sa-btn-primary" (click)="savePlan()" [disabled]="savingPlan">
+          {{ savingPlan ? 'Saving…' : 'Save Plan' }}
+        </button>
+        <button class="sa-btn-ghost" (click)="cancelPlanForm()">Cancel</button>
+      </div>
+    </div>
+  </div>
 
 </div>
