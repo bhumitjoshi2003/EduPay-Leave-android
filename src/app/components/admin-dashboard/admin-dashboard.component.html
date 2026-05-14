@@ -93,6 +93,49 @@
 
     </div>
 
+    <!-- ── Plan Usage ────────────────────────────────────────────────── -->
+    <div class="ad-section" *ngIf="entitlement">
+      <h2 class="ad-section-title">
+        Plan Usage
+        <span class="ad-plan-badge" *ngIf="entitlement.planName">{{ entitlement.planName }}</span>
+        <span class="ad-plan-status ad-status-{{ entitlement.subscriptionStatus?.toLowerCase() }}"
+              *ngIf="entitlement.subscriptionStatus">{{ entitlement.subscriptionStatus }}</span>
+      </h2>
+      <div class="ad-usage-grid">
+        <div class="ad-usage-card" *ngIf="entitlement.maxStudents">
+          <div class="ad-usage-header">
+            <span class="ad-usage-label">Students</span>
+            <span class="ad-usage-count">{{ entitlement.activeStudents }} / {{ entitlement.maxStudents }}</span>
+          </div>
+          <div class="ad-usage-bar-track">
+            <div class="ad-usage-bar-fill"
+              [style.width.%]="usagePct(entitlement.activeStudents, entitlement.maxStudents)"
+              [style.background]="usageBarColor(usagePct(entitlement.activeStudents, entitlement.maxStudents), entitlement.studentSoftLimitPct, entitlement.studentHardLimitPct)">
+            </div>
+          </div>
+        </div>
+        <div class="ad-usage-card" *ngIf="entitlement.maxStaff">
+          <div class="ad-usage-header">
+            <span class="ad-usage-label">Staff</span>
+            <span class="ad-usage-count">{{ entitlement.totalStaff }} / {{ entitlement.maxStaff }}</span>
+          </div>
+          <div class="ad-usage-bar-track">
+            <div class="ad-usage-bar-fill"
+              [style.width.%]="usagePct(entitlement.totalStaff, entitlement.maxStaff)"
+              [style.background]="usageBarColor(usagePct(entitlement.totalStaff, entitlement.maxStaff), entitlement.staffSoftLimitPct, entitlement.staffHardLimitPct)">
+            </div>
+          </div>
+        </div>
+        <div class="ad-usage-card ad-usage-card--features">
+          <div class="ad-usage-header">
+            <span class="ad-usage-label">Active Features</span>
+            <span class="ad-usage-count">{{ entitlement.featureCount }}</span>
+          </div>
+          <div class="ad-usage-feat-hint">Features enabled by your current plan.</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Quick Actions ─────────────────────────────────────────────── -->
     <div class="ad-section">
       <h2 class="ad-section-title">Quick Actions</h2>

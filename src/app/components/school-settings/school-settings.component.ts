@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { SchoolService, SchoolSettings } from '../../services/school.service';
+import { SchoolService, SchoolSettings, SchoolEntitlementSummary } from '../../services/school.service';
 import { TenantService } from '../../services/tenant.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
@@ -29,7 +29,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   isEditing = false;
   editForm: Partial<SchoolSettings> = {};
 
-  activeTab: 'general' | 'razorpay' | 'features' = 'general';
+  activeTab: 'general' | 'razorpay' | 'features' | 'subscription' = 'general';
   razorpayKeyId = '';
   razorpayKeySecret = '';
 
@@ -37,6 +37,10 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   featuresLoading = false;
   schoolFeatures: any[] = [];
   savingFeatureKey: string | null = null;
+
+  // Subscription tab
+  entitlementLoading = false;
+  entitlement: SchoolEntitlementSummary | null = null;
 
   // Logo upload
   logoPreviewUrl: string | null = null;
@@ -167,7 +171,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
-  onTabChange(tab: 'general' | 'razorpay' | 'features'): void {
+  onTabChange(tab: 'general' | 'razorpay' | 'features' | 'subscription'): void {
     this.activeTab = tab;
   }
 
@@ -219,6 +223,36 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       map.get(f.category)!.push(f);
     }
     return Array.from(map.entries()).map(([category, features]) => ({ category, features }));
+  }
+
+  loadEntitlement(): void {
+    if (this.entitlement || this.entitlementLoading) return;
+    this.entitlementLoading = true;
+    this.cdr.markForCheck();
+    this.schoolService.getEntitlement().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (e) => {
+        this.entitlement = e;
+        this.entitlementLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => {
+        this.logger.error('Failed to load entitlement', err);
+        this.toast.error('Error', 'Failed to load subscription data.');
+        this.entitlementLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  usagePct(current: number, max: number | null): number {
+    if (!max || max <= 0) return 0;
+    return Math.min(100, Math.round((current / max) * 100));
+  }
+
+  usageBarColor(pct: number, softPct: number, hardPct: number): string {
+    if (pct >= hardPct) return '#dc2626';
+    if (pct >= softPct) return '#d97706';
+    return '#059669';
   }
 
   onLogoSelected(event: Event): void {

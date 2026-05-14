@@ -33,6 +33,10 @@
               (click)="onTabChange('features'); loadFeatures()">
         Features
       </button>
+      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'subscription'"
+              (click)="onTabChange('subscription'); loadEntitlement()">
+        Subscription
+      </button>
     </div>
 
     <!-- ── General tab ─────────────────────────────────────────────── -->
@@ -323,6 +327,86 @@
             No features available for your current subscription plan.
           </div>
         </ng-container>
+      </div>
+    </ng-container>
+
+    <!-- ── Subscription tab ───────────────────────────────────────────── -->
+    <ng-container *ngIf="activeTab === 'subscription'">
+      <div class="ss-card">
+        <div class="ss-card-header">
+          <div class="ss-card-title-row">
+            <span class="ss-card-icon">📦</span>
+            <h2 class="ss-card-title">Subscription &amp; Usage</h2>
+          </div>
+          <span class="ss-status-chip ss-chip-ok" *ngIf="entitlement?.subscriptionStatus === 'ACTIVE'">Active</span>
+          <span class="ss-status-chip" style="background:#dbeafe;color:#1d4ed8"
+                *ngIf="entitlement?.subscriptionStatus === 'TRIAL'">Trial</span>
+          <span class="ss-status-chip ss-chip-warn" *ngIf="entitlement?.subscriptionStatus === 'GRACE'">Grace Period</span>
+          <span class="ss-status-chip" style="background:#fee2e2;color:#dc2626"
+                *ngIf="entitlement?.subscriptionStatus === 'EXPIRED'">Expired</span>
+        </div>
+
+        <div *ngIf="entitlementLoading" class="ss-loading-inline">
+          <div class="ss-spinner"></div>
+          <span>Loading subscription info…</span>
+        </div>
+
+        <ng-container *ngIf="!entitlementLoading && entitlement">
+          <div class="ss-sub-plan-row">
+            <div class="ss-sub-plan-name">{{ entitlement.planName || 'No Plan' }}</div>
+            <div class="ss-sub-plan-tier" *ngIf="entitlement.planTier">{{ entitlement.planTier }}</div>
+            <div class="ss-sub-feat-count">{{ entitlement.featureCount }} features enabled</div>
+          </div>
+          <div class="ss-sub-dates" *ngIf="entitlement.expiresAt || entitlement.trialEndsAt || entitlement.graceEndsAt">
+            <div class="ss-sub-date-chip" *ngIf="entitlement.trialEndsAt">
+              <span class="ss-sub-date-label">Trial ends</span>
+              <span class="ss-sub-date-val">{{ entitlement.trialEndsAt | date:'d MMM yyyy' }}</span>
+            </div>
+            <div class="ss-sub-date-chip" *ngIf="entitlement.expiresAt">
+              <span class="ss-sub-date-label">Expires</span>
+              <span class="ss-sub-date-val">{{ entitlement.expiresAt | date:'d MMM yyyy' }}</span>
+            </div>
+            <div class="ss-sub-date-chip ss-sub-date-grace" *ngIf="entitlement.graceEndsAt">
+              <span class="ss-sub-date-label">Grace ends</span>
+              <span class="ss-sub-date-val">{{ entitlement.graceEndsAt | date:'d MMM yyyy' }}</span>
+            </div>
+          </div>
+          <div class="ss-divider"></div>
+          <div class="ss-sub-usage">
+            <h3 class="ss-sub-usage-title">Usage</h3>
+            <div class="ss-sub-usage-row" *ngIf="entitlement.maxStudents">
+              <div class="ss-sub-usage-header">
+                <span class="ss-sub-usage-label">Students</span>
+                <span class="ss-sub-usage-count">{{ entitlement.activeStudents }} / {{ entitlement.maxStudents }}</span>
+              </div>
+              <div class="ss-sub-bar-track">
+                <div class="ss-sub-bar-fill"
+                  [style.width.%]="usagePct(entitlement.activeStudents, entitlement.maxStudents)"
+                  [style.background]="usageBarColor(usagePct(entitlement.activeStudents, entitlement.maxStudents), entitlement.studentSoftLimitPct, entitlement.studentHardLimitPct)">
+                </div>
+              </div>
+            </div>
+            <div class="ss-sub-usage-row" *ngIf="entitlement.maxStaff">
+              <div class="ss-sub-usage-header">
+                <span class="ss-sub-usage-label">Staff (Teachers + Admins)</span>
+                <span class="ss-sub-usage-count">{{ entitlement.totalStaff }} / {{ entitlement.maxStaff }}</span>
+              </div>
+              <div class="ss-sub-bar-track">
+                <div class="ss-sub-bar-fill"
+                  [style.width.%]="usagePct(entitlement.totalStaff, entitlement.maxStaff)"
+                  [style.background]="usageBarColor(usagePct(entitlement.totalStaff, entitlement.maxStaff), entitlement.staffSoftLimitPct, entitlement.staffHardLimitPct)">
+                </div>
+              </div>
+            </div>
+            <div class="ss-sub-unlimited" *ngIf="!entitlement.maxStudents && !entitlement.maxStaff">
+              Unlimited students and staff on this plan.
+            </div>
+          </div>
+        </ng-container>
+
+        <div class="ss-empty-state" *ngIf="!entitlementLoading && !entitlement">
+          No subscription data available.
+        </div>
       </div>
     </ng-container>
 

@@ -7,10 +7,12 @@ import {
   HttpErrorResponse,
 } from '@angular/common/http';
 
+import { Injector } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { AuthStateService } from './auth-state.service';
 import { TenantService } from '../services/tenant.service';
+import { ToastService } from '../services/toast.service';
 import { environment } from '../../environments/environment';
 
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
@@ -30,7 +32,8 @@ export class AuthInterceptor implements HttpInterceptor {
     private router: Router,
     private authService: AuthService,
     private authStateService: AuthStateService,
-    private tenantService: TenantService
+    private tenantService: TenantService,
+    private injector: Injector
   ) { }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -63,9 +66,16 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(clonedReq).pipe(
       catchError((error: HttpErrorResponse) => {
         // 401 = missing/expired/invalid token → attempt refresh (once)
-        // 403 = valid token but wrong role → propagate as-is
+        // 403 = valid token but wrong role, OR resource limit exceeded
         if (error.status === 401 && !isAuthUrl) {
           return this.handleTokenExpiry(clonedReq, next);
+        }
+        if (error.status === 403) {
+          const body = error.error;
+          if (body?.code === 'RESOURCE_LIMIT_EXCEEDED') {
+            const toast = this.injector.get(ToastService);
+            toast.error('Limit Reached', body.message || 'You have reached your plan limit for this resource.');
+          }
         }
         return throwError(() => error);
       })
