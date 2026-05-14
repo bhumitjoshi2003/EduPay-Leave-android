@@ -29,6 +29,10 @@
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'razorpay'" (click)="onTabChange('razorpay')">
         Razorpay
       </button>
+      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'features'"
+              (click)="onTabChange('features'); loadFeatures()">
+        Features
+      </button>
     </div>
 
     <!-- ── General tab ─────────────────────────────────────────────── -->
@@ -269,6 +273,56 @@
         <p class="ss-rzp-readonly" *ngIf="!isAdmin">
           Contact your school administrator to configure Razorpay keys.
         </p>
+      </div>
+    </ng-container>
+
+    <!-- ── Features tab ─────────────────────────────────────────────── -->
+    <ng-container *ngIf="activeTab === 'features'">
+      <div class="ss-card">
+        <div class="ss-card-header">
+          <div class="ss-card-title-row">
+            <span class="ss-card-icon">⚙️</span>
+            <h2 class="ss-card-title">Feature Overrides</h2>
+          </div>
+        </div>
+
+        <p class="ss-rzp-note" *ngIf="!featuresLoading">
+          Features below are granted by your subscription plan. Disable optional features that your school does not need.
+        </p>
+
+        <div class="ss-loading-inline" *ngIf="featuresLoading">
+          <div class="ss-spinner"></div>
+          <span>Loading features…</span>
+        </div>
+
+        <ng-container *ngIf="!featuresLoading">
+          <ng-container *ngFor="let group of featuresByCategory()">
+            <div class="ss-feature-category-label">{{ group.category }}</div>
+            <div class="ss-feature-item" *ngFor="let feat of group.features">
+              <div class="ss-feature-info">
+                <span class="ss-feature-name">{{ feat.displayName }}</span>
+                <span class="ss-feature-desc" *ngIf="feat.description">{{ feat.description }}</span>
+              </div>
+              <div class="ss-feature-controls">
+                <span class="ss-feat-tag ss-feat-always-on" *ngIf="feat.isAlwaysOn">Always On</span>
+                <span class="ss-feat-tag ss-feat-not-granted" *ngIf="!feat.planGranted && !feat.isAlwaysOn">Not in Plan</span>
+                <ng-container *ngIf="feat.planGranted && !feat.isAlwaysOn">
+                  <label class="ss-toggle" [class.ss-toggle-saving]="savingFeatureKey === feat.featureKey">
+                    <input type="checkbox"
+                           [checked]="feat.overrideState !== 'DISABLED'"
+                           [disabled]="savingFeatureKey === feat.featureKey"
+                           (change)="toggleFeatureOverride(feat)">
+                    <span class="ss-toggle-track"></span>
+                  </label>
+                </ng-container>
+              </div>
+            </div>
+          </ng-container>
+
+          <div class="ss-empty-state" *ngIf="schoolFeatures.length === 0">
+            No features available for your current subscription plan.
+          </div>
+        </ng-container>
       </div>
     </ng-container>
 

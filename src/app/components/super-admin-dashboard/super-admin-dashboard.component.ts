@@ -528,6 +528,115 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
   startEditConfig(): void { this.editingConfig = true; this.cdr.markForCheck(); }
   cancelEditConfig(): void { this.editingConfig = false; this.cdr.markForCheck(); }
 
+  // ── Subscription management (per-school) ──────────────────────────────────
+
+  subscriptionPanelId: number | null = null;
+  schoolSubscriptions = new Map<number, any>();
+  loadingSubFor: number | null = null;
+  savingSubFor: number | null = null;
+  refreshingSubFor: number | null = null;
+  subForm: { planId: number | null; trialEndsAt: string; expiresAt: string; graceEndsAt: string; notes: string } = {
+    planId: null, trialEndsAt: '', expiresAt: '', graceEndsAt: '', notes: ''
+  };
+
+  toggleSubscriptionPanel(school: SchoolSettings): void {
+    if (this.subscriptionPanelId === school.id) {
+      this.subscriptionPanelId = null;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.subscriptionPanelId = school.id;
+    this.subForm = { planId: null, trialEndsAt: '', expiresAt: '', graceEndsAt: '', notes: '' };
+    if (!this.plans.length) {
+      this.schoolService.getPlans(true).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (plans) => { this.plans = plans; this.cdr.markForCheck(); },
+        error: () => {}
+      });
+    }
+    this.loadSchoolSubscription(school.id);
+    this.cdr.markForCheck();
+  }
+
+  loadSchoolSubscription(schoolId: number): void {
+    this.loadingSubFor = schoolId;
+    this.cdr.markForCheck();
+    this.schoolService.getSchoolSubscription(schoolId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (sub) => {
+        this.schoolSubscriptions.set(schoolId, sub);
+        if (sub) {
+          this.subForm = {
+            planId: sub.planId ?? null,
+            trialEndsAt: sub.trialEndsAt ? sub.trialEndsAt.substring(0, 10) : '',
+            expiresAt: sub.expiresAt ? sub.expiresAt.substring(0, 10) : '',
+            graceEndsAt: sub.graceEndsAt ? sub.graceEndsAt.substring(0, 10) : '',
+            notes: sub.notes ?? '',
+          };
+        }
+        this.loadingSubFor = null;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loadingSubFor = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  saveSubscription(schoolId: number): void {
+    if (!this.subForm.planId) {
+      this.toast.warning('Required', 'Please select a plan.');
+      return;
+    }
+    this.savingSubFor = schoolId;
+    this.cdr.markForCheck();
+    const existing = this.schoolSubscriptions.get(schoolId);
+    const req$ = existing
+      ? this.schoolService.updateSchoolSubscription(schoolId, this.subForm)
+      : this.schoolService.assignSubscription(schoolId, this.subForm);
+    req$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (sub: any) => {
+        this.schoolSubscriptions.set(schoolId, sub);
+        this.savingSubFor = null;
+        this.cdr.markForCheck();
+        this.toast.success('Saved', 'Subscription updated successfully.');
+      },
+      error: (err: any) => {
+        this.logger.error('Save subscription failed', err);
+        this.savingSubFor = null;
+        this.cdr.markForCheck();
+        const msg = err?.error?.message ?? 'Failed to save subscription.';
+        this.toast.error('Error', typeof msg === 'string' ? msg : 'Failed to save subscription.');
+      }
+    });
+  }
+
+  doRefreshEntitlement(schoolId: number): void {
+    this.refreshingSubFor = schoolId;
+    this.cdr.markForCheck();
+    this.schoolService.refreshEntitlement(schoolId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.refreshingSubFor = null;
+        this.toast.success('Refreshed', 'Entitlement rebuilt successfully.');
+        this.loadSchoolSubscription(schoolId);
+      },
+      error: () => {
+        this.refreshingSubFor = null;
+        this.cdr.markForCheck();
+        this.toast.error('Error', 'Failed to refresh entitlement.');
+      }
+    });
+  }
+
+  subStatusClass(status: string | null): string {
+    switch (status) {
+      case 'TRIAL':   return 'sub-status-trial';
+      case 'ACTIVE':  return 'sub-status-active';
+      case 'GRACE':   return 'sub-status-grace';
+      case 'EXPIRED': return 'sub-status-expired';
+      default:        return '';
+    }
+  }
+
   isPlanFeatureActive(plan: PlanDetail, key: string): boolean {
     return plan.features.some(f => f.featureKey === key);
   }

@@ -655,3 +655,32 @@
     font-size: 0.62rem;
   }
 }
+
+/* ══ Subscription Warning Banner ══ */
+.sub-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 0 0 12px;
+  border-radius: 10px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #664d03;
+}
+.sub-warn-icon {
+  color: #d97706;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.sub-warn-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.sub-warn-body strong { font-size: 13px; }

@@ -9,6 +9,13 @@ export interface UserInfo {
   name: string | null;
   className: string | null;
   schoolSlug: string | null;
+  // Entitlement fields — null for SUPER_ADMIN or schools with no subscription
+  featureKeys: string[];
+  planTier: string | null;
+  planVersion: string | null;
+  subscriptionStatus: string | null;
+  expiresAt: string | null;
+  graceEndsAt: string | null;
 }
 
 @Injectable({
@@ -55,5 +62,19 @@ export class AuthStateService {
 
   isLoggedIn(): boolean {
     return this.user !== null;
+  }
+
+  /** UX-only feature check — backend is always authoritative. */
+  hasFeature(featureKey: string): boolean {
+    return this.user?.featureKeys?.includes(featureKey) ?? false;
+  }
+
+  getSubscriptionStatus(): string | null {
+    return this.user?.subscriptionStatus ?? null;
+  }
+
+  isSubscriptionWarning(): boolean {
+    const s = this.getSubscriptionStatus();
+    return s === 'GRACE' || s === 'EXPIRED';
   }
 }

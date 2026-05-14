@@ -35,6 +35,7 @@ export interface PlanDetail {
   id: number;
   name: string;
   tier: string;
+  version: string;
   isPublic: boolean;
   isActive: boolean;
   priorityScore: number;
@@ -190,6 +191,34 @@ export class SchoolService {
 
   deleteSchool(schoolId: number): Observable<void> {
     return this.http.delete<void>(`${this.superAdminUrl}/schools/${schoolId}`);
+  }
+
+  // ── Subscription management (SUPER_ADMIN) ─────────────────────────────────
+
+  getSchoolSubscription(schoolId: number): Observable<any> {
+    return this.http.get<any>(`${this.superAdminUrl}/schools/${schoolId}/subscription`);
+  }
+
+  assignSubscription(schoolId: number, data: any): Observable<any> {
+    return this.http.post<any>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, data);
+  }
+
+  updateSchoolSubscription(schoolId: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, data);
+  }
+
+  refreshEntitlement(schoolId: number): Observable<any> {
+    return this.http.post<any>(`${this.superAdminUrl}/schools/${schoolId}/subscription/refresh`, {});
+  }
+
+  // ── School-level feature overrides (ADMIN) ────────────────────────────────
+
+  getSchoolFeatures(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/features`);
+  }
+
+  setFeatureOverride(featureKey: string, overrideState: 'DEFAULT' | 'DISABLED'): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/features/${featureKey}/override`, { overrideState });
   }
 
   // ── Plan Management (SUPER_ADMIN) ─────────────────────────────────────────

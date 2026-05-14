@@ -29,9 +29,14 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   isEditing = false;
   editForm: Partial<SchoolSettings> = {};
 
-  activeTab: 'general' | 'razorpay' = 'general';
+  activeTab: 'general' | 'razorpay' | 'features' = 'general';
   razorpayKeyId = '';
   razorpayKeySecret = '';
+
+  // Features tab
+  featuresLoading = false;
+  schoolFeatures: any[] = [];
+  savingFeatureKey: string | null = null;
 
   // Logo upload
   logoPreviewUrl: string | null = null;
@@ -162,8 +167,58 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       });
   }
 
-  onTabChange(tab: 'general' | 'razorpay'): void {
+  onTabChange(tab: 'general' | 'razorpay' | 'features'): void {
     this.activeTab = tab;
+  }
+
+  loadFeatures(): void {
+    if (this.schoolFeatures.length || this.featuresLoading) return;
+    this.featuresLoading = true;
+    this.cdr.markForCheck();
+    this.schoolService.getSchoolFeatures().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (features) => {
+        this.schoolFeatures = features;
+        this.featuresLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to load school features', e);
+        this.toast.error('Error', 'Failed to load features.');
+        this.featuresLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  toggleFeatureOverride(feature: any): void {
+    if (feature.isAlwaysOn || !feature.planGranted) return;
+    const newState: 'DEFAULT' | 'DISABLED' = feature.overrideState === 'DISABLED' ? 'DEFAULT' : 'DISABLED';
+    this.savingFeatureKey = feature.featureKey;
+    this.cdr.markForCheck();
+    this.schoolService.setFeatureOverride(feature.featureKey, newState).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        feature.overrideState = newState;
+        feature.effectivelyOn = newState !== 'DISABLED';
+        this.savingFeatureKey = null;
+        this.toast.success('Saved', `Feature ${newState === 'DISABLED' ? 'disabled' : 'restored'}.`);
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to set feature override', e);
+        this.toast.error('Error', 'Failed to update feature.');
+        this.savingFeatureKey = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  featuresByCategory(): { category: string; features: any[] }[] {
+    const map = new Map<string, any[]>();
+    for (const f of this.schoolFeatures) {
+      if (!map.has(f.category)) map.set(f.category, []);
+      map.get(f.category)!.push(f);
+    }
+    return Array.from(map.entries()).map(([category, features]) => ({ category, features }));
   }
 
   onLogoSelected(event: Event): void {

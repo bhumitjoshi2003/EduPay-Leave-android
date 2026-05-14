@@ -263,9 +263,16 @@
               <span *ngIf="school.razorpayConfigured" class="sa-badge sa-badge-razorpay">💳 Razorpay</span>
             </div>
           </div>
-          <button class="sa-btn-edit" (click)="openEdit(school)" *ngIf="editingSchoolId !== school.id">
-            Edit
-          </button>
+          <div class="sa-card-actions">
+            <button class="sa-btn-sub" (click)="toggleSubscriptionPanel(school)"
+                    [class.sa-btn-sub-active]="subscriptionPanelId === school.id"
+                    title="Manage Subscription">
+              🔑 Sub
+            </button>
+            <button class="sa-btn-edit" (click)="openEdit(school)" *ngIf="editingSchoolId !== school.id">
+              Edit
+            </button>
+          </div>
         </div>
 
         <!-- School meta -->
@@ -391,6 +398,71 @@
               </button>
             </div>
           </div>
+        </div>
+
+        <!-- ── Subscription Panel ───────────────────────────────────────── -->
+        <div class="sa-sub-panel" *ngIf="subscriptionPanelId === school.id">
+
+          <div class="sa-section-label sa-mt8">Subscription Management</div>
+
+          <div *ngIf="loadingSubFor === school.id" class="sa-sub-loading">
+            <div class="sa-spinner sa-spinner-sm"></div> Loading…
+          </div>
+
+          <ng-container *ngIf="loadingSubFor !== school.id">
+            <ng-container *ngIf="schoolSubscriptions.get(school.id) as sub">
+              <div class="sa-sub-status-row">
+                <span class="sa-sub-status-badge" [ngClass]="subStatusClass(sub.status)">
+                  {{ sub.status || 'UNKNOWN' }}
+                </span>
+                <span class="sa-sub-meta" *ngIf="sub.planName">Plan: <strong>{{ sub.planName }}</strong></span>
+                <span class="sa-sub-meta" *ngIf="sub.totalFeatures != null">{{ sub.totalFeatures }} features</span>
+              </div>
+              <div class="sa-sub-dates" *ngIf="sub.expiresAt || sub.graceEndsAt || sub.trialEndsAt">
+                <span *ngIf="sub.trialEndsAt" class="sa-date-chip">Trial ends: {{ sub.trialEndsAt | date:'d MMM yyyy' }}</span>
+                <span *ngIf="sub.expiresAt" class="sa-date-chip">Expires: {{ sub.expiresAt | date:'d MMM yyyy' }}</span>
+                <span *ngIf="sub.graceEndsAt" class="sa-date-chip sa-date-grace">Grace ends: {{ sub.graceEndsAt | date:'d MMM yyyy' }}</span>
+              </div>
+            </ng-container>
+            <p *ngIf="!schoolSubscriptions.get(school.id)" class="sa-sub-no-sub">No subscription assigned yet.</p>
+
+            <div class="sa-form-grid sa-mt8">
+              <div class="sa-form-group">
+                <label>Plan *</label>
+                <select class="sa-input" [(ngModel)]="subForm.planId">
+                  <option [ngValue]="null">— Select Plan —</option>
+                  <option *ngFor="let p of plans" [ngValue]="p.id">{{ p.name }} ({{ p.tier }})</option>
+                </select>
+              </div>
+              <div class="sa-form-group">
+                <label>Trial Ends</label>
+                <input class="sa-input" type="date" [(ngModel)]="subForm.trialEndsAt">
+              </div>
+              <div class="sa-form-group">
+                <label>Expires</label>
+                <input class="sa-input" type="date" [(ngModel)]="subForm.expiresAt">
+              </div>
+              <div class="sa-form-group">
+                <label>Grace Period Ends</label>
+                <input class="sa-input" type="date" [(ngModel)]="subForm.graceEndsAt">
+              </div>
+              <div class="sa-form-group sa-col-span-2">
+                <label>Notes</label>
+                <input class="sa-input" type="text" [(ngModel)]="subForm.notes" placeholder="Optional">
+              </div>
+            </div>
+
+            <div class="sa-sub-actions">
+              <button class="sa-btn-primary" (click)="saveSubscription(school.id)"
+                      [disabled]="savingSubFor === school.id">
+                {{ savingSubFor === school.id ? 'Saving…' : (schoolSubscriptions.get(school.id) ? 'Update Subscription' : 'Assign Subscription') }}
+              </button>
+              <button class="sa-btn-outline" (click)="doRefreshEntitlement(school.id)"
+                      [disabled]="refreshingSubFor === school.id">
+                {{ refreshingSubFor === school.id ? '⟳ Refreshing…' : '⟳ Refresh' }}
+              </button>
+            </div>
+          </ng-container>
         </div>
 
       </div>
