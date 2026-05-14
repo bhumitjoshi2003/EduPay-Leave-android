@@ -98,7 +98,7 @@
       <h2 class="ad-section-title">
         Plan Usage
         <span class="ad-plan-badge" *ngIf="entitlement.planName">{{ entitlement.planName }}</span>
-        <span class="ad-plan-status ad-status-{{ entitlement.subscriptionStatus?.toLowerCase() }}"
+        <span class="ad-plan-status ad-status-{{ entitlement.subscriptionStatus.toLowerCase() }}"
               *ngIf="entitlement.subscriptionStatus">{{ entitlement.subscriptionStatus }}</span>
       </h2>
       <div class="ad-usage-grid">

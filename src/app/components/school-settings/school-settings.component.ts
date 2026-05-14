@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { SchoolService, SchoolSettings, SchoolEntitlementSummary } from '../../services/school.service';
+import { SchoolService, SchoolSettings, SchoolEntitlementSummary, PlanDetail } from '../../services/school.service';
 import { TenantService } from '../../services/tenant.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
@@ -41,6 +41,10 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   // Subscription tab
   entitlementLoading = false;
   entitlement: SchoolEntitlementSummary | null = null;
+  availablePlans: PlanDetail[] = [];
+  plansLoading = false;
+  upgradingPlanId: number | null = null;
+  billingCycle: 'MONTHLY' | 'ANNUAL' = 'MONTHLY';
 
   // Logo upload
   logoPreviewUrl: string | null = null;
@@ -173,6 +177,10 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
 
   onTabChange(tab: 'general' | 'razorpay' | 'features' | 'subscription'): void {
     this.activeTab = tab;
+    if (tab === 'subscription') {
+      this.loadEntitlement();
+      this.loadAvailablePlans();
+    }
   }
 
   loadFeatures(): void {
@@ -213,6 +221,99 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
         this.savingFeatureKey = null;
         this.cdr.markForCheck();
       }
+    });
+  }
+
+  loadAvailablePlans(): void {
+    if (this.availablePlans.length || this.plansLoading) return;
+    this.plansLoading = true;
+    this.cdr.markForCheck();
+    this.schoolService.getPublicPlans().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (plans) => {
+        this.availablePlans = plans;
+        this.plansLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.plansLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  startUpgrade(plan: PlanDetail): void {
+    if (this.upgradingPlanId) return;
+    const price = this.billingCycle === 'ANNUAL' ? plan.annualPricePaise : plan.monthlyPricePaise;
+    if (!price || price <= 0) {
+      this.toast.info('Free Plan', 'Contact support to activate this plan.');
+      return;
+    }
+    this.upgradingPlanId = plan.id;
+    this.cdr.markForCheck();
+    this.schoolService.createUpgradeOrder(plan.id, this.billingCycle).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (order) => this.openRazorpay(order, plan),
+      error: (err) => {
+        const msg = err?.error;
+        this.toast.error('Error', typeof msg === 'string' ? msg : 'Failed to create payment order.');
+        this.upgradingPlanId = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private openRazorpay(order: any, plan: PlanDetail): void {
+    this.loadRazorpayScript().then(() => {
+      const options = {
+        key: order.razorpayKey,
+        amount: order.amount,
+        currency: 'INR',
+        name: 'Edunexify',
+        description: `${plan.name} Plan — ${this.billingCycle === 'ANNUAL' ? 'Annual' : 'Monthly'}`,
+        order_id: order.orderId,
+        handler: (response: any) => this.verifyUpgrade(response, plan.id),
+        modal: { ondismiss: () => { this.upgradingPlanId = null; this.cdr.markForCheck(); } },
+        theme: { color: '#1d4ed8' }
+      };
+      new (window as any).Razorpay(options).open();
+    }).catch(() => {
+      this.toast.error('Error', 'Failed to load payment gateway. Please try again.');
+      this.upgradingPlanId = null;
+      this.cdr.markForCheck();
+    });
+  }
+
+  private verifyUpgrade(response: any, planId: number): void {
+    const payload = {
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_order_id:   response.razorpay_order_id,
+      razorpay_signature:  response.razorpay_signature,
+      planId:              String(planId),
+      billingCycle:        this.billingCycle,
+    };
+    this.schoolService.verifyUpgradePayment(payload).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.toast.success('Upgraded!', 'Your subscription has been activated successfully.');
+        this.upgradingPlanId = null;
+        this.entitlement = null;
+        this.loadEntitlement();
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.toast.error('Verification Failed', 'Payment received but activation failed. Please contact support with your payment ID.');
+        this.upgradingPlanId = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private loadRazorpayScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if ((window as any).Razorpay) { resolve(); return; }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Razorpay'));
+      document.body.appendChild(script);
     });
   }
 

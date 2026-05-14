@@ -580,3 +580,21 @@ select.ss-input { appearance: auto; cursor: pointer; }
 .ss-sub-bar-track { height: 8px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
 .ss-sub-bar-fill  { height: 100%; border-radius: 999px; transition: width 0.6s ease, background 0.3s; }
 .ss-sub-unlimited { font-size: 0.85rem; color: #059669; font-weight: 600; }
+
+/* ── Plan Upgrade Section ───────────────────────────────────────────── */
+.ss-sub-upgrade { margin-top: 8px; }
+.ss-sub-upgrade-note { font-size: 0.82rem; color: #64748b; margin: 0 0 16px; }
+.ss-upgrade-billing { display: flex; gap: 8px; margin-bottom: 16px; }
+.ss-billing-btn { padding: 6px 18px; border-radius: 8px; border: 1.5px solid #e2e8f0; background: #f8fafc; font-size: 0.82rem; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.15s; }
+.ss-billing-btn.ss-billing-active { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.ss-upgrade-plans { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.ss-upgrade-plan-card { border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 6px; background: #fff; }
+.ss-upgrade-plan-current { border-color: #1d4ed8; background: #eff6ff; }
+.ss-upgrade-plan-name { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+.ss-upgrade-plan-tier { font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+.ss-upgrade-plan-price { font-size: 1.25rem; font-weight: 800; color: #1d4ed8; margin: 4px 0; }
+.ss-upgrade-price-period { font-size: 0.72rem; font-weight: 500; color: #94a3b8; }
+.ss-upgrade-plan-limits { font-size: 0.76rem; color: #64748b; }
+.ss-upgrade-plan-features { font-size: 0.76rem; color: #059669; font-weight: 600; }
+.ss-upgrade-btn { margin-top: 8px; width: 100%; padding: 8px 0; font-size: 0.82rem; }
+.ss-upgrade-current-badge { margin-top: 8px; text-align: center; font-size: 0.76rem; font-weight: 700; color: #1d4ed8; padding: 6px 0; background: #dbeafe; border-radius: 8px; }

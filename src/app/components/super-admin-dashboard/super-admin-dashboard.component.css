@@ -1014,3 +1014,5 @@ select.sa-input { appearance: auto; }
 }
 .sa-btn-outline:hover { border-color: #4fbdbd; color: #0f6b6b; }
 .sa-btn-outline:disabled { opacity: 0.6; cursor: not-allowed; }
+.sa-label-opt { font-size: 0.75rem; color: #94a3b8; font-weight: 400; }
+.sa-field-hint { font-size: 0.76rem; color: #64748b; margin-top: 4px; display: block; }

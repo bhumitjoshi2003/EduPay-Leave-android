@@ -225,6 +225,14 @@
             <small class="sa-field-error" *ngIf="adminPassword.errors?.['required'] && adminPassword.touched">Password is required.</small>
             <small class="sa-field-error" *ngIf="adminPassword.errors?.['minlength'] && adminPassword.touched">Minimum 6 characters.</small>
           </div>
+          <div class="sa-form-group">
+            <label>Trial Plan <span class="sa-label-opt">(optional)</span></label>
+            <select class="sa-input" name="trialPlanId" [(ngModel)]="onboardForm.trialPlanId">
+              <option [ngValue]="null">— No trial, assign manually later —</option>
+              <option *ngFor="let p of plans" [ngValue]="p.id">{{ p.name }} ({{ p.tier }})</option>
+            </select>
+            <small class="sa-field-hint">If selected, a trial subscription is auto-created ({{ subscriptionConfig?.defaultTrialDays ?? 30 }} days).</small>
+          </div>
         </div>
         </form>
 
@@ -456,6 +464,10 @@
               <button class="sa-btn-primary" (click)="saveSubscription(school.id)"
                       [disabled]="savingSubFor === school.id">
                 {{ savingSubFor === school.id ? 'Saving…' : (schoolSubscriptions.get(school.id) ? 'Update Subscription' : 'Assign Subscription') }}
+              </button>
+              <button class="sa-btn-ghost" (click)="applyDefaultTrial()"
+                      title="Auto-fill trial end date from global default">
+                ⏱ Apply Default Trial ({{ subscriptionConfig?.defaultTrialDays ?? 30 }}d)
               </button>
               <button class="sa-btn-outline" (click)="doRefreshEntitlement(school.id)"
                       [disabled]="refreshingSubFor === school.id">

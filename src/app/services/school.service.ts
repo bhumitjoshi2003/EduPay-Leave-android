@@ -237,6 +237,18 @@ export class SchoolService {
     return this.http.get<SchoolEntitlementSummary>(`${this.baseUrl}/entitlement`);
   }
 
+  getPublicPlans(): Observable<PlanDetail[]> {
+    return this.http.get<PlanDetail[]>(`${environment.apiUrl}/public/plans`);
+  }
+
+  createUpgradeOrder(planId: number, billingCycle: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/subscription/upgrade/order`, { planId, billingCycle });
+  }
+
+  verifyUpgradePayment(data: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/subscription/upgrade/verify`, data);
+  }
+
   // ── School-level feature overrides (ADMIN) ────────────────────────────────
 
   getSchoolFeatures(): Observable<any[]> {

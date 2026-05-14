@@ -32,6 +32,7 @@ interface OnboardForm {
   adminPhone: string;
   adminDob: string;
   adminGender: string;
+  trialPlanId: number | null;
 }
 
 interface EditSchoolForm {
@@ -130,6 +131,23 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     this.onboardForm = this.emptyOnboardForm();
     this.showOnboardForm = true;
     this.editingSchoolId = null;
+    if (!this.plans.length) {
+      this.schoolService.getPlans(true).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (plans) => { this.plans = plans; this.cdr.markForCheck(); },
+        error: () => {}
+      });
+    }
+    if (!this.subscriptionConfig) {
+      this.schoolService.getSubscriptionConfig().pipe(takeUntil(this.destroy$)).subscribe({
+        next: (config) => {
+          this.subscriptionConfig = config;
+          this.configForm = { gracePeriodDays: config.gracePeriodDays, defaultTrialDays: config.defaultTrialDays, expiryNotifyDays: config.expiryNotifyDays };
+          this.cdr.markForCheck();
+        },
+        error: () => {}
+      });
+    }
+    this.cdr.markForCheck();
   }
 
   cancelOnboard(): void {
@@ -678,12 +696,21 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
   trackById(_: number, item: SchoolSettings): number { return item.id; }
 
+  applyDefaultTrial(): void {
+    const days = this.subscriptionConfig?.defaultTrialDays ?? 30;
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + days);
+    this.subForm.trialEndsAt = trialEnd.toISOString().substring(0, 10);
+    this.cdr.markForCheck();
+  }
+
   private emptyOnboardForm(): OnboardForm {
     return {
       name: '', slug: '', address: '', city: '', state: '', pincode: '',
       phone: '', email: '', website: '', boardType: '',
       adminUserId: '', adminEmail: '', adminPassword: '',
       adminName: '', adminPhone: '', adminDob: '', adminGender: '',
+      trialPlanId: null,
     };
   }
 

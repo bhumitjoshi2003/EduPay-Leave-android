@@ -405,8 +405,70 @@
         </ng-container>
 
         <div class="ss-empty-state" *ngIf="!entitlementLoading && !entitlement">
-          No subscription data available.
+          No subscription data available. Contact your administrator.
         </div>
+
+        <!-- ── Upgrade Section (ADMIN only) ───────────────────────────── -->
+        <ng-container *ngIf="isAdmin">
+          <div class="ss-divider"></div>
+          <div class="ss-sub-upgrade">
+            <h3 class="ss-sub-usage-title">Upgrade Your Plan</h3>
+            <p class="ss-sub-upgrade-note">Select a plan below. Payment is processed securely via Razorpay.</p>
+
+            <div *ngIf="plansLoading" class="ss-loading-inline">
+              <div class="ss-spinner"></div>
+              <span>Loading plans…</span>
+            </div>
+
+            <ng-container *ngIf="!plansLoading && availablePlans.length">
+              <div class="ss-upgrade-billing">
+                <button class="ss-billing-btn" [class.ss-billing-active]="billingCycle === 'MONTHLY'"
+                        (click)="billingCycle = 'MONTHLY'">Monthly</button>
+                <button class="ss-billing-btn" [class.ss-billing-active]="billingCycle === 'ANNUAL'"
+                        (click)="billingCycle = 'ANNUAL'">Annual</button>
+              </div>
+
+              <div class="ss-upgrade-plans">
+                <div class="ss-upgrade-plan-card" *ngFor="let plan of availablePlans"
+                     [class.ss-upgrade-plan-current]="entitlement?.planName === plan.name">
+                  <div class="ss-upgrade-plan-name">{{ plan.name }}</div>
+                  <div class="ss-upgrade-plan-tier">{{ plan.tier }}</div>
+                  <div class="ss-upgrade-plan-price">
+                    <ng-container *ngIf="billingCycle === 'MONTHLY' && plan.monthlyPricePaise">
+                      ₹{{ (plan.monthlyPricePaise / 100).toLocaleString('en-IN') }}<span class="ss-upgrade-price-period">/mo</span>
+                    </ng-container>
+                    <ng-container *ngIf="billingCycle === 'ANNUAL' && plan.annualPricePaise">
+                      ₹{{ (plan.annualPricePaise / 100).toLocaleString('en-IN') }}<span class="ss-upgrade-price-period">/yr</span>
+                    </ng-container>
+                    <ng-container *ngIf="!plan.monthlyPricePaise && !plan.annualPricePaise">Free</ng-container>
+                  </div>
+                  <div class="ss-upgrade-plan-limits">
+                    <span *ngIf="plan.maxStudents">Up to {{ plan.maxStudents | number }} students</span>
+                    <span *ngIf="!plan.maxStudents">Unlimited students</span>
+                    <span *ngIf="plan.maxStaff"> · {{ plan.maxStaff }} staff</span>
+                    <span *ngIf="!plan.maxStaff"> · Unlimited staff</span>
+                  </div>
+                  <div class="ss-upgrade-plan-features" *ngIf="plan.features?.length">
+                    {{ plan.features.length }} features included
+                  </div>
+                  <button class="ss-btn ss-btn-primary ss-upgrade-btn"
+                          *ngIf="entitlement?.planName !== plan.name"
+                          [disabled]="upgradingPlanId === plan.id"
+                          (click)="startUpgrade(plan)">
+                    {{ upgradingPlanId === plan.id ? 'Processing…' : 'Upgrade' }}
+                  </button>
+                  <span class="ss-upgrade-current-badge" *ngIf="entitlement?.planName === plan.name">
+                    Current Plan
+                  </span>
+                </div>
+              </div>
+            </ng-container>
+
+            <div class="ss-empty-state" *ngIf="!plansLoading && availablePlans.length === 0">
+              No plans available. Contact support for pricing.
+            </div>
+          </div>
+        </ng-container>
       </div>
     </ng-container>
 
