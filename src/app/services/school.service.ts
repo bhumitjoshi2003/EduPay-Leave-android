@@ -63,11 +63,11 @@ export interface SchoolEntitlementSummary {
   expiresAt: string | null;
   graceEndsAt: string | null;
   maxStudents: number | null;
-  studentSoftLimitPct: number;
-  studentHardLimitPct: number;
+  studentSoftLimitPct: number | null;
+  studentHardLimitPct: number | null;
   maxStaff: number | null;
-  staffSoftLimitPct: number;
-  staffHardLimitPct: number;
+  staffSoftLimitPct: number | null;
+  staffHardLimitPct: number | null;
   storageGbLimit: number | null;
   featureCount: number;
   features: string[];

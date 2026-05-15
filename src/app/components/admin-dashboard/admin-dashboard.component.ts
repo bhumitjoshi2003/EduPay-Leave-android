@@ -95,9 +95,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return Math.min(100, Math.round((current / max) * 100));
   }
 
-  usageBarColor(pct: number, softPct: number, hardPct: number): string {
-    if (pct >= hardPct) return '#dc2626';
-    if (pct >= softPct) return '#d97706';
+  usageBarColor(pct: number, softPct: number | null, hardPct: number | null): string {
+    const soft = softPct ?? 90;
+    const hard = hardPct ?? 105;
+    if (pct >= hard) return '#dc2626';
+    if (pct >= soft) return '#d97706';
     return '#059669';
   }
 

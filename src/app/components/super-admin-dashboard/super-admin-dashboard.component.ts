@@ -702,9 +702,11 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     return Math.round((current / max) * 100);
   }
 
-  subUsageColor(rawPct: number, softPct: number, hardPct: number): string {
-    if (rawPct >= hardPct) return '#dc2626';
-    if (rawPct >= softPct) return '#f59e0b';
+  subUsageColor(rawPct: number, softPct: number | null, hardPct: number | null): string {
+    const soft = softPct ?? 90;
+    const hard = hardPct ?? 105;
+    if (rawPct >= hard) return '#dc2626';
+    if (rawPct >= soft) return '#f59e0b';
     return '#10b981';
   }
 
