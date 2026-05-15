@@ -184,7 +184,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
       } else if (this.Role === 'TEACHER') {
         this.router.navigate(['/dashboard/teacher-dashboard']);
       } else if (this.Role === 'ADMIN') {
-        this.router.navigate(['/dashboard/admin-dashboard']);
+        // Redirect expired admins straight to school-settings so they can renew
+        if (this.subscriptionStatus === 'EXPIRED') {
+          this.router.navigate(['/dashboard/school-settings']);
+        } else {
+          this.router.navigate(['/dashboard/admin-dashboard']);
+        }
       } else if (this.Role === 'SUPER_ADMIN') {
         this.router.navigate(['/dashboard/super-admin-dashboard']);
       } else {

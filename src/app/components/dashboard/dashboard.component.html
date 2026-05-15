@@ -84,14 +84,19 @@
   <div class="content-area">
 
     <!-- Subscription expiry warning banner -->
-    <div class="sub-warning-banner" *ngIf="showSubscriptionWarning()">
+    <div class="sub-warning-banner"
+         [class.sub-warning-expired]="subscriptionStatus === 'EXPIRED'"
+         *ngIf="showSubscriptionWarning()">
       <mat-icon class="sub-warn-icon">warning</mat-icon>
       <div class="sub-warn-body">
         <strong *ngIf="subscriptionStatus === 'GRACE'">Grace Period Active</strong>
         <strong *ngIf="subscriptionStatus === 'EXPIRED'">Subscription Expired</strong>
-        <span *ngIf="subscriptionStatus === 'GRACE'">Subscription expired. Renew now to avoid losing access.</span>
+        <span *ngIf="subscriptionStatus === 'GRACE'">Subscription expired. Renew immediately to avoid losing access.</span>
         <span *ngIf="subscriptionStatus === 'EXPIRED'">Access restricted. Contact your administrator to renew.</span>
       </div>
+      <a *ngIf="isAdmin()" class="sub-warn-renew-btn" routerLink="/dashboard/school-settings">
+        Renew
+      </a>
     </div>
 
     <router-outlet></router-outlet>

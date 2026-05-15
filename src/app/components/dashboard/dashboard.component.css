@@ -684,3 +684,26 @@
   line-height: 1.4;
 }
 .sub-warn-body strong { font-size: 13px; }
+.sub-warning-banner.sub-warning-expired {
+  background: #fde8e8;
+  border-color: #ef4444;
+  color: #7f1d1d;
+}
+.sub-warn-renew-btn {
+  display: inline-block;
+  margin-left: auto;
+  flex-shrink: 0;
+  align-self: center;
+  padding: 6px 14px;
+  background: #d97706;
+  color: #fff;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.sub-warning-expired .sub-warn-renew-btn {
+  background: #dc2626;
+}

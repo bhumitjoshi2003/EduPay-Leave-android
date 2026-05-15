@@ -424,12 +424,63 @@
                   {{ sub.status || 'UNKNOWN' }}
                 </span>
                 <span class="sa-sub-meta" *ngIf="sub.planName">Plan: <strong>{{ sub.planName }}</strong></span>
-                <span class="sa-sub-meta" *ngIf="sub.totalFeatures != null">{{ sub.totalFeatures }} features</span>
+                <span class="sa-sub-meta" *ngIf="sub.totalFeatures">{{ sub.totalFeatures }} features</span>
               </div>
               <div class="sa-sub-dates" *ngIf="sub.expiresAt || sub.graceEndsAt || sub.trialEndsAt">
                 <span *ngIf="sub.trialEndsAt" class="sa-date-chip">Trial ends: {{ sub.trialEndsAt | date:'d MMM yyyy' }}</span>
                 <span *ngIf="sub.expiresAt" class="sa-date-chip">Expires: {{ sub.expiresAt | date:'d MMM yyyy' }}</span>
                 <span *ngIf="sub.graceEndsAt" class="sa-date-chip sa-date-grace">Grace ends: {{ sub.graceEndsAt | date:'d MMM yyyy' }}</span>
+              </div>
+
+              <!-- ── Usage bars ── -->
+              <div class="sa-usage-section" *ngIf="sub.maxStudents || sub.maxStaff">
+
+                <div class="sa-usage-item" *ngIf="sub.maxStudents">
+                  <div class="sa-usage-row">
+                    <span class="sa-usage-label">Students</span>
+                    <span class="sa-usage-count"
+                      [class.sa-usage-warn]="subUsagePctRaw(sub.activeStudents, sub.maxStudents) >= sub.studentSoftLimitPct && subUsagePctRaw(sub.activeStudents, sub.maxStudents) < sub.studentHardLimitPct"
+                      [class.sa-usage-danger]="subUsagePctRaw(sub.activeStudents, sub.maxStudents) >= sub.studentHardLimitPct">
+                      {{ sub.activeStudents }} / {{ sub.maxStudents }}
+                    </span>
+                  </div>
+                  <div class="sa-usage-bar-track">
+                    <div class="sa-usage-bar-fill"
+                      [style.width.%]="subUsagePct(sub.activeStudents, sub.maxStudents)"
+                      [style.background]="subUsageColor(subUsagePctRaw(sub.activeStudents, sub.maxStudents), sub.studentSoftLimitPct, sub.studentHardLimitPct)">
+                    </div>
+                  </div>
+                  <div class="sa-usage-hint sa-usage-hint--danger" *ngIf="subUsagePctRaw(sub.activeStudents, sub.maxStudents) >= sub.studentHardLimitPct">
+                    ⛔ Hard limit — registrations blocked.
+                  </div>
+                  <div class="sa-usage-hint sa-usage-hint--warn" *ngIf="subUsagePctRaw(sub.activeStudents, sub.maxStudents) >= sub.studentSoftLimitPct && subUsagePctRaw(sub.activeStudents, sub.maxStudents) < sub.studentHardLimitPct">
+                    ⚠️ Approaching limit ({{ subUsagePctRaw(sub.activeStudents, sub.maxStudents) }}%).
+                  </div>
+                </div>
+
+                <div class="sa-usage-item" *ngIf="sub.maxStaff">
+                  <div class="sa-usage-row">
+                    <span class="sa-usage-label">Staff</span>
+                    <span class="sa-usage-count"
+                      [class.sa-usage-warn]="subUsagePctRaw(sub.currentStaff, sub.maxStaff) >= sub.staffSoftLimitPct && subUsagePctRaw(sub.currentStaff, sub.maxStaff) < sub.staffHardLimitPct"
+                      [class.sa-usage-danger]="subUsagePctRaw(sub.currentStaff, sub.maxStaff) >= sub.staffHardLimitPct">
+                      {{ sub.currentStaff }} / {{ sub.maxStaff }}
+                    </span>
+                  </div>
+                  <div class="sa-usage-bar-track">
+                    <div class="sa-usage-bar-fill"
+                      [style.width.%]="subUsagePct(sub.currentStaff, sub.maxStaff)"
+                      [style.background]="subUsageColor(subUsagePctRaw(sub.currentStaff, sub.maxStaff), sub.staffSoftLimitPct, sub.staffHardLimitPct)">
+                    </div>
+                  </div>
+                  <div class="sa-usage-hint sa-usage-hint--danger" *ngIf="subUsagePctRaw(sub.currentStaff, sub.maxStaff) >= sub.staffHardLimitPct">
+                    ⛔ Hard limit — staff registrations blocked.
+                  </div>
+                  <div class="sa-usage-hint sa-usage-hint--warn" *ngIf="subUsagePctRaw(sub.currentStaff, sub.maxStaff) >= sub.staffSoftLimitPct && subUsagePctRaw(sub.currentStaff, sub.maxStaff) < sub.staffHardLimitPct">
+                    ⚠️ Approaching staff limit ({{ subUsagePctRaw(sub.currentStaff, sub.maxStaff) }}%).
+                  </div>
+                </div>
+
               </div>
             </ng-container>
             <p *ngIf="!schoolSubscriptions.get(school.id)" class="sa-sub-no-sub">No subscription assigned yet.</p>
@@ -535,20 +586,22 @@
               <div class="sa-feature-category">{{ group.category }}</div>
               <div class="sa-feature-list">
                 <label *ngFor="let f of group.features" class="sa-feature-row"
-                       [class.sa-feature-pending-remove]="isPlanFeaturePendingRemoval(plan, f.featureKey)">
+                       [class.sa-feature-pending-remove]="isPlanFeaturePendingRemoval(plan, f.featureKey)"
+                       [class.sa-feature-always-on]="isAlwaysOnFeature(f.featureKey)">
                   <input type="checkbox"
-                         [checked]="isPlanFeatureActive(plan, f.featureKey)"
-                         [disabled]="!plan.isActive"
+                         [checked]="isPlanFeatureActive(plan, f.featureKey) || isAlwaysOnFeature(f.featureKey)"
+                         [disabled]="isAlwaysOnFeature(f.featureKey)"
                          (change)="togglePlanFeature(plan, f.featureKey)">
                   <span class="sa-feature-name">{{ f.displayName }}</span>
+                  <span *ngIf="isAlwaysOnFeature(f.featureKey)" class="sa-always-on-badge">Always On</span>
                   <span *ngIf="isPlanFeaturePendingRemoval(plan, f.featureKey)" class="sa-removal-badge">pending</span>
                 </label>
               </div>
             </div>
           </div>
 
-          <!-- Removal policy picker -->
-          <div *ngIf="removingFeatureKey" class="sa-removal-picker">
+          <!-- Removal policy picker (scoped to this plan) -->
+          <div *ngIf="removingFeatureKey && removingPlanId === plan.id" class="sa-removal-picker">
             <p>Remove <strong>{{ removingFeatureKey }}</strong> from <strong>{{ plan.name }}</strong>?</p>
             <select [(ngModel)]="removalPolicy" class="sa-input">
               <option *ngFor="let p of removalPolicies" [value]="p.value">{{ p.label }}</option>
@@ -568,7 +621,10 @@
           <div class="sa-plan-actions">
             <button class="sa-btn-edit" (click)="openEditPlan(plan)">Edit limits &amp; pricing</button>
             <button *ngIf="plan.isActive" class="sa-btn-danger sa-btn-sm" (click)="deactivatePlan(plan)">Deactivate</button>
-            <span *ngIf="!plan.isActive" class="sa-inactive-label">Inactive</span>
+            <ng-container *ngIf="!plan.isActive">
+              <span class="sa-inactive-label">Inactive</span>
+              <button class="sa-btn-reactivate" (click)="reactivatePlan(plan)">Reactivate</button>
+            </ng-container>
           </div>
 
         </div>

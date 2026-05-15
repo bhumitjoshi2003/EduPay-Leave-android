@@ -384,6 +384,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
   planForm = this.emptyPlanForm();
 
   removingFeatureKey: string | null = null;
+  removingPlanId: number | null = null;
   removalPolicy = 'NEXT_MONTHLY';
   readonly removalPolicies = [
     { value: 'IMMEDIATE',      label: 'Immediately' },
@@ -407,7 +408,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ plans, features, config }) => {
         this.plans              = plans;
-        this.allFeatures        = features.filter(f => !f.isAlwaysOn);
+        this.allFeatures        = features;
         this.subscriptionConfig = config;
         this.configForm         = {
           gracePeriodDays:  config.gracePeriodDays,
@@ -485,15 +486,20 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   togglePlanFeature(plan: PlanDetail, featureKey: string): void {
+    if (this.isAlwaysOnFeature(featureKey)) return;
     const hasIt = plan.features.some(f => f.featureKey === featureKey);
     if (!hasIt) {
       this.schoolService.addFeatureToPlan(plan.id, featureKey)
         .pipe(takeUntil(this.destroy$)).subscribe({
           next: () => { this.refreshPlan(plan.id); this.toast.success('Feature Added'); },
-          error: () => this.toast.error('Error', 'Failed to add feature.'),
+          error: (err) => {
+            const msg = err?.error?.message ?? err?.error ?? 'Failed to add feature.';
+            this.toast.error('Error', typeof msg === 'string' ? msg : 'Failed to add feature.');
+          },
         });
     } else {
       this.removingFeatureKey = featureKey;
+      this.removingPlanId     = plan.id;
       this.removalPolicy      = 'NEXT_MONTHLY';
       this.cdr.markForCheck();
     }
@@ -503,15 +509,27 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     if (!this.removingFeatureKey) return;
     const key = this.removingFeatureKey;
     this.removingFeatureKey = null;
+    this.removingPlanId     = null;
     this.cdr.markForCheck();
     this.schoolService.removeFeatureFromPlan(plan.id, key, this.removalPolicy)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: () => { this.refreshPlan(plan.id); this.toast.success('Feature Scheduled'); },
-        error: () => this.toast.error('Error', 'Failed to schedule feature removal.'),
+        error: (err) => {
+          const msg = err?.error?.message ?? err?.error ?? 'Failed to schedule feature removal.';
+          this.toast.error('Error', typeof msg === 'string' ? msg : 'Failed to schedule removal.');
+        },
       });
   }
 
-  cancelRemoveFeature(): void { this.removingFeatureKey = null; this.cdr.markForCheck(); }
+  cancelRemoveFeature(): void {
+    this.removingFeatureKey = null;
+    this.removingPlanId     = null;
+    this.cdr.markForCheck();
+  }
+
+  isAlwaysOnFeature(featureKey: string): boolean {
+    return this.allFeatures.find(f => f.featureKey === featureKey)?.isAlwaysOn ?? false;
+  }
 
   deactivatePlan(plan: PlanDetail): void {
     this.toast.confirm({
@@ -528,6 +546,25 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
             this.toast.success('Plan Deactivated');
           },
           error: () => this.toast.error('Error', 'Failed to deactivate plan.'),
+        });
+    });
+  }
+
+  reactivatePlan(plan: PlanDetail): void {
+    this.toast.confirm({
+      title: 'Reactivate Plan?',
+      message: `"${plan.name}" will become available for assignment to new schools again.`,
+      icon: 'info', confirmText: 'Reactivate', cancelText: 'Cancel', danger: false,
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.schoolService.reactivatePlan(plan.id)
+        .pipe(takeUntil(this.destroy$)).subscribe({
+          next: (updated) => {
+            this.plans = this.plans.map(p => p.id === updated.id ? updated : p);
+            this.cdr.markForCheck();
+            this.toast.success('Plan Reactivated', `"${updated.name}" is now active.`);
+          },
+          error: () => this.toast.error('Error', 'Failed to reactivate plan.'),
         });
     });
   }
@@ -653,6 +690,22 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       case 'EXPIRED': return 'sub-status-expired';
       default:        return '';
     }
+  }
+
+  subUsagePct(current: number, max: number | null): number {
+    if (!max || max <= 0) return 0;
+    return Math.min(100, Math.round((current / max) * 100));
+  }
+
+  subUsagePctRaw(current: number, max: number | null): number {
+    if (!max || max <= 0) return 0;
+    return Math.round((current / max) * 100);
+  }
+
+  subUsageColor(rawPct: number, softPct: number, hardPct: number): string {
+    if (rawPct >= hardPct) return '#dc2626';
+    if (rawPct >= softPct) return '#f59e0b';
+    return '#10b981';
   }
 
   isPlanFeatureActive(plan: PlanDetail, key: string): boolean {

@@ -279,6 +279,10 @@ export class SchoolService {
     return this.http.delete<void>(`${this.superAdminUrl}/plans/${planId}`);
   }
 
+  reactivatePlan(planId: number): Observable<PlanDetail> {
+    return this.http.post<PlanDetail>(`${this.superAdminUrl}/plans/${planId}/reactivate`, {});
+  }
+
   addFeatureToPlan(planId: number, featureKey: string): Observable<void> {
     return this.http.post<void>(`${this.superAdminUrl}/plans/${planId}/features`, { featureKey });
   }
