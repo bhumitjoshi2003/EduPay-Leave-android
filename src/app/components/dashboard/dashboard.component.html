@@ -145,10 +145,10 @@
       <a class="bnav-item" routerLink="/dashboard/timetable" routerLinkActive="bnav-active">
         <mat-icon>schedule</mat-icon><span>Timetable</span>
       </a>
-      <a class="bnav-item" routerLink="/dashboard/mark-entry" routerLinkActive="bnav-active">
+      <a class="bnav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/mark-entry" routerLinkActive="bnav-active">
         <mat-icon>grade</mat-icon><span>Marks</span>
       </a>
-      <a class="bnav-item" routerLink="/dashboard/event-calendar" routerLinkActive="bnav-active">
+      <a class="bnav-item" *ngIf="hasFeature('EVENT_CALENDAR')" routerLink="/dashboard/event-calendar" routerLinkActive="bnav-active">
         <mat-icon>event</mat-icon><span>Events</span>
       </a>
     </ng-container>
@@ -164,7 +164,7 @@
       <a class="bnav-item" routerLink="/dashboard/teacher-list" routerLinkActive="bnav-active">
         <mat-icon>school</mat-icon><span>Teachers</span>
       </a>
-      <a class="bnav-item" routerLink="/dashboard/fee-reminders" routerLinkActive="bnav-active">
+      <a class="bnav-item" *ngIf="hasFeature('FEE_REMINDERS')" routerLink="/dashboard/fee-reminders" routerLinkActive="bnav-active">
         <mat-icon>payments</mat-icon><span>Fees</span>
       </a>
     </ng-container>
@@ -208,11 +208,11 @@
             <div class="more-icon-bg c-amber"><mat-icon>emoji_events</mat-icon></div>
             <span>My Results</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EVENT_CALENDAR')" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
             <span>Event Calendar</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/payment-history" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('PAYMENT_HISTORY')" routerLink="/dashboard/payment-history" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-orange"><mat-icon>history</mat-icon></div>
             <span>Payment History</span>
           </a>
@@ -236,15 +236,15 @@
             <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
             <span>Attendance</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/mark-entry" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/mark-entry" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-purple"><mat-icon>grade</mat-icon></div>
             <span>Mark Entry</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-amber"><mat-icon>leaderboard</mat-icon></div>
             <span>Class Results</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EVENT_CALENDAR')" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
             <span>Event Calendar</span>
           </a>
@@ -256,7 +256,7 @@
 
         <!-- TEACHER (not class teacher) more items -->
         <ng-container *ngIf="isTeacher() && !ClassTeacher">
-          <a class="more-item" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-amber"><mat-icon>leaderboard</mat-icon></div>
             <span>Class Results</span>
           </a>
@@ -272,7 +272,7 @@
             <div class="more-icon-bg c-green"><mat-icon>receipt_long</mat-icon></div>
             <span>Fee Structure</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/payment-history-admin" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('PAYMENT_HISTORY')" routerLink="/dashboard/payment-history-admin" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-orange"><mat-icon>history</mat-icon></div>
             <span>Payment History</span>
           </a>
@@ -288,11 +288,11 @@
             <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
             <span>Attendance</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/mark-entry" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/mark-entry" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-purple"><mat-icon>grade</mat-icon></div>
             <span>Mark Entry</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-amber"><mat-icon>leaderboard</mat-icon></div>
             <span>Class Results</span>
           </a>
@@ -300,11 +300,11 @@
             <div class="more-icon-bg c-green"><mat-icon>person_add</mat-icon></div>
             <span>Register</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/event-new" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EVENT_CALENDAR')" routerLink="/dashboard/event-new" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-blue"><mat-icon>add_circle</mat-icon></div>
             <span>Create Event</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EVENT_CALENDAR')" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
             <span>Event Calendar</span>
           </a>
@@ -316,15 +316,15 @@
             <div class="more-icon-bg c-indigo"><mat-icon>admin_panel_settings</mat-icon></div>
             <span>Admins</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/subject-config" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/subject-config" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-teal"><mat-icon>menu_book</mat-icon></div>
             <span>Subjects</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/exam-config" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/exam-config" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-red"><mat-icon>quiz</mat-icon></div>
             <span>Exams</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/student-stream" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('STUDENT_STREAM')" routerLink="/dashboard/student-stream" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-purple"><mat-icon>account_tree</mat-icon></div>
             <span>Streams</span>
           </a>
@@ -332,7 +332,7 @@
             <div class="more-icon-bg c-indigo"><mat-icon>schedule</mat-icon></div>
             <span>Timetable</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/audit-logs" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('AUDIT_LOGS')" routerLink="/dashboard/audit-logs" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-dark"><mat-icon>security</mat-icon></div>
             <span>Audit Logs</span>
           </a>
@@ -344,7 +344,7 @@
             <div class="more-icon-bg c-teal"><mat-icon>business</mat-icon></div>
             <span>School Settings</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/analytics" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('ANALYTICS')" routerLink="/dashboard/analytics" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-indigo"><mat-icon>insights</mat-icon></div>
             <span>Analytics</span>
           </a>
@@ -352,7 +352,7 @@
             <div class="more-icon-bg c-teal"><mat-icon>directions_bus</mat-icon></div>
             <span>Bus Fees</span>
           </a>
-          <a class="more-item" routerLink="/dashboard/student-promotion" (click)="closeMoreMenu()">
+          <a class="more-item" *ngIf="hasFeature('STUDENT_PROMOTION')" routerLink="/dashboard/student-promotion" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-amber"><mat-icon>upgrade</mat-icon></div>
             <span>Promotion</span>
           </a>

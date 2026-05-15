@@ -233,6 +233,11 @@
             </select>
             <small class="sa-field-hint">If selected, a trial subscription is auto-created ({{ subscriptionConfig?.defaultTrialDays ?? 30 }} days).</small>
           </div>
+          <div class="sa-form-group" *ngIf="onboardForm.trialPlanId">
+            <label>Trial End Date <span class="sa-label-opt">(optional)</span></label>
+            <input class="sa-input" type="date" name="trialEndsAt" [(ngModel)]="onboardForm.trialEndsAt" [min]="today">
+            <small class="sa-field-hint">Leave blank to use global default ({{ subscriptionConfig?.defaultTrialDays ?? 30 }} days from today).</small>
+          </div>
         </div>
         </form>
 
@@ -525,6 +530,45 @@
                 {{ refreshingSubFor === school.id ? '⟳ Refreshing…' : '⟳ Refresh' }}
               </button>
             </div>
+
+            <!-- ── Per-school feature overrides ── -->
+            <div class="sa-section-label sa-mt8">Feature Overrides</div>
+            <p class="sa-sub-feature-note">Enable or disable individual features for this school, overriding their plan.</p>
+
+            <div *ngIf="loadingFeaturesFor === school.id" class="sa-sub-loading">
+              <div class="sa-spinner sa-spinner-sm"></div> Loading features…
+            </div>
+
+            <ng-container *ngIf="loadingFeaturesFor !== school.id && schoolFeatures.get(school.id) as features">
+              <div *ngFor="let group of schoolFeaturesByCategory(features)" class="sa-feat-category-group">
+                <div class="sa-feat-category">{{ group.category }}</div>
+                <div class="sa-feat-grid">
+                  <div *ngFor="let f of group.items" class="sa-feat-item"
+                       [class.sa-feat-on]="f.effectivelyOn"
+                       [class.sa-feat-enabled-override]="f.overrideState === 'ENABLED'"
+                       [class.sa-feat-disabled-override]="f.overrideState === 'DISABLED'">
+                    <span class="sa-feat-name">{{ f.displayName }}</span>
+                    <span class="sa-feat-badge" [class.sa-feat-badge-off]="!f.effectivelyOn">
+                      {{ f.effectivelyOn ? 'ON' : 'OFF' }}
+                    </span>
+                    <div class="sa-feat-actions">
+                      <button class="sa-feat-btn"
+                              *ngIf="f.overrideState !== 'ENABLED'"
+                              [disabled]="savingFeatureFor === f.featureKey"
+                              (click)="setSchoolFeatureOverride(school.id, f.featureKey, 'ENABLED')">Enable</button>
+                      <button class="sa-feat-btn sa-feat-btn-off"
+                              *ngIf="f.overrideState !== 'DISABLED'"
+                              [disabled]="savingFeatureFor === f.featureKey"
+                              (click)="setSchoolFeatureOverride(school.id, f.featureKey, 'DISABLED')">Disable</button>
+                      <button class="sa-feat-btn sa-feat-btn-reset"
+                              *ngIf="f.overrideState !== 'DEFAULT'"
+                              [disabled]="savingFeatureFor === f.featureKey"
+                              (click)="setSchoolFeatureOverride(school.id, f.featureKey, 'DEFAULT')">Reset</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
           </ng-container>
         </div>
 

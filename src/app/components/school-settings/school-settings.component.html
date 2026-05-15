@@ -1,58 +1,78 @@
 <div class="ss-page">
 
-  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <!-- ── Hero ───────────────────────────────────────────────────────── -->
   <div class="ss-hero">
-    <div class="ss-hero-left">
-      <div class="ss-hero-icon">🏫</div>
-      <div>
-        <h1 class="ss-hero-title">School Settings</h1>
-        <p class="ss-hero-sub">Manage your school's profile and integrations</p>
+    <div class="ss-hero-ring ss-ring-1"></div>
+    <div class="ss-hero-ring ss-ring-2"></div>
+    <div class="ss-hero-body">
+      <div class="ss-hero-avatar">
+        <ng-container *ngIf="settings?.logoUrl; else heroInitials">
+          <img [src]="tenantService.getLogoUrl(settings!.logoUrl)" class="ss-hero-logo-img" alt="logo">
+        </ng-container>
+        <ng-template #heroInitials>{{ getInitials(settings?.name) }}</ng-template>
+      </div>
+      <div class="ss-hero-text">
+        <h1 class="ss-hero-name">{{ settings?.name || 'School Settings' }}</h1>
+        <p class="ss-hero-location" *ngIf="settings?.city">
+          {{ settings!.city }}<ng-container *ngIf="settings!.state">, {{ settings!.state }}</ng-container>
+        </p>
+        <p class="ss-hero-location" *ngIf="!settings?.city">Manage your school profile &amp; integrations</p>
       </div>
     </div>
-    <div class="ss-blob ss-blob-1"></div>
-    <div class="ss-blob ss-blob-2"></div>
+    <div class="ss-hero-pills" *ngIf="settings">
+      <span class="ss-hero-pill" [class.ss-hpill-active]="settings.active" [class.ss-hpill-inactive]="!settings.active">
+        <span class="ss-hpill-dot"></span>{{ settings.active ? 'Active' : 'Inactive' }}
+      </span>
+      <span class="ss-hero-pill ss-hpill-plan">{{ settings.plan }}</span>
+    </div>
   </div>
 
-  <!-- ── Loading ───────────────────────────────────────────────────── -->
-  <div class="ss-loading" *ngIf="loading">
+  <!-- ── Loading ──────────────────────────────────────────────────────── -->
+  <div class="ss-loading-card" *ngIf="loading">
     <div class="ss-spinner"></div>
     <p>Loading settings…</p>
   </div>
 
   <ng-container *ngIf="!loading && settings">
 
-    <!-- ── Tabs ──────────────────────────────────────────────────────── -->
+    <!-- ── Tabs ─────────────────────────────────────────────────────── -->
     <div class="ss-tabs">
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'general'" (click)="onTabChange('general')">
-        General
+        <span class="ss-tab-icon">🏫</span>
+        <span class="ss-tab-label">General</span>
       </button>
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'razorpay'" (click)="onTabChange('razorpay')">
-        Razorpay
+        <span class="ss-tab-icon">💳</span>
+        <span class="ss-tab-label">Payments</span>
       </button>
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'features'"
               (click)="onTabChange('features'); loadFeatures()">
-        Features
+        <span class="ss-tab-icon">⚡</span>
+        <span class="ss-tab-label">Features</span>
       </button>
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'subscription'"
-              (click)="onTabChange('subscription'); loadEntitlement()">
-        Subscription
+              (click)="onTabChange('subscription'); loadEntitlement(); loadAvailablePlans()">
+        <span class="ss-tab-icon">📊</span>
+        <span class="ss-tab-label">Plan</span>
       </button>
     </div>
 
-    <!-- ── General tab ─────────────────────────────────────────────── -->
+    <!-- ══════════ GENERAL TAB ══════════ -->
     <ng-container *ngIf="activeTab === 'general'">
 
       <!-- Logo card -->
-      <div class="ss-card ss-logo-card">
+      <div class="ss-card">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
-            <span class="ss-card-icon">🎨</span>
-            <h2 class="ss-card-title">School Logo</h2>
+            <div class="ss-card-icon-box ss-icon-box-purple">🎨</div>
+            <div>
+              <h2 class="ss-card-title">School Logo</h2>
+              <p class="ss-card-subtitle">Displayed on the login screen and reports</p>
+            </div>
           </div>
         </div>
 
         <div class="ss-logo-area">
-          <!-- Current / preview logo -->
           <div class="ss-logo-display">
             <ng-container *ngIf="logoPreviewUrl; else currentLogo">
               <img [src]="logoPreviewUrl" class="ss-logo-img" alt="Logo preview">
@@ -67,12 +87,10 @@
               </ng-template>
             </ng-template>
           </div>
-
-          <!-- Upload controls (ADMIN only) -->
           <div class="ss-logo-controls" *ngIf="isAdmin">
             <ng-container *ngIf="!logoFile">
               <label class="ss-btn ss-btn-ghost ss-logo-pick-btn" for="logoInput">
-                {{ settings!.logoUrl ? 'Change Logo' : 'Upload Logo' }}
+                {{ settings!.logoUrl ? '🔄 Change Logo' : '+ Upload Logo' }}
               </label>
               <input id="logoInput" type="file" accept="image/*" (change)="onLogoSelected($event)" hidden>
               <p class="ss-logo-hint">JPG or PNG · square recommended · max 5 MB</p>
@@ -84,7 +102,7 @@
               <button class="ss-btn ss-btn-ghost" (click)="cancelLogoUpload()" [disabled]="uploadingLogo">Cancel</button>
             </ng-container>
           </div>
-          <p class="ss-logo-readonly" *ngIf="!isAdmin && !settings?.logoUrl">No logo uploaded yet.</p>
+          <p class="ss-logo-hint" *ngIf="!isAdmin && !settings?.logoUrl">No logo uploaded yet.</p>
         </div>
       </div>
 
@@ -93,56 +111,87 @@
         <div class="ss-card">
           <div class="ss-card-header">
             <div class="ss-card-title-row">
-              <span class="ss-card-icon">📋</span>
-              <h2 class="ss-card-title">School Information</h2>
+              <div class="ss-card-icon-box">📋</div>
+              <div>
+                <h2 class="ss-card-title">School Information</h2>
+                <p class="ss-card-subtitle">Your school's public profile details</p>
+              </div>
             </div>
-            <button class="ss-edit-btn" (click)="startEdit()" *ngIf="isAdmin">Edit</button>
+            <button class="ss-edit-btn" (click)="startEdit()" *ngIf="isAdmin">✏️ Edit</button>
           </div>
 
-          <!-- Status + plan pills -->
-          <div class="ss-pill-row">
-            <span class="ss-pill ss-pill-plan">{{ settings.plan }}</span>
-            <span class="ss-pill" [class.ss-pill-active]="settings.active" [class.ss-pill-inactive]="!settings.active">
-              {{ settings.active ? 'Active' : 'Inactive' }}
-            </span>
+          <div class="ss-info-section">
+            <div class="ss-info-section-label">Identity</div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">🏷️</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">School Name</span>
+                <span class="ss-info-row-value">{{ settings.name || '—' }}</span>
+              </div>
+            </div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">🔗</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Short Name / Slug</span>
+                <span class="ss-info-row-value">{{ settings.slug || '—' }}</span>
+              </div>
+            </div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">📐</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Board / Affiliation</span>
+                <span class="ss-info-row-value">{{ settings.boardType || '—' }}</span>
+              </div>
+            </div>
           </div>
 
-          <div class="ss-info-grid">
-            <div class="ss-info-item">
-              <span class="ss-info-label">School Name</span>
-              <span class="ss-info-value">{{ settings.name || '—' }}</span>
+          <div class="ss-info-section">
+            <div class="ss-info-section-label">Contact</div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">📧</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Email</span>
+                <span class="ss-info-row-value">{{ settings.email || '—' }}</span>
+              </div>
             </div>
-            <div class="ss-info-item">
-              <span class="ss-info-label">Short Name / Slug</span>
-              <span class="ss-info-value">{{ settings.slug || '—' }}</span>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">📞</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Phone</span>
+                <span class="ss-info-row-value">{{ settings.phone || '—' }}</span>
+              </div>
             </div>
-            <div class="ss-info-item">
-              <span class="ss-info-label">Board / Affiliation</span>
-              <span class="ss-info-value">{{ settings.boardType || '—' }}</span>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">🌐</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Website</span>
+                <span class="ss-info-row-value">{{ settings.website || '—' }}</span>
+              </div>
             </div>
-            <div class="ss-info-item">
-              <span class="ss-info-label">Email</span>
-              <span class="ss-info-value">{{ settings.email || '—' }}</span>
+          </div>
+
+          <div class="ss-info-section">
+            <div class="ss-info-section-label">Location</div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">📍</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Address</span>
+                <span class="ss-info-row-value">{{ settings.address || '—' }}</span>
+              </div>
             </div>
-            <div class="ss-info-item">
-              <span class="ss-info-label">Phone</span>
-              <span class="ss-info-value">{{ settings.phone || '—' }}</span>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">🏙️</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">City</span>
+                <span class="ss-info-row-value">{{ settings.city || '—' }}</span>
+              </div>
             </div>
-            <div class="ss-info-item">
-              <span class="ss-info-label">Website</span>
-              <span class="ss-info-value">{{ settings.website || '—' }}</span>
-            </div>
-            <div class="ss-info-item ss-full">
-              <span class="ss-info-label">Address</span>
-              <span class="ss-info-value">{{ settings.address || '—' }}</span>
-            </div>
-            <div class="ss-info-item">
-              <span class="ss-info-label">City</span>
-              <span class="ss-info-value">{{ settings.city || '—' }}</span>
-            </div>
-            <div class="ss-info-item">
-              <span class="ss-info-label">State / PIN</span>
-              <span class="ss-info-value">{{ settings.state || '—' }} – {{ settings.pincode || '—' }}</span>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">🗺️</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">State &amp; PIN</span>
+                <span class="ss-info-row-value">{{ settings.state || '—' }} — {{ settings.pincode || '—' }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -153,69 +202,87 @@
         <div class="ss-card">
           <div class="ss-card-header">
             <div class="ss-card-title-row">
-              <span class="ss-card-icon">✏️</span>
-              <h2 class="ss-card-title">Edit School Information</h2>
+              <div class="ss-card-icon-box ss-icon-box-warn">✏️</div>
+              <div>
+                <h2 class="ss-card-title">Edit School Information</h2>
+                <p class="ss-card-subtitle">Changes are saved to your school profile</p>
+              </div>
             </div>
           </div>
 
-          <div class="ss-form-grid">
-            <div class="ss-form-group ss-full">
-              <label>School Name *</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.name" placeholder="Full school name">
+          <div class="ss-form-section">
+            <div class="ss-form-section-label">Identity</div>
+            <div class="ss-form-grid">
+              <div class="ss-form-group ss-full">
+                <label class="ss-label">School Name <span class="ss-required">*</span></label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.name" placeholder="Full school name">
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">Short Name / Slug</label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.slug" placeholder="e.g. my-school">
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">Board / Affiliation</label>
+                <select class="ss-input" [(ngModel)]="editForm.boardType">
+                  <option value="">— Select —</option>
+                  <option *ngFor="let b of boardTypes" [value]="b">{{ b }}</option>
+                </select>
+              </div>
             </div>
-            <div class="ss-form-group">
-              <label>Short Name / Slug</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.slug" placeholder="e.g. ias">
+          </div>
+
+          <div class="ss-form-section">
+            <div class="ss-form-section-label">Contact</div>
+            <div class="ss-form-grid">
+              <div class="ss-form-group">
+                <label class="ss-label">Email</label>
+                <input class="ss-input" type="email" [(ngModel)]="editForm.email"
+                       name="ssEmail" email #ssEmail="ngModel"
+                       placeholder="school@example.com">
+                <span class="ss-field-error" *ngIf="ssEmail.invalid && ssEmail.dirty && editForm.email">
+                  Enter a valid email address.
+                </span>
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">Phone</label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.phone"
+                       name="ssPhone" pattern="[0-9]{10}" #ssPhone="ngModel"
+                       placeholder="10-digit number" maxlength="10">
+                <span class="ss-field-error" *ngIf="ssPhone.invalid && ssPhone.dirty && editForm.phone">
+                  Phone must be exactly 10 digits.
+                </span>
+              </div>
+              <div class="ss-form-group ss-full">
+                <label class="ss-label">Website</label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.website" placeholder="https://...">
+              </div>
             </div>
-            <div class="ss-form-group">
-              <label>Board / Affiliation</label>
-              <select class="ss-input" [(ngModel)]="editForm.boardType">
-                <option value="">— Select —</option>
-                <option *ngFor="let b of boardTypes" [value]="b">{{ b }}</option>
-              </select>
-            </div>
-            <div class="ss-form-group">
-              <label>Email</label>
-              <input class="ss-input" type="email" [(ngModel)]="editForm.email"
-                     name="ssEmail" email #ssEmail="ngModel"
-                     placeholder="school@example.com">
-              <span class="ss-field-error" *ngIf="ssEmail.invalid && ssEmail.dirty && editForm.email">
-                Enter a valid email address.
-              </span>
-            </div>
-            <div class="ss-form-group">
-              <label>Phone</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.phone"
-                     name="ssPhone" pattern="[0-9]{10}" #ssPhone="ngModel"
-                     placeholder="10-digit number" maxlength="10">
-              <span class="ss-field-error" *ngIf="ssPhone.invalid && ssPhone.dirty && editForm.phone">
-                Phone must be exactly 10 digits.
-              </span>
-            </div>
-            <div class="ss-form-group ss-full">
-              <label>Website</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.website" placeholder="https://...">
-            </div>
-            <div class="ss-form-group ss-full">
-              <label>Address</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.address" placeholder="Street, Village, etc.">
-            </div>
-            <div class="ss-form-group">
-              <label>City</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.city" placeholder="City">
-            </div>
-            <div class="ss-form-group">
-              <label>State</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.state" placeholder="State">
-            </div>
-            <div class="ss-form-group">
-              <label>Pincode</label>
-              <input class="ss-input" type="text" [(ngModel)]="editForm.pincode"
-                     name="ssPincode" pattern="[0-9]{6}" #ssPincode="ngModel"
-                     placeholder="6-digit PIN" maxlength="6">
-              <span class="ss-field-error" *ngIf="ssPincode.invalid && ssPincode.dirty && editForm.pincode">
-                Pincode must be exactly 6 digits.
-              </span>
+          </div>
+
+          <div class="ss-form-section">
+            <div class="ss-form-section-label">Location</div>
+            <div class="ss-form-grid">
+              <div class="ss-form-group ss-full">
+                <label class="ss-label">Address</label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.address" placeholder="Street, Village, etc.">
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">City</label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.city" placeholder="City">
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">State</label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.state" placeholder="State">
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">Pincode</label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.pincode"
+                       name="ssPincode" pattern="[0-9]{6}" #ssPincode="ngModel"
+                       placeholder="6-digit PIN" maxlength="6">
+                <span class="ss-field-error" *ngIf="ssPincode.invalid && ssPincode.dirty && editForm.pincode">
+                  Pincode must be exactly 6 digits.
+                </span>
+              </div>
             </div>
           </div>
 
@@ -230,246 +297,313 @@
 
     </ng-container>
 
-    <!-- ── Razorpay tab ─────────────────────────────────────────────── -->
+    <!-- ══════════ RAZORPAY TAB ══════════ -->
     <ng-container *ngIf="activeTab === 'razorpay'">
       <div class="ss-card">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
-            <span class="ss-card-icon">💳</span>
-            <h2 class="ss-card-title">Razorpay Integration</h2>
+            <div class="ss-card-icon-box ss-icon-box-purple">💳</div>
+            <div>
+              <h2 class="ss-card-title">Payment Integration</h2>
+              <p class="ss-card-subtitle">Razorpay gateway configuration</p>
+            </div>
+          </div>
+          <div class="ss-rzp-status-chip" [class.ss-rzp-chip-ok]="settings.razorpayConfigured"
+               [class.ss-rzp-chip-warn]="!settings.razorpayConfigured">
+            {{ settings.razorpayConfigured ? '✓ Configured' : '⚠ Not Set' }}
           </div>
         </div>
 
-        <!-- Status banner -->
-        <div class="ss-rzp-status" [class.ss-rzp-configured]="settings.razorpayConfigured" [class.ss-rzp-unconfigured]="!settings.razorpayConfigured">
-          <span class="ss-rzp-dot"></span>
+        <div class="ss-rzp-banner" [class.ss-rzp-banner-ok]="settings.razorpayConfigured"
+             [class.ss-rzp-banner-warn]="!settings.razorpayConfigured">
+          <div class="ss-rzp-banner-icon">{{ settings.razorpayConfigured ? '🔐' : '🔓' }}</div>
           <div>
-            <p class="ss-rzp-status-title">{{ settings.razorpayConfigured ? 'Keys Configured' : 'Not Configured' }}</p>
-            <p class="ss-rzp-status-sub">
+            <p class="ss-rzp-banner-title">
+              {{ settings.razorpayConfigured ? 'School-specific keys active' : 'Using platform default keys' }}
+            </p>
+            <p class="ss-rzp-banner-sub">
               {{ settings.razorpayConfigured
-                ? 'School-specific Razorpay keys are active. All payments use these keys.'
-                : 'No school-specific keys set. Payments fall back to platform-default keys.' }}
+                ? 'All fee payments route through your Razorpay account directly.'
+                : 'No school-specific keys set. Add your own keys for direct settlements.' }}
             </p>
           </div>
         </div>
 
         <ng-container *ngIf="isAdmin">
-          <div class="ss-divider"></div>
-          <p class="ss-rzp-note">
-            Keys are stored encrypted. The secret is never returned to the browser.
-            Enter both Key ID and Key Secret together to update.
-          </p>
-          <div class="ss-form-group">
-            <label>Razorpay Key ID</label>
-            <input class="ss-input" type="text" [(ngModel)]="razorpayKeyId" placeholder="rzp_live_...">
+          <div class="ss-section-divider"><span>Update Keys</span></div>
+          <div class="ss-rzp-security-note">
+            🔒 Keys are encrypted at rest. The secret is write-only and never returned to the browser.
           </div>
-          <div class="ss-form-group">
-            <label>Razorpay Key Secret</label>
-            <input class="ss-input" type="password" [(ngModel)]="razorpayKeySecret" placeholder="Your key secret">
+          <div class="ss-form-grid">
+            <div class="ss-form-group ss-full">
+              <label class="ss-label">Razorpay Key ID</label>
+              <input class="ss-input" type="text" [(ngModel)]="razorpayKeyId" placeholder="rzp_live_...">
+            </div>
+            <div class="ss-form-group ss-full">
+              <label class="ss-label">Razorpay Key Secret</label>
+              <input class="ss-input" type="password" [(ngModel)]="razorpayKeySecret" placeholder="Your key secret">
+            </div>
           </div>
           <div class="ss-form-actions">
             <button class="ss-btn ss-btn-primary" (click)="saveRazorpayKeys()" [disabled]="savingRazorpay">
-              {{ savingRazorpay ? 'Saving…' : settings.razorpayConfigured ? 'Update Keys' : 'Save Keys' }}
+              {{ savingRazorpay ? 'Saving…' : settings.razorpayConfigured ? '🔄 Update Keys' : '+ Add Keys' }}
             </button>
           </div>
         </ng-container>
 
-        <p class="ss-rzp-readonly" *ngIf="!isAdmin">
-          Contact your school administrator to configure Razorpay keys.
-        </p>
+        <div class="ss-rzp-readonly-msg" *ngIf="!isAdmin">
+          Contact your school administrator to configure payment keys.
+        </div>
       </div>
     </ng-container>
 
-    <!-- ── Features tab ─────────────────────────────────────────────── -->
+    <!-- ══════════ FEATURES TAB ══════════ -->
     <ng-container *ngIf="activeTab === 'features'">
       <div class="ss-card">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
-            <span class="ss-card-icon">⚙️</span>
-            <h2 class="ss-card-title">Feature Overrides</h2>
+            <div class="ss-card-icon-box ss-icon-box-amber">⚡</div>
+            <div>
+              <h2 class="ss-card-title">Active Features</h2>
+              <p class="ss-card-subtitle">Manage which plan features are enabled</p>
+            </div>
           </div>
         </div>
 
-        <p class="ss-rzp-note" *ngIf="!featuresLoading">
-          Features below are granted by your subscription plan. Disable optional features that your school does not need.
-        </p>
-
         <div class="ss-loading-inline" *ngIf="featuresLoading">
-          <div class="ss-spinner"></div>
+          <div class="ss-spinner ss-spinner-sm"></div>
           <span>Loading features…</span>
         </div>
 
-        <ng-container *ngIf="!featuresLoading">
+        <ng-container *ngIf="!featuresLoading && schoolFeatures.length > 0">
           <ng-container *ngFor="let group of featuresByCategory()">
-            <div class="ss-feature-category-label">{{ group.category }}</div>
-            <div class="ss-feature-item" *ngFor="let feat of group.features">
-              <div class="ss-feature-info">
-                <span class="ss-feature-name">{{ feat.displayName }}</span>
-                <span class="ss-feature-desc" *ngIf="feat.description">{{ feat.description }}</span>
+            <div class="ss-feat-group">
+              <div class="ss-feat-group-header">
+                <span class="ss-feat-group-label">{{ group.category }}</span>
+                <span class="ss-feat-group-count">{{ group.features.length }}</span>
               </div>
-              <div class="ss-feature-controls">
-                <span class="ss-feat-tag ss-feat-always-on" *ngIf="feat.isAlwaysOn">Always On</span>
-                <span class="ss-feat-tag ss-feat-not-granted" *ngIf="!feat.planGranted && !feat.isAlwaysOn">Not in Plan</span>
-                <ng-container *ngIf="feat.planGranted && !feat.isAlwaysOn">
-                  <label class="ss-toggle" [class.ss-toggle-saving]="savingFeatureKey === feat.featureKey">
-                    <input type="checkbox"
-                           [checked]="feat.overrideState !== 'DISABLED'"
-                           [disabled]="savingFeatureKey === feat.featureKey"
-                           (change)="toggleFeatureOverride(feat)">
-                    <span class="ss-toggle-track"></span>
-                  </label>
-                </ng-container>
+              <div class="ss-feat-grid">
+                <div class="ss-feat-card" *ngFor="let feat of group.features"
+                     [class.ss-feat-on]="feat.effectivelyOn"
+                     [class.ss-feat-always]="feat.isAlwaysOn"
+                     [class.ss-feat-notgranted]="!feat.planGranted && !feat.isAlwaysOn">
+                  <div class="ss-feat-card-body">
+                    <div class="ss-feat-status-dot" [class.ss-dot-on]="feat.effectivelyOn"></div>
+                    <div class="ss-feat-card-text">
+                      <span class="ss-feat-card-name">{{ feat.displayName }}</span>
+                      <span class="ss-feat-card-desc" *ngIf="feat.description">{{ feat.description }}</span>
+                    </div>
+                  </div>
+                  <div class="ss-feat-card-ctrl">
+                    <span class="ss-feat-badge ss-feat-badge-always" *ngIf="feat.isAlwaysOn">Always On</span>
+                    <span class="ss-feat-badge ss-feat-badge-locked" *ngIf="!feat.planGranted && !feat.isAlwaysOn">Not in Plan</span>
+                    <label class="ss-toggle" *ngIf="feat.planGranted && !feat.isAlwaysOn"
+                           [class.ss-toggle-saving]="savingFeatureKey === feat.featureKey">
+                      <input type="checkbox"
+                             [checked]="feat.overrideState !== 'DISABLED'"
+                             [disabled]="savingFeatureKey === feat.featureKey"
+                             (change)="toggleFeatureOverride(feat)">
+                      <span class="ss-toggle-track"></span>
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </ng-container>
-
-          <div class="ss-empty-state" *ngIf="schoolFeatures.length === 0">
-            No features available for your current subscription plan.
-          </div>
         </ng-container>
+
+        <div class="ss-empty-state" *ngIf="!featuresLoading && schoolFeatures.length === 0">
+          <div class="ss-empty-icon">📭</div>
+          <p class="ss-empty-title">No features available</p>
+          <p class="ss-empty-sub">Your current plan has no configurable features.</p>
+        </div>
       </div>
     </ng-container>
 
-    <!-- ── Subscription tab ───────────────────────────────────────────── -->
+    <!-- ══════════ SUBSCRIPTION TAB ══════════ -->
     <ng-container *ngIf="activeTab === 'subscription'">
-      <div class="ss-card">
+
+      <div class="ss-loading-inline" *ngIf="entitlementLoading">
+        <div class="ss-spinner ss-spinner-sm"></div>
+        <span>Loading subscription…</span>
+      </div>
+
+      <!-- Plan banner -->
+      <div class="ss-plan-banner" *ngIf="!entitlementLoading && entitlement">
+        <div class="ss-plan-banner-content">
+          <div class="ss-plan-banner-left">
+            <div class="ss-plan-tier-badge" *ngIf="entitlement.planTier">{{ entitlement.planTier }}</div>
+            <div class="ss-plan-name">{{ entitlement.planName || 'No Plan' }}</div>
+            <div class="ss-plan-feat-count">{{ entitlement.featureCount }} features enabled</div>
+          </div>
+          <div class="ss-plan-status-badge" [ngClass]="'ss-status-' + (entitlement.subscriptionStatus | lowercase)">
+            {{ entitlement.subscriptionStatus }}
+          </div>
+        </div>
+        <div class="ss-plan-dates" *ngIf="entitlement.trialEndsAt || entitlement.expiresAt || entitlement.graceEndsAt">
+          <div class="ss-plan-date-item" *ngIf="entitlement.trialEndsAt">
+            <span class="ss-plan-date-label">Trial ends</span>
+            <span class="ss-plan-date-val">{{ entitlement.trialEndsAt | date:'d MMM yyyy' }}</span>
+          </div>
+          <div class="ss-plan-date-item" *ngIf="entitlement.expiresAt">
+            <span class="ss-plan-date-label">Expires</span>
+            <span class="ss-plan-date-val">{{ entitlement.expiresAt | date:'d MMM yyyy' }}</span>
+          </div>
+          <div class="ss-plan-date-item ss-plan-date-grace" *ngIf="entitlement.graceEndsAt">
+            <span class="ss-plan-date-label">Grace ends</span>
+            <span class="ss-plan-date-val">{{ entitlement.graceEndsAt | date:'d MMM yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage card -->
+      <div class="ss-card" *ngIf="!entitlementLoading && entitlement">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
-            <span class="ss-card-icon">📦</span>
-            <h2 class="ss-card-title">Subscription &amp; Usage</h2>
+            <div class="ss-card-icon-box">📊</div>
+            <div>
+              <h2 class="ss-card-title">Usage</h2>
+              <p class="ss-card-subtitle">Current resource utilisation</p>
+            </div>
           </div>
-          <span class="ss-status-chip ss-chip-ok" *ngIf="entitlement?.subscriptionStatus === 'ACTIVE'">Active</span>
-          <span class="ss-status-chip" style="background:#dbeafe;color:#1d4ed8"
-                *ngIf="entitlement?.subscriptionStatus === 'TRIAL'">Trial</span>
-          <span class="ss-status-chip ss-chip-warn" *ngIf="entitlement?.subscriptionStatus === 'GRACE'">Grace Period</span>
-          <span class="ss-status-chip" style="background:#fee2e2;color:#dc2626"
-                *ngIf="entitlement?.subscriptionStatus === 'EXPIRED'">Expired</span>
         </div>
 
-        <div *ngIf="entitlementLoading" class="ss-loading-inline">
-          <div class="ss-spinner"></div>
-          <span>Loading subscription info…</span>
+        <div class="ss-usage-block" *ngIf="entitlement.maxStudents">
+          <div class="ss-usage-meta">
+            <div class="ss-usage-meta-left">
+              <span class="ss-usage-icon">👨‍🎓</span>
+              <div>
+                <span class="ss-usage-label">Students</span>
+                <span class="ss-usage-sublabel"
+                      *ngIf="usagePct(entitlement.activeStudents, entitlement.maxStudents) >= 90">
+                  Approaching limit
+                </span>
+              </div>
+            </div>
+            <span class="ss-usage-count">{{ entitlement.activeStudents | number }} / {{ entitlement.maxStudents | number }}</span>
+          </div>
+          <div class="ss-usage-track">
+            <div class="ss-usage-fill"
+              [style.width.%]="usagePct(entitlement.activeStudents, entitlement.maxStudents)"
+              [style.background]="usageBarColor(usagePct(entitlement.activeStudents, entitlement.maxStudents), entitlement.studentSoftLimitPct, entitlement.studentHardLimitPct)">
+            </div>
+          </div>
+          <div class="ss-usage-pct"
+               [class.ss-pct-warn]="usagePct(entitlement.activeStudents, entitlement.maxStudents) >= 90">
+            {{ usagePct(entitlement.activeStudents, entitlement.maxStudents) }}%
+          </div>
         </div>
 
-        <ng-container *ngIf="!entitlementLoading && entitlement">
-          <div class="ss-sub-plan-row">
-            <div class="ss-sub-plan-name">{{ entitlement.planName || 'No Plan' }}</div>
-            <div class="ss-sub-plan-tier" *ngIf="entitlement.planTier">{{ entitlement.planTier }}</div>
-            <div class="ss-sub-feat-count">{{ entitlement.featureCount }} features enabled</div>
+        <div class="ss-usage-block" *ngIf="entitlement.maxStaff">
+          <div class="ss-usage-meta">
+            <div class="ss-usage-meta-left">
+              <span class="ss-usage-icon">👩‍🏫</span>
+              <div>
+                <span class="ss-usage-label">Staff</span>
+                <span class="ss-usage-sublabel">Teachers &amp; Admins</span>
+              </div>
+            </div>
+            <span class="ss-usage-count">{{ entitlement.totalStaff | number }} / {{ entitlement.maxStaff | number }}</span>
           </div>
-          <div class="ss-sub-dates" *ngIf="entitlement.expiresAt || entitlement.trialEndsAt || entitlement.graceEndsAt">
-            <div class="ss-sub-date-chip" *ngIf="entitlement.trialEndsAt">
-              <span class="ss-sub-date-label">Trial ends</span>
-              <span class="ss-sub-date-val">{{ entitlement.trialEndsAt | date:'d MMM yyyy' }}</span>
-            </div>
-            <div class="ss-sub-date-chip" *ngIf="entitlement.expiresAt">
-              <span class="ss-sub-date-label">Expires</span>
-              <span class="ss-sub-date-val">{{ entitlement.expiresAt | date:'d MMM yyyy' }}</span>
-            </div>
-            <div class="ss-sub-date-chip ss-sub-date-grace" *ngIf="entitlement.graceEndsAt">
-              <span class="ss-sub-date-label">Grace ends</span>
-              <span class="ss-sub-date-val">{{ entitlement.graceEndsAt | date:'d MMM yyyy' }}</span>
+          <div class="ss-usage-track">
+            <div class="ss-usage-fill"
+              [style.width.%]="usagePct(entitlement.totalStaff, entitlement.maxStaff)"
+              [style.background]="usageBarColor(usagePct(entitlement.totalStaff, entitlement.maxStaff), entitlement.staffSoftLimitPct, entitlement.staffHardLimitPct)">
             </div>
           </div>
-          <div class="ss-divider"></div>
-          <div class="ss-sub-usage">
-            <h3 class="ss-sub-usage-title">Usage</h3>
-            <div class="ss-sub-usage-row" *ngIf="entitlement.maxStudents">
-              <div class="ss-sub-usage-header">
-                <span class="ss-sub-usage-label">Students</span>
-                <span class="ss-sub-usage-count">{{ entitlement.activeStudents }} / {{ entitlement.maxStudents }}</span>
-              </div>
-              <div class="ss-sub-bar-track">
-                <div class="ss-sub-bar-fill"
-                  [style.width.%]="usagePct(entitlement.activeStudents, entitlement.maxStudents)"
-                  [style.background]="usageBarColor(usagePct(entitlement.activeStudents, entitlement.maxStudents), entitlement.studentSoftLimitPct, entitlement.studentHardLimitPct)">
-                </div>
-              </div>
-            </div>
-            <div class="ss-sub-usage-row" *ngIf="entitlement.maxStaff">
-              <div class="ss-sub-usage-header">
-                <span class="ss-sub-usage-label">Staff (Teachers + Admins)</span>
-                <span class="ss-sub-usage-count">{{ entitlement.totalStaff }} / {{ entitlement.maxStaff }}</span>
-              </div>
-              <div class="ss-sub-bar-track">
-                <div class="ss-sub-bar-fill"
-                  [style.width.%]="usagePct(entitlement.totalStaff, entitlement.maxStaff)"
-                  [style.background]="usageBarColor(usagePct(entitlement.totalStaff, entitlement.maxStaff), entitlement.staffSoftLimitPct, entitlement.staffHardLimitPct)">
-                </div>
-              </div>
-            </div>
-            <div class="ss-sub-unlimited" *ngIf="!entitlement.maxStudents && !entitlement.maxStaff">
-              Unlimited students and staff on this plan.
-            </div>
+          <div class="ss-usage-pct"
+               [class.ss-pct-warn]="usagePct(entitlement.totalStaff, entitlement.maxStaff) >= 90">
+            {{ usagePct(entitlement.totalStaff, entitlement.maxStaff) }}%
           </div>
-        </ng-container>
-
-        <div class="ss-empty-state" *ngIf="!entitlementLoading && !entitlement">
-          No subscription data available. Contact your administrator.
         </div>
 
-        <!-- ── Upgrade Section (ADMIN only) ───────────────────────────── -->
-        <ng-container *ngIf="isAdmin">
-          <div class="ss-divider"></div>
-          <div class="ss-sub-upgrade">
-            <h3 class="ss-sub-usage-title">Upgrade Your Plan</h3>
-            <p class="ss-sub-upgrade-note">Select a plan below. Payment is processed securely via Razorpay.</p>
-
-            <div *ngIf="plansLoading" class="ss-loading-inline">
-              <div class="ss-spinner"></div>
-              <span>Loading plans…</span>
-            </div>
-
-            <ng-container *ngIf="!plansLoading && availablePlans.length">
-              <div class="ss-upgrade-billing">
-                <button class="ss-billing-btn" [class.ss-billing-active]="billingCycle === 'MONTHLY'"
-                        (click)="billingCycle = 'MONTHLY'">Monthly</button>
-                <button class="ss-billing-btn" [class.ss-billing-active]="billingCycle === 'ANNUAL'"
-                        (click)="billingCycle = 'ANNUAL'">Annual</button>
-              </div>
-
-              <div class="ss-upgrade-plans">
-                <div class="ss-upgrade-plan-card" *ngFor="let plan of availablePlans"
-                     [class.ss-upgrade-plan-current]="entitlement?.planName === plan.name">
-                  <div class="ss-upgrade-plan-name">{{ plan.name }}</div>
-                  <div class="ss-upgrade-plan-tier">{{ plan.tier }}</div>
-                  <div class="ss-upgrade-plan-price">
-                    <ng-container *ngIf="billingCycle === 'MONTHLY' && plan.monthlyPricePaise">
-                      ₹{{ (plan.monthlyPricePaise / 100).toLocaleString('en-IN') }}<span class="ss-upgrade-price-period">/mo</span>
-                    </ng-container>
-                    <ng-container *ngIf="billingCycle === 'ANNUAL' && plan.annualPricePaise">
-                      ₹{{ (plan.annualPricePaise / 100).toLocaleString('en-IN') }}<span class="ss-upgrade-price-period">/yr</span>
-                    </ng-container>
-                    <ng-container *ngIf="!plan.monthlyPricePaise && !plan.annualPricePaise">Free</ng-container>
-                  </div>
-                  <div class="ss-upgrade-plan-limits">
-                    <span *ngIf="plan.maxStudents">Up to {{ plan.maxStudents | number }} students</span>
-                    <span *ngIf="!plan.maxStudents">Unlimited students</span>
-                    <span *ngIf="plan.maxStaff"> · {{ plan.maxStaff }} staff</span>
-                    <span *ngIf="!plan.maxStaff"> · Unlimited staff</span>
-                  </div>
-                  <div class="ss-upgrade-plan-features" *ngIf="plan.features?.length">
-                    {{ plan.features.length }} features included
-                  </div>
-                  <button class="ss-btn ss-btn-primary ss-upgrade-btn"
-                          *ngIf="entitlement?.planName !== plan.name"
-                          [disabled]="upgradingPlanId === plan.id"
-                          (click)="startUpgrade(plan)">
-                    {{ upgradingPlanId === plan.id ? 'Processing…' : 'Upgrade' }}
-                  </button>
-                  <span class="ss-upgrade-current-badge" *ngIf="entitlement?.planName === plan.name">
-                    Current Plan
-                  </span>
-                </div>
-              </div>
-            </ng-container>
-
-            <div class="ss-empty-state" *ngIf="!plansLoading && availablePlans.length === 0">
-              No plans available. Contact support for pricing.
-            </div>
-          </div>
-        </ng-container>
+        <div class="ss-unlimited-badge" *ngIf="!entitlement.maxStudents && !entitlement.maxStaff">
+          ♾️ Unlimited students &amp; staff on this plan
+        </div>
       </div>
+
+      <div class="ss-card ss-empty-card" *ngIf="!entitlementLoading && !entitlement">
+        <div class="ss-empty-icon">📭</div>
+        <p class="ss-empty-title">No subscription data</p>
+        <p class="ss-empty-sub">Contact your administrator for subscription details.</p>
+      </div>
+
+      <!-- Upgrade section -->
+      <ng-container *ngIf="isAdmin">
+        <div class="ss-card">
+          <div class="ss-card-header">
+            <div class="ss-card-title-row">
+              <div class="ss-card-icon-box ss-icon-box-green">🚀</div>
+              <div>
+                <h2 class="ss-card-title">Upgrade Your Plan</h2>
+                <p class="ss-card-subtitle">Unlock more features and higher limits</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="ss-billing-toggle">
+            <button class="ss-billing-opt" [class.ss-billing-active]="billingCycle === 'MONTHLY'"
+                    (click)="billingCycle = 'MONTHLY'">Monthly</button>
+            <button class="ss-billing-opt" [class.ss-billing-active]="billingCycle === 'ANNUAL'"
+                    (click)="billingCycle = 'ANNUAL'">
+              Annual
+              <span class="ss-billing-save-tag">Save ~17%</span>
+            </button>
+          </div>
+
+          <div class="ss-loading-inline" *ngIf="plansLoading">
+            <div class="ss-spinner ss-spinner-sm"></div>
+            <span>Loading plans…</span>
+          </div>
+
+          <div class="ss-plans-grid" *ngIf="!plansLoading && availablePlans.length">
+            <div class="ss-plan-card" *ngFor="let plan of availablePlans"
+                 [class.ss-plan-card-current]="entitlement?.planName === plan.name"
+                 [attr.data-tier]="plan.tier">
+              <div class="ss-plan-card-tier">{{ plan.tier }}</div>
+              <div class="ss-plan-card-name">{{ plan.name }}</div>
+              <div class="ss-plan-card-price">
+                <ng-container *ngIf="billingCycle === 'MONTHLY' && plan.monthlyPricePaise">
+                  <span class="ss-price-amount">₹{{ (plan.monthlyPricePaise / 100).toLocaleString('en-IN') }}</span>
+                  <span class="ss-price-period">/month</span>
+                </ng-container>
+                <ng-container *ngIf="billingCycle === 'ANNUAL' && plan.annualPricePaise">
+                  <span class="ss-price-amount">₹{{ (plan.annualPricePaise / 100).toLocaleString('en-IN') }}</span>
+                  <span class="ss-price-period">/year</span>
+                </ng-container>
+                <ng-container *ngIf="!plan.monthlyPricePaise && !plan.annualPricePaise">
+                  <span class="ss-price-amount">Free</span>
+                </ng-container>
+              </div>
+              <div class="ss-plan-card-limits">
+                <span class="ss-plan-limit-item">
+                  👥 {{ plan.maxStudents ? (plan.maxStudents | number) + ' students' : 'Unlimited' }}
+                </span>
+                <span class="ss-plan-limit-item">
+                  👩‍🏫 {{ plan.maxStaff ? plan.maxStaff + ' staff' : 'Unlimited' }}
+                </span>
+                <span class="ss-plan-limit-item" *ngIf="plan.features?.length">
+                  ⚡ {{ plan.features.length }} features
+                </span>
+              </div>
+              <button class="ss-plan-upgrade-btn" *ngIf="entitlement?.planName !== plan.name"
+                      [disabled]="upgradingPlanId === plan.id" (click)="startUpgrade(plan)">
+                {{ upgradingPlanId === plan.id ? 'Processing…' : 'Choose Plan' }}
+              </button>
+              <div class="ss-plan-current-label" *ngIf="entitlement?.planName === plan.name">
+                ✓ Current Plan
+              </div>
+            </div>
+          </div>
+
+          <div class="ss-empty-state" *ngIf="!plansLoading && availablePlans.length === 0">
+            <div class="ss-empty-icon">📋</div>
+            <p class="ss-empty-title">No plans available</p>
+            <p class="ss-empty-sub">Contact support for pricing information.</p>
+          </div>
+        </div>
+      </ng-container>
+
     </ng-container>
 
   </ng-container>

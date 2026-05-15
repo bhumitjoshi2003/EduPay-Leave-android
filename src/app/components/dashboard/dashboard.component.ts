@@ -218,6 +218,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return this.authStateService.getSubscriptionStatus();
   }
 
+  /**
+   * Returns true if the school's active plan includes the given feature key.
+   * Falls back to true when featureKeys is empty (no subscription data loaded)
+   * so the nav is never completely blank due to a data-load failure.
+   * This is a UX-only guard — the backend always enforces authorisation.
+   */
+  hasFeature(key: string): boolean {
+    const keys = this.authStateService.getUser()?.featureKeys;
+    if (!keys || keys.length === 0) return true;
+    return keys.includes(key);
+  }
+
   showSubscriptionWarning(): boolean {
     return this.authStateService.isSubscriptionWarning() && !this.isSuperAdmin();
   }

@@ -259,6 +259,17 @@ export class SchoolService {
     return this.http.put<any>(`${this.baseUrl}/features/${featureKey}/override`, { overrideState });
   }
 
+  // ── Per-school feature overrides (SUPER_ADMIN) ────────────────────────────
+
+  getSuperAdminSchoolFeatures(schoolId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.superAdminUrl}/schools/${schoolId}/features`);
+  }
+
+  setSuperAdminFeatureOverride(schoolId: number, featureKey: string, overrideState: string): Observable<any> {
+    return this.http.put<any>(`${this.superAdminUrl}/schools/${schoolId}/features/${featureKey}/override`,
+      { overrideState });
+  }
+
   // ── Plan Management (SUPER_ADMIN) ─────────────────────────────────────────
 
   getPlans(includeInactive = false): Observable<PlanDetail[]> {

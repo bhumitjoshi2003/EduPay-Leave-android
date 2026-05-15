@@ -33,6 +33,7 @@ interface OnboardForm {
   adminDob: string;
   adminGender: string;
   trialPlanId: number | null;
+  trialEndsAt: string;
 }
 
 interface EditSchoolForm {
@@ -594,6 +595,16 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     planId: null, trialEndsAt: '', expiresAt: '', graceEndsAt: '', notes: ''
   };
 
+  // ── Per-school feature overrides (SUPER_ADMIN) ────────────────────────────
+
+  schoolFeatures = new Map<number, any[]>();
+  loadingFeaturesFor: number | null = null;
+  savingFeatureFor: string | null = null;
+
+  get today(): string {
+    return new Date().toISOString().substring(0, 10);
+  }
+
   toggleSubscriptionPanel(school: SchoolSettings): void {
     if (this.subscriptionPanelId === school.id) {
       this.subscriptionPanelId = null;
@@ -609,6 +620,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       });
     }
     this.loadSchoolSubscription(school.id);
+    this.loadSchoolFeatures(school.id);
     this.cdr.markForCheck();
   }
 
@@ -680,6 +692,51 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
         this.toast.error('Error', 'Failed to refresh entitlement.');
       }
     });
+  }
+
+  loadSchoolFeatures(schoolId: number): void {
+    this.loadingFeaturesFor = schoolId;
+    this.cdr.markForCheck();
+    this.schoolService.getSuperAdminSchoolFeatures(schoolId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (features) => {
+        this.schoolFeatures.set(schoolId, features);
+        this.loadingFeaturesFor = null;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loadingFeaturesFor = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  setSchoolFeatureOverride(schoolId: number, featureKey: string, overrideState: string): void {
+    this.savingFeatureFor = featureKey;
+    this.cdr.markForCheck();
+    this.schoolService.setSuperAdminFeatureOverride(schoolId, featureKey, overrideState)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.savingFeatureFor = null;
+          this.loadSchoolFeatures(schoolId);
+          this.toast.success('Saved', `Feature override updated.`);
+        },
+        error: (err) => {
+          this.savingFeatureFor = null;
+          this.cdr.markForCheck();
+          const msg = err?.error?.message ?? 'Failed to update feature override.';
+          this.toast.error('Error', typeof msg === 'string' ? msg : 'Failed to update feature override.');
+        }
+      });
+  }
+
+  schoolFeaturesByCategory(features: any[]): { category: string; items: any[] }[] {
+    const map = new Map<string, any[]>();
+    for (const f of features) {
+      const cat = f.category ?? 'General';
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat)!.push(f);
+    }
+    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
   }
 
   subStatusClass(status: string | null): string {
@@ -765,7 +822,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       phone: '', email: '', website: '', boardType: '',
       adminUserId: '', adminEmail: '', adminPassword: '',
       adminName: '', adminPhone: '', adminDob: '', adminGender: '',
-      trialPlanId: null,
+      trialPlanId: null, trialEndsAt: '',
     };
   }
 

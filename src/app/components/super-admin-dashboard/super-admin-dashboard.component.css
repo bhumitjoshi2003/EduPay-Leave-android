@@ -997,6 +997,31 @@ select.sa-input { -webkit-appearance: auto; appearance: auto; cursor: pointer; }
   margin: 0 16px 4px;
 }
 
+/* ── Per-school feature overrides ─────────────────────────────────── */
+.sa-sub-feature-note { font-size: 0.72rem; color: #64748b; margin: 0 0 8px; padding: 0 2px; }
+.sa-feat-category-group { margin-bottom: 12px; }
+.sa-feat-category { font-size: 0.68rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.sa-feat-grid { display: flex; flex-direction: column; gap: 6px; }
+.sa-feat-item {
+  display: flex; align-items: center; gap: 8px;
+  background: #f8fafc; border-radius: 8px; padding: 8px 10px;
+  border: 1.5px solid #e2e8f0;
+}
+.sa-feat-on { border-color: #bbf7d0; background: #f0fdf4; }
+.sa-feat-enabled-override { border-color: #6ee7b7 !important; background: #ecfdf5 !important; }
+.sa-feat-disabled-override { border-color: #fca5a5 !important; background: #fff1f2 !important; }
+.sa-feat-name { flex: 1; font-size: 0.78rem; font-weight: 500; color: #1e293b; }
+.sa-feat-badge { font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 99px; background: #d1fae5; color: #065f46; }
+.sa-feat-badge-off { background: #fee2e2; color: #991b1b; }
+.sa-feat-actions { display: flex; gap: 4px; }
+.sa-feat-btn {
+  font-size: 0.68rem; font-weight: 600; padding: 3px 9px; border-radius: 6px;
+  border: 1.5px solid #10b981; color: #10b981; background: transparent; cursor: pointer;
+}
+.sa-feat-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.sa-feat-btn-off { border-color: #ef4444; color: #ef4444; }
+.sa-feat-btn-reset { border-color: #94a3b8; color: #64748b; }
+
 .sa-pending-notice {
   font-size: 0.73rem;
   color: #92400e;
