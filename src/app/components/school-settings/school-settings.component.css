@@ -99,7 +99,10 @@
 }
 .ss-hpill-active .ss-hpill-dot  { background: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,0.4); }
 .ss-hpill-inactive .ss-hpill-dot { background: #fbbf24; }
-.ss-hpill-plan { background: rgba(255,255,255,0.22); }
+.ss-hpill-plan   { background: rgba(255,255,255,0.22); }
+.ss-hpill-trial  { background: rgba(219,234,254,0.25); border: 1px solid rgba(191,219,254,0.35); }
+.ss-hpill-grace  { background: rgba(254,243,199,0.25); border: 1px solid rgba(253,230,138,0.35); }
+.ss-hpill-expired { background: rgba(254,202,202,0.25); border: 1px solid rgba(252,165,165,0.35); }
 
 /* ── Tabs ──────────────────────────────────────────────────────────── */
 .ss-tabs {
@@ -903,6 +906,65 @@ select.ss-input { appearance: auto; cursor: pointer; }
 }
 
 .ss-divider { border: none; border-top: 1px solid #f1f5f9; margin: 16px 0; }
+
+/* ── History Timeline ────────────────────────────────────────────────── */
+.ss-icon-box-indigo { background: #eef2ff; }
+
+.ss-history-loading, .ss-history-empty {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 0; color: #6b7280; font-size: 0.85rem;
+}
+.ss-history-timeline {
+  display: flex; flex-direction: column; gap: 0;
+  padding: 4px 0;
+}
+.ss-history-item {
+  display: flex; gap: 14px; padding: 14px 0;
+  border-bottom: 1px solid #f1f5f9;
+  position: relative;
+}
+.ss-history-item:last-child { border-bottom: none; }
+.ss-history-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+  background: #94a3b8;
+}
+.ss-history-dot--payment_success { background: #10b981; }
+.ss-history-dot--plan_assigned,
+.ss-history-dot--plan_updated    { background: #3b82f6; }
+.ss-history-dot--trial_started   { background: #8b5cf6; }
+.ss-history-dot--status_changed  { background: #f59e0b; }
+
+.ss-history-content { flex: 1; min-width: 0; }
+.ss-history-event-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+.ss-history-event-label {
+  font-size: 0.85rem; font-weight: 700; color: #1e293b;
+}
+.ss-history-status-pill {
+  font-size: 0.68rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.ss-hpill-active  { background: #d1fae5; color: #065f46; }
+.ss-hpill-trial   { background: #ede9fe; color: #5b21b6; }
+.ss-hpill-grace   { background: #fef3c7; color: #92400e; }
+.ss-hpill-expired { background: #fee2e2; color: #991b1b; }
+.ss-hpill-unknown { background: #f1f5f9; color: #475569; }
+
+.ss-history-plan {
+  font-size: 0.8rem; color: #475569; margin-bottom: 2px;
+}
+.ss-history-notes {
+  font-size: 0.78rem; color: #64748b;
+  font-style: italic; margin-bottom: 3px;
+  word-break: break-word;
+}
+.ss-history-meta {
+  font-size: 0.72rem; color: #94a3b8;
+}
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 480px) {

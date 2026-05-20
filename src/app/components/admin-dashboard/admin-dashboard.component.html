@@ -94,45 +94,107 @@
     </div>
 
     <!-- ── Plan Usage ────────────────────────────────────────────────── -->
-    <div class="ad-section" *ngIf="entitlement">
-      <h2 class="ad-section-title">
-        Plan Usage
-        <span class="ad-plan-badge" *ngIf="entitlement.planName">{{ entitlement.planName }}</span>
-        <span class="ad-plan-status ad-status-{{ entitlement.subscriptionStatus.toLowerCase() }}"
-              *ngIf="entitlement.subscriptionStatus">{{ entitlement.subscriptionStatus }}</span>
-      </h2>
-      <div class="ad-usage-grid">
-        <div class="ad-usage-card" *ngIf="entitlement.maxStudents">
-          <div class="ad-usage-header">
-            <span class="ad-usage-label">Students</span>
-            <span class="ad-usage-count">{{ entitlement.activeStudents }} / {{ entitlement.maxStudents }}</span>
+    <div class="ad-plan-section" *ngIf="entitlement">
+
+      <!-- Plan Identity Banner -->
+      <div class="ad-plan-banner">
+        <div class="ad-plan-banner-left">
+          <div class="ad-plan-icon-wrap">
+            <mat-icon>workspace_premium</mat-icon>
           </div>
-          <div class="ad-usage-bar-track">
-            <div class="ad-usage-bar-fill"
+          <div class="ad-plan-identity">
+            <span class="ad-plan-name">{{ entitlement.planName || 'Starter Plan' }}</span>
+            <div class="ad-plan-meta-row">
+              <span class="ad-pill-status ad-pill-{{ (entitlement.subscriptionStatus || 'trial').toLowerCase() }}">
+                {{ entitlement.subscriptionStatus || 'TRIAL' }}
+              </span>
+              <span class="ad-plan-expiry" *ngIf="entitlement.subscriptionStatus === 'TRIAL' && entitlement.trialEndsAt">
+                Trial ends {{ entitlement.trialEndsAt | date:'d MMM yyyy' }}
+              </span>
+              <span class="ad-plan-expiry" *ngIf="entitlement.subscriptionStatus === 'ACTIVE' && entitlement.expiresAt">
+                Expires {{ entitlement.expiresAt | date:'d MMM yyyy' }}
+              </span>
+              <span class="ad-plan-expiry" *ngIf="entitlement.subscriptionStatus === 'GRACE' && entitlement.graceEndsAt">
+                Grace ends {{ entitlement.graceEndsAt | date:'d MMM yyyy' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="ad-plan-feat-chip">
+          <span class="ad-plan-feat-num">{{ entitlement.featureCount }}</span>
+          <span class="ad-plan-feat-lbl">features</span>
+        </div>
+        <div class="ad-plan-countdown ad-plan-countdown--{{ countdownUrgency() }}"
+             *ngIf="countdownLabel()">
+          <mat-icon>schedule</mat-icon>
+          <span>{{ countdownLabel() }}</span>
+        </div>
+        <a class="ad-plan-upgrade-btn" routerLink="/dashboard/school-settings"
+           *ngIf="showUpgradeCta()">
+          <mat-icon>rocket_launch</mat-icon>
+          Upgrade Now
+        </a>
+      </div>
+
+      <!-- Usage Meters -->
+      <div class="ad-usage-meters">
+
+        <!-- Students -->
+        <div class="ad-meter-card" *ngIf="entitlement.maxStudents"
+          [class.ad-meter-warn]="usagePctRaw(entitlement.activeStudents, entitlement.maxStudents) >= (entitlement.studentSoftLimitPct ?? 90) && usagePctRaw(entitlement.activeStudents, entitlement.maxStudents) < (entitlement.studentHardLimitPct ?? 105)"
+          [class.ad-meter-critical]="usagePctRaw(entitlement.activeStudents, entitlement.maxStudents) >= (entitlement.studentHardLimitPct ?? 105)">
+          <div class="ad-meter-header">
+            <div class="ad-meter-icon-box"><mat-icon>group</mat-icon></div>
+            <div class="ad-meter-text">
+              <span class="ad-meter-label">Students</span>
+              <span class="ad-meter-fraction">{{ entitlement.activeStudents }} / {{ entitlement.maxStudents }}</span>
+            </div>
+            <div class="ad-meter-pct">{{ usagePct(entitlement.activeStudents, entitlement.maxStudents) }}<small>%</small></div>
+          </div>
+          <div class="ad-meter-bar-track">
+            <div class="ad-meter-bar-fill"
               [style.width.%]="usagePct(entitlement.activeStudents, entitlement.maxStudents)"
-              [style.background]="usageBarColor(usagePct(entitlement.activeStudents, entitlement.maxStudents), entitlement.studentSoftLimitPct, entitlement.studentHardLimitPct)">
+              [style.background]="usageBarColor(usagePctRaw(entitlement.activeStudents, entitlement.maxStudents), entitlement.studentSoftLimitPct, entitlement.studentHardLimitPct)">
             </div>
           </div>
-        </div>
-        <div class="ad-usage-card" *ngIf="entitlement.maxStaff">
-          <div class="ad-usage-header">
-            <span class="ad-usage-label">Staff</span>
-            <span class="ad-usage-count">{{ entitlement.totalStaff }} / {{ entitlement.maxStaff }}</span>
+          <div class="ad-meter-alert ad-meter-alert--critical"
+            *ngIf="usagePctRaw(entitlement.activeStudents, entitlement.maxStudents) >= (entitlement.studentHardLimitPct ?? 105)">
+            <mat-icon>block</mat-icon> Hard limit reached — registrations blocked
           </div>
-          <div class="ad-usage-bar-track">
-            <div class="ad-usage-bar-fill"
+          <div class="ad-meter-alert ad-meter-alert--warn"
+            *ngIf="usagePctRaw(entitlement.activeStudents, entitlement.maxStudents) >= (entitlement.studentSoftLimitPct ?? 90) && usagePctRaw(entitlement.activeStudents, entitlement.maxStudents) < (entitlement.studentHardLimitPct ?? 105)">
+            <mat-icon>warning_amber</mat-icon> Approaching student limit
+          </div>
+        </div>
+
+        <!-- Staff -->
+        <div class="ad-meter-card" *ngIf="entitlement.maxStaff"
+          [class.ad-meter-warn]="usagePctRaw(entitlement.totalStaff, entitlement.maxStaff) >= (entitlement.staffSoftLimitPct ?? 90) && usagePctRaw(entitlement.totalStaff, entitlement.maxStaff) < (entitlement.staffHardLimitPct ?? 105)"
+          [class.ad-meter-critical]="usagePctRaw(entitlement.totalStaff, entitlement.maxStaff) >= (entitlement.staffHardLimitPct ?? 105)">
+          <div class="ad-meter-header">
+            <div class="ad-meter-icon-box"><mat-icon>badge</mat-icon></div>
+            <div class="ad-meter-text">
+              <span class="ad-meter-label">Staff</span>
+              <span class="ad-meter-fraction">{{ entitlement.totalStaff }} / {{ entitlement.maxStaff }}</span>
+            </div>
+            <div class="ad-meter-pct">{{ usagePct(entitlement.totalStaff, entitlement.maxStaff) }}<small>%</small></div>
+          </div>
+          <div class="ad-meter-bar-track">
+            <div class="ad-meter-bar-fill"
               [style.width.%]="usagePct(entitlement.totalStaff, entitlement.maxStaff)"
-              [style.background]="usageBarColor(usagePct(entitlement.totalStaff, entitlement.maxStaff), entitlement.staffSoftLimitPct, entitlement.staffHardLimitPct)">
+              [style.background]="usageBarColor(usagePctRaw(entitlement.totalStaff, entitlement.maxStaff), entitlement.staffSoftLimitPct, entitlement.staffHardLimitPct)">
             </div>
           </div>
-        </div>
-        <div class="ad-usage-card ad-usage-card--features">
-          <div class="ad-usage-header">
-            <span class="ad-usage-label">Active Features</span>
-            <span class="ad-usage-count">{{ entitlement.featureCount }}</span>
+          <div class="ad-meter-alert ad-meter-alert--critical"
+            *ngIf="usagePctRaw(entitlement.totalStaff, entitlement.maxStaff) >= (entitlement.staffHardLimitPct ?? 105)">
+            <mat-icon>block</mat-icon> Hard limit reached — staff blocked
           </div>
-          <div class="ad-usage-feat-hint">Features enabled by your current plan.</div>
+          <div class="ad-meter-alert ad-meter-alert--warn"
+            *ngIf="usagePctRaw(entitlement.totalStaff, entitlement.maxStaff) >= (entitlement.staffSoftLimitPct ?? 90) && usagePctRaw(entitlement.totalStaff, entitlement.maxStaff) < (entitlement.staffHardLimitPct ?? 105)">
+            <mat-icon>warning_amber</mat-icon> Approaching staff limit
+          </div>
         </div>
+
       </div>
     </div>
 

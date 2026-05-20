@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { SchoolService, SchoolSettings, SchoolEntitlementSummary, PlanDetail } from '../../services/school.service';
+import { SchoolService, SchoolSettings, SchoolEntitlementSummary, PlanDetail, SubscriptionHistoryItem } from '../../services/school.service';
 import { TenantService } from '../../services/tenant.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
@@ -45,6 +45,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   plansLoading = false;
   upgradingPlanId: number | null = null;
   billingCycle: 'MONTHLY' | 'ANNUAL' = 'MONTHLY';
+  subscriptionHistory: SubscriptionHistoryItem[] = [];
+  historyLoading = false;
 
   // Logo upload
   logoPreviewUrl: string | null = null;
@@ -66,6 +68,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     const user = this.authStateService.getUser();
     this.role = user?.role ?? '';
     this.loadSettings();
+    this.loadEntitlement();
   }
 
   ngOnDestroy(): void {
@@ -295,7 +298,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
         this.toast.success('Upgraded!', 'Your subscription has been activated successfully.');
         this.upgradingPlanId = null;
         this.entitlement = null;
-        this.loadEntitlement();
+        this.entitlementLoading = false; // reset guard so force reload works
+        this.loadEntitlement(true);
         this.cdr.markForCheck();
       },
       error: () => {
@@ -326,8 +330,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     return Array.from(map.entries()).map(([category, features]) => ({ category, features }));
   }
 
-  loadEntitlement(): void {
-    if (this.entitlement || this.entitlementLoading) return;
+  loadEntitlement(force = false): void {
+    if (!force && (this.entitlement || this.entitlementLoading)) return;
     this.entitlementLoading = true;
     this.cdr.markForCheck();
     this.schoolService.getEntitlement().pipe(takeUntil(this.destroy$)).subscribe({
@@ -335,6 +339,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
         this.entitlement = e;
         this.entitlementLoading = false;
         this.cdr.markForCheck();
+        this.loadSubscriptionHistory();
       },
       error: (err: any) => {
         this.logger.error('Failed to load entitlement', err);
@@ -343,6 +348,34 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  loadSubscriptionHistory(force = false): void {
+    if (!force && (this.subscriptionHistory.length || this.historyLoading)) return;
+    this.historyLoading = true;
+    this.cdr.markForCheck();
+    this.schoolService.getSubscriptionHistory().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (history) => {
+        this.subscriptionHistory = history;
+        this.historyLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.historyLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  eventTypeLabel(eventType: string): string {
+    const labels: Record<string, string> = {
+      TRIAL_STARTED:   'Trial Started',
+      PLAN_ASSIGNED:   'Plan Assigned',
+      PLAN_UPDATED:    'Plan Updated',
+      PAYMENT_SUCCESS: 'Payment Successful',
+      STATUS_CHANGED:  'Status Changed',
+    };
+    return labels[eventType] ?? eventType;
   }
 
   usagePct(current: number, max: number | null): number {
@@ -367,8 +400,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       this.toast.warning('Invalid File', 'Please select an image file (JPG, PNG, etc.).');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      this.toast.warning('File Too Large', 'Logo must be under 5 MB.');
+    if (file.size > 10 * 1024 * 1024) {
+      this.toast.warning('File Too Large', 'Logo must be under 10 MB.');
       return;
     }
 

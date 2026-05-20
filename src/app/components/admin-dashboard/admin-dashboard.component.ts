@@ -95,12 +95,67 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return Math.min(100, Math.round((current / max) * 100));
   }
 
+  usagePctRaw(current: number, max: number | null): number {
+    if (!max || max <= 0) return 0;
+    return Math.round((current / max) * 100);
+  }
+
   usageBarColor(pct: number, softPct: number | null, hardPct: number | null): string {
     const soft = softPct ?? 90;
     const hard = hardPct ?? 105;
     if (pct >= hard) return '#dc2626';
     if (pct >= soft) return '#d97706';
     return '#059669';
+  }
+
+  daysUntil(dateStr: string | null | undefined): number | null {
+    if (!dateStr) return null;
+    return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86_400_000);
+  }
+
+  countdownLabel(): string {
+    if (!this.entitlement) return '';
+    const s = this.entitlement.subscriptionStatus;
+    if (s === 'EXPIRED') return 'Subscription expired';
+    if (s === 'GRACE') {
+      const d = this.daysUntil(this.entitlement.graceEndsAt);
+      if (d === null) return 'Grace period active';
+      return d <= 0 ? 'Grace period ended' : d === 1 ? '1 day left in grace' : `${d} days left in grace`;
+    }
+    if (s === 'TRIAL') {
+      const d = this.daysUntil(this.entitlement.trialEndsAt);
+      if (d === null || d > 14) return '';
+      return d <= 0 ? 'Trial expired' : d === 1 ? '1 day left' : `${d} days left`;
+    }
+    if (s === 'ACTIVE') {
+      const d = this.daysUntil(this.entitlement.expiresAt);
+      if (d === null || d > 14) return '';
+      return d <= 0 ? 'Expired' : d === 1 ? '1 day left' : `${d} days left`;
+    }
+    return '';
+  }
+
+  showUpgradeCta(): boolean {
+    if (!this.entitlement) return false;
+    const s = this.entitlement.subscriptionStatus;
+    if (s === 'EXPIRED' || s === 'GRACE') return true;
+    const d = s === 'TRIAL'
+      ? this.daysUntil(this.entitlement.trialEndsAt)
+      : this.daysUntil(this.entitlement.expiresAt);
+    return d !== null && d <= 7;
+  }
+
+  countdownUrgency(): 'critical' | 'warn' | 'info' {
+    if (!this.entitlement) return 'info';
+    const s = this.entitlement.subscriptionStatus;
+    if (s === 'EXPIRED' || s === 'GRACE') return 'critical';
+    const d = s === 'TRIAL'
+      ? this.daysUntil(this.entitlement.trialEndsAt)
+      : this.daysUntil(this.entitlement.expiresAt);
+    if (d === null) return 'info';
+    if (d <= 3) return 'critical';
+    if (d <= 7) return 'warn';
+    return 'info';
   }
 
   get attendanceColor(): string {

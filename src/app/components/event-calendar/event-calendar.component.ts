@@ -135,8 +135,8 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
     } else if (this.currentUserRole === 'TEACHER') {
       if (userId) {
         this.teacherService.getTeacher(userId).pipe(takeUntil(this.destroy$)).subscribe({
-          next: (teachertDetails) => {
-            this.currentUserClass = teachertDetails.classTeacher ?? null;
+          next: (teacherDetails) => {
+            this.currentUserClass = teacherDetails.classTeacher ?? null;
             loadEventsAfterDetails();
           },
           error: (err) => {

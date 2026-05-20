@@ -72,9 +72,11 @@ export class AuthInterceptor implements HttpInterceptor {
         }
         if (error.status === 403) {
           const body = error.error;
+          const toast = this.injector.get(ToastService);
           if (body?.code === 'RESOURCE_LIMIT_EXCEEDED') {
-            const toast = this.injector.get(ToastService);
             toast.error('Limit Reached', body.message || 'You have reached your plan limit for this resource.');
+          } else if (body?.code === 'FEATURE_NOT_AVAILABLE') {
+            toast.warning('Feature Not Available', body.message || 'This feature is not available on your current plan. Upgrade to access it.');
           }
         }
         return throwError(() => error);

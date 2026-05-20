@@ -14,6 +14,7 @@ export interface UserInfo {
   planTier: string | null;
   planVersion: string | null;
   subscriptionStatus: string | null;
+  trialEndsAt: string | null;
   expiresAt: string | null;
   graceEndsAt: string | null;
 }
@@ -73,8 +74,17 @@ export class AuthStateService {
     return this.user?.subscriptionStatus ?? null;
   }
 
+  /**
+   * True if the subscription is GRACE, EXPIRED, or TRIAL ending within 7 days.
+   * Used to show expiry warning banners in the dashboard nav.
+   */
   isSubscriptionWarning(): boolean {
     const s = this.getSubscriptionStatus();
-    return s === 'GRACE' || s === 'EXPIRED';
+    if (s === 'GRACE' || s === 'EXPIRED') return true;
+    if (s === 'TRIAL' && this.user?.trialEndsAt) {
+      const msUntilExpiry = new Date(this.user.trialEndsAt).getTime() - Date.now();
+      return msUntilExpiry <= 7 * 24 * 60 * 60 * 1000; // 7 days
+    }
+    return false;
   }
 }

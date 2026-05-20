@@ -183,9 +183,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
 
   canUploadPhoto(): boolean {
     const role = this.getUserRole();
-    if (role === 'ADMIN' || role === 'SUB_ADMIN' || role === 'SUPER_ADMIN') return true;
-    if (role === 'TEACHER') return this.authService.getUserId() === this.teacherId;
-    return false;
+    return role === 'ADMIN' || role === 'SUB_ADMIN' || role === 'SUPER_ADMIN';
   }
 
   getInitials(): string {

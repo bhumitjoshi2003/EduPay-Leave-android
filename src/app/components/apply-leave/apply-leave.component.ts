@@ -166,7 +166,7 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
         if (confirmed) {
           const formattedLeaveDate = new Date(leaveDate).toISOString().split('T')[0];
 
-          this.leaveService.deleteLeave(this.studentId, formattedLeaveDate).subscribe({
+          this.leaveService.deleteLeave(this.studentId, formattedLeaveDate).pipe(takeUntil(this.destroy$)).subscribe({
             next: () => {
               this.leaveForm.reset();
               this.reasonControl?.setValue('');

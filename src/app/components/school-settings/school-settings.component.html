@@ -23,7 +23,19 @@
       <span class="ss-hero-pill" [class.ss-hpill-active]="settings.active" [class.ss-hpill-inactive]="!settings.active">
         <span class="ss-hpill-dot"></span>{{ settings.active ? 'Active' : 'Inactive' }}
       </span>
-      <span class="ss-hero-pill ss-hpill-plan">{{ settings.plan }}</span>
+      <ng-container *ngIf="entitlement; else legacyPlanPill">
+        <span class="ss-hero-pill ss-hpill-plan">{{ entitlement.planName || settings.plan }}</span>
+        <span class="ss-hero-pill"
+          [class.ss-hpill-active]="entitlement.subscriptionStatus === 'ACTIVE'"
+          [class.ss-hpill-trial]="entitlement.subscriptionStatus === 'TRIAL'"
+          [class.ss-hpill-grace]="entitlement.subscriptionStatus === 'GRACE'"
+          [class.ss-hpill-expired]="entitlement.subscriptionStatus === 'EXPIRED'">
+          {{ entitlement.subscriptionStatus }}
+        </span>
+      </ng-container>
+      <ng-template #legacyPlanPill>
+        <span class="ss-hero-pill ss-hpill-plan">{{ settings.plan }}</span>
+      </ng-template>
     </div>
   </div>
 
@@ -51,7 +63,7 @@
         <span class="ss-tab-label">Features</span>
       </button>
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'subscription'"
-              (click)="onTabChange('subscription'); loadEntitlement(); loadAvailablePlans()">
+              (click)="onTabChange('subscription'); loadEntitlement(true); loadAvailablePlans()">
         <span class="ss-tab-icon">📊</span>
         <span class="ss-tab-label">Plan</span>
       </button>
@@ -603,6 +615,44 @@
           </div>
         </div>
       </ng-container>
+
+      <!-- Subscription History Timeline -->
+      <div class="ss-card" *ngIf="isAdmin">
+        <div class="ss-card-header">
+          <div class="ss-card-title-row">
+            <div class="ss-card-icon-box ss-icon-box-indigo">📜</div>
+            <div>
+              <h2 class="ss-card-title">Subscription History</h2>
+              <p class="ss-card-subtitle">Recent lifecycle events for your subscription</p>
+            </div>
+          </div>
+        </div>
+        <div class="ss-history-loading" *ngIf="historyLoading">
+          <div class="ss-spinner ss-spinner-sm"></div>
+          <span>Loading history…</span>
+        </div>
+        <div class="ss-history-empty" *ngIf="!historyLoading && subscriptionHistory.length === 0">
+          <p>No subscription events recorded yet.</p>
+        </div>
+        <div class="ss-history-timeline" *ngIf="!historyLoading && subscriptionHistory.length > 0">
+          <div class="ss-history-item" *ngFor="let event of subscriptionHistory">
+            <div class="ss-history-dot ss-history-dot--{{ event.eventType.toLowerCase() }}"></div>
+            <div class="ss-history-content">
+              <div class="ss-history-event-row">
+                <span class="ss-history-event-label">{{ eventTypeLabel(event.eventType) }}</span>
+                <span class="ss-history-status-pill ss-hpill-{{ (event.status || 'unknown').toLowerCase() }}"
+                      *ngIf="event.status">{{ event.status }}</span>
+              </div>
+              <div class="ss-history-plan" *ngIf="event.planName">{{ event.planName }}</div>
+              <div class="ss-history-notes" *ngIf="event.notes">{{ event.notes }}</div>
+              <div class="ss-history-meta">
+                {{ event.occurredAt | date:'d MMM yyyy, h:mm a' }}
+                <span *ngIf="event.performedBy"> · {{ event.performedBy }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </ng-container>
 

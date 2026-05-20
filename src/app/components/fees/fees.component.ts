@@ -200,7 +200,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     ]).pipe(
       takeUntil(this.destroy$),
       switchMap(([fees, totalUnappliedLeaves]) => {
-        this.className = fees[0].className;
+        this.className = fees.length > 0 ? fees[0].className : '';
         this.totalUnappliedLeaves = totalUnappliedLeaves;
         this.totalUnappliedLeaveCharge = totalUnappliedLeaves * 25;
         return this.feeStructureService.getFeeStructure(this.session, this.className).pipe(

@@ -207,7 +207,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   isAdmin(): boolean {
-    return this.Role === 'ADMIN' || this.Role === 'SUB-ADMIN';
+    return this.Role === 'ADMIN' || this.Role === 'SUB_ADMIN';
   }
 
   isSuperAdmin(): boolean {
@@ -267,7 +267,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       'STUDENT': 'Student',
       'TEACHER': 'Teacher',
       'ADMIN': 'Admin',
-      'SUB-ADMIN': 'Sub Admin',
+      'SUB_ADMIN': 'Sub Admin',
       'SUPER_ADMIN': 'Super Admin',
     };
     return labels[this.Role] ?? this.Role;
@@ -278,7 +278,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       'STUDENT': 'chip-student',
       'TEACHER': 'chip-teacher',
       'ADMIN': 'chip-admin',
-      'SUB-ADMIN': 'chip-subadmin',
+      'SUB_ADMIN': 'chip-subadmin',
       'SUPER_ADMIN': 'chip-superadmin',
     };
     return classes[this.Role] ?? 'chip-student';
