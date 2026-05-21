@@ -339,7 +339,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
         this.entitlement = e;
         this.entitlementLoading = false;
         this.cdr.markForCheck();
-        this.loadSubscriptionHistory();
+        this.loadSubscriptionHistory(force);
       },
       error: (err: any) => {
         this.logger.error('Failed to load entitlement', err);
