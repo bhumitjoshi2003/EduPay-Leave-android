@@ -42,8 +42,7 @@ export class AuthInterceptor implements HttpInterceptor {
       request.url.includes('/auth/login') ||
       request.url.includes('/auth/refresh-token') ||
       request.url.includes('/auth/request-password-reset') ||
-      request.url.includes('/auth/reset-password') ||
-      request.url.includes('/auth/me');  // /auth/me returns 401 on app init (no cookie yet) — don't retry
+      request.url.includes('/auth/reset-password');
 
     // Only attach credentials to our own API — not to third-party URLs (e.g. Razorpay CDN)
     const isOwnApi = request.url.startsWith(environment.apiUrl);
@@ -73,7 +72,13 @@ export class AuthInterceptor implements HttpInterceptor {
         if (error.status === 403) {
           const body = error.error;
           const toast = this.injector.get(ToastService);
-          if (body?.code === 'RESOURCE_LIMIT_EXCEEDED') {
+          const msg = typeof body === 'string' ? body : body?.message;
+          if (msg === 'Unknown school' || msg === 'Forbidden') {
+            // Tenant validation failed — stale cookie or slug mismatch. Force re-login.
+            toast.error('Session Expired', 'Your session is no longer valid. Please log in again.');
+            this.authStateService.clearUser();
+            this.router.navigate(['/home']);
+          } else if (body?.code === 'RESOURCE_LIMIT_EXCEEDED') {
             toast.error('Limit Reached', body.message || 'You have reached your plan limit for this resource.');
           } else if (body?.code === 'FEATURE_NOT_AVAILABLE') {
             toast.warning('Feature Not Available', body.message || 'This feature is not available on your current plan. Upgrade to access it.');

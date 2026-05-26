@@ -9,7 +9,7 @@
 
   <!-- Body: HTML or plain text -->
   <div class="cd-body">
-    <div *ngIf="data.html; else plainMsg" [innerHTML]="data.html"></div>
+    <div *ngIf="sanitizedHtml; else plainMsg" [innerHTML]="sanitizedHtml"></div>
     <ng-template #plainMsg>
       <p *ngIf="data.message" class="cd-message">{{ data.message }}</p>
     </ng-template>

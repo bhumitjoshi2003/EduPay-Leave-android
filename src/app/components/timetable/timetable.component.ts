@@ -30,20 +30,24 @@ export class TimetableComponent implements OnInit, OnDestroy {
   userId = '';
   userClassName = '';
 
-  readonly days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-  readonly dayLabels: Record<string, string> = {
+  private static readonly DAY_LABELS: Record<string, string> = {
     MONDAY: 'Monday', TUESDAY: 'Tuesday', WEDNESDAY: 'Wednesday',
-    THURSDAY: 'Thursday', FRIDAY: 'Friday', SATURDAY: 'Saturday'
+    THURSDAY: 'Thursday', FRIDAY: 'Friday', SATURDAY: 'Saturday', SUNDAY: 'Sunday'
   };
-  readonly dayAbbr: Record<string, string> = {
+  private static readonly DAY_ABBR: Record<string, string> = {
     MONDAY: 'Mon', TUESDAY: 'Tue', WEDNESDAY: 'Wed',
-    THURSDAY: 'Thu', FRIDAY: 'Fri', SATURDAY: 'Sat'
+    THURSDAY: 'Thu', FRIDAY: 'Fri', SATURDAY: 'Sat', SUNDAY: 'Sun'
   };
-  readonly dayLetter: Record<string, string> = {
+  private static readonly DAY_LETTER: Record<string, string> = {
     MONDAY: 'M', TUESDAY: 'T', WEDNESDAY: 'W',
-    THURSDAY: 'T', FRIDAY: 'F', SATURDAY: 'S'
+    THURSDAY: 'T', FRIDAY: 'F', SATURDAY: 'S', SUNDAY: 'S'
   };
-  readonly allPeriods = Array.from({ length: 15 }, (_, i) => i + 1);
+
+  days: string[] = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+  dayLabels: Record<string, string> = TimetableComponent.DAY_LABELS;
+  dayAbbr: Record<string, string> = TimetableComponent.DAY_ABBR;
+  dayLetter: Record<string, string> = TimetableComponent.DAY_LETTER;
+  allPeriods: number[] = Array.from({ length: 8 }, (_, i) => i + 1);
 
   classList: string[] = [];
   selectedClass = '';
@@ -91,6 +95,23 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
       this.classList = classes;
       this.cdr.markForCheck();
+    });
+
+    // Load school settings to get configurable working days and periods
+    this.schoolService.getSettings().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (settings) => {
+        if (settings.workingDays) {
+          this.days = settings.workingDays.split(',').filter(d => d.trim()).map(d => d.trim().toUpperCase());
+        }
+        if (settings.periodsPerDay && settings.periodsPerDay > 0) {
+          this.allPeriods = Array.from({ length: settings.periodsPerDay }, (_, i) => i + 1);
+        }
+        if (!this.days.includes(this.selectedDay)) {
+          this.selectedDay = this.days.includes(this.todayDay) ? this.todayDay : this.days[0] ?? 'MONDAY';
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {}
     });
 
     if (this.isStudent()) {

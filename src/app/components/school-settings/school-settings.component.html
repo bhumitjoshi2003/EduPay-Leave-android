@@ -206,6 +206,38 @@
               </div>
             </div>
           </div>
+
+          <div class="ss-info-section">
+            <div class="ss-info-section-label">Academic Calendar</div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">📅</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Year Start Month</span>
+                <span class="ss-info-row-value">{{ academicYearStartLabel }}</span>
+              </div>
+            </div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">📆</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Working Days</span>
+                <span class="ss-info-row-value">{{ settings.workingDays || 'Mon–Sat' }}</span>
+              </div>
+            </div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">🕐</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Periods / Day</span>
+                <span class="ss-info-row-value">{{ settings.periodsPerDay || 8 }}</span>
+              </div>
+            </div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">🎓</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Grading System</span>
+                <span class="ss-info-row-value">{{ gradingSystemLabel }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </ng-container>
 
@@ -294,6 +326,37 @@
                 <span class="ss-field-error" *ngIf="ssPincode.invalid && ssPincode.dirty && editForm.pincode">
                   Pincode must be exactly 6 digits.
                 </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ss-form-section">
+            <div class="ss-form-section-label">Academic Calendar</div>
+            <div class="ss-form-grid">
+              <div class="ss-form-group">
+                <label class="ss-label">Academic Year Start Month</label>
+                <select class="ss-input" [(ngModel)]="editForm.academicYearStartMonth">
+                  <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.label }}</option>
+                </select>
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">Grading System</label>
+                <select class="ss-input" [(ngModel)]="editForm.gradingSystem">
+                  <option *ngFor="let g of gradingSystems" [value]="g.value">{{ g.label }}</option>
+                </select>
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">Periods per Day</label>
+                <input class="ss-input" type="number" [(ngModel)]="editForm.periodsPerDay" min="1" max="20" placeholder="8">
+              </div>
+              <div class="ss-form-group ss-full">
+                <label class="ss-label">Working Days</label>
+                <div class="ss-day-checkboxes">
+                  <label class="ss-day-check" *ngFor="let day of allDayOptions">
+                    <input type="checkbox" [checked]="isWorkingDay(day)" (change)="toggleWorkingDay(day)">
+                    <span>{{ day | titlecase }}</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>

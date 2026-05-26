@@ -55,9 +55,14 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-      this.classList = classes;
-      this.cdr.markForCheck();
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => {
+        this.classList = classes;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.toast.error('Error', 'Failed to load class list.');
+      }
     });
     this.studentForm.get('takesBus')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => {
       this.isBusUser = value;

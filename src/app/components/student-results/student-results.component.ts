@@ -9,7 +9,7 @@ import { Subject, takeUntil } from 'rxjs';
 import Chart from 'chart.js/auto';
 import { MarksService, ExamResult } from '../../services/marks.service';
 import { AuthStateService } from '../../auth/auth-state.service';
-import { FeesCalculationService } from '../../services/fees-calculation.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
 import { LoggerService } from '../../services/logger.service';
 
 @Component({
@@ -41,7 +41,7 @@ export class StudentResultsComponent implements OnInit, OnDestroy, AfterViewChec
   constructor(
     private marksService: MarksService,
     private authState: AuthStateService,
-    private feesCalc: FeesCalculationService,
+    private academicSessionService: AcademicSessionService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
@@ -49,9 +49,17 @@ export class StudentResultsComponent implements OnInit, OnDestroy, AfterViewChec
   ) { }
 
   ngOnInit(): void {
-    this.buildSessions();
     this.studentId = this.authState.getUserId();
-    this.loadResults();
+    this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
+      next: sessions => {
+        this.sessions = sessions.map(s => s.label);
+        const current = sessions.find(s => s.current);
+        this.selectedSession = current ? current.label : (this.sessions[0] ?? '');
+        this.cdr.markForCheck();
+        this.loadResults();
+      },
+      error: (e) => this.logger.error('Failed to load sessions', e)
+    });
   }
 
   ngOnDestroy(): void {
@@ -71,15 +79,6 @@ export class StudentResultsComponent implements OnInit, OnDestroy, AfterViewChec
       this.progressNeedsRender = false;
       this.renderProgressChart();
     }
-  }
-
-  private buildSessions(): void {
-    const today = new Date();
-    const current = this.feesCalc.getAcademicYear(today);
-    const [startStr] = current.split('-');
-    const start = parseInt(startStr);
-    this.sessions = [`${start - 2}-${start - 1}`, `${start - 1}-${start}`, current];
-    this.selectedSession = current;
   }
 
   loadResults(): void {

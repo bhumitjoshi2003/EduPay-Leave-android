@@ -10,6 +10,7 @@ import { MODULE_MESSAGES } from '../../config/module-messages.config';
 import { ToastService } from '../../services/toast.service';
 import { Capacitor } from '@capacitor/core';
 import { SchoolService } from '../../services/school.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
 
 @Component({
   selector: 'app-fee-reminders',
@@ -51,32 +52,35 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private academicSessionService: AcademicSessionService
   ) { }
 
   ngOnInit(): void {
-    this.initSessions();
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-      this.classList = classes;
-      this.cdr.markForCheck();
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => { this.classList = classes; this.cdr.markForCheck(); },
+      error: () => { }
     });
-    this.loadOverdue();
+
+    this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
+      next: sessions => {
+        this.sessions = sessions.map(s => s.label);
+        const current = sessions.find(s => s.current);
+        this.selectedSession = current ? current.label : (this.sessions[0] ?? '');
+        this.cdr.markForCheck();
+        this.loadOverdue();
+      },
+      error: (e) => {
+        this.logger.error('Failed to load sessions', e);
+        this.loadOverdue();
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private initSessions(): void {
-    const now = new Date();
-    const y = now.getFullYear();
-    const startYear = now.getMonth() + 1 >= 4 ? y : y - 1;
-    for (let i = 0; i < 3; i++) {
-      const s = startYear - i;
-      this.sessions.push(`${s}-${s + 1}`);
-    }
-    this.selectedSession = this.sessions[0];
   }
 
   // ── Filtered view ────────────────────────────────────────────────

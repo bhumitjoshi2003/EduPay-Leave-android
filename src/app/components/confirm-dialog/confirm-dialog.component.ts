@@ -1,7 +1,8 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, SecurityContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ConfirmDialogData } from '../../services/toast.service';
 
 @Component({
@@ -12,10 +13,17 @@ import { ConfirmDialogData } from '../../services/toast.service';
   styleUrl: './confirm-dialog.component.css',
 })
 export class ConfirmDialogComponent {
+  sanitizedHtml: SafeHtml | null = null;
+
   constructor(
     public ref: MatDialogRef<ConfirmDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ConfirmDialogData,
-  ) {}
+    private sanitizer: DomSanitizer,
+  ) {
+    if (data.html) {
+      this.sanitizedHtml = this.sanitizer.sanitize(SecurityContext.HTML, data.html) ?? '';
+    }
+  }
 
   get iconName(): string {
     const map: Record<string, string> = {

@@ -71,9 +71,15 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.attendanceDate = this.getTodayDateWithoutTime();
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-      this.classList = classes;
-      this.cdr.markForCheck();
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => {
+        this.classList = classes;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.logger.error('Failed to load classes:', err);
+        this.toast.error('Error', 'Failed to load class list.');
+      }
     });
     this.getUserRoleAndLoadData();
   }

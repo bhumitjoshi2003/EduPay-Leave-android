@@ -10,6 +10,7 @@ import { LoggerService } from '../../services/logger.service';
 import { Capacitor } from '@capacitor/core';
 import { ToastService } from '../../services/toast.service';
 import { SchoolService } from '../../services/school.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
 import {
   StudentAttendanceSummary, ClassAttendanceSummary, MonthlyBreakdown,
   DailyDetail, CalendarCell, CellStatus
@@ -81,7 +82,8 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private academicSessionService: AcademicSessionService
   ) {}
 
   ngOnInit(): void {
@@ -90,13 +92,25 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     this.userId = user?.userId ?? '';
     this.userClassName = user?.className ?? '';
 
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-      this.classList = classes;
-      this.cdr.markForCheck();
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => { this.classList = classes; this.cdr.markForCheck(); },
+      error: () => {}
     });
 
-    this.initSessions();
-    this.initYears();
+    this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
+      next: sessions => {
+        this.sessions = sessions.map(s => s.label);
+        const current = sessions.find(s => s.current);
+        this.selectedSession = current ? current.label : (this.sessions[0] ?? '');
+        this.initYears();
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to load sessions', e);
+        this.initYears();
+        this.cdr.markForCheck();
+      }
+    });
 
     if (this.role === 'STUDENT') {
       this.selectedStudentId = this.userId;
@@ -125,18 +139,6 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private initSessions(): void {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const startYear = month >= 4 ? year : year - 1;
-    for (let i = 0; i < 3; i++) {
-      const s = startYear - i;
-      this.sessions.push(`${s}-${s + 1}`);
-    }
-    this.selectedSession = this.sessions[0];
   }
 
   private initYears(): void {

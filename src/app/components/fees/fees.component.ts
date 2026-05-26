@@ -24,6 +24,8 @@ import { MODULE_MESSAGES } from '../../config/module-messages.config';
 import { FeesCalculationService, PaymentContext } from '../../services/fees-calculation.service';
 import { FeeBreakdownComponent } from './fee-breakdown.component';
 import { LoggerService } from '../../services/logger.service';
+import { SchoolService } from '../../services/school.service';
+import { take } from 'rxjs/operators';
 
 export interface MonthViewModel extends StudentFee {
   monthNumber: number;
@@ -79,7 +81,8 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     private authStateService: AuthStateService,
     private feesCalc: FeesCalculationService,
     private logger: LoggerService,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService
   ) { }
 
   comingSoonConfig = MODULE_MESSAGES.fees;
@@ -114,17 +117,27 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.paymentData = this.feesCalc.createEmptyPaymentData();
-    this.academicCurrentMonth = this.feesCalc.getAcademicMonth(this.currentMonth);
     this.role = this.authService.getUserRole();
+
+    // Load school settings first so academic year calculations use the correct start month
+    this.schoolService.getSettings().pipe(take(1), takeUntil(this.destroy$)).subscribe({
+      next: (settings) => {
+        this.feesCalc.setStartMonth(settings.academicYearStartMonth ?? 4);
+        this.initCalendarState();
+      },
+      error: () => this.initCalendarState()
+    });
+  }
+
+  private initCalendarState(): void {
     const today = new Date();
+    this.academicCurrentMonth = this.feesCalc.getAcademicMonth(this.currentMonth);
     this.currentAcademicYear = this.feesCalc.getAcademicYear(today);
 
     if (this.role === 'STUDENT') {
-      // studentId comes from the auth token — available synchronously
       this.getStudentId();
       this.fetchSessions();
     } else {
-      // studentId comes from route params — wait for it before fetching
       this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
         const studentIdFromParams = params['studentId'];
         if (studentIdFromParams && studentIdFromParams !== this.studentId) {

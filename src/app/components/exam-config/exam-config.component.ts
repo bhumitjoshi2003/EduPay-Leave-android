@@ -5,7 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { ToastService } from '../../services/toast.service';
 import { ExamConfigService, ExamConfig, ExamSubjectEntry } from '../../services/exam-config.service';
 import { LoggerService } from '../../services/logger.service';
-import { FeesCalculationService } from '../../services/fees-calculation.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
 import { SchoolService } from '../../services/school.service';
 
 @Component({
@@ -39,7 +39,7 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
 
   constructor(
     private examService: ExamConfigService,
-    private feesCalc: FeesCalculationService,
+    private academicSessionService: AcademicSessionService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
     private toast: ToastService,
@@ -47,31 +47,32 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.buildSessions();
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-      this.classOptions = classes;
-      if (!this.selectedClass && classes.length > 0) this.selectedClass = classes[0];
-      this.cdr.markForCheck();
-      this.loadExams();
+    this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
+      next: sessions => {
+        this.sessions = sessions.map(s => s.label);
+        const current = sessions.find(s => s.current);
+        this.selectedSession = current ? current.label : (this.sessions[0] ?? '');
+        this.cdr.markForCheck();
+        if (this.selectedClass) this.loadExams();
+      },
+      error: (e) => this.logger.error('Failed to load sessions', e)
+    });
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => {
+        this.classOptions = classes;
+        if (!this.selectedClass && classes.length > 0) {
+          this.selectedClass = classes[0];
+        }
+        this.cdr.markForCheck();
+        if (this.selectedSession) this.loadExams();
+      },
+      error: e => this.logger.error('Failed to load classes', e),
     });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private buildSessions(): void {
-    const today = new Date();
-    const current = this.feesCalc.getAcademicYear(today);
-    const [startStr] = current.split('-');
-    const start = parseInt(startStr);
-    this.sessions = [
-      `${start - 1}-${start}`,
-      current,
-      `${start + 1}-${start + 2}`,
-    ];
-    this.selectedSession = current;
   }
 
   loadExams(): void {

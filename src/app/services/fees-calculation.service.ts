@@ -28,23 +28,36 @@ export interface PaymentContext {
 })
 export class FeesCalculationService {
 
+  /** First calendar month of the academic year (1=Jan, 4=Apr, 7=Jul, etc.). Set once per session load. */
+  private startMonth = 4;
+
+  setStartMonth(month: number): void {
+    if (month >= 1 && month <= 12) {
+      this.startMonth = month;
+    }
+  }
+
   getAcademicMonth(calendarMonth: number): number {
-    return calendarMonth >= 4 ? calendarMonth - 3 : calendarMonth + 9;
+    return ((calendarMonth - this.startMonth + 12) % 12) + 1;
   }
 
   getAcademicYear(date: Date): string {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
-    return month >= 4 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+    return month >= this.startMonth ? `${year}-${year + 1}` : `${year - 1}-${year}`;
   }
 
   getSessionStartYear(session: string): number {
     return parseInt(session.substring(0, 4));
   }
 
-  getMonthName(monthNumber: number): string {
-    const months = ['April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March'];
-    return months[monthNumber - 1];
+  getMonthName(academicMonth: number): string {
+    const calendarMonths = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const calendarIndex = (this.startMonth - 1 + academicMonth - 1) % 12;
+    return calendarMonths[calendarIndex];
   }
 
   calculateLateFees(academicFeeMonth: number, session: string, currentAcademicYear: string): number {

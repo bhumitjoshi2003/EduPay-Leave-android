@@ -67,7 +67,9 @@ export class AuthStateService {
 
   /** UX-only feature check — backend is always authoritative. */
   hasFeature(featureKey: string): boolean {
-    return this.user?.featureKeys?.includes(featureKey) ?? false;
+    const keys = this.user?.featureKeys;
+    if (!keys || keys.length === 0) return true;
+    return keys.includes(featureKey);
   }
 
   getSubscriptionStatus(): string | null {

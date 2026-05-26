@@ -7,7 +7,7 @@ import { MarksService, ClassStudentResult, ClassStudentSubject } from '../../ser
 import { ExamConfigService, ExamConfig, ExamSubjectEntry } from '../../services/exam-config.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { TeacherService } from '../../services/teacher.service';
-import { FeesCalculationService } from '../../services/fees-calculation.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
 import { LoggerService } from '../../services/logger.service';
 import { SchoolService } from '../../services/school.service';
 
@@ -40,7 +40,7 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
     private examService: ExamConfigService,
     private authState: AuthStateService,
     private teacherService: TeacherService,
-    private feesCalc: FeesCalculationService,
+    private academicSessionService: AcademicSessionService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
@@ -48,10 +48,30 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.buildSessions();
     const user = this.authState.getUser();
     this.role = user?.role ?? '';
 
+    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => { this.classOptions = classes; this.cdr.markForCheck(); },
+      error: () => {}
+    });
+
+    this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
+      next: sessions => {
+        this.sessions = sessions.map(s => s.label);
+        const current = sessions.find(s => s.current);
+        this.selectedSession = current ? current.label : (this.sessions[0] ?? '');
+        this.cdr.markForCheck();
+        this.initAfterSettings(user);
+      },
+      error: (e) => {
+        this.logger.error('Failed to load sessions', e);
+        this.initAfterSettings(user);
+      }
+    });
+  }
+
+  private initAfterSettings(user: any): void {
     if (this.role === 'TEACHER') {
       this.teacherService.getTeacher(user!.userId).pipe(takeUntil(this.destroy$)).subscribe({
         next: (t) => {
@@ -61,32 +81,15 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
         },
         error: (e) => this.logger.error('Error fetching teacher:', e),
       });
-      this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-        this.classOptions = classes;
-        this.cdr.markForCheck();
-      });
     } else {
-      this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-        this.classOptions = classes;
-        if (!this.selectedClass && classes.length > 0) this.selectedClass = classes[0];
-        this.cdr.markForCheck();
-        this.loadExams();
-      });
+      this.selectedClass = this.classOptions.length > 0 ? this.classOptions[0] : '1';
+      this.loadExams();
     }
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private buildSessions(): void {
-    const today = new Date();
-    const current = this.feesCalc.getAcademicYear(today);
-    const [startStr] = current.split('-');
-    const start = parseInt(startStr);
-    this.sessions = [`${start - 1}-${start}`, current, `${start + 1}-${start + 2}`];
-    this.selectedSession = current;
   }
 
   loadExams(): void {

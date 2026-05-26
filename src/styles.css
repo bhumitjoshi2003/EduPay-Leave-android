@@ -1,16 +1,47 @@
-/* You can add global styles to this file, and also import other style files */
+/* ── Edunexify Global Styles ────────────────────────────────────── */
 
-html,
-body {
-    height: 100%;
+/* Base reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
 }
 
 body {
-    margin: 0;
-    font-family: Roboto, "Helvetica Neue", sans-serif;
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* ── Edunexify Color Tokens ─────────────────────────────────────── */
+:root {
+  --edu-navy:         #0f172a;
+  --edu-dark:         #1e293b;
+  --edu-blue:         #1e3a5f;
+  --edu-teal:         #4fbdbd;
+  --edu-teal-dark:    #0f766e;
+  --edu-teal-mid:     #0d9488;
+  --edu-bg:           #f0f4f8;
+  --edu-bg-light:     #f8fafc;
+  --edu-border:       #e2e8f0;
+  --edu-text:         #1e293b;
+  --edu-text-sec:     #64748b;
+  --edu-text-muted:   #94a3b8;
+  --edu-shadow-sm:    0 2px 12px rgba(30, 58, 95, 0.07);
+  --edu-shadow-md:    0 4px 18px rgba(30, 58, 95, 0.14);
+  --edu-shadow-lg:    0 8px 40px rgba(30, 58, 95, 0.14);
+
+  /* Spacing tokens */
+  --edu-radius-sm:    6px;
+  --edu-radius-md:    10px;
+  --edu-radius-lg:    14px;
+  --edu-radius-xl:    18px;
+
+  /* Touch target minimum */
+  --edu-touch-min:    44px;
+}
 
 /* ── edu-dialog: shared panel class for confirm / select-month dialogs ── */
 .edu-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
@@ -95,7 +126,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 @media print {
   @page {
     size: A4;
-    margin: 0;
+    margin: 1cm;
   }
 
   .header-area,

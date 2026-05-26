@@ -112,7 +112,9 @@ export class StudentListComponent implements OnInit, OnDestroy {
               this.cdr.markForCheck();
             }
           },
-          error: () => {
+          error: (err) => {
+            this.logger.error('Failed to load classes:', err);
+            this.toast.error('Error', 'Failed to load class list.');
             this.isLoading = false;
             this.cdr.markForCheck();
           }
