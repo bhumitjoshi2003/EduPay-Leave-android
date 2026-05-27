@@ -5,6 +5,7 @@ export interface FeeStructureRule {
   feeHeadCode?: string;
   academicSessionId: number;
   className: string;
+  classId?: number;
   amount: number; // in paise
   effectiveFrom: string;
   effectiveUntil?: string;

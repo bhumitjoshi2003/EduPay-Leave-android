@@ -261,3 +261,20 @@
 
 .ta-mark-absent  { background: linear-gradient(135deg, #dc2626, #f87171); color: #fff; }
 .ta-mark-present { background: linear-gradient(135deg, #059669, #34d399); color: #fff; }
+
+.ta-status-select {
+  padding: 5px 8px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  flex-shrink: 0;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.ta-status-select:focus { border-color: #059669; }
+.ta-status-select:disabled { opacity: 0.45; cursor: not-allowed; }

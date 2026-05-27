@@ -304,3 +304,98 @@
 .cm-empty-icon  { font-size: 2.5rem; margin-bottom: 4px; }
 .cm-empty-title { font-size: 0.95rem; font-weight: 700; color: #374151; margin: 0; }
 .cm-empty-sub   { font-size: 0.8rem;  color: #94a3b8; margin: 0; }
+
+/* ── Section management ──────────────────────────────────────────────── */
+.cm-row-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.cm-name-clickable { cursor: pointer; }
+
+.cm-section-count {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #e0e7ff;
+  color: #4338ca;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.cm-sections {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 12px 14px;
+  margin-top: -2px;
+}
+
+.cm-sections-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #64748b;
+  padding: 8px 0;
+}
+
+.cm-spinner-sm {
+  width: 18px; height: 18px;
+  border-width: 2px;
+}
+
+.cm-section-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.cm-section-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+
+.cm-section-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.cm-icon-btn-sm {
+  width: 22px; height: 22px;
+  font-size: 0.6rem;
+}
+
+.cm-section-empty {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  padding: 6px 0;
+  margin-bottom: 10px;
+}
+
+.cm-section-add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cm-input-sm {
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  border-radius: 8px;
+}
+
+.cm-btn-sm {
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  border-radius: 8px;
+}

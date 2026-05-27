@@ -1,0 +1,86 @@
+<div class="invd-page">
+
+  <div class="invd-loading" *ngIf="isLoading">
+    <div class="invd-spinner"></div><p>Loading invoice...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && invoice">
+
+    <div class="invd-hero">
+      <div>
+        <h1 class="invd-hero-title">{{ invoice.invoiceNumber }}</h1>
+        <p class="invd-hero-sub">{{ invoice.studentName || invoice.studentId }} &middot; {{ invoice.className }}</p>
+      </div>
+      <span class="invd-status" [ngClass]="getStatusClass(invoice.status)">{{ invoice.status }}</span>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="invd-summary">
+      <div class="invd-stat">
+        <span class="invd-stat-label">Net Amount</span>
+        <span class="invd-stat-value">{{ invoice.netAmount }}</span>
+      </div>
+      <div class="invd-stat">
+        <span class="invd-stat-label">Amount Paid</span>
+        <span class="invd-stat-value invd-green">{{ invoice.amountPaid }}</span>
+      </div>
+      <div class="invd-stat">
+        <span class="invd-stat-label">Balance Due</span>
+        <span class="invd-stat-value" [class.invd-red]="invoice.balanceDue > 0">{{ invoice.balanceDue }}</span>
+      </div>
+      <div class="invd-stat">
+        <span class="invd-stat-label">Billing Month</span>
+        <span class="invd-stat-value">{{ invoice.billingMonthName || invoice.billingMonth }}</span>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="invd-card">
+      <div class="invd-info-row">
+        <span class="invd-info-label">Session</span>
+        <span>{{ invoice.sessionLabel }}</span>
+      </div>
+      <div class="invd-info-row">
+        <span class="invd-info-label">Due Date</span>
+        <span>{{ invoice.dueDate }}</span>
+      </div>
+      <div class="invd-info-row" *ngIf="invoice.issuedAt">
+        <span class="invd-info-label">Issued At</span>
+        <span>{{ invoice.issuedAt }}</span>
+      </div>
+      <div class="invd-info-row">
+        <span class="invd-info-label">Total Amount</span>
+        <span>{{ invoice.totalAmount }}</span>
+      </div>
+      <div class="invd-info-row" *ngIf="invoice.discountAmount">
+        <span class="invd-info-label">Discount</span>
+        <span>-{{ invoice.discountAmount }}</span>
+      </div>
+    </div>
+
+    <!-- Line items -->
+    <div class="invd-card" *ngIf="invoice.lineItems?.length">
+      <h2 class="invd-card-title">Line Items</h2>
+      <div class="invd-line-head">
+        <span class="invd-lh-desc">Description</span>
+        <span class="invd-lh-amt">Base</span>
+        <span class="invd-lh-amt">Discount</span>
+        <span class="invd-lh-amt">Net</span>
+      </div>
+      <div class="invd-line-row" *ngFor="let li of invoice.lineItems">
+        <span class="invd-lr-desc">
+          <span class="invd-lr-code">{{ li.feeHeadCode }}</span>
+          {{ li.description }}
+        </span>
+        <span class="invd-lr-amt">{{ li.baseAmount }}</span>
+        <span class="invd-lr-amt">{{ li.discountAmount || '-' }}</span>
+        <span class="invd-lr-amt invd-bold">{{ li.netAmount }}</span>
+      </div>
+    </div>
+
+    <div class="invd-back">
+      <a routerLink="/dashboard/invoice-management" class="invd-link">Back to Invoices</a>
+    </div>
+
+  </ng-container>
+</div>

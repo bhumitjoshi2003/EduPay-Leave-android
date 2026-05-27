@@ -121,6 +121,11 @@ export const routes: Routes = [
         loadComponent: () => import('./components/class-management/class-management.component').then(m => m.ClassManagementComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }
       },
+      {
+        path: 'holiday-calendar',
+        loadComponent: () => import('./components/holiday-calendar/holiday-calendar.component').then(m => m.HolidayCalendarComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
 
       // ── Admin-only routes ─────────────────────────────────────────────
       {
@@ -193,6 +198,43 @@ export const routes: Routes = [
       {
         path: 'bus-fees',
         loadComponent: () => import('./components/bus-fees/bus-fees.component').then(m => m.BusFeesComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+
+      // ── New Fee System (invoice-based) ────────────────────────────────
+      {
+        path: 'fee-head-management',
+        loadComponent: () => import('./components/fee-head-management/fee-head-management.component').then(m => m.FeeHeadManagementComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'fee-rule-config',
+        loadComponent: () => import('./components/fee-rule-config/fee-rule-config.component').then(m => m.FeeRuleConfigComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'invoice-management',
+        loadComponent: () => import('./components/invoice-management/invoice-management.component').then(m => m.InvoiceManagementComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'invoice-detail/:invoiceId',
+        loadComponent: () => import('./components/invoice-detail/invoice-detail.component').then(m => m.InvoiceDetailComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'STUDENT'] }
+      },
+      {
+        path: 'student-fees',
+        loadComponent: () => import('./components/student-fee-overview/student-fee-overview.component').then(m => m.StudentFeeOverviewComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT'] }
+      },
+      {
+        path: 'student-fees/:studentId',
+        loadComponent: () => import('./components/student-fee-overview/student-fee-overview.component').then(m => m.StudentFeeOverviewComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'payment-record',
+        loadComponent: () => import('./components/payment-record/payment-record.component').then(m => m.PaymentRecordComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
 

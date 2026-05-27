@@ -1,0 +1,57 @@
+<div class="sfo-page">
+
+  <div class="sfo-loading" *ngIf="isLoading">
+    <div class="sfo-spinner"></div><p>Loading fee overview...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && overview">
+
+    <div class="sfo-hero">
+      <div>
+        <h1 class="sfo-hero-title">Fee Overview</h1>
+        <p class="sfo-hero-sub">{{ overview.studentName }} &middot; {{ overview.className }} &middot; {{ overview.sessionLabel }}</p>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="sfo-summary">
+      <div class="sfo-stat">
+        <span class="sfo-stat-label">Total for Year</span>
+        <span class="sfo-stat-value">{{ overview.totalFeeForYear }}</span>
+      </div>
+      <div class="sfo-stat">
+        <span class="sfo-stat-label">Total Paid</span>
+        <span class="sfo-stat-value sfo-green">{{ overview.totalPaid }}</span>
+      </div>
+      <div class="sfo-stat">
+        <span class="sfo-stat-label">Outstanding</span>
+        <span class="sfo-stat-value" [class.sfo-red]="overview.totalOutstanding > 0">{{ overview.totalOutstanding }}</span>
+      </div>
+    </div>
+
+    <!-- Invoice list -->
+    <div class="sfo-card">
+      <h2 class="sfo-card-title">Invoices</h2>
+
+      <div class="sfo-empty" *ngIf="overview.invoices.length === 0">
+        <p>No invoices generated yet.</p>
+      </div>
+
+      <div class="sfo-list" *ngIf="overview.invoices.length > 0">
+        <a class="sfo-row" *ngFor="let inv of overview.invoices"
+          [routerLink]="['/dashboard/invoice-detail', inv.id]">
+          <div class="sfo-row-top">
+            <span class="sfo-month">{{ inv.billingMonthName || inv.billingMonth }}</span>
+            <span class="sfo-status" [ngClass]="getStatusClass(inv.status)">{{ inv.status }}</span>
+          </div>
+          <div class="sfo-row-bot">
+            <span>Net: {{ inv.netAmount }}</span>
+            <span *ngIf="inv.amountPaid > 0">Paid: {{ inv.amountPaid }}</span>
+            <span class="sfo-due" *ngIf="inv.balanceDue > 0">Due: {{ inv.balanceDue }}</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

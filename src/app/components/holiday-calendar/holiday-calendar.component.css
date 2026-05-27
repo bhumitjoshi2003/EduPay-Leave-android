@@ -1,0 +1,134 @@
+.hc-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+/* Hero */
+.hc-hero {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 55%, #93c5fd 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #fff;
+}
+.hc-hero-left { display: flex; align-items: center; gap: 14px; }
+.hc-hero-icon { font-size: 2rem; }
+.hc-hero-title { margin: 0; font-size: 1.25rem; font-weight: 800; }
+.hc-hero-sub { margin: 2px 0 0; font-size: 0.82rem; opacity: 0.85; }
+
+/* Controls */
+.hc-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.hc-select {
+  padding: 8px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  outline: none;
+}
+.hc-select:focus { border-color: #3b82f6; }
+
+/* Buttons */
+.hc-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.hc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.hc-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.hc-btn-primary { background: linear-gradient(135deg, #1e40af, #3b82f6); color: #fff; }
+.hc-btn-secondary { background: #f1f5f9; color: #475569; }
+.hc-btn-icon {
+  background: none; border: none; cursor: pointer; font-size: 1rem;
+  padding: 4px 6px; border-radius: 6px; transition: background 0.15s;
+}
+.hc-btn-icon:hover { background: #f1f5f9; }
+.hc-btn-danger:hover { background: #fef2f2; }
+
+/* Loading */
+.hc-loading {
+  display: flex; align-items: center; gap: 10px; padding: 32px 20px;
+  justify-content: center; color: #64748b; font-size: 0.85rem;
+}
+.hc-spinner {
+  width: 20px; height: 20px; border: 2.5px solid #e2e8f0;
+  border-top-color: #3b82f6; border-radius: 50%;
+  animation: hc-spin 0.7s linear infinite;
+}
+@keyframes hc-spin { to { transform: rotate(360deg); } }
+
+/* Empty */
+.hc-empty {
+  text-align: center; padding: 40px 20px; color: #94a3b8;
+}
+.hc-empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+.hc-empty-title { font-size: 1rem; font-weight: 700; color: #64748b; margin: 0 0 4px; }
+.hc-empty-sub { font-size: 0.82rem; margin: 0; }
+
+/* Holiday list */
+.hc-list { display: flex; flex-direction: column; gap: 8px; }
+
+.hc-card {
+  display: flex; align-items: center; gap: 16px;
+  background: #fff; border-radius: 14px; padding: 14px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid rgba(226,232,240,0.7);
+  transition: box-shadow 0.15s;
+}
+.hc-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+.hc-card-date {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 50px; flex-shrink: 0;
+}
+.hc-date-day { font-size: 1.3rem; font-weight: 800; color: #1e40af; line-height: 1.1; }
+.hc-date-month { font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+.hc-date-year { font-size: 0.65rem; color: #94a3b8; }
+
+.hc-card-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hc-card-name { font-size: 0.9rem; font-weight: 700; color: #1e293b; }
+.hc-card-type { font-size: 0.75rem; color: #94a3b8; }
+
+.hc-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+/* Overlay form */
+.hc-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.hc-form-card {
+  background: #fff; border-radius: 20px; padding: 28px 24px;
+  width: 100%; max-width: 420px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+.hc-form-title { margin: 0 0 20px; font-size: 1.1rem; font-weight: 800; color: #0f172a; }
+
+.hc-label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 0.78rem; font-weight: 600; color: #64748b;
+  margin-bottom: 14px;
+}
+.hc-input {
+  padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 0.85rem; font-family: inherit; color: #1e293b;
+  outline: none; transition: border-color 0.15s;
+}
+.hc-input:focus { border-color: #3b82f6; }
+
+.hc-form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }

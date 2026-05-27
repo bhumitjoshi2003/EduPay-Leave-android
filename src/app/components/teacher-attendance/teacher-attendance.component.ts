@@ -22,6 +22,7 @@ interface Student {
   name: string;
   absent: boolean;
   chargePaid: boolean;
+  status: 'ABSENT' | 'HALF_DAY' | 'LATE' | 'EXCUSED';
 }
 
 @Component({
@@ -143,6 +144,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
           name: dto.name,
           absent: false,
           chargePaid: true,
+          status: 'ABSENT' as const,
         }));
         this.hasStudents = this.students.length > 0;
         this.cdr.markForCheck();
@@ -194,6 +196,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
             const att = attendanceMap.get(student.studentId);
             student.absent = !!att;
             student.chargePaid = att ? att.chargePaid : true;
+            student.status = att?.status as Student['status'] || 'ABSENT';
           });
         } else {
           this.disableDeleteButton = true;
@@ -213,6 +216,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     if (student) {
       student.absent = true;
       student.chargePaid = this.absentStudents.includes(student.studentId);
+      student.status = 'ABSENT';
     }
   }
 
@@ -221,6 +225,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     if (student) {
       student.absent = false;
       student.chargePaid = true;
+      student.status = 'ABSENT';
     }
   }
 
@@ -249,6 +254,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
             chargePaid: student.chargePaid,
             date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
             className: this.selectedClass,
+            status: student.status,
           }));
 
         attendanceData.push({
@@ -256,6 +262,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
           chargePaid: true,
           date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
           className: this.selectedClass,
+          status: 'ABSENT',
         });
 
         this.attendanceService.saveAttendance(attendanceData).pipe(takeUntil(this.destroy$)).subscribe({

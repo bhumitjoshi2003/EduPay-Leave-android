@@ -10,6 +10,7 @@ export interface PaymentData {
   studentId: string;
   studentName: string;
   className: string;
+  classId?: number;
   session: string;
   paidManually: boolean;
   amountPaid: number;

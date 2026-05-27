@@ -68,6 +68,15 @@
 
       <span class="ta-student-name">{{ student.name }}</span>
 
+      <select *ngIf="student.absent" class="ta-status-select"
+        [(ngModel)]="student.status"
+        [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate)">
+        <option value="ABSENT">Absent</option>
+        <option value="HALF_DAY">Half Day</option>
+        <option value="LATE">Late</option>
+        <option value="EXCUSED">Excused</option>
+      </select>
+
       <button *ngIf="!student.absent" class="ta-mark-btn ta-mark-absent"
         [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate)"
         (click)="markAbsent(student.studentId)">

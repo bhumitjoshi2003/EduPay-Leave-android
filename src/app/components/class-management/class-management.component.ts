@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { SchoolService, SchoolClass } from '../../services/school.service';
+import { SectionService } from '../../services/section.service';
+import { Section } from '../../interfaces/section';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
@@ -25,8 +27,16 @@ export class ClassManagementComponent implements OnInit, OnDestroy {
   savingOrder = false;
   role = '';
 
+  // Section management
+  expandedClassId: number | null = null;
+  classSections: Map<number, Section[]> = new Map();
+  sectionsLoading: Set<number> = new Set();
+  newSectionName: Map<number, string> = new Map();
+  addingSectionForClass: number | null = null;
+
   constructor(
     private schoolService: SchoolService,
+    private sectionService: SectionService,
     private authStateService: AuthStateService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
@@ -163,4 +173,96 @@ export class ClassManagementComponent implements OnInit, OnDestroy {
   }
 
   trackById(_: number, cls: SchoolClass): number { return cls.id; }
+
+  // ── Section Management ────────────────────────────────────────────
+
+  toggleSections(cls: SchoolClass): void {
+    if (this.expandedClassId === cls.id) {
+      this.expandedClassId = null;
+    } else {
+      this.expandedClassId = cls.id;
+      if (!this.classSections.has(cls.id)) {
+        this.loadSections(cls.id);
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
+  loadSections(classId: number): void {
+    this.sectionsLoading.add(classId);
+    this.cdr.markForCheck();
+    this.sectionService.getSectionsForClass(classId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (sections) => {
+        this.classSections.set(classId, sections);
+        this.sectionsLoading.delete(classId);
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to load sections', e);
+        this.toast.error('Error', 'Failed to load sections.');
+        this.sectionsLoading.delete(classId);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  getNewSectionName(classId: number): string {
+    return this.newSectionName.get(classId) ?? '';
+  }
+
+  setNewSectionName(classId: number, value: string): void {
+    this.newSectionName.set(classId, value);
+  }
+
+  addSection(classId: number): void {
+    const name = (this.newSectionName.get(classId) ?? '').trim();
+    if (!name) return;
+    this.addingSectionForClass = classId;
+    this.cdr.markForCheck();
+    const section: Section = { classId, name, active: true };
+    this.sectionService.createSection(section).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (created) => {
+        const current = this.classSections.get(classId) ?? [];
+        this.classSections.set(classId, [...current, created]);
+        this.newSectionName.set(classId, '');
+        this.addingSectionForClass = null;
+        this.toast.success('Added', `Section "${created.name}" added.`);
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to add section', e);
+        this.toast.error('Error', e?.error?.message || 'Could not add section.');
+        this.addingSectionForClass = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  removeSection(classId: number, section: Section): void {
+    this.toast.confirm({
+      title: `Remove "${section.name}"?`,
+      message: 'This will remove the section from this class.',
+      icon: 'warning',
+      danger: true,
+      confirmText: 'Yes, remove',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed || !section.id) return;
+      this.sectionService.deleteSection(section.id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          const current = this.classSections.get(classId) ?? [];
+          this.classSections.set(classId, current.filter(s => s.id !== section.id));
+          this.toast.success('Removed', `Section "${section.name}" removed.`);
+          this.cdr.markForCheck();
+        },
+        error: (e) => {
+          this.logger.error('Failed to delete section', e);
+          this.toast.error('Error', 'Could not remove section.');
+          this.cdr.markForCheck();
+        }
+      });
+    });
+  }
+
+  trackBySectionId(_: number, section: Section): number { return section.id!; }
 }

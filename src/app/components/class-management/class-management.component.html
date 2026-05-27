@@ -44,27 +44,81 @@
 
       <!-- Rows -->
       <div class="cm-list" *ngIf="classes.length > 0">
-        <div class="cm-row" *ngFor="let cls of classes; let i = index; let first = first; let last = last; trackBy: trackById">
+        <div class="cm-row-wrap" *ngFor="let cls of classes; let i = index; let first = first; let last = last; trackBy: trackById">
+          <div class="cm-row">
 
-          <span class="cm-order">{{ i + 1 }}</span>
+            <span class="cm-order">{{ i + 1 }}</span>
 
-          <span class="cm-name">{{ cls.name }}</span>
+            <span class="cm-name" (click)="toggleSections(cls)" class="cm-name cm-name-clickable">{{ cls.name }}</span>
 
-          <!-- Stream badge (view-only for sub-admin) -->
-          <button *ngIf="isAdmin"
-            class="cm-stream-btn"
-            [class.cm-stream-on]="cls.streamEligible"
-            (click)="toggleStreamEligible(cls)"
-            [title]="cls.streamEligible ? 'Remove from stream assignment' : 'Add to stream assignment'">
-            Stream
-          </button>
-          <span *ngIf="!isAdmin && cls.streamEligible" class="cm-stream-badge">Stream</span>
+            <!-- Section count badge -->
+            <span class="cm-section-count" *ngIf="classSections.get(cls.id)?.length"
+              (click)="toggleSections(cls)" title="Sections">
+              {{ classSections.get(cls.id)!.length }} sec
+            </span>
 
-          <!-- Reorder + delete (admin only) -->
-          <div class="cm-actions" *ngIf="isAdmin">
-            <button class="cm-icon-btn" (click)="moveClass(i, 'up')" [disabled]="first" title="Move up">▲</button>
-            <button class="cm-icon-btn" (click)="moveClass(i, 'down')" [disabled]="last" title="Move down">▼</button>
-            <button class="cm-icon-btn cm-danger" (click)="removeClass(cls)" title="Remove class">✕</button>
+            <!-- Stream badge (view-only for sub-admin) -->
+            <button *ngIf="isAdmin"
+              class="cm-stream-btn"
+              [class.cm-stream-on]="cls.streamEligible"
+              (click)="toggleStreamEligible(cls)"
+              [title]="cls.streamEligible ? 'Remove from stream assignment' : 'Add to stream assignment'">
+              Stream
+            </button>
+            <span *ngIf="!isAdmin && cls.streamEligible" class="cm-stream-badge">Stream</span>
+
+            <!-- Expand sections toggle -->
+            <button class="cm-icon-btn" (click)="toggleSections(cls)"
+              [title]="expandedClassId === cls.id ? 'Hide sections' : 'Show sections'">
+              {{ expandedClassId === cls.id ? '▾' : '▸' }}
+            </button>
+
+            <!-- Reorder + delete (admin only) -->
+            <div class="cm-actions" *ngIf="isAdmin">
+              <button class="cm-icon-btn" (click)="moveClass(i, 'up')" [disabled]="first" title="Move up">▲</button>
+              <button class="cm-icon-btn" (click)="moveClass(i, 'down')" [disabled]="last" title="Move down">▼</button>
+              <button class="cm-icon-btn cm-danger" (click)="removeClass(cls)" title="Remove class">✕</button>
+            </div>
+
+          </div>
+
+          <!-- Sections panel (expanded) -->
+          <div class="cm-sections" *ngIf="expandedClassId === cls.id">
+
+            <div class="cm-sections-loading" *ngIf="sectionsLoading.has(cls.id)">
+              <div class="cm-spinner cm-spinner-sm"></div>
+              <span>Loading sections...</span>
+            </div>
+
+            <ng-container *ngIf="!sectionsLoading.has(cls.id)">
+              <div class="cm-section-list" *ngIf="(classSections.get(cls.id) ?? []).length > 0">
+                <div class="cm-section-row" *ngFor="let sec of classSections.get(cls.id); trackBy: trackBySectionId">
+                  <span class="cm-section-name">{{ sec.name }}</span>
+                  <button *ngIf="isAdmin" class="cm-icon-btn cm-icon-btn-sm cm-danger"
+                    (click)="removeSection(cls.id, sec)" title="Remove section">✕</button>
+                </div>
+              </div>
+
+              <div class="cm-section-empty" *ngIf="(classSections.get(cls.id) ?? []).length === 0">
+                No sections yet
+              </div>
+
+              <!-- Add section (admin only) -->
+              <div class="cm-section-add" *ngIf="isAdmin">
+                <input class="cm-input cm-input-sm"
+                  type="text"
+                  [ngModel]="getNewSectionName(cls.id)"
+                  (ngModelChange)="setNewSectionName(cls.id, $event)"
+                  placeholder="e.g. A, B, C..."
+                  (keyup.enter)="addSection(cls.id)"
+                  [disabled]="addingSectionForClass === cls.id">
+                <button class="cm-btn cm-btn-primary cm-btn-sm"
+                  (click)="addSection(cls.id)"
+                  [disabled]="addingSectionForClass === cls.id || !getNewSectionName(cls.id).trim()">
+                  {{ addingSectionForClass === cls.id ? 'Adding...' : 'Add' }}
+                </button>
+              </div>
+            </ng-container>
           </div>
 
         </div>

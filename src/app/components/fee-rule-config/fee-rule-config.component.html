@@ -1,0 +1,78 @@
+<div class="frc-page">
+
+  <div class="frc-hero">
+    <div class="frc-hero-icon">📋</div>
+    <div>
+      <h1 class="frc-hero-title">Fee Rules</h1>
+      <p class="frc-hero-sub">Set fee amounts per class for each fee head</p>
+    </div>
+  </div>
+
+  <div class="frc-loading" *ngIf="isLoading">
+    <div class="frc-spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- Filters -->
+    <div class="frc-filters">
+      <div class="frc-field">
+        <label class="frc-label">Session</label>
+        <select class="frc-select" [(ngModel)]="selectedSessionId" (ngModelChange)="onFilterChange()">
+          <option [ngValue]="null" disabled>Select session</option>
+          <option *ngFor="let s of sessions" [ngValue]="s.id">{{ s.label }}{{ s.current ? ' (Current)' : '' }}</option>
+        </select>
+      </div>
+      <div class="frc-field">
+        <label class="frc-label">Class</label>
+        <select class="frc-select" [(ngModel)]="selectedClass" (ngModelChange)="onFilterChange()">
+          <option value="" disabled>Select class</option>
+          <option *ngFor="let c of classes" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="frc-loading" *ngIf="rulesLoading">
+      <div class="frc-spinner"></div>
+      <p>Loading rules...</p>
+    </div>
+
+    <!-- Rules table -->
+    <div class="frc-card" *ngIf="!rulesLoading && rules.length > 0">
+      <div class="frc-card-header">
+        <h2 class="frc-card-title">Fee amounts for {{ selectedClass }}</h2>
+        <button class="frc-btn frc-btn-outline" (click)="startEditing()" *ngIf="!editing">Edit</button>
+      </div>
+
+      <div class="frc-table">
+        <div class="frc-table-head">
+          <span class="frc-th frc-th-name">Fee Head</span>
+          <span class="frc-th frc-th-amount">Amount (paise)</span>
+        </div>
+        <div class="frc-table-row" *ngFor="let rule of rules">
+          <span class="frc-td frc-td-name">{{ rule.feeHeadName || getFeeHeadName(rule.feeHeadId) }}</span>
+          <span class="frc-td frc-td-amount" *ngIf="!editing">{{ rule.amount }}</span>
+          <input class="frc-input frc-td-amount" *ngIf="editing"
+            type="number" [(ngModel)]="rule.amount" min="0">
+        </div>
+        <div class="frc-table-footer">
+          <span class="frc-tf">Total</span>
+          <span class="frc-tf frc-tf-amount">{{ totalForClass() }}</span>
+        </div>
+      </div>
+
+      <div class="frc-form-actions" *ngIf="editing">
+        <button class="frc-btn frc-btn-outline" (click)="cancelEditing()">Cancel</button>
+        <button class="frc-btn frc-btn-primary" (click)="saveRules()" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Save Rules' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="frc-card" *ngIf="!rulesLoading && selectedSessionId && selectedClass && rules.length === 0 && feeHeads.length === 0">
+      <p style="text-align:center; color:#94a3b8; padding:20px">No fee heads configured. Add fee heads first.</p>
+    </div>
+
+  </ng-container>
+</div>

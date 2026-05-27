@@ -2,6 +2,8 @@ export interface Student {
   studentId: string;
   name: string;
   className: string;
+  classId?: number;
+  sectionId?: number;
   phoneNumber?: string;
   email?: string;
   gender?: string;

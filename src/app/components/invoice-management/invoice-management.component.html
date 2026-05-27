@@ -1,0 +1,112 @@
+<div class="inv-page">
+
+  <div class="inv-hero">
+    <div class="inv-hero-left">
+      <div class="inv-hero-icon">🧾</div>
+      <div>
+        <h1 class="inv-hero-title">Invoices</h1>
+        <p class="inv-hero-sub">{{ totalElements }} invoice{{ totalElements !== 1 ? 's' : '' }}</p>
+      </div>
+    </div>
+    <div class="inv-hero-actions">
+      <button class="inv-btn inv-btn-hero" (click)="toggleGenerate()">+ Generate</button>
+      <button class="inv-btn inv-btn-hero" (click)="issueAll()" [disabled]="issuing">
+        {{ issuing ? 'Issuing...' : 'Issue Drafts' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="inv-loading" *ngIf="isLoading">
+    <div class="inv-spinner"></div><p>Loading...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- Generate panel -->
+    <div class="inv-card" *ngIf="showGenerate">
+      <h2 class="inv-card-title">Generate Invoices</h2>
+      <div class="inv-gen-grid">
+        <div class="inv-field">
+          <label class="inv-label">Session</label>
+          <select class="inv-select" [(ngModel)]="genSessionId">
+            <option *ngFor="let s of sessions" [ngValue]="s.id">{{ s.label }}</option>
+          </select>
+        </div>
+        <div class="inv-field">
+          <label class="inv-label">Billing Month</label>
+          <select class="inv-select" [(ngModel)]="genMonth">
+            <option [ngValue]="null" disabled>Select</option>
+            <option *ngFor="let m of months" [ngValue]="m.value">{{ m.label }}</option>
+          </select>
+        </div>
+        <div class="inv-field">
+          <label class="inv-label">Class (optional)</label>
+          <select class="inv-select" [(ngModel)]="genClass">
+            <option value="">All classes</option>
+            <option *ngFor="let c of classes" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="inv-form-actions">
+        <button class="inv-btn inv-btn-outline" (click)="toggleGenerate()">Cancel</button>
+        <button class="inv-btn inv-btn-primary" (click)="generate()" [disabled]="generating">
+          {{ generating ? 'Generating...' : 'Generate' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="inv-filters">
+      <select class="inv-select" [(ngModel)]="selectedSessionId" (ngModelChange)="onFilterChange()">
+        <option *ngFor="let s of sessions" [ngValue]="s.id">{{ s.label }}</option>
+      </select>
+      <select class="inv-select" [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()">
+        <option value="">All Status</option>
+        <ng-container *ngFor="let st of statusOptions">
+          <option *ngIf="st" [value]="st">{{ st }}</option>
+        </ng-container>
+      </select>
+      <input class="inv-input" [(ngModel)]="filterStudentId" placeholder="Student ID..."
+        (keyup.enter)="onFilterChange()">
+    </div>
+
+    <div class="inv-loading" *ngIf="invoicesLoading">
+      <div class="inv-spinner"></div><p>Loading invoices...</p>
+    </div>
+
+    <!-- Invoice list -->
+    <div class="inv-card" *ngIf="!invoicesLoading">
+      <div class="inv-list" *ngIf="invoices.length > 0">
+        <a class="inv-row" *ngFor="let inv of invoices"
+          [routerLink]="['/dashboard/invoice-detail', inv.id]">
+          <div class="inv-row-top">
+            <span class="inv-inv-num">{{ inv.invoiceNumber }}</span>
+            <span class="inv-status" [ngClass]="getStatusClass(inv.status)">{{ inv.status }}</span>
+          </div>
+          <div class="inv-row-mid">
+            <span>{{ inv.studentName || inv.studentId }}</span>
+            <span class="inv-dim">{{ inv.className }}</span>
+            <span class="inv-dim">{{ inv.billingMonthName || getMonthLabel(inv.billingMonth) }}</span>
+          </div>
+          <div class="inv-row-bot">
+            <span>Net: {{ inv.netAmount }}</span>
+            <span>Paid: {{ inv.amountPaid }}</span>
+            <span class="inv-balance" *ngIf="inv.balanceDue > 0">Due: {{ inv.balanceDue }}</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="inv-empty" *ngIf="invoices.length === 0">
+        <p>No invoices found for this filter.</p>
+      </div>
+
+      <!-- Pagination -->
+      <div class="inv-pagination" *ngIf="totalPages > 1">
+        <button class="inv-btn inv-btn-sm" (click)="prevPage()" [disabled]="page === 0">Prev</button>
+        <span class="inv-page-info">{{ page + 1 }} / {{ totalPages }}</span>
+        <button class="inv-btn inv-btn-sm" (click)="nextPage()" [disabled]="page >= totalPages - 1">Next</button>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

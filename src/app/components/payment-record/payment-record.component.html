@@ -1,0 +1,70 @@
+<div class="pr-page">
+
+  <div class="pr-hero">
+    <div class="pr-hero-icon">💳</div>
+    <div>
+      <h1 class="pr-hero-title">Record Payment</h1>
+      <p class="pr-hero-sub">Record manual cash, cheque, or bank payments</p>
+    </div>
+  </div>
+
+  <!-- Student search -->
+  <div class="pr-card">
+    <div class="pr-search-row">
+      <input class="pr-input" [(ngModel)]="studentId" placeholder="Enter Student ID..."
+        (keyup.enter)="searchStudent()">
+      <button class="pr-btn pr-btn-primary" (click)="searchStudent()" [disabled]="loadingInvoices || !studentId.trim()">
+        {{ loadingInvoices ? 'Loading...' : 'Search' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Outstanding invoices -->
+  <div class="pr-card" *ngIf="outstanding.length > 0">
+    <h2 class="pr-card-title">Outstanding Invoices</h2>
+
+    <div class="pr-alloc-list">
+      <div class="pr-alloc-row" *ngFor="let alloc of allocations; let i = index">
+        <div class="pr-alloc-info">
+          <span class="pr-alloc-num">{{ alloc.invoiceNumber }}</span>
+          <span class="pr-alloc-due">Due: {{ alloc.maxAmount }}</span>
+        </div>
+        <input class="pr-input pr-input-sm" type="number" [(ngModel)]="allocations[i].amount"
+          [max]="alloc.maxAmount" min="0" placeholder="Amount">
+      </div>
+    </div>
+
+    <div class="pr-total">
+      Total: <strong>{{ totalAmount }}</strong>
+    </div>
+
+    <!-- Payment details -->
+    <div class="pr-details">
+      <div class="pr-field">
+        <label class="pr-label">Payment Mode</label>
+        <select class="pr-select" [(ngModel)]="paymentMode">
+          <option *ngFor="let m of paymentModes" [value]="m.value">{{ m.label }}</option>
+        </select>
+      </div>
+      <div class="pr-field">
+        <label class="pr-label">Reference Number</label>
+        <input class="pr-input" [(ngModel)]="referenceNumber" placeholder="Cheque no, transaction ID...">
+      </div>
+      <div class="pr-field">
+        <label class="pr-label">Notes</label>
+        <input class="pr-input" [(ngModel)]="notes" placeholder="Optional notes...">
+      </div>
+    </div>
+
+    <div class="pr-form-actions">
+      <button class="pr-btn pr-btn-primary" (click)="recordPayment()" [disabled]="saving || totalAmount <= 0">
+        {{ saving ? 'Recording...' : 'Record Payment' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="pr-card" *ngIf="!loadingInvoices && studentId && outstanding.length === 0">
+    <p class="pr-empty">No outstanding invoices for this student.</p>
+  </div>
+
+</div>

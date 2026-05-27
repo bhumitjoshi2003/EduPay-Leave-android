@@ -6,4 +6,5 @@ export interface Notification {
     audience?: string;
     createdAt?: string;
     createdBy?: string;
+    channel?: string;
 }

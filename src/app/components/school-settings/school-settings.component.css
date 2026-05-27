@@ -599,6 +599,33 @@ select.ss-input { appearance: auto; cursor: pointer; }
 .ss-toggle input:checked ~ .ss-toggle-track::after { transform: translateX(20px); }
 .ss-toggle.ss-toggle-saving { opacity: 0.55; cursor: not-allowed; }
 
+/* ── Notification Channels ──────────────────────────────────────────── */
+.ss-channel-list { display: flex; flex-direction: column; gap: 0; }
+
+.ss-channel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 16px;
+}
+.ss-channel-row:last-child { border-bottom: none; }
+
+.ss-channel-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+.ss-channel-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ss-channel-desc {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
 /* ── Empty state ─────────────────────────────────────────────────────── */
 .ss-empty-state {
   display: flex;

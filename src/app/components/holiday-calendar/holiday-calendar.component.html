@@ -1,0 +1,85 @@
+<div class="hc-page">
+
+  <!-- Hero -->
+  <div class="hc-hero">
+    <div class="hc-hero-left">
+      <div class="hc-hero-icon">📅</div>
+      <div>
+        <h1 class="hc-hero-title">Holiday Calendar</h1>
+        <p class="hc-hero-sub">Manage school holidays and breaks</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="hc-controls">
+    <select class="hc-select" [(ngModel)]="selectedSession" (ngModelChange)="onSessionChange()">
+      <option *ngFor="let s of sessions" [value]="s">{{ s }}</option>
+    </select>
+    <button class="hc-btn hc-btn-primary" *ngIf="isAdmin" (click)="openAddForm()">+ Add Holiday</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="hc-loading" *ngIf="loading">
+    <div class="hc-spinner"></div>
+    <span>Loading holidays…</span>
+  </div>
+
+  <!-- Empty state -->
+  <div class="hc-empty" *ngIf="!loading && holidays.length === 0">
+    <div class="hc-empty-icon">🏖️</div>
+    <p class="hc-empty-title">No holidays found</p>
+    <p class="hc-empty-sub">No holidays have been added for this session yet.</p>
+  </div>
+
+  <!-- Holiday list -->
+  <div class="hc-list" *ngIf="!loading && holidays.length > 0">
+    <div class="hc-card" *ngFor="let holiday of holidays">
+      <div class="hc-card-date">
+        <span class="hc-date-day">{{ holiday.date | date:'dd' }}</span>
+        <span class="hc-date-month">{{ holiday.date | date:'MMM' }}</span>
+        <span class="hc-date-year">{{ holiday.date | date:'yyyy' }}</span>
+      </div>
+      <div class="hc-card-info">
+        <span class="hc-card-name">{{ holiday.name }}</span>
+        <span class="hc-card-type">{{ getTypeLabel(holiday.holidayType) }}</span>
+      </div>
+      <div class="hc-card-actions" *ngIf="isAdmin">
+        <button class="hc-btn-icon" (click)="openEditForm(holiday)" title="Edit">✏️</button>
+        <button class="hc-btn-icon hc-btn-danger" (click)="deleteHoliday(holiday)" title="Delete">🗑️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit form overlay -->
+  <div class="hc-overlay" *ngIf="showForm" (click)="cancelForm()">
+    <div class="hc-form-card" (click)="$event.stopPropagation()">
+      <h3 class="hc-form-title">{{ editingId ? 'Edit Holiday' : 'Add Holiday' }}</h3>
+
+      <label class="hc-label">
+        Name
+        <input class="hc-input" [(ngModel)]="form.name" placeholder="e.g. Republic Day" />
+      </label>
+
+      <label class="hc-label">
+        Date
+        <input class="hc-input" type="date" [(ngModel)]="form.date" />
+      </label>
+
+      <label class="hc-label">
+        Type
+        <select class="hc-input" [(ngModel)]="form.holidayType">
+          <option *ngFor="let t of holidayTypes" [value]="t.value">{{ t.label }}</option>
+        </select>
+      </label>
+
+      <div class="hc-form-actions">
+        <button class="hc-btn hc-btn-secondary" (click)="cancelForm()">Cancel</button>
+        <button class="hc-btn hc-btn-primary" [disabled]="saving" (click)="saveHoliday()">
+          {{ saving ? 'Saving…' : (editingId ? 'Update' : 'Add') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

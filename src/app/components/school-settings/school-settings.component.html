@@ -62,6 +62,11 @@
         <span class="ss-tab-icon">⚡</span>
         <span class="ss-tab-label">Features</span>
       </button>
+      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'channels'"
+              (click)="onTabChange('channels'); loadChannels()">
+        <span class="ss-tab-icon">🔔</span>
+        <span class="ss-tab-label">Channels</span>
+      </button>
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'subscription'"
               (click)="onTabChange('subscription'); loadEntitlement(true); loadAvailablePlans()">
         <span class="ss-tab-icon">📊</span>
@@ -493,6 +498,47 @@
           <p class="ss-empty-sub">Your current plan has no configurable features.</p>
         </div>
       </div>
+    </ng-container>
+
+    <!-- ══════════ CHANNELS TAB ══════════ -->
+    <ng-container *ngIf="activeTab === 'channels'">
+
+      <div class="ss-loading-inline" *ngIf="channelsLoading">
+        <div class="ss-spinner ss-spinner-sm"></div>
+        <span>Loading channels…</span>
+      </div>
+
+      <div class="ss-card" *ngIf="!channelsLoading">
+        <div class="ss-card-header">
+          <div class="ss-card-title-row">
+            <div class="ss-card-icon-box">🔔</div>
+            <div>
+              <h3 class="ss-card-title">Notification Channels</h3>
+              <p class="ss-card-subtitle">Configure how notifications are delivered to parents, students, and staff.</p>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="notificationChannels.length === 0" class="ss-empty-state">
+          No notification channels configured yet.
+        </div>
+
+        <div class="ss-channel-list">
+          <div *ngFor="let ch of notificationChannels" class="ss-channel-row">
+            <div class="ss-channel-info">
+              <span class="ss-channel-name">{{ getChannelLabel(ch.channelType) }}</span>
+              <span class="ss-channel-desc">{{ getChannelDescription(ch.channelType) }}</span>
+            </div>
+            <label class="ss-toggle" [class.ss-toggle-saving]="savingChannelType === ch.channelType">
+              <input type="checkbox" [checked]="ch.enabled"
+                     [disabled]="savingChannelType === ch.channelType"
+                     (change)="toggleChannel(ch)" />
+              <span class="ss-toggle-track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
     </ng-container>
 
     <!-- ══════════ SUBSCRIPTION TAB ══════════ -->

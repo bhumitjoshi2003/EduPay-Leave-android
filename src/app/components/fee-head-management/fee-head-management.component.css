@@ -1,0 +1,54 @@
+.fhm-page { padding-bottom: 24px; display: flex; flex-direction: column; gap: 14px; font-family: 'Segoe UI', sans-serif; }
+
+.fhm-hero { position: relative; background: linear-gradient(135deg,#4f46e5 0%,#7c3aed 55%,#a855f7 100%); border-radius: 20px; padding: 22px 24px; display: flex; align-items: center; gap: 14px; color: #fff; overflow: hidden; }
+.fhm-hero-left { display: flex; align-items: center; gap: 14px; flex: 1; z-index: 1; }
+.fhm-hero-icon { font-size: 1.7rem; background: rgba(255,255,255,0.18); border-radius: 14px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; }
+.fhm-hero-title { margin: 0; font-size: 1.25rem; font-weight: 800; }
+.fhm-hero-sub { margin: 2px 0 0; font-size: 0.78rem; color: rgba(255,255,255,0.8); }
+
+.fhm-btn-add { background: rgba(255,255,255,0.2); color: #fff; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 8px 16px; font-size: 0.85rem; font-weight: 700; cursor: pointer; z-index: 1; }
+
+.fhm-card { background: #fff; border-radius: 18px; padding: 18px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+.fhm-card-title { margin: 0 0 14px; font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+
+.fhm-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 500px) { .fhm-form-grid { grid-template-columns: 1fr; } }
+
+.fhm-field { display: flex; flex-direction: column; gap: 4px; }
+.fhm-label { font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.fhm-input, .fhm-select { padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.88rem; font-family: inherit; outline: none; background: #f8fafc; }
+.fhm-input:focus, .fhm-select:focus { border-color: #7c3aed; background: #fff; }
+
+.fhm-months { display: flex; flex-wrap: wrap; gap: 6px; }
+.fhm-month-btn { padding: 4px 10px; border-radius: 16px; border: 1.5px solid #e2e8f0; background: #fff; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: #64748b; transition: all 0.15s; }
+.fhm-month-btn.fhm-month-on { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+
+.fhm-toggles { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.fhm-toggle-row { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #334155; cursor: pointer; }
+
+.fhm-form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.fhm-btn { padding: 9px 18px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; font-family: inherit; cursor: pointer; border: none; transition: opacity 0.15s; }
+.fhm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.fhm-btn-primary { background: #7c3aed; color: #fff; }
+.fhm-btn-primary:hover:not(:disabled) { background: #6d28d9; }
+.fhm-btn-outline { background: transparent; border: 1.5px solid #e2e8f0; color: #64748b; }
+
+.fhm-empty { text-align: center; padding: 40px 20px; }
+.fhm-empty-title { font-size: 0.95rem; font-weight: 700; color: #374151; margin: 0; }
+.fhm-empty-sub { font-size: 0.8rem; color: #94a3b8; margin: 6px 0 0; }
+
+.fhm-list { display: flex; flex-direction: column; gap: 8px; }
+.fhm-row { padding: 12px 14px; background: #f8fafc; border: 1px solid #e8edf2; border-radius: 12px; cursor: pointer; transition: box-shadow 0.15s; }
+.fhm-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.fhm-row-main { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.fhm-row-name { font-size: 0.92rem; font-weight: 600; color: #1e293b; }
+.fhm-row-code { font-size: 0.72rem; font-weight: 700; color: #7c3aed; background: #ede9fe; padding: 2px 8px; border-radius: 8px; }
+.fhm-row-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.fhm-badge { font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 8px; background: #e0e7ff; color: #4338ca; }
+.fhm-badge-dim { background: #f1f5f9; color: #64748b; }
+.fhm-badge-inactive { background: #fef2f2; color: #dc2626; }
+.fhm-row-months { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+
+.fhm-loading { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 60px 20px; color: #64748b; font-size: 0.88rem; background: #fff; border-radius: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+.fhm-spinner { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #7c3aed; border-radius: 50%; animation: fhm-spin 0.8s linear infinite; }
+@keyframes fhm-spin { to { transform: rotate(360deg); } }

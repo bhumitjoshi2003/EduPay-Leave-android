@@ -1,0 +1,104 @@
+<div class="fhm-page">
+
+  <div class="fhm-hero">
+    <div class="fhm-hero-left">
+      <div class="fhm-hero-icon">💰</div>
+      <div>
+        <h1 class="fhm-hero-title">Fee Heads</h1>
+        <p class="fhm-hero-sub">{{ feeHeads.length }} fee head{{ feeHeads.length !== 1 ? 's' : '' }} configured</p>
+      </div>
+    </div>
+    <button class="fhm-btn fhm-btn-add" (click)="openAdd()" *ngIf="!showForm">+ Add</button>
+  </div>
+
+  <div class="fhm-loading" *ngIf="isLoading">
+    <div class="fhm-spinner"></div>
+    <p>Loading fee heads...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- Form overlay -->
+    <div class="fhm-card" *ngIf="showForm">
+      <h2 class="fhm-card-title">{{ editingId ? 'Edit' : 'Add' }} Fee Head</h2>
+
+      <div class="fhm-form-grid">
+        <div class="fhm-field">
+          <label class="fhm-label">Name</label>
+          <input class="fhm-input" [(ngModel)]="form.name" placeholder="e.g. Tuition Fee">
+        </div>
+        <div class="fhm-field">
+          <label class="fhm-label">Code</label>
+          <input class="fhm-input" [(ngModel)]="form.code" placeholder="e.g. TUITION" style="text-transform: uppercase">
+        </div>
+        <div class="fhm-field">
+          <label class="fhm-label">Frequency</label>
+          <select class="fhm-select" [(ngModel)]="form.frequency">
+            <option *ngFor="let opt of frequencyOptions" [value]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+        <div class="fhm-field">
+          <label class="fhm-label">Display Order</label>
+          <input class="fhm-input" type="number" [(ngModel)]="form.displayOrder" min="0">
+        </div>
+      </div>
+
+      <div class="fhm-field" style="margin-top: 12px">
+        <label class="fhm-label">Due Months</label>
+        <div class="fhm-months">
+          <button *ngFor="let m of allMonths"
+            class="fhm-month-btn" [class.fhm-month-on]="isMonthSelected(m.value)"
+            (click)="toggleMonth(m.value)">{{ m.label }}</button>
+        </div>
+      </div>
+
+      <div class="fhm-toggles">
+        <label class="fhm-toggle-row">
+          <input type="checkbox" [(ngModel)]="form.optional"> Optional
+        </label>
+        <label class="fhm-toggle-row">
+          <input type="checkbox" [(ngModel)]="form.refundable"> Refundable
+        </label>
+        <label class="fhm-toggle-row">
+          <input type="checkbox" [(ngModel)]="form.active"> Active
+        </label>
+      </div>
+
+      <div class="fhm-field" style="margin-top: 8px">
+        <label class="fhm-label">Sibling Discount %</label>
+        <input class="fhm-input" type="number" [(ngModel)]="form.siblingDiscountPct" min="0" max="100" style="max-width: 120px">
+      </div>
+
+      <div class="fhm-form-actions">
+        <button class="fhm-btn fhm-btn-outline" (click)="cancelForm()">Cancel</button>
+        <button class="fhm-btn fhm-btn-primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Save' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- List -->
+    <div class="fhm-card" *ngIf="!showForm">
+      <div class="fhm-empty" *ngIf="feeHeads.length === 0">
+        <p class="fhm-empty-title">No fee heads yet</p>
+        <p class="fhm-empty-sub">Add your first fee head to define your fee structure.</p>
+      </div>
+
+      <div class="fhm-list" *ngIf="feeHeads.length > 0">
+        <div class="fhm-row" *ngFor="let fh of feeHeads" (click)="openEdit(fh)">
+          <div class="fhm-row-main">
+            <span class="fhm-row-name">{{ fh.name }}</span>
+            <span class="fhm-row-code">{{ fh.code }}</span>
+          </div>
+          <div class="fhm-row-meta">
+            <span class="fhm-badge">{{ getFrequencyLabel(fh.frequency) }}</span>
+            <span class="fhm-badge fhm-badge-dim" *ngIf="fh.optional">Optional</span>
+            <span class="fhm-badge fhm-badge-inactive" *ngIf="!fh.active">Inactive</span>
+          </div>
+          <div class="fhm-row-months">{{ parseDueMonths(fh.dueMonths) }}</div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>
