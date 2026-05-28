@@ -9,7 +9,9 @@ import { AuthStateService } from '../../auth/auth-state.service';
 import { TeacherService } from '../../services/teacher.service';
 import { AcademicSessionService } from '../../services/academic-session.service';
 import { LoggerService } from '../../services/logger.service';
-import { SchoolService } from '../../services/school.service';
+import { SchoolService, SchoolClass } from '../../services/school.service';
+import { SectionService } from '../../services/section.service';
+import { Section } from '../../interfaces/section';
 
 @Component({
   selector: 'app-class-results',
@@ -25,6 +27,9 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
   role = '';
   classOptions: string[] = [];
   sessions: string[] = [];
+  managedClasses: SchoolClass[] = [];
+  sections: Section[] = [];
+  selectedSectionId: number | null = null;
 
   selectedSession = '';
   selectedClass = '';
@@ -44,7 +49,8 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
     private router: Router,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private sectionService: SectionService
   ) { }
 
   ngOnInit(): void {
@@ -53,6 +59,10 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
 
     this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
       next: classes => { this.classOptions = classes; this.cdr.markForCheck(); },
+      error: () => {}
+    });
+    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => { this.managedClasses = classes; },
       error: () => {}
     });
 
@@ -77,14 +87,34 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
         next: (t) => {
           this.selectedClass = t.classTeacher ?? '';
           this.cdr.markForCheck();
-          if (this.selectedClass) this.loadExams();
+          if (this.selectedClass) {
+            this.loadSectionsForClass(this.selectedClass);
+            this.loadExams();
+          }
         },
         error: (e) => this.logger.error('Error fetching teacher:', e),
       });
     } else {
       this.selectedClass = this.classOptions.length > 0 ? this.classOptions[0] : '1';
+      this.loadSectionsForClass(this.selectedClass);
       this.loadExams();
     }
+  }
+
+  loadSectionsForClass(className: string): void {
+    const cls = this.managedClasses.find(c => c.name === className);
+    if (!cls) return;
+    this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: sections => { this.sections = sections; this.cdr.markForCheck(); },
+      error: () => {}
+    });
+  }
+
+  onSectionSelect(sectionId: number | null): void {
+    this.selectedSectionId = sectionId;
+    this.results = [];
+    if (this.selectedExamId) this.loadResults();
+    this.cdr.markForCheck();
   }
 
   ngOnDestroy(): void {
@@ -97,6 +127,9 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
     this.selectedExamId = null;
     this.results = [];
     this.examSubjects = [];
+    this.selectedSectionId = null;
+    this.sections = [];
+    this.loadSectionsForClass(this.selectedClass);
 
     this.examService.getExams(this.selectedSession, this.selectedClass)
       .pipe(takeUntil(this.destroy$))
@@ -121,7 +154,7 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
   loadResults(): void {
     if (!this.selectedExamId) return;
     this.loading = true;
-    this.marksService.getClassResults(this.selectedClass, this.selectedExamId)
+    this.marksService.getClassResults(this.selectedClass, this.selectedExamId, this.selectedSectionId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {

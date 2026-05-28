@@ -75,8 +75,9 @@ export class MarksService {
   constructor(private http: HttpClient) { }
 
   // Mark entry — Mode A: by subject
-  getStudentsForSubject(examSubjectEntryId: number): Observable<MarkEntryStudent[]> {
-    return this.http.get<MarkEntryStudent[]>(`${this.base}/exam/${examSubjectEntryId}/students`);
+  getStudentsForSubject(examSubjectEntryId: number, sectionId?: number | null): Observable<MarkEntryStudent[]> {
+    const params = sectionId != null ? { params: { sectionId: String(sectionId) } } : {};
+    return this.http.get<MarkEntryStudent[]>(`${this.base}/exam/${examSubjectEntryId}/students`, params);
   }
 
   // Mark entry — Mode B: by student
@@ -96,7 +97,8 @@ export class MarksService {
   }
 
   // Class-wide results view (teacher / admin)
-  getClassResults(className: string, examConfigId: number): Observable<ClassStudentResult[]> {
-    return this.http.get<ClassStudentResult[]>(`${this.base}/class/${className}/exam/${examConfigId}`);
+  getClassResults(className: string, examConfigId: number, sectionId?: number | null): Observable<ClassStudentResult[]> {
+    const params = sectionId != null ? { params: { sectionId: String(sectionId) } } : {};
+    return this.http.get<ClassStudentResult[]>(`${this.base}/class/${className}/exam/${examConfigId}`, params);
   }
 }

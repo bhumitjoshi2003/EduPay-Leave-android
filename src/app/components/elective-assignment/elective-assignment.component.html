@@ -1,0 +1,103 @@
+<div class="ea-page">
+
+  <!-- Hero -->
+  <div class="ea-hero">
+    <div class="ea-hero-left">
+      <div class="ea-hero-icon">📝</div>
+      <div>
+        <h1 class="ea-hero-title">Elective Assignment</h1>
+        <p class="ea-hero-sub">Assign optional subject choices for each student</p>
+      </div>
+    </div>
+    <div class="ea-blob ea-blob-1"></div>
+    <div class="ea-blob ea-blob-2"></div>
+  </div>
+
+  <div class="ea-card">
+
+    <!-- Filters -->
+    <div class="ea-filters">
+      <div class="ea-filter-group">
+        <label>Class</label>
+        <select [(ngModel)]="selectedClass" (ngModelChange)="onClassChange()">
+          <option *ngFor="let c of classOptions; trackBy: trackByIndex" [value]="c">Class {{ c }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Section chips -->
+    <div class="me-section-chips" *ngIf="sections.length > 0">
+      <button class="me-sec-chip" [class.me-sec-active]="selectedSectionId === null"
+        (click)="onSectionChange(null)">All</button>
+      <button *ngFor="let sec of sections" class="me-sec-chip"
+        [class.me-sec-active]="selectedSectionId === sec.id"
+        (click)="onSectionChange(sec.id!)">{{ sec.name }}</button>
+    </div>
+
+    <div *ngIf="!loading && electiveGroups.length === 0" class="ea-empty">
+      No elective subjects defined for Class {{ selectedClass }}.<br>
+      Go to <strong>Subject Configuration</strong> and mark subjects as electives first.
+    </div>
+
+    <div *ngIf="!loading && electiveGroups.length > 0">
+
+      <!-- Bulk assign -->
+      <div class="ea-bulk-row">
+        <span class="ea-bulk-label">Bulk assign:</span>
+        <select [(ngModel)]="bulkGroup" class="ea-bulk-select">
+          <option value="">— Group —</option>
+          <option *ngFor="let g of electiveGroups; trackBy: trackByGroup" [value]="g.groupName">{{ g.groupName }}</option>
+        </select>
+        <select [(ngModel)]="bulkSubject" class="ea-bulk-select" [disabled]="!bulkGroup">
+          <option value="">— Subject —</option>
+          <option *ngFor="let s of getSubjectsForGroup(bulkGroup); trackBy: trackByIndex" [value]="s">{{ s }}</option>
+        </select>
+        <button class="ea-bulk-btn" (click)="bulkAssign()" [disabled]="bulkSaving || !bulkGroup || !bulkSubject">
+          {{ bulkSaving ? 'Saving…' : 'Assign All' }}
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div class="ea-table-wrapper">
+        <table class="ea-table">
+          <thead>
+            <tr>
+              <th class="ea-th-student">Student</th>
+              <th *ngFor="let g of electiveGroups; trackBy: trackByGroup">{{ g.groupName }}</th>
+              <th class="ea-th-action">Save</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="loading">
+              <td [attr.colspan]="2 + electiveGroups.length" class="ea-loading">Loading…</td>
+            </tr>
+            <tr *ngFor="let student of students; trackBy: trackByStudentId">
+              <td class="ea-cell-name">
+                <div class="ea-student-name">{{ student.studentName }}</div>
+                <div class="ea-student-id">{{ student.studentId }}</div>
+              </td>
+              <td *ngFor="let g of electiveGroups; trackBy: trackByGroup" class="ea-cell-select">
+                <select [(ngModel)]="student.selections[g.groupName]" class="ea-subject-select">
+                  <option value="">— None —</option>
+                  <option *ngFor="let s of g.subjects; trackBy: trackByIndex" [value]="s">{{ s }}</option>
+                </select>
+              </td>
+              <td class="ea-cell-action">
+                <button class="ea-btn-save" (click)="saveStudent(student)"
+                  [disabled]="student.saving || !isDirty(student)">
+                  {{ student.saving ? '…' : 'Save' }}
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="!loading && students.length === 0">
+              <td [attr.colspan]="2 + electiveGroups.length" class="ea-empty">No students found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="ea-loading">Loading…</div>
+
+  </div><!-- /.ea-card -->
+</div><!-- /.ea-page -->

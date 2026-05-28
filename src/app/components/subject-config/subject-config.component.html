@@ -35,10 +35,22 @@
       <input [(ngModel)]="newSubjectName" placeholder="Subject name" (keyup.enter)="addClassSubject()" aria-label="New subject name" />
       <button class="btn-add" (click)="addClassSubject()">+ Add</button>
     </div>
+    <div class="sc-optional-row">
+      <label class="sc-optional-label">
+        <input type="checkbox" [(ngModel)]="newSubjectOptional" />
+        Elective (students choose one from a group)
+      </label>
+      <input *ngIf="newSubjectOptional" [(ngModel)]="newSubjectGroup"
+             placeholder="Group name (e.g. elective-1)" class="sc-group-input"
+             aria-label="Elective group name" />
+    </div>
 
     <ul class="sc-list">
       <li *ngFor="let s of classSubjects; trackBy: trackById" class="sc-item">
-        <span>{{ s.subjectName }}</span>
+        <span>
+          {{ s.subjectName }}
+          <span *ngIf="s.optional" class="sc-optional-badge" [title]="'Group: ' + s.optionalGroup">elective</span>
+        </span>
         <button class="btn-delete" (click)="deleteClassSubject(s.id)" [attr.aria-label]="'Delete subject ' + s.subjectName">&#x2715;</button>
       </li>
       <li *ngIf="classSubjects.length === 0" class="sc-empty">No subjects defined for Class {{ selectedClass }}.</li>

@@ -7,6 +7,8 @@ export interface ClassSubject {
   id: number;
   className: string;
   subjectName: string;
+  optional: boolean;
+  optionalGroup: string | null;
 }
 
 export interface CoreSubject {
@@ -42,8 +44,12 @@ export class SubjectConfigService {
     return this.http.get<ClassSubject[]>(`${this.base}/subjects/class/${className}`);
   }
 
-  addClassSubject(className: string, subjectName: string): Observable<ClassSubject> {
-    return this.http.post<ClassSubject>(`${this.base}/subjects/class`, { className, subjectName });
+  addClassSubject(className: string, subjectName: string, optional = false, optionalGroup?: string): Observable<ClassSubject> {
+    return this.http.post<ClassSubject>(`${this.base}/subjects/class`, {
+      className, subjectName,
+      optional: String(optional),
+      ...(optional && optionalGroup ? { optionalGroup } : {})
+    });
   }
 
   deleteClassSubject(id: number): Observable<void> {

@@ -328,6 +328,10 @@
             <div class="more-icon-bg c-purple"><mat-icon>account_tree</mat-icon></div>
             <span>Streams</span>
           </a>
+          <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/elective-assignment" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-teal"><mat-icon>swap_horiz</mat-icon></div>
+            <span>Electives</span>
+          </a>
           <a class="more-item" routerLink="/dashboard/timetable" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-indigo"><mat-icon>schedule</mat-icon></div>
             <span>Timetable</span>

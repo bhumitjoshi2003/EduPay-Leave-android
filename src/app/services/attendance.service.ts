@@ -47,9 +47,10 @@ export class AttendanceService {
     return this.http.get<StudentAttendanceSummary>(`${this.apiUrl}/summary/student/${studentId}`, { params: httpParams });
   }
 
-  getClassSummary(className: string, params: Record<string, string | number>): Observable<ClassAttendanceSummary[]> {
+  getClassSummary(className: string, params: Record<string, string | number>, sectionId?: number | null): Observable<ClassAttendanceSummary[]> {
     let httpParams = new HttpParams();
     Object.entries(params).forEach(([k, v]) => httpParams = httpParams.set(k, String(v)));
+    if (sectionId != null) httpParams = httpParams.set('sectionId', String(sectionId));
     return this.http.get<ClassAttendanceSummary[]>(`${this.apiUrl}/summary/class/${className}`, { params: httpParams });
   }
 

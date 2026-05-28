@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, switchMap } from 'rxjs';
 import { AttendanceService } from '../../services/attendance.service';
 import { StudentService } from '../../services/student.service';
 import { AuthStateService } from '../../auth/auth-state.service';
@@ -28,6 +28,7 @@ import {
 })
 export class AttendanceSummaryComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private loadStudentList$ = new Subject<{ className: string; sectionId: number | undefined }>();
 
   role = '';
   userId = '';
@@ -119,6 +120,20 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
         this.logger.error('Failed to load sessions', e);
         this.initYears();
         this.cdr.markForCheck();
+      }
+    });
+
+    // switchMap cancels any in-flight student-list request when section/class changes
+    this.loadStudentList$.pipe(
+      takeUntil(this.destroy$),
+      switchMap(({ className, sectionId }) =>
+        this.studentService.getActiveStudentsByClass(className, sectionId)
+      )
+    ).subscribe({
+      next: (students) => { this.studentList = students; this.cdr.markForCheck(); },
+      error: (err) => {
+        this.logger.error('Failed to load students:', err);
+        this.toast.error('Error', 'Failed to load student list. Please try again.');
       }
     });
 
@@ -227,16 +242,9 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
 
   loadStudentList(): void {
     if (!this.selectedClass) return;
-    const secId = this.selectedSectionId ?? undefined;
-    this.studentService.getActiveStudentsByClass(this.selectedClass, secId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (students) => {
-        this.studentList = students;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.logger.error('Failed to load students:', err);
-        this.toast.error('Error', 'Failed to load student list. Please try again.');
-      }
+    this.loadStudentList$.next({
+      className: this.selectedClass,
+      sectionId: this.selectedSectionId ?? undefined,
     });
   }
 
@@ -279,7 +287,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     this.classSummary = [];
     this.cdr.markForCheck();
 
-    this.attendanceService.getClassSummary(this.selectedClass, this.buildParams())
+    this.attendanceService.getClassSummary(this.selectedClass, this.buildParams(), this.selectedSectionId)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (data) => { this.classSummary = data; this.isLoading = false; this.cdr.markForCheck(); },
         error: (err) => {

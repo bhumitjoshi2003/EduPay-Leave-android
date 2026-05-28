@@ -255,6 +255,11 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
       {
+        path: 'elective-assignment',
+        loadComponent: () => import('./components/elective-assignment/elective-assignment.component').then(m => m.ElectiveAssignmentComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
         path: 'mark-entry',
         loadComponent: () => import('./components/mark-entry/mark-entry.component').then(m => m.MarkEntryComponent),
         canActivate: [roleGuard, featureGuard], data: { roles: ['TEACHER', 'ADMIN'], featureKey: 'EXAM_MARKS' }

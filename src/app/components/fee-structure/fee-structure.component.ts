@@ -344,12 +344,12 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   }
 
   onNewFeeHeadFrequencyChange(frequency: string): void {
-    this.newFeeHead.frequency = frequency;
+    this.newFeeHead.frequency = frequency as FeeHead['frequency'];
     this.newFeeHead.dueMonths = this.dueMonthsForFrequency(frequency);
   }
 
   onEditFeeHeadFrequencyChange(frequency: string): void {
-    this.editFeeHeadForm.frequency = frequency;
+    this.editFeeHeadForm.frequency = frequency as FeeHead['frequency'];
     this.editFeeHeadForm.dueMonths = this.dueMonthsForFrequency(frequency);
   }
 

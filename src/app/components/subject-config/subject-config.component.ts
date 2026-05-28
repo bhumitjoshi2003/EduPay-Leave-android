@@ -32,6 +32,8 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
   selectedClass = '1';
   classSubjects: ClassSubject[] = [];
   newSubjectName = '';
+  newSubjectOptional = false;
+  newSubjectGroup = '';
 
   // Streams tab
   streams: AcademicStream[] = [];
@@ -84,16 +86,28 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
 
   onClassChange(): void {
     this.newSubjectName = '';
+    this.newSubjectOptional = false;
+    this.newSubjectGroup = '';
     this.loadClassSubjects();
   }
 
   addClassSubject(): void {
     const name = this.newSubjectName.trim();
     if (!name) return;
-    this.service.addClassSubject(this.selectedClass, name).pipe(takeUntil(this.destroy$)).subscribe({
+    if (this.newSubjectOptional && !this.newSubjectGroup.trim()) {
+      this.toast.error('Validation', 'Group name is required for optional subjects.');
+      return;
+    }
+    this.service.addClassSubject(
+      this.selectedClass, name,
+      this.newSubjectOptional,
+      this.newSubjectOptional ? this.newSubjectGroup.trim() : undefined
+    ).pipe(takeUntil(this.destroy$)).subscribe({
       next: (s) => {
         this.classSubjects = [...this.classSubjects, s];
         this.newSubjectName = '';
+        this.newSubjectOptional = false;
+        this.newSubjectGroup = '';
         this.cdr.markForCheck();
       },
       error: (e) => {

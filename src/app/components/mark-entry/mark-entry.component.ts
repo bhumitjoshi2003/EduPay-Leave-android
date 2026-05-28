@@ -152,7 +152,9 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
 
   onSectionSelect(sectionId: number | null): void {
     this.selectedSectionId = sectionId;
-    if (this.selectedExamId && this.mode === 'student') {
+    if (this.mode === 'subject' && this.selectedSubjectEntryId) {
+      this.onSubjectChange();
+    } else if (this.mode === 'student' && this.selectedExamId) {
       this.onExamChange();
     }
   }
@@ -206,7 +208,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     this.marksInputA = {};
     if (!this.selectedSubjectEntryId) return;
 
-    this.marksService.getStudentsForSubject(this.selectedSubjectEntryId)
+    this.marksService.getStudentsForSubject(this.selectedSubjectEntryId, this.selectedSectionId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {

@@ -1,0 +1,180 @@
+/* ── Page ─────────────────────────────────────────────────────────── */
+.ea-page {
+  padding-bottom: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.ea-hero {
+  position: relative;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 55%, #a78bfa 100%);
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
+}
+.ea-blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+}
+.ea-blob-1 { width: 140px; height: 140px; background: #fff; right: -30px; top: -40px; }
+.ea-blob-2 { width: 90px; height: 90px; background: #fff; right: 80px; bottom: -30px; }
+.ea-hero-left { display: flex; align-items: center; gap: 14px; z-index: 1; }
+.ea-hero-icon { font-size: 2rem; }
+.ea-hero-title { font-size: 1.35rem; font-weight: 700; margin: 0; }
+.ea-hero-sub { font-size: 0.85rem; margin: 4px 0 0; opacity: 0.85; }
+
+/* ── Card ─────────────────────────────────────────────────────────── */
+.ea-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+/* ── Filters ─────────────────────────────────────────────────────── */
+.ea-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.ea-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ea-filter-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ea-filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #f9fafb;
+  min-width: 130px;
+}
+
+/* ── Section chips (reuse me-* from mark-entry) ──────────────────── */
+.me-section-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.me-sec-chip {
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  font-size: 0.83rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.me-sec-chip.me-sec-active {
+  background: #7c3aed;
+  color: #fff;
+  border-color: #7c3aed;
+}
+
+/* ── Bulk row ─────────────────────────────────────────────────────── */
+.ea-bulk-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: #f5f3ff;
+  border-radius: 10px;
+  border: 1px solid #ddd6fe;
+}
+.ea-bulk-label { font-size: 0.85rem; font-weight: 600; color: #5b21b6; }
+.ea-bulk-select {
+  padding: 6px 10px;
+  border: 1px solid #c4b5fd;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  background: #fff;
+}
+.ea-bulk-btn {
+  padding: 6px 16px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ea-bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Table ────────────────────────────────────────────────────────── */
+.ea-table-wrapper { overflow-x: auto; }
+.ea-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.ea-table th {
+  padding: 10px 12px;
+  background: #f3f4f6;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid #e5e7eb;
+}
+.ea-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+}
+.ea-th-student { min-width: 160px; }
+.ea-th-action { width: 70px; text-align: center; }
+
+.ea-student-name { font-weight: 600; color: #1f2937; }
+.ea-student-id { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
+
+.ea-cell-select select,
+.ea-subject-select {
+  width: 100%;
+  min-width: 130px;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  background: #f9fafb;
+}
+
+.ea-cell-action { text-align: center; }
+.ea-btn-save {
+  padding: 5px 14px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ea-btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.ea-loading, .ea-empty {
+  text-align: center;
+  padding: 28px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
