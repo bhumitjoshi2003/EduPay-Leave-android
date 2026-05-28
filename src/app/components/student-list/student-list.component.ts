@@ -169,6 +169,11 @@ export class StudentListComponent implements OnInit, OnDestroy {
     this.selectedClass = selectedClass;
     this.selectedSectionId = null;
     this.sections = [];
+    this.activeStudents = [];
+    this.newStudents = [];
+    this.inactiveStudents = [];
+    this.isLoading = true;
+    this.cdr.markForCheck();
     this.loadSectionsForClass(selectedClass, () => this.loadStudents());
   }
 

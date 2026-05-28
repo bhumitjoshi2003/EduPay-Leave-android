@@ -10,7 +10,7 @@
 /* ── Hero ──────────────────────────────────────────────────────────── */
 .ss-hero {
   position: relative;
-  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 55%, #0ea5e9 100%);
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 55%, #93c5fd 100%);
   border-radius: 22px;
   padding: 22px 20px 18px;
   overflow: hidden;
@@ -132,7 +132,7 @@
 .ss-tab-label { font-size: 0.68rem; font-weight: 700; color: #64748b; letter-spacing: 0.2px; }
 
 .ss-tab-active { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.ss-tab-active .ss-tab-label { color: #1d4ed8; }
+.ss-tab-active .ss-tab-label { color: #2563eb; }
 
 /* ── Card ──────────────────────────────────────────────────────────── */
 .ss-card {

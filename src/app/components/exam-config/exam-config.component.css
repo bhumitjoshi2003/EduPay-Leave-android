@@ -7,7 +7,7 @@
 /* ── Hero ─────────────────────────────────────────────────────────── */
 .ec-hero {
   position: relative;
-  background: linear-gradient(135deg, #881337 0%, #be123c 55%, #f43f5e 100%);
+  background: linear-gradient(135deg, #9f1239 0%, #e11d48 55%, #fb7185 100%);
   border-radius: 20px;
   padding: 24px 20px 28px;
   margin: 0 0 16px;
@@ -49,7 +49,7 @@
 .ec-hero-sub {
   font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255,255,255,0.85);
   margin: 3px 0 0;
 }
 
@@ -76,7 +76,7 @@
 .ec-spinner {
   width: 34px; height: 34px;
   border: 3px solid #e2e8f0;
-  border-top-color: #be123c;
+  border-top-color: #e11d48;
   border-radius: 50%;
   animation: ec-spin 0.8s linear infinite;
 }
@@ -101,14 +101,14 @@
 .ec-filter-group label {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #1f6f8b;
+  color: #9f1239;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .ec-filter-group select {
   padding: 8px 12px;
-  border: 1px solid #4fbdbd;
+  border: 1px solid #fecdd3;
   border-radius: 6px;
   font-size: 0.9rem;
   outline: none;
@@ -130,7 +130,7 @@
   min-width: 180px;
   max-width: 320px;
   padding: 8px 12px;
-  border: 1px solid #4fbdbd;
+  border: 1px solid #fecdd3;
   border-radius: 6px;
   font-size: 0.9rem;
   outline: none;
@@ -138,7 +138,7 @@
 
 /* ── Buttons ─────────────────────────────────────────────────────── */
 .btn-primary {
-  background: linear-gradient(135deg, #1f6f8b, #14505d);
+  background: linear-gradient(135deg, #9f1239, #e11d48);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -149,19 +149,13 @@
   font-size: 0.85rem;
   white-space: nowrap;
 }
-
-.btn-primary:hover {
-  opacity: 0.85;
-}
-
-.btn-primary.btn-sm {
-  padding: 6px 12px;
-}
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary.btn-sm { padding: 6px 12px; }
 
 .btn-outline {
   background: transparent;
-  border: 2px dashed #4fbdbd;
-  color: #1f6f8b;
+  border: 2px dashed #fecdd3;
+  color: #9f1239;
   border-radius: 6px;
   padding: 7px 16px;
   font-weight: 600;
@@ -170,10 +164,7 @@
   transition: all 0.2s;
   margin-top: 10px;
 }
-
-.btn-outline:hover {
-  background: #eaf6f6;
-}
+.btn-outline:hover { background: #fff1f2; }
 
 .btn-delete {
   background: none;
@@ -186,15 +177,12 @@
   transition: background 0.15s;
   white-space: nowrap;
 }
-
-.btn-delete:hover {
-  background: #fde8e8;
-}
+.btn-delete:hover { background: #fde8e8; }
 
 .btn-edit {
-  background: #e8f4f8;
-  border: 1px solid #4fbdbd;
-  color: #1f6f8b;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
   border-radius: 4px;
   padding: 4px 10px;
   cursor: pointer;
@@ -229,7 +217,7 @@
 /* ── Accordion ───────────────────────────────────────────────────── */
 .ec-accordion {
   margin-bottom: 12px;
-  border: 1px solid #d0eaf0;
+  border: 1px solid #fecdd3;
   border-radius: 10px;
   overflow: hidden;
   background: #fff;
@@ -240,20 +228,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 18px;
-  background: #e8f4f8;
+  background: #fff1f2;
   cursor: pointer;
   user-select: none;
   transition: background 0.2s;
   gap: 10px;
 }
-
-.ec-accordion-header:hover {
-  background: #d0eaf0;
-}
+.ec-accordion-header:hover { background: #ffe4e6; }
 
 .ec-exam-name {
   font-weight: 700;
-  color: #1f6f8b;
+  color: #9f1239;
   font-size: 1rem;
   flex: 1;
   min-width: 0;
@@ -268,7 +253,7 @@
 
 .ec-chevron {
   font-size: 0.75rem;
-  color: #1f6f8b;
+  color: #9f1239;
 }
 
 .ec-accordion-body {
@@ -284,12 +269,12 @@
 }
 
 .ec-table th {
-  background: #e8f4f8;
-  color: #1f6f8b;
+  background: #fff1f2;
+  color: #9f1239;
   padding: 9px 12px;
   text-align: left;
   font-weight: 700;
-  border-bottom: 2px solid #4fbdbd;
+  border-bottom: 2px solid #fecdd3;
   white-space: nowrap;
 }
 
@@ -299,13 +284,8 @@
   color: #333;
 }
 
-.ec-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.ec-table tbody tr:hover td {
-  background: #f5fbff;
-}
+.ec-table tbody tr:last-child td { border-bottom: none; }
+.ec-table tbody tr:hover td { background: #fff5f5; }
 
 .ec-actions {
   display: flex;
@@ -317,7 +297,7 @@
 .ec-input {
   width: 160px;
   padding: 5px 8px;
-  border: 1px solid #4fbdbd;
+  border: 1px solid #fecdd3;
   border-radius: 4px;
   font-size: 0.88rem;
 }
@@ -325,7 +305,7 @@
 .ec-input-sm {
   width: 110px;
   padding: 5px 8px;
-  border: 1px solid #4fbdbd;
+  border: 1px solid #fecdd3;
   border-radius: 4px;
   font-size: 0.88rem;
 }
@@ -338,193 +318,71 @@
   padding-top: 8px;
 }
 
-.ec-empty {
-  color: #888;
-  font-style: italic;
-  padding: 12px 0;
-}
-
-.ec-empty-sub {
-  color: #aaa;
-  font-style: italic;
-  font-size: 0.88rem;
-  margin: 0 0 8px;
-}
+.ec-empty { color: #888; font-style: italic; padding: 12px 0; }
+.ec-empty-sub { color: #aaa; font-style: italic; font-size: 0.88rem; margin: 0 0 8px; }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Tablet (≤ 768px) ────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .ec-container {
-    padding: 18px;
-    border-radius: 10px;
-  }
-
-  .ec-table {
-    font-size: 0.85rem;
-  }
-
-  .ec-input {
-    width: 130px;
-  }
-
-  .ec-input-sm {
-    width: 90px;
-  }
-
-  .ec-accordion-body {
-    padding: 12px 14px 14px;
-  }
+  .ec-container { padding: 18px; border-radius: 10px; }
+  .ec-table { font-size: 0.85rem; }
+  .ec-input { width: 130px; }
+  .ec-input-sm { width: 90px; }
+  .ec-accordion-body { padding: 12px 14px 14px; }
 }
 
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .ec-container {
-    width: 98%;
-    padding: 14px;
-  }
-
-  .ec-title {
-    font-size: 1rem;
-  }
-
-  .ec-filters {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .ec-filter-group {
-    width: 100%;
-  }
-
-  .ec-filter-group select {
-    width: 100%;
-    min-width: unset;
-    font-size: 1rem;
-    padding: 10px 12px;
-    box-sizing: border-box;
-  }
-
-  .ec-add-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .ec-add-row input {
-    width: 100%;
-    max-width: 100%;
-    font-size: 1rem;
-    padding: 10px 12px;
-    box-sizing: border-box;
-  }
-
-  .ec-add-row .btn-primary {
-    width: 100%;
-    padding: 12px;
-    font-size: 0.95rem;
-    text-align: center;
-    box-sizing: border-box;
-  }
-
-  .ec-accordion-header {
-    padding: 12px 14px;
-  }
-
-  .ec-exam-name {
-    font-size: 0.95rem;
-  }
-
-  .ec-accordion-body {
-    padding: 10px 12px 14px;
-  }
-
-  /* Card layout — make table a proper block so it respects parent padding */
-  .ec-table,
-  .ec-table tbody { display: block; width: 100%; }
-
+  .ec-container { width: 98%; padding: 14px; }
+  .ec-title { font-size: 1rem; }
+  .ec-filters { flex-direction: column; gap: 12px; }
+  .ec-filter-group { width: 100%; }
+  .ec-filter-group select { width: 100%; min-width: unset; font-size: 1rem; padding: 10px 12px; box-sizing: border-box; }
+  .ec-add-row { flex-direction: column; align-items: stretch; }
+  .ec-add-row input { width: 100%; max-width: 100%; font-size: 1rem; padding: 10px 12px; box-sizing: border-box; }
+  .ec-add-row .btn-primary { width: 100%; padding: 12px; font-size: 0.95rem; text-align: center; box-sizing: border-box; }
+  .ec-accordion-header { padding: 12px 14px; }
+  .ec-exam-name { font-size: 0.95rem; }
+  .ec-accordion-body { padding: 10px 12px 14px; }
+  .ec-table, .ec-table tbody { display: block; width: 100%; }
   .ec-table thead { display: none; }
-
   .ec-table tbody tr {
     display: block;
-    border: 1px solid #d0eaf0;
+    border: 1px solid #fecdd3;
     border-radius: 8px;
     margin-bottom: 10px;
-    background: #f8fdfd;
+    background: #fff8f8;
     overflow: hidden;
   }
-
-  .ec-table tbody tr:hover td {
-    background: transparent;
-  }
-
+  .ec-table tbody tr:hover td { background: transparent; }
   .ec-table tbody td {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 9px 12px;
     border: none;
-    border-bottom: 1px solid #eef8f8;
+    border-bottom: 1px solid #fff1f2;
     font-size: 0.88rem;
     gap: 8px;
   }
-
-  .ec-table tbody td:last-child {
-    border-bottom: none;
-  }
-
+  .ec-table tbody td:last-child { border-bottom: none; }
   .ec-table tbody td::before {
     content: attr(data-label);
     font-weight: 700;
-    color: #1f6f8b;
+    color: #9f1239;
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.4px;
     flex-shrink: 0;
     min-width: 80px;
   }
-
-  .ec-input,
-  .ec-input-sm {
-    width: 100%;
-    font-size: 1rem;
-    padding: 8px 10px;
-    box-sizing: border-box;
-  }
-
-  /* Stack the add-subject inputs vertically */
-  .ec-add-subject-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .ec-add-subject-row .btn-primary {
-    width: 100%;
-    padding: 10px;
-    text-align: center;
-    box-sizing: border-box;
-  }
-
-  .ec-actions {
-    justify-content: flex-end;
-    gap: 8px;
-  }
-
-  .ec-table .btn-edit,
-  .ec-table .btn-save,
-  .ec-table .btn-cancel {
-    box-sizing: border-box;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-  }
+  .ec-input, .ec-input-sm { width: 100%; font-size: 1rem; padding: 8px 10px; box-sizing: border-box; }
+  .ec-add-subject-row { flex-direction: column; align-items: stretch; gap: 8px; }
+  .ec-add-subject-row .btn-primary { width: 100%; padding: 10px; text-align: center; box-sizing: border-box; }
+  .ec-actions { justify-content: flex-end; gap: 8px; }
+  .ec-table .btn-edit, .ec-table .btn-save, .ec-table .btn-cancel { box-sizing: border-box; padding: 8px 16px; font-size: 0.85rem; }
 }

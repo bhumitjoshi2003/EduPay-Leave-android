@@ -7,7 +7,7 @@
 /* ── Hero ─────────────────────────────────────────────────────────── */
 .me-hero {
   position: relative;
-  background: linear-gradient(135deg, #7c2d12 0%, #c2410c 55%, #f97316 100%);
+  background: linear-gradient(135deg, #c2410c 0%, #ea580c 55%, #fb923c 100%);
   border-radius: 20px;
   padding: 24px 20px 28px;
   margin: 0 0 16px;
@@ -49,7 +49,7 @@
 .me-hero-sub {
   font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255,255,255,0.85);
   margin: 3px 0 0;
 }
 
@@ -67,7 +67,7 @@
   display: flex;
   gap: 0;
   margin-bottom: 20px;
-  border: 2px solid #4fbdbd;
+  border: 2px solid #fed7aa;
   border-radius: 8px;
   overflow: hidden;
   width: fit-content;
@@ -78,7 +78,7 @@
   padding: 9px 24px;
   border: none;
   background: #fff;
-  color: #1f6f8b;
+  color: #c2410c;
   font-weight: 600;
   cursor: pointer;
   font-size: 0.88rem;
@@ -88,7 +88,7 @@
 }
 
 .me-mode-toggle button.active {
-  background: linear-gradient(135deg, #1f6f8b, #14505d);
+  background: linear-gradient(135deg, #c2410c, #ea580c);
   color: #fff;
 }
 
@@ -101,9 +101,9 @@
   background: #f9fafb; font-size: 0.8rem; font-weight: 600;
   color: #374151; cursor: pointer; transition: all 0.15s ease;
 }
-.me-sec-chip:hover { border-color: #f97316; color: #c2410c; }
+.me-sec-chip:hover { border-color: #fb923c; color: #ea580c; }
 .me-sec-active {
-  background: linear-gradient(135deg, #c2410c, #f97316); color: #fff;
+  background: linear-gradient(135deg, #c2410c, #ea580c); color: #fff;
   border-color: transparent;
 }
 .me-sec-active:hover { color: #fff; }
@@ -123,21 +123,19 @@
   gap: 4px;
 }
 
-.me-subject-filter {
-  margin-bottom: 16px;
-}
+.me-subject-filter { margin-bottom: 16px; }
 
 .me-filter-group label {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #1f6f8b;
+  color: #c2410c;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .me-filter-group select {
   padding: 8px 12px;
-  border: 1px solid #4fbdbd;
+  border: 1px solid #fed7aa;
   border-radius: 6px;
   font-size: 0.9rem;
   outline: none;
@@ -147,12 +145,12 @@
 
 .me-class-badge {
   display: inline-block;
-  background: #e8f4f8;
-  color: #1f6f8b;
+  background: #fff7ed;
+  color: #c2410c;
   font-weight: 700;
   padding: 6px 14px;
   border-radius: 6px;
-  border: 1px solid #4fbdbd;
+  border: 1px solid #fed7aa;
 }
 
 /* ── Table Wrapper ───────────────────────────────────────────────── */
@@ -169,7 +167,7 @@
   align-items: center;
   margin-bottom: 14px;
   font-weight: 700;
-  color: #1f6f8b;
+  color: #c2410c;
   font-size: 0.95rem;
   gap: 12px;
   flex-wrap: wrap;
@@ -199,12 +197,12 @@
 }
 
 .me-table th {
-  background: #e8f4f8;
-  color: #1f6f8b;
+  background: #fff7ed;
+  color: #c2410c;
   padding: 10px 12px;
   text-align: left;
   font-weight: 700;
-  border-bottom: 2px solid #4fbdbd;
+  border-bottom: 2px solid #fed7aa;
 }
 
 .me-table td {
@@ -214,19 +212,19 @@
 }
 
 .me-table tbody tr:last-child td { border-bottom: none; }
-.me-table tbody tr:hover td { background: #f5fbff; }
+.me-table tbody tr:hover td { background: #fff7ed; }
 
 .me-mark-input {
   width: 90px;
   padding: 6px 10px;
-  border: 1px solid #4fbdbd;
+  border: 1px solid #fed7aa;
   border-radius: 5px;
   font-size: 0.9rem;
   text-align: center;
   outline: none;
   transition: border-color 0.2s;
 }
-.me-mark-input:focus { border-color: #1f6f8b; }
+.me-mark-input:focus { border-color: #ea580c; }
 
 .me-empty {
   color: #888;
@@ -251,101 +249,52 @@
 
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .me-container {
-    width: 98%;
-    padding: 14px;
-  }
-
-  .me-mode-toggle {
-    width: 100%;
-  }
-
-  .me-mode-toggle button {
-    padding: 10px 12px;
-    font-size: 0.85rem;
-  }
-
-  .me-filters {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .me-filter-group {
-    width: 100%;
-  }
-
-  .me-filter-group select {
-    width: 100%;
-    min-width: unset;
-    font-size: 1rem;
-    padding: 10px 12px;
-  }
-
-  .me-subject-filter {
-    width: 100%;
-  }
-
-  .me-table-wrapper {
-    overflow-x: hidden;
-  }
-
+  .me-container { width: 98%; padding: 14px; }
+  .me-mode-toggle { width: 100%; }
+  .me-mode-toggle button { padding: 10px 12px; font-size: 0.85rem; }
+  .me-filters { flex-direction: column; gap: 12px; }
+  .me-filter-group { width: 100%; }
+  .me-filter-group select { width: 100%; min-width: unset; font-size: 1rem; padding: 10px 12px; }
+  .me-subject-filter { width: 100%; }
+  .me-table-wrapper { overflow-x: hidden; }
   .me-table-header {
-    background: #e8f4f8;
+    background: #fff7ed;
     padding: 12px 14px;
     border-radius: 8px 8px 0 0;
     font-size: 0.88rem;
   }
-
-  .btn-save {
-    padding: 10px 16px;
-    font-size: 0.9rem;
-    box-sizing: border-box;
-  }
-
-  /* Card layout — make table a proper block so it respects parent padding */
-  .me-table,
-  .me-table tbody { display: block; width: 100%; }
-
+  .btn-save { padding: 10px 16px; font-size: 0.9rem; box-sizing: border-box; }
+  .me-table, .me-table tbody { display: block; width: 100%; }
   .me-table thead { display: none; }
-
   .me-table tbody tr {
     display: block;
     background: #fff;
     border-radius: 10px;
     margin-bottom: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    border: 1px solid #d0eaf0;
+    border: 1px solid #fed7aa;
     overflow: hidden;
   }
-
   .me-table tbody tr:hover td { background: transparent; }
-
   .me-table tbody td {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 14px;
     border: none;
-    border-bottom: 1px solid #f0f8ff;
+    border-bottom: 1px solid #fff7ed;
     font-size: 0.9rem;
   }
-
   .me-table tbody td:last-child { border-bottom: none; }
-
   .me-table tbody td::before {
     content: attr(data-label);
     font-weight: 700;
-    color: #1f6f8b;
+    color: #c2410c;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.4px;
     flex-shrink: 0;
     margin-right: 10px;
   }
-
-  .me-mark-input {
-    width: 80px;
-    font-size: 1rem;
-    padding: 7px 10px;
-  }
+  .me-mark-input { width: 80px; font-size: 1rem; padding: 7px 10px; }
 }

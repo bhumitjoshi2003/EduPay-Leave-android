@@ -7,7 +7,7 @@
 /* ── Hero ─────────────────────────────────────────────────────────── */
 .sc-hero {
   position: relative;
-  background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 55%, #6366f1 100%);
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 55%, #2dd4bf 100%);
   border-radius: 20px;
   padding: 24px 20px 28px;
   margin: 0 0 16px;
@@ -24,11 +24,11 @@
   pointer-events: none;
 }
 .sc-blob-1 { width: 130px; height: 130px; background: #fff; top: -30px; right: -20px; }
-.sc-blob-2 { width: 80px; height: 80px; background: #c7d2fe; bottom: -20px; left: 35%; }
+.sc-blob-2 { width: 80px; height: 80px; background: #99f6e4; bottom: -20px; left: 35%; }
 .sc-hero-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
 .sc-hero-icon { font-size: 2rem; flex-shrink: 0; }
 .sc-hero-title { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
-.sc-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.8); margin: 3px 0 0; }
+.sc-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.85); margin: 3px 0 0; }
 
 /* ── Card ─────────────────────────────────────────────────────────── */
 .sc-card {
@@ -54,10 +54,10 @@
 
 .sc-tab {
   padding: 8px 18px;
-  border: 2px solid #4fbdbd;
+  border: 2px solid #5eead4;
   border-radius: 20px;
   background: transparent;
-  color: #1f6f8b;
+  color: #0d9488;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -67,7 +67,7 @@
 
 .sc-tab.active,
 .sc-tab:hover {
-  background: linear-gradient(135deg, #1f6f8b, #14505d);
+  background: linear-gradient(135deg, #0f766e, #0d9488);
   color: #fff;
   border-color: transparent;
 }
@@ -90,13 +90,13 @@
 
 .sc-controls label {
   font-weight: 600;
-  color: #1f6f8b;
+  color: #0d9488;
 }
 
 .sc-controls select,
 .sc-add-row input {
   padding: 8px 12px;
-  border: 1px solid #4fbdbd;
+  border: 1px solid #5eead4;
   border-radius: 6px;
   font-size: 0.9rem;
   outline: none;
@@ -106,7 +106,7 @@
 
 .sc-controls select:focus,
 .sc-add-row input:focus {
-  border-color: #1f6f8b;
+  border-color: #0d9488;
 }
 
 /* ── Add Row ─────────────────────────────────────────────────────── */
@@ -130,7 +130,7 @@
 
 /* ── Buttons ─────────────────────────────────────────────────────── */
 .btn-add {
-  background: linear-gradient(135deg, #1f6f8b, #14505d);
+  background: linear-gradient(135deg, #0f766e, #0d9488);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -174,15 +174,15 @@
   align-items: center;
   padding: 10px 14px;
   border-radius: 6px;
-  background: #f0f9f9;
-  border-left: 5px solid #4fbdbd;
+  background: #f0fdfa;
+  border-left: 5px solid #5eead4;
   margin-bottom: 8px;
   font-size: 0.92rem;
   color: #333;
   gap: 8px;
 }
 
-.sc-item:hover { background: #ccf7f7; }
+.sc-item:hover { background: #ccfbf1; }
 
 .sc-empty {
   color: #888;
@@ -205,7 +205,7 @@
 /* ── Accordion ───────────────────────────────────────────────────── */
 .sc-accordion {
   margin-bottom: 10px;
-  border: 1px solid #d0eaf0;
+  border: 1px solid #99f6e4;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -215,17 +215,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #e8f4f8;
+  background: #f0fdfa;
   cursor: pointer;
   user-select: none;
   transition: background 0.2s;
   gap: 10px;
 }
-.sc-accordion-header:hover { background: #d0eaf0; }
+.sc-accordion-header:hover { background: #ccfbf1; }
 
 .sc-accordion-title {
   font-weight: 700;
-  color: #1f6f8b;
+  color: #0d9488;
   font-size: 0.95rem;
   flex: 1;
   min-width: 0;
@@ -240,7 +240,7 @@
 
 .sc-chevron {
   font-size: 0.75rem;
-  color: #1f6f8b;
+  color: #0d9488;
 }
 
 .sc-accordion-body {
@@ -263,82 +263,19 @@
 
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .sc-container {
-    width: 98%;
-    padding: 14px;
-  }
-
+  .sc-container { width: 98%; padding: 14px; }
   .sc-header h2 { font-size: 1rem; }
-
-  .sc-tabs {
-    gap: 6px;
-  }
-
-  .sc-tab {
-    padding: 8px 14px;
-    font-size: 0.82rem;
-    border-radius: 16px;
-  }
-
+  .sc-tabs { gap: 6px; }
+  .sc-tab { padding: 8px 14px; font-size: 0.82rem; border-radius: 16px; }
   .sc-body { padding: 14px; border-radius: 8px; }
-
-  .sc-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .sc-controls select {
-    width: 100%;
-    font-size: 1rem;
-    padding: 10px 12px;
-    box-sizing: border-box;
-  }
-
-  .sc-add-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .sc-add-row input {
-    width: 100%;
-    font-size: 1rem;
-    padding: 10px 12px;
-    box-sizing: border-box;
-  }
-
-  .btn-add {
-    width: 100%;
-    padding: 12px;
-    font-size: 0.95rem;
-    text-align: center;
-    box-sizing: border-box;
-  }
-
-  /* Sub-accordion add row — keep inline (narrower inputs) */
-  .sc-add-sub {
-    padding: 10px 0 4px;
-  }
-
-  .sc-add-sub.sc-add-row {
-    flex-direction: row;
-  }
-
-  .sc-add-sub.sc-add-row input {
-    width: unset;
-    flex: 1;
-    font-size: 0.9rem;
-    padding: 8px 10px;
-    box-sizing: border-box;
-  }
-
-  .sc-add-sub.sc-add-row .btn-add {
-    width: auto;
-    padding: 8px 14px;
-    font-size: 0.85rem;
-  }
-
-  .sc-item {
-    padding: 11px 12px;
-    font-size: 0.9rem;
-  }
+  .sc-controls { flex-direction: column; align-items: stretch; }
+  .sc-controls select { width: 100%; font-size: 1rem; padding: 10px 12px; box-sizing: border-box; }
+  .sc-add-row { flex-direction: column; align-items: stretch; }
+  .sc-add-row input { width: 100%; font-size: 1rem; padding: 10px 12px; box-sizing: border-box; }
+  .btn-add { width: 100%; padding: 12px; font-size: 0.95rem; text-align: center; box-sizing: border-box; }
+  .sc-add-sub { padding: 10px 0 4px; }
+  .sc-add-sub.sc-add-row { flex-direction: row; }
+  .sc-add-sub.sc-add-row input { width: unset; flex: 1; font-size: 0.9rem; padding: 8px 10px; box-sizing: border-box; }
+  .sc-add-sub.sc-add-row .btn-add { width: auto; padding: 8px 14px; font-size: 0.85rem; }
+  .sc-item { padding: 11px 12px; font-size: 0.9rem; }
 }

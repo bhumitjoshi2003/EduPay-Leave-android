@@ -10,7 +10,7 @@
 /* ── Hero ─────────────────────────────────────────────────── */
 .ec-hero {
   position: relative;
-  background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 55%, #818cf8 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #60a5fa 100%);
   border-radius: 20px;
   padding: 22px 20px;
   display: flex;
@@ -26,7 +26,7 @@
   pointer-events: none;
 }
 .ec-blob-1 { width: 130px; height: 130px; background: #fff; top: -35px; right: -25px; }
-.ec-blob-2 { width: 85px;  height: 85px;  background: #a5b4fc; bottom: -20px; left: 35%; }
+.ec-blob-2 { width: 85px;  height: 85px;  background: #bfdbfe; bottom: -20px; left: 35%; }
 
 .ec-hero-left {
   display: flex;
