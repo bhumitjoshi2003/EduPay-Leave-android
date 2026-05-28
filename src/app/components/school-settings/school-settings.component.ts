@@ -138,7 +138,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       boardType: this.settings.boardType,
       academicYearStartMonth: this.settings.academicYearStartMonth ?? 4,
       workingDays: this.settings.workingDays ?? 'MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY',
-      periodsPerDay: this.settings.periodsPerDay ?? 8,
       gradingSystem: this.settings.gradingSystem ?? 'CBSE',
     };
     this.isEditing = true;

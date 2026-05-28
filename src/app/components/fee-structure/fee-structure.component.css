@@ -98,12 +98,19 @@ input[type="number"]::-webkit-inner-spin-button {
   letter-spacing: 0.4px; text-transform: uppercase;
   white-space: nowrap;
   border-bottom: 2px solid #bae6fd;
+  vertical-align: bottom;
+}
+.fs-table th:not(:first-child) {
+  text-align: center;
 }
 
 .fs-table td {
   padding: 11px 14px;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
+}
+.fs-table td:not(:first-child) {
+  text-align: center;
 }
 .fs-table tbody tr:last-child td { border-bottom: none; }
 .fs-table tbody tr:nth-child(even) { background: #fafbfc; }
@@ -130,6 +137,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border: 1.5px solid #e2e8f0; border-radius: 8px;
   font-size: 0.82rem; color: #374151; background: #f8fafc;
   outline: none; font-family: inherit; transition: border-color 0.15s;
+  text-align: center;
 }
 .fs-input:focus { border-color: #0369a1; box-shadow: 0 0 0 2px rgba(3,105,161,0.08); }
 

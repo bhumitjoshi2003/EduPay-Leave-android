@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { EMPTY, Subject, takeUntil } from 'rxjs';
+import { EMPTY, Subject, forkJoin, takeUntil } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { StudentService } from '../../services/student.service';
 import { Router } from '@angular/router';
@@ -61,20 +61,21 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
-      next: classes => {
-        this.classList = classes;
+    forkJoin({
+      classList: this.schoolService.getClasses(),
+      managedClasses: this.schoolService.getManagedClasses()
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ classList, managedClasses }) => {
+        this.classList = classList;
+        this.managedClasses = managedClasses;
         this.cdr.markForCheck();
       },
       error: () => {
         this.toast.error('Error', 'Failed to load class list.');
       }
     });
-    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
-      next: classes => { this.managedClasses = classes; },
-      error: () => {}
-    });
-    // Load sections when class changes
+    // Load sections when class changes — managedClasses is guaranteed populated by the time
+    // the user can interact with the class dropdown
     this.studentForm.get('className')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(className => {
       this.sections = [];
       this.studentForm.get('sectionId')?.setValue(null);

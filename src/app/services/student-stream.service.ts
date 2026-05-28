@@ -15,6 +15,7 @@ export interface StudentStreamOverview {
   studentId: string;
   studentName: string;
   className: string | null;
+  sectionName: string | null;
   streamName: string | null;
   optionalSubjectName: string | null;
 }
@@ -52,5 +53,9 @@ export class StudentStreamService {
 
   getEligibleStudents(): Observable<EligibleStudentsResponse> {
     return this.http.get<EligibleStudentsResponse>(`${this.base}/eligible-students`);
+  }
+
+  bulkAssignSection(className: string, sectionId: number, streamId: number, optionalSubjectId: number | null): Observable<{ updated: number }> {
+    return this.http.post<{ updated: number }>(`${this.base}/bulk`, { className, sectionId, streamId, optionalSubjectId });
   }
 }

@@ -229,13 +229,6 @@
               </div>
             </div>
             <div class="ss-info-row">
-              <div class="ss-info-row-icon">🕐</div>
-              <div class="ss-info-row-body">
-                <span class="ss-info-row-label">Periods / Day</span>
-                <span class="ss-info-row-value">{{ settings.periodsPerDay || 8 }}</span>
-              </div>
-            </div>
-            <div class="ss-info-row">
               <div class="ss-info-row-icon">🎓</div>
               <div class="ss-info-row-body">
                 <span class="ss-info-row-label">Grading System</span>
@@ -381,10 +374,6 @@
                 <select class="ss-input" [(ngModel)]="editForm.gradingSystem">
                   <option *ngFor="let g of gradingSystems" [value]="g.value">{{ g.label }}</option>
                 </select>
-              </div>
-              <div class="ss-form-group">
-                <label class="ss-label">Periods per Day</label>
-                <input class="ss-input" type="number" [(ngModel)]="editForm.periodsPerDay" min="1" max="20" placeholder="8">
               </div>
               <div class="ss-form-group ss-full">
                 <label class="ss-label">Working Days</label>

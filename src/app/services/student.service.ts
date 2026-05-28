@@ -98,6 +98,12 @@ export class StudentService {
     return this.http.post<PromotionResult>(`${this.baseUrl}/promotion/execute`, { decisions });
   }
 
+  fixOrphanedSections(): Observable<{ affected: number; message: string }> {
+    return this.http.post<{ affected: number; message: string }>(
+      `${this.baseUrl}/promotion/fix-orphaned-sections`, {}
+    );
+  }
+
   searchStudents(query: string): Observable<Student[]> {
     const params = new HttpParams().set('q', query);
     return this.http.get<Student[]>(`${this.baseUrl}/search`, { params });

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -10,8 +10,15 @@ export class TimetableService {
 
   constructor(private http: HttpClient) {}
 
-  getClassTimetable(className: string): Observable<TimetableEntry[]> {
-    return this.http.get<TimetableEntry[]>(`${this.baseUrl}/class/${className}`);
+  getClassTimetable(className: string, sectionId?: number | null): Observable<TimetableEntry[]> {
+    let params = new HttpParams();
+    if (sectionId != null) {
+      params = params.set('sectionId', sectionId.toString());
+    }
+    return this.http.get<TimetableEntry[]>(
+      `${this.baseUrl}/class/${encodeURIComponent(className)}`,
+      { params }
+    );
   }
 
   getTeacherTimetable(teacherId: string): Observable<TimetableEntry[]> {

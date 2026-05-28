@@ -108,4 +108,15 @@
 
   </ng-container>
 
+  <!-- ── Maintenance ─────────────────────────────────────────────────── -->
+  <div class="sp-maintenance" *ngIf="!isLoading && !result">
+    <p class="sp-maintenance-label">Maintenance</p>
+    <button class="sp-maintenance-btn" (click)="fixOrphanedSections()">
+      🔧 Fix Orphaned Section Assignments
+    </button>
+    <p class="sp-maintenance-hint">
+      Clears section data for students promoted before section-aware logic was applied (e.g., a Class 1 Section A student now in Class 2 which has no sections).
+    </p>
+  </div>
+
 </div>

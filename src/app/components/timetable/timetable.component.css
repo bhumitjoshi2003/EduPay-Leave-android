@@ -206,6 +206,13 @@
   border-radius: 5px; padding: 2px 8px; margin-bottom: 3px; letter-spacing: 0.2px;
 }
 
+/* Section badge (shown when viewing all sections) */
+.tt-section-badge {
+  display: inline-block; font-size: 0.62rem; font-weight: 700;
+  background: #e0e7ff; color: #4338ca;
+  border-radius: 4px; padding: 1px 6px; margin-bottom: 3px; letter-spacing: 0.2px;
+}
+
 /* Right side — time or period number */
 .tt-card-right {
   display: flex; flex-direction: column; align-items: flex-end;

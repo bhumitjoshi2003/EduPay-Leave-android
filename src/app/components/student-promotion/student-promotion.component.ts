@@ -142,6 +142,30 @@ export class StudentPromotionComponent implements OnInit, OnDestroy {
     this.loadPreview();
   }
 
+  fixOrphanedSections(): void {
+    this.toast.confirm({
+      title: 'Fix Orphaned Sections?',
+      message: 'This will clear section assignments for any students whose section belongs to a different class (e.g., promoted students who retained their old section). This is safe to run at any time.',
+      confirmText: 'Yes, Fix',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
+      this.studentService.fixOrphanedSections().pipe(takeUntil(this.destroy$)).subscribe({
+        next: ({ affected, message }) => {
+          if (affected > 0) {
+            this.toast.success('Done', message);
+          } else {
+            this.toast.info('No Issues Found', 'All student section assignments are valid.');
+          }
+        },
+        error: (e) => {
+          this.logger.error('Error fixing orphaned sections:', e);
+          this.toast.error('Error', 'Failed to fix orphaned sections.');
+        }
+      });
+    });
+  }
+
   trackByClass(_: number, g: PromotionPreviewGroup): string { return g.className; }
   trackByStudent(_: number, s: { studentId: string }): string { return s.studentId; }
 }

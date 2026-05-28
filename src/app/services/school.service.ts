@@ -123,7 +123,6 @@ export interface SchoolSettings {
   // Academic calendar settings
   academicYearStartMonth: number;   // 1=Jan, 4=Apr (default), 7=Jul, etc.
   workingDays: string;              // comma-separated, e.g. "MONDAY,TUESDAY,...,SATURDAY"
-  periodsPerDay: number;            // number of periods per school day
   gradingSystem: string;            // CBSE | PERCENTAGE | LETTER
 }
 

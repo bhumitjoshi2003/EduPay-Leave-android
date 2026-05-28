@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../auth/auth.service';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../services/toast.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, forkJoin, takeUntil, switchMap } from 'rxjs';
 import { Location } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { SchoolService, SchoolClass } from '../../services/school.service';
@@ -92,21 +92,28 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.schoolService.getClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe(classes => {
-      this.classList = classes;
-      this.cdr.markForCheck();
-    });
-    this.schoolService.getManagedClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-      next: classes => { this.managedClasses = classes; },
-      error: () => {}
-    });
-    this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe((params) => {
+    this.role = this.authService.getUserRole();
+
+    // Load both class lists first, then process route params.
+    // This ensures managedClasses is populated before loadStudentDetails
+    // calls loadSectionsForClass — preventing the race where sections never load.
+    forkJoin({
+      classes: this.schoolService.getClasses(),
+      managedClasses: this.schoolService.getManagedClasses(),
+    }).pipe(
+      takeUntil(this.ngUnsubscribe),
+      switchMap(({ classes, managedClasses }) => {
+        this.classList = classes;
+        this.managedClasses = managedClasses;
+        this.cdr.markForCheck();
+        return this.route.params;
+      })
+    ).subscribe((params) => {
       this.studentId = params['studentId'];
       if (this.studentId) {
         this.loadStudentDetails(this.studentId);
       }
     });
-    this.role = this.authService.getUserRole();
   }
 
   ngOnDestroy(): void {

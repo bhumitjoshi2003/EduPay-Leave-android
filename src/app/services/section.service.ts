@@ -26,7 +26,7 @@ export class SectionService {
     return this.http.put<Section>(`${this.baseUrl}/${id}`, section);
   }
 
-  deleteSection(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  deleteSection(id: number): Observable<{ affected: number }> {
+    return this.http.delete<{ affected: number }>(`${this.baseUrl}/${id}`);
   }
 }

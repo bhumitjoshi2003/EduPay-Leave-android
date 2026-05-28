@@ -22,6 +22,25 @@
     </div>
   </div>
 
+  <!-- ── Bulk assign by section ─────────────────────────────────── -->
+  <div class="ss-bulk-panel" *ngIf="hasSections && !noEligibleClasses">
+    <span class="ss-bulk-label">Bulk assign section:</span>
+    <select class="ss-select ss-bulk-select" [(ngModel)]="bulkSectionId">
+      <option *ngFor="let s of sections; trackBy: trackBySection" [ngValue]="s.id">Section {{ s.name }}</option>
+    </select>
+    <select class="ss-select ss-bulk-select" [(ngModel)]="bulkStreamId">
+      <option [ngValue]="null">— Stream —</option>
+      <option *ngFor="let s of streams; trackById" [ngValue]="s.id">{{ s.streamName }}</option>
+    </select>
+    <select class="ss-select ss-bulk-select" [(ngModel)]="bulkOptionalId">
+      <option [ngValue]="null">— Optional (none) —</option>
+      <option *ngFor="let s of allOptionalSubjects; trackById" [ngValue]="s.id">{{ s.subjectName }}</option>
+    </select>
+    <button class="ss-bulk-btn" (click)="applyBulkSection()" [disabled]="bulkSaving">
+      {{ bulkSaving ? 'Applying…' : 'Apply to section' }}
+    </button>
+  </div>
+
   <div class="ss-card">
 
   <div *ngIf="loading" class="ss-loading">Loading students…</div>
@@ -30,25 +49,33 @@
     <small>Go to <strong>Classes</strong> (More → Classes) and toggle <strong>Stream</strong> on the classes you want to include.</small>
   </div>
   <div *ngIf="!loading && !noEligibleClasses && students.length === 0" class="ss-empty">No students found for Class {{ selectedClass }}.</div>
+  <ng-container *ngIf="!loading && students.length > 0 && filteredStudents.length === 0">
+    <div class="ss-empty">No students found in the selected section.</div>
+  </ng-container>
 
   <!-- Table -->
-  <div *ngIf="!loading && students.length > 0" class="ss-table-wrapper">
+  <div *ngIf="!loading && filteredStudents.length > 0" class="ss-table-wrapper">
     <table class="ss-table">
       <thead>
         <tr>
           <th>Student ID</th>
           <th>Name</th>
+          <th *ngIf="hasSections">Section</th>
           <th>Stream</th>
           <th>Optional Subject</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let student of students; trackBy: trackByStudentId">
+        <tr *ngFor="let student of filteredStudents; trackBy: trackByStudentId">
           <!-- View Row -->
           <ng-container *ngIf="editingStudentId !== student.studentId">
             <td data-label="Student ID">{{ student.studentId }}</td>
             <td data-label="Name">{{ student.studentName }}</td>
+            <td data-label="Section" *ngIf="hasSections">
+              <span *ngIf="student.sectionName" class="ss-section-badge">{{ student.sectionName }}</span>
+              <span *ngIf="!student.sectionName" class="ss-unassigned">—</span>
+            </td>
             <td data-label="Stream">
               <span *ngIf="student.streamName" class="ss-stream-badge">{{ student.streamName }}</span>
               <span *ngIf="!student.streamName" class="ss-unassigned">Not assigned</span>
@@ -66,6 +93,10 @@
           <ng-container *ngIf="editingStudentId === student.studentId">
             <td data-label="Student ID">{{ student.studentId }}</td>
             <td data-label="Name">{{ student.studentName }}</td>
+            <td data-label="Section" *ngIf="hasSections">
+              <span *ngIf="student.sectionName" class="ss-section-badge">{{ student.sectionName }}</span>
+              <span *ngIf="!student.sectionName" class="ss-unassigned">—</span>
+            </td>
             <td data-label="Stream">
               <select [(ngModel)]="editStreamId" class="ss-select">
                 <option [ngValue]="null">— Stream —</option>

@@ -241,7 +241,7 @@ export class ClassManagementComponent implements OnInit, OnDestroy {
   removeSection(classId: number, section: Section): void {
     this.toast.confirm({
       title: `Remove "${section.name}"?`,
-      message: 'This will remove the section from this class.',
+      message: 'Any students assigned to this section will have their section cleared. They will still appear under "All Sections".',
       icon: 'warning',
       danger: true,
       confirmText: 'Yes, remove',
@@ -249,10 +249,14 @@ export class ClassManagementComponent implements OnInit, OnDestroy {
     }).then((confirmed) => {
       if (!confirmed || !section.id) return;
       this.sectionService.deleteSection(section.id).pipe(takeUntil(this.destroy$)).subscribe({
-        next: () => {
+        next: ({ affected }) => {
           const current = this.classSections.get(classId) ?? [];
           this.classSections.set(classId, current.filter(s => s.id !== section.id));
-          this.toast.success('Removed', `Section "${section.name}" removed.`);
+          if (affected > 0) {
+            this.toast.warning('Section Removed', `Section "${section.name}" removed. ${affected} student${affected === 1 ? "'s" : "s'"} section assignment was cleared.`);
+          } else {
+            this.toast.success('Removed', `Section "${section.name}" removed.`);
+          }
           this.cdr.markForCheck();
         },
         error: (e) => {

@@ -106,20 +106,18 @@ export class StudentListComponent implements OnInit, OnDestroy {
       this.teacherId = user.userId;
 
       if (this.loggedInUserRole === 'ADMIN') {
-        this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
-          next: classes => { this.managedClasses = classes; },
-          error: () => {}
-        });
-        this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
-          next: (classes) => {
-            this.classList = classes;
-            this.selectedClass = localStorage.getItem('lastSelectedClass') || classes[0] || '';
+        forkJoin({
+          managedClasses: this.schoolService.getManagedClasses(),
+          classList: this.schoolService.getClasses()
+        }).pipe(takeUntil(this.destroy$)).subscribe({
+          next: ({ managedClasses, classList }) => {
+            this.managedClasses = managedClasses;
+            this.classList = classList;
+            this.selectedClass = localStorage.getItem('lastSelectedClass') || classList[0] || '';
             this.cdr.markForCheck();
             if (this.selectedClass) {
-              this.loadSectionsForClass(this.selectedClass);
-              this.loadStudents();
+              this.loadSectionsForClass(this.selectedClass, () => this.loadStudents());
             } else {
-              // No classes configured yet — stop the loader and show empty state
               this.isLoading = false;
               this.cdr.markForCheck();
             }
@@ -171,16 +169,15 @@ export class StudentListComponent implements OnInit, OnDestroy {
     this.selectedClass = selectedClass;
     this.selectedSectionId = null;
     this.sections = [];
-    this.loadSectionsForClass(selectedClass);
-    this.loadStudents();
+    this.loadSectionsForClass(selectedClass, () => this.loadStudents());
   }
 
-  loadSectionsForClass(className: string): void {
+  loadSectionsForClass(className: string, then?: () => void): void {
     const cls = this.managedClasses.find(c => c.name === className);
-    if (!cls) return;
+    if (!cls) { then?.(); return; }
     this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: sections => { this.sections = sections; this.cdr.markForCheck(); },
-      error: () => {}
+      next: sections => { this.sections = sections; this.cdr.markForCheck(); then?.(); },
+      error: () => { then?.(); }
     });
   }
 

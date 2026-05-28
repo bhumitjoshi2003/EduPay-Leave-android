@@ -3,16 +3,19 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { TimetableService } from '../../services/timetable.service';
 import { TeacherService } from '../../services/teacher.service';
 import { AuthStateService } from '../../auth/auth-state.service';
+import { StudentService } from '../../services/student.service';
 import { LoggerService } from '../../services/logger.service';
 import { TimetableEntry } from '../../interfaces/timetable';
 import { Teacher } from '../../interfaces/teacher';
 import { ToastService } from '../../services/toast.service';
 import { Capacitor } from '@capacitor/core';
-import { SchoolService } from '../../services/school.service';
+import { SchoolService, SchoolClass } from '../../services/school.service';
+import { SectionService } from '../../services/section.service';
+import { Section } from '../../interfaces/section';
 
 @Component({
   selector: 'app-timetable',
@@ -50,7 +53,10 @@ export class TimetableComponent implements OnInit, OnDestroy {
   allPeriods: number[] = Array.from({ length: 8 }, (_, i) => i + 1);
 
   classList: string[] = [];
+  managedClasses: SchoolClass[] = [];
+  sections: Section[] = [];
   selectedClass = '';
+  selectedSectionId: number | null = null;
   selectedDay = 'MONDAY';
   todayDay = '';
 
@@ -76,10 +82,12 @@ export class TimetableComponent implements OnInit, OnDestroy {
     private timetableService: TimetableService,
     private teacherService: TeacherService,
     private authStateService: AuthStateService,
+    private studentService: StudentService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private sectionService: SectionService
   ) {}
 
   ngOnInit(): void {
@@ -92,19 +100,11 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.todayDay = dayMap[new Date().getDay()];
     this.selectedDay = this.days.includes(this.todayDay) ? this.todayDay : this.days[0];
 
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
-      this.classList = classes;
-      this.cdr.markForCheck();
-    });
-
-    // Load school settings to get configurable working days and periods
+    // Load school settings (working days)
     this.schoolService.getSettings().pipe(takeUntil(this.destroy$)).subscribe({
       next: (settings) => {
         if (settings.workingDays) {
           this.days = settings.workingDays.split(',').filter(d => d.trim()).map(d => d.trim().toUpperCase());
-        }
-        if (settings.periodsPerDay && settings.periodsPerDay > 0) {
-          this.allPeriods = Array.from({ length: settings.periodsPerDay }, (_, i) => i + 1);
         }
         if (!this.days.includes(this.selectedDay)) {
           this.selectedDay = this.days.includes(this.todayDay) ? this.todayDay : this.days[0] ?? 'MONDAY';
@@ -114,12 +114,39 @@ export class TimetableComponent implements OnInit, OnDestroy {
       error: () => {}
     });
 
+    if (this.isAdmin()) {
+      // Load class list + managed classes in parallel so section lookup has IDs
+      forkJoin({
+        classes: this.schoolService.getClasses(),
+        managed: this.schoolService.getManagedClasses()
+      }).pipe(takeUntil(this.destroy$)).subscribe({
+        next: ({ classes, managed }) => {
+          this.classList = classes;
+          this.managedClasses = managed;
+          this.cdr.markForCheck();
+        }
+      });
+      this.loadTeachers();
+    }
+
+    if (this.isTeacher()) {
+      this.loadTeacherTimetable();
+    }
+
     if (this.isStudent()) {
       this.selectedClass = this.userClassName;
-      this.loadClassTimetable();
+      // Fetch the student's section so we filter the timetable to their section
+      this.studentService.getStudent(this.userId).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (student) => {
+          this.selectedSectionId = student.sectionId ?? null;
+          this.loadClassTimetable();
+        },
+        error: () => {
+          // Fall back to class-wide timetable if profile fetch fails
+          this.loadClassTimetable();
+        }
+      });
     }
-    if (this.isTeacher()) this.loadTeacherTimetable();
-    if (this.isAdmin()) this.loadTeachers();
   }
 
   ngOnDestroy(): void {
@@ -136,6 +163,32 @@ export class TimetableComponent implements OnInit, OnDestroy {
   onDaySelect(day: string): void {
     this.selectedDay = day;
     this.cdr.markForCheck();
+  }
+
+  onClassChange(): void {
+    this.sections = [];
+    this.selectedSectionId = null;
+    this.entries = [];
+    if (!this.selectedClass) { this.cdr.markForCheck(); return; }
+    this.loadSectionsForClass(this.selectedClass, () => this.loadClassTimetable());
+  }
+
+  onSectionChange(): void {
+    this.loadClassTimetable();
+  }
+
+  private loadSectionsForClass(className: string, then?: () => void): void {
+    const cls = this.managedClasses.find(c => c.name === className);
+    if (!cls) { then?.(); return; }
+    this.sectionService.getSectionsForClass(cls.id)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: (secs) => {
+          this.sections = secs;
+          this.cdr.markForCheck();
+          then?.();
+        },
+        error: () => { this.sections = []; then?.(); }
+      });
   }
 
   toggleTimes(): void {
@@ -226,7 +279,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.entries = [];
     this.cdr.markForCheck();
 
-    this.timetableService.getClassTimetable(this.selectedClass)
+    this.timetableService.getClassTimetable(this.selectedClass, this.selectedSectionId)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (data) => {
           this.entries = data;
@@ -290,6 +343,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.isEditMode = false;
     this.modalForm = this.emptyForm();
     this.modalForm.className = this.selectedClass;
+    this.modalForm.sectionId = this.selectedSectionId;
     this.modalForm.day = this.selectedDay;
     this.modalError = null;
     this.showModal = true;
@@ -389,9 +443,14 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
   private emptyForm(): TimetableEntry {
     return {
-      className: '', day: this.selectedDay ?? 'MONDAY', periodNumber: 1,
+      className: '', sectionId: null, day: this.selectedDay ?? 'MONDAY', periodNumber: 1,
       startTime: '', endTime: '', subjectName: '', teacherId: ''
     };
+  }
+
+  get selectedSectionName(): string | null {
+    if (this.selectedSectionId == null) return null;
+    return this.sections.find(s => s.id === this.selectedSectionId)?.name ?? null;
   }
 
   trackByDay(_: number, day: string): string { return day; }

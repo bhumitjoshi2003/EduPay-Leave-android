@@ -22,9 +22,17 @@
     <div class="tt-control-group">
       <label class="tt-clabel" for="tt-class-sel">Class</label>
       <select id="tt-class-sel" class="tt-select" [(ngModel)]="selectedClass"
-        (ngModelChange)="loadClassTimetable()">
+        (ngModelChange)="onClassChange()">
         <option value="">-- Choose Class --</option>
         <option *ngFor="let c of classList" [value]="c">Class {{ c }}</option>
+      </select>
+    </div>
+    <div class="tt-control-group" *ngIf="sections.length > 0">
+      <label class="tt-clabel" for="tt-section-sel">Section</label>
+      <select id="tt-section-sel" class="tt-select" [(ngModel)]="selectedSectionId"
+        (ngModelChange)="onSectionChange()">
+        <option [ngValue]="null">All Sections</option>
+        <option *ngFor="let s of sections" [ngValue]="s.id">{{ s.name }}</option>
       </select>
     </div>
     <div class="tt-times-toggle">
@@ -73,7 +81,7 @@
 
       <!-- Print header -->
       <div class="tt-print-header">
-        <h3>Class {{ selectedClass }} — {{ dayLabels[selectedDay] }}</h3>
+        <h3>Class {{ selectedClass }}<ng-container *ngIf="selectedSectionName"> – Section {{ selectedSectionName }}</ng-container> — {{ dayLabels[selectedDay] }}</h3>
       </div>
 
       <!-- Period cards -->
@@ -85,6 +93,7 @@
           (click)="isAdmin() && openEdit(entry)">
           <div class="tt-icon-box">{{ getSubjectIcon(entry.subjectName) }}</div>
           <div class="tt-card-info">
+            <span class="tt-section-badge" *ngIf="entry.sectionName && !selectedSectionId">§ {{ entry.sectionName }}</span>
             <div class="tt-card-subject">{{ entry.subjectName }}</div>
             <div class="tt-card-teacher">{{ entry.teacherName }}</div>
           </div>
@@ -144,7 +153,7 @@
           class="tt-period-card tt-sc-{{ getSubjectClass(entry.subjectName) }}">
           <div class="tt-icon-box">{{ getSubjectIcon(entry.subjectName) }}</div>
           <div class="tt-card-info">
-            <span class="tt-class-badge">Class {{ entry.className }}</span>
+            <span class="tt-class-badge">Class {{ entry.className }}<ng-container *ngIf="entry.sectionName"> – {{ entry.sectionName }}</ng-container></span>
             <div class="tt-card-subject">{{ entry.subjectName }}</div>
           </div>
           <div class="tt-card-right">
@@ -186,10 +195,18 @@
     <h3 class="tt-modal-title">{{ isEditMode ? 'Edit Period' : 'Add Period' }}</h3>
 
     <div class="tt-modal-meta" *ngIf="modalForm.day">
-      {{ dayLabels[modalForm.day] }}<span *ngIf="modalForm.className"> · Class {{ modalForm.className }}</span>
+      {{ dayLabels[modalForm.day] }}<span *ngIf="modalForm.className"> · Class {{ modalForm.className }}</span><span *ngIf="modalForm.sectionName"> – {{ modalForm.sectionName }}</span>
     </div>
 
     <div class="tt-modal-body">
+
+      <div class="tt-field" *ngIf="sections.length > 0">
+        <label class="tt-field-label" for="modal-section">Section</label>
+        <select id="modal-section" class="tt-field-input" [(ngModel)]="modalForm.sectionId">
+          <option [ngValue]="null">-- No specific section --</option>
+          <option *ngFor="let s of sections" [ngValue]="s.id">{{ s.name }}</option>
+        </select>
+      </div>
 
       <div class="tt-field">
         <label class="tt-field-label" for="modal-day">Day</label>

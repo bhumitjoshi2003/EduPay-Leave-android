@@ -177,24 +177,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   handleInitialNavigation(): void {
-    const currentUrl = this.router.url;
-    if (!currentUrl.startsWith('/dashboard/payment-history-details/')) {
-      if (this.Role === 'STUDENT') {
-        this.router.navigate(['/dashboard/student-dashboard']);
-      } else if (this.Role === 'TEACHER') {
-        this.router.navigate(['/dashboard/teacher-dashboard']);
-      } else if (this.Role === 'ADMIN') {
-        // Redirect expired admins straight to school-settings so they can renew
-        if (this.subscriptionStatus === 'EXPIRED') {
-          this.router.navigate(['/dashboard/school-settings']);
-        } else {
-          this.router.navigate(['/dashboard/admin-dashboard']);
-        }
-      } else if (this.Role === 'SUPER_ADMIN') {
-        this.router.navigate(['/dashboard/super-admin-dashboard']);
-      } else {
-        this.router.navigate(['/dashboard']);
-      }
+    // Expired ADMIN must renew — override whatever page they were on.
+    if (this.Role === 'ADMIN' && this.subscriptionStatus === 'EXPIRED') {
+      this.router.navigate(['/dashboard/school-settings']);
+      return;
+    }
+
+    // Only redirect to the role-specific home page when the user lands on the bare
+    // /dashboard route (no child path). On a page refresh, the router already has
+    // the full URL in router.url, so we must leave it alone to stay on the same page.
+    const url = this.router.url.split('?')[0]; // strip query params for comparison
+    const isBareDashboard = url === '/dashboard' || url === '/dashboard/';
+    if (!isBareDashboard) return;
+
+    if (this.Role === 'STUDENT') {
+      this.router.navigate(['/dashboard/student-dashboard']);
+    } else if (this.Role === 'TEACHER') {
+      this.router.navigate(['/dashboard/teacher-dashboard']);
+    } else if (this.Role === 'ADMIN' || this.Role === 'SUB_ADMIN') {
+      this.router.navigate(['/dashboard/admin-dashboard']);
+    } else if (this.Role === 'SUPER_ADMIN') {
+      this.router.navigate(['/dashboard/super-admin-dashboard']);
     }
   }
 
