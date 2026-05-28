@@ -123,6 +123,10 @@ export class TimetableComponent implements OnInit, OnDestroy {
         next: ({ classes, managed }) => {
           this.classList = classes;
           this.managedClasses = managed;
+          if (classes.length > 0 && !this.selectedClass) {
+            this.selectedClass = classes[0];
+            this.onClassChange();
+          }
           this.cdr.markForCheck();
         }
       });

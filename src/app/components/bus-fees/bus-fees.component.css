@@ -91,7 +91,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: #f0fdf4;
   color: #059669;
   padding: 11px 14px;
-  text-align: left;
+  text-align: center;
   font-size: 0.72rem; font-weight: 700;
   letter-spacing: 0.4px; text-transform: uppercase;
   white-space: nowrap;
@@ -102,6 +102,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding: 11px 14px;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
+  text-align: center;
   font-size: 0.85rem; color: #374151;
 }
 .bf-table tbody tr:last-child td { border-bottom: none; }
