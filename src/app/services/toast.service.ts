@@ -26,6 +26,8 @@ export interface ConfirmDialogData {
   /** Red confirm button for destructive actions */
   danger?: boolean;
   icon?: 'warning' | 'question' | 'info' | 'success' | 'danger';
+  /** When set, user must type this exact string to enable the confirm button (e.g. "DELETE") */
+  requiredInput?: string;
 }
 
 export interface SelectMonthDialogData {

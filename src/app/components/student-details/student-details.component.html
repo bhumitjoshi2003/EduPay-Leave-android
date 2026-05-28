@@ -32,7 +32,7 @@
       <input type="file" #photoInput accept="image/*" (change)="onPhotoSelected($event)" style="display:none">
       <h1 class="sd-hero-name">{{ studentDetails.name }}</h1>
       <div class="sd-hero-chips">
-        <span class="sd-hero-chip">Class {{ studentDetails.className }}</span>
+        <span class="sd-hero-chip">Class {{ studentDetails.className }}<ng-container *ngIf="studentDetails.sectionName"> - {{ studentDetails.sectionName }}</ng-container></span>
         <span class="sd-hero-chip">{{ studentDetails.studentId }}</span>
       </div>
     </div>
@@ -55,10 +55,18 @@
       <div class="sd-item">
         <span class="sd-item-label">Class</span>
         <span class="sd-item-value" *ngIf="!isEditing">{{ studentDetails.className }}</span>
-        <select class="sd-item-input" *ngIf="isEditing && getUserRole() === 'ADMIN'" [(ngModel)]="updatedDetails.className" (input)="updateFieldValue('className', $event)">
+        <select class="sd-item-input" *ngIf="isEditing && getUserRole() === 'ADMIN'" [(ngModel)]="updatedDetails.className" (ngModelChange)="onClassChangeInEdit($event)">
           <option *ngFor="let className of classList" [value]="className">{{ className }}</option>
         </select>
         <span class="sd-item-value" *ngIf="isEditing && getUserRole() !== 'ADMIN'">{{ studentDetails.className }}</span>
+      </div>
+      <div class="sd-item" *ngIf="studentDetails.sectionName || (isEditing && sections.length > 0)">
+        <span class="sd-item-label">Section</span>
+        <span class="sd-item-value" *ngIf="!isEditing">{{ studentDetails.sectionName }}</span>
+        <select class="sd-item-input" *ngIf="isEditing" [(ngModel)]="updatedDetails.sectionId">
+          <option [ngValue]="null">-- None --</option>
+          <option *ngFor="let sec of sections" [ngValue]="sec.id">{{ sec.name }}</option>
+        </select>
       </div>
       <div class="sd-item">
         <span class="sd-item-label">Phone</span>

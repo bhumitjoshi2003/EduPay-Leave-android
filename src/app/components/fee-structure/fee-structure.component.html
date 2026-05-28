@@ -1,130 +1,184 @@
 <div class="fs-page">
 
-  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <!-- Hero -->
   <div class="fs-hero">
     <div class="fs-hero-left">
       <div class="fs-hero-icon">💼</div>
       <div>
         <h1 class="fs-hero-title">Fee Structure</h1>
-        <p class="fs-hero-sub">School fee schedule — {{ currentSession }}</p>
+        <p class="fs-hero-sub">School fee schedule — {{ currentSession?.label ?? 'No session' }}</p>
       </div>
     </div>
     <div class="fs-blob fs-blob-1"></div>
     <div class="fs-blob fs-blob-2"></div>
   </div>
 
-  <!-- ── Controls ──────────────────────────────────────────────────── -->
+  <!-- Controls -->
   <div class="fs-controls" *ngIf="!isLoading">
     <div class="fs-controls-row">
 
-      <div class="fs-control-group">
+      <div class="fs-control-group" *ngIf="sessions.length > 0">
         <label class="fs-label" for="session-select">Session</label>
-        <select id="session-select" class="fs-select" [(ngModel)]="currentSession"
-          (change)="changeSession(currentSession)">
-          <option *ngFor="let session of sessions; trackBy: trackBySession" [value]="session">{{ session }}</option>
+        <select id="session-select" class="fs-select"
+          [ngModel]="currentSession"
+          (ngModelChange)="changeSession($event)">
+          <option *ngFor="let session of sessions; trackBy: trackBySession"
+            [ngValue]="session">{{ session.label }}{{ session.current ? ' (Current)' : '' }}</option>
         </select>
       </div>
 
       <div class="fs-action-buttons">
-        <button *ngIf="!(isNewSessionStarted || isEditing) && canEdit()" class="fs-btn fs-btn-secondary"
-          (click)="startNewAcademicYear()">
-          ＋ New Year
-        </button>
-        <button *ngIf="!isEditing && canEdit() && sessions.length > 0" class="fs-btn fs-btn-primary" (click)="edit()">
+        <button *ngIf="!isEditing && canEdit() && feeHeads.length > 0 && hasData()"
+          class="fs-btn fs-btn-primary" (click)="edit()">
           ✎ Edit
         </button>
         <ng-container *ngIf="isEditing">
           <button class="fs-btn fs-btn-success" (click)="save()">✓ Save</button>
           <button class="fs-btn fs-btn-danger" (click)="cancel()">✕ Cancel</button>
-          <button class="fs-btn fs-btn-secondary" (click)="addRow()">＋ Row</button>
-          <button class="fs-btn fs-btn-secondary" (click)="removeRow()">− Row</button>
         </ng-container>
+        <button *ngIf="canEdit()" class="fs-btn fs-btn-secondary"
+          (click)="toggleFeeHeadForm()">
+          {{ showFeeHeadForm ? '✕ Close' : '＋ Fee Head' }}
+        </button>
       </div>
 
     </div>
   </div>
 
-  <!-- ── Skeleton ─────────────────────────────────────────────────── -->
-  <div class="fs-table-wrap" *ngIf="isLoading">
+  <!-- Add Fee Head Form -->
+  <div class="fs-fh-form" *ngIf="showFeeHeadForm && canEdit()">
+    <h3 class="fs-fh-form-title">Add New Fee Head</h3>
+    <div class="fs-fh-form-row">
+      <div class="fs-fh-field">
+        <label class="fs-label">Name</label>
+        <input class="fs-input" type="text" [(ngModel)]="newFeeHead.name" placeholder="e.g. Tuition Fee" />
+      </div>
+      <div class="fs-fh-field">
+        <label class="fs-label">Code</label>
+        <input class="fs-input" type="text" [(ngModel)]="newFeeHead.code" placeholder="e.g. TUITION" />
+      </div>
+      <div class="fs-fh-field">
+        <label class="fs-label">Frequency</label>
+        <select class="fs-select" [(ngModel)]="newFeeHead.frequency">
+          <option value="MONTHLY">Monthly</option>
+          <option value="QUARTERLY">Quarterly</option>
+          <option value="SEMI_ANNUAL">Semi-Annual</option>
+          <option value="ANNUAL">Annual</option>
+          <option value="ONE_TIME">One-Time</option>
+        </select>
+      </div>
+      <div class="fs-fh-field fs-fh-check">
+        <label><input type="checkbox" [(ngModel)]="newFeeHead.optional" /> Optional</label>
+      </div>
+      <button class="fs-btn fs-btn-success" (click)="addFeeHead()">Add</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="fs-table-wrap" *ngIf="isLoading || rulesLoading">
     <div class="fs-table-scroll">
       <table class="fs-table" aria-hidden="true">
         <thead>
           <tr>
-            <th>Class</th><th>Tuition Fee</th><th>Admission Fee</th>
-            <th>Annual Charges</th><th>E.C.A (Project)</th><th>Examination Fee</th><th>Lab Charges</th>
+            <th>Class</th>
+            <th *ngFor="let _ of [1,2,3,4]"><span class="sk-shimmer" style="width:70px;height:13px"></span></th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let _ of [1,2,3,4,5,6,7,8]">
             <td><span class="sk-shimmer" style="width:52px;height:13px"></span></td>
-            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
-            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
-            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
-            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
-            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
-            <td><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
+            <td *ngFor="let __ of [1,2,3,4]"><span class="sk-shimmer" style="width:68px;height:13px"></span></td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- ── No sessions yet ───────────────────────────────────────────── -->
-  <div class="fs-empty-state" *ngIf="!isLoading && sessions.length === 0">
+  <!-- No sessions -->
+  <div class="fs-empty-state" *ngIf="!isLoading && !rulesLoading && sessions.length === 0">
     <div class="fs-empty-icon">📋</div>
-    <p class="fs-empty-title">No fee structure found</p>
+    <p class="fs-empty-title">No academic sessions found</p>
+    <p class="fs-empty-sub">Create a session in School Settings first.</p>
   </div>
 
-  <!-- ── Fee Table ─────────────────────────────────────────────────── -->
-  <div class="fs-table-wrap" *ngIf="!isLoading && sessions.length > 0">
+  <!-- No fee heads -->
+  <div class="fs-empty-state" *ngIf="!isLoading && !rulesLoading && sessions.length > 0 && feeHeads.length === 0">
+    <div class="fs-empty-icon">📋</div>
+    <p class="fs-empty-title">No fee heads configured</p>
+    <p class="fs-empty-sub">Add fee heads using the button above to define your school's fee structure.</p>
+  </div>
+
+  <!-- Fee Head Edit Inline -->
+  <div class="fs-fh-form" *ngIf="editingFeeHeadId !== null && canEdit()">
+    <h3 class="fs-fh-form-title">Edit Fee Head</h3>
+    <div class="fs-fh-form-row">
+      <div class="fs-fh-field">
+        <label class="fs-label">Name</label>
+        <input class="fs-input" type="text" [(ngModel)]="editFeeHeadForm.name" />
+      </div>
+      <div class="fs-fh-field">
+        <label class="fs-label">Code</label>
+        <input class="fs-input" type="text" [value]="editFeeHeadForm.code" disabled />
+      </div>
+      <div class="fs-fh-field">
+        <label class="fs-label">Frequency</label>
+        <select class="fs-select" [(ngModel)]="editFeeHeadForm.frequency">
+          <option value="MONTHLY">Monthly</option>
+          <option value="QUARTERLY">Quarterly</option>
+          <option value="SEMI_ANNUAL">Semi-Annual</option>
+          <option value="ANNUAL">Annual</option>
+          <option value="ONE_TIME">One-Time</option>
+        </select>
+      </div>
+      <div class="fs-fh-field fs-fh-check">
+        <label><input type="checkbox" [(ngModel)]="editFeeHeadForm.optional" /> Optional</label>
+      </div>
+      <button class="fs-btn fs-btn-success" (click)="saveEditFeeHead()">Save</button>
+      <button class="fs-btn fs-btn-danger" (click)="cancelEditFeeHead()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Fee Grid Table -->
+  <div class="fs-table-wrap" *ngIf="!isLoading && !rulesLoading && hasData() && feeHeads.length > 0">
     <div class="fs-table-scroll">
       <table class="fs-table" aria-label="Fee structure table">
         <thead>
           <tr>
             <th>Class</th>
-            <th>Tuition Fee</th>
-            <th>Admission Fee</th>
-            <th>Annual Charges</th>
-            <th>E.C.A (Project)</th>
-            <th>Examination Fee</th>
-            <th>Lab Charges</th>
+            <th *ngFor="let fh of feeHeads; trackBy: trackByFeeHead">
+              <div class="fs-th-content">
+                <span>{{ fh.name }}</span>
+                <span class="fs-th-freq">{{ frequencyLabel(fh.frequency) }}</span>
+                <div class="fs-th-actions" *ngIf="canEdit() && !isEditing">
+                  <button class="fs-th-btn" title="Edit" (click)="startEditFeeHead(fh)">✎</button>
+                  <button class="fs-th-btn fs-th-btn-del" title="Delete" (click)="deleteFeeHead(fh)">✕</button>
+                </div>
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let fee of feeStructures; trackBy: trackByIndex">
-            <td data-label="Class">
-              <input *ngIf="isEditing" class="fs-input" type="text" [(ngModel)]="fee.className" />
-              <span *ngIf="!isEditing" class="fs-class-badge">{{ fee.className }}</span>
+          <tr *ngFor="let cls of classes; trackBy: trackByIndex">
+            <td [attr.data-label]="'Class'">
+              <span class="fs-class-badge">{{ cls }}</span>
             </td>
-            <td data-label="Tuition Fee">
-              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.tuitionFee" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.tuitionFee | number }}</span>
+            <td *ngFor="let fh of feeHeads; trackBy: trackByFeeHead"
+              [attr.data-label]="fh.name">
+              <input *ngIf="isEditing" class="fs-input" type="number" min="0"
+                [(ngModel)]="feeGrid[cls][fh.id!]" />
+              <span *ngIf="!isEditing" class="fs-cell-val">
+                {{ getGridValue(cls, fh.id!) | number }}
+              </span>
             </td>
-            <td data-label="Admission Fee">
-              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.admissionFee" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.admissionFee | number }}</span>
-            </td>
-            <td data-label="Annual Charges">
-              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.annualCharges" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.annualCharges | number }}</span>
-            </td>
-            <td data-label="E.C.A">
-              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.ecaProject" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.ecaProject | number }}</span>
-            </td>
-            <td data-label="Exam Fee">
-              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.examinationFee" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.examinationFee | number }}</span>
-            </td>
-            <td data-label="Lab Charges">
-              <input *ngIf="isEditing" class="fs-input" type="number" [(ngModel)]="fee.labCharges" />
-              <span *ngIf="!isEditing" class="fs-cell-val">{{ fee.labCharges | number }}</span>
+          </tr>
+          <tr *ngIf="classes.length === 0">
+            <td [attr.colspan]="feeHeads.length + 1" style="text-align:center; color:#94a3b8; padding:20px">
+              No classes found. Add classes in Class Management.
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-
 
 </div>

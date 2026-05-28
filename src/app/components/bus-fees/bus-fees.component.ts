@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestro
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BusFeesService, BusFee } from '../../services/bus-fees.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
+import { AcademicSession } from '../../interfaces/academic-session';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
@@ -16,9 +18,8 @@ import { ToastService } from '../../services/toast.service';
 })
 export class BusFeesComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  academicYears: string[] = [];
-  currentSession: string = '';
-  isNewSession: boolean = false;
+  sessions: AcademicSession[] = [];
+  currentSession: AcademicSession | null = null;
   busFeeStructures: BusFee[] = [];
   isEditing = false;
   isLoading = true;
@@ -26,6 +27,7 @@ export class BusFeesComponent implements OnInit, OnDestroy {
 
   constructor(
     private busFeesService: BusFeesService,
+    private sessionService: AcademicSessionService,
     private authStateService: AuthStateService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService
@@ -37,15 +39,19 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.fetchAcademicYears();
+    this.loadSessions();
   }
 
-  fetchAcademicYears(): void {
-    this.busFeesService.getAcademicYears().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (years) => {
-        this.academicYears = years;
-        if (this.academicYears.length > 0) {
-          this.currentSession = this.academicYears[this.academicYears.length - 1];
+  loadSessions(): void {
+    this.sessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (sessions) => {
+        this.sessions = sessions;
+        const current = sessions.find(s => s.current);
+        if (current) {
+          this.currentSession = current;
+          this.fetchBusFees();
+        } else if (sessions.length > 0) {
+          this.currentSession = sessions[0];
           this.fetchBusFees();
         } else {
           this.isLoading = false;
@@ -61,9 +67,10 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   fetchBusFees(): void {
+    if (!this.currentSession) return;
     this.isLoading = true;
     this.cdr.markForCheck();
-    this.busFeesService.getBusFees(this.currentSession).pipe(takeUntil(this.destroy$)).subscribe({
+    this.busFeesService.getBusFees(this.currentSession.label).pipe(takeUntil(this.destroy$)).subscribe({
       next: (fees) => {
         this.busFeeStructures = fees;
         this.originalBusFees = JSON.parse(JSON.stringify(this.busFeeStructures));
@@ -78,7 +85,7 @@ export class BusFeesComponent implements OnInit, OnDestroy {
     });
   }
 
-  changeSession(session: string): void {
+  changeSession(session: AcademicSession): void {
     if (this.isEditing) {
       this.toast.confirm({
         title: 'Confirm Navigation',
@@ -88,56 +95,21 @@ export class BusFeesComponent implements OnInit, OnDestroy {
       }).then((confirmed) => {
         if (confirmed) {
           this.currentSession = session;
-          this.isNewSession = false;
           this.isEditing = false;
           this.fetchBusFees();
         }
       });
     } else {
       this.currentSession = session;
-      this.isNewSession = false;
       this.isEditing = false;
       this.fetchBusFees();
     }
   }
 
-  startNewAcademicYear(): void {
-    let newYear: string;
-    if (this.academicYears.length === 0) {
-      const y = new Date().getFullYear();
-      newYear = `${y}-${y + 1}`;
-    } else {
-      const lastSession = this.academicYears[this.academicYears.length - 1];
-      const [lastYearStr] = lastSession.split('-');
-      const lastYear = parseInt(lastYearStr);
-      newYear = `${lastYear + 1}-${lastYear + 2}`;
-    }
-
-    this.toast.confirm({
-      title: 'Start New Academic Year?',
-      message: `Are you sure to start a new academic year: ${newYear}?`,
-      confirmText: 'Yes, start!',
-      cancelText: 'No, cancel',
-    }).then((confirmed) => {
-      if (confirmed) {
-        if (this.academicYears.includes(newYear)) {
-          this.toast.info('Info', 'This academic year already exists.');
-          return;
-        }
-        this.academicYears.push(newYear);
-        this.currentSession = newYear;
-        this.busFeeStructures = [];
-        this.isEditing = true;
-        this.isNewSession = true;
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
   addRow(): void {
-    if (this.isEditing) {
+    if (this.isEditing && this.currentSession) {
       this.busFeeStructures.push({
-        academicYear: this.currentSession,
+        academicYear: this.currentSession.label,
         minDistance: 0,
         maxDistance: null,
         fees: 0,
@@ -168,6 +140,7 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   save(): void {
+    if (!this.currentSession) return;
     this.toast.confirm({
       title: 'Save Changes?',
       message: 'Do you want to save the changes you have made to the bus fees?',
@@ -175,19 +148,15 @@ export class BusFeesComponent implements OnInit, OnDestroy {
       cancelText: 'Cancel',
     }).then((confirmed) => {
       if (confirmed) {
-        const wasNewSession = this.isNewSession;
         this.isEditing = false;
-        this.isNewSession = false;
         this.cdr.markForCheck();
-        this.busFeesService.updateBusFees(this.currentSession, this.busFeeStructures).pipe(takeUntil(this.destroy$)).subscribe({
+        this.busFeesService.updateBusFees(this.currentSession!.label, this.busFeeStructures).pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
             this.originalBusFees = JSON.parse(JSON.stringify(this.busFeeStructures));
-            this.toast.success('Saved!', `Bus fees for ${this.currentSession} saved successfully.`);
+            this.toast.success('Saved!', `Bus fees for ${this.currentSession!.label} saved successfully.`);
           },
           error: () => {
-            // Restore editing state so the user can retry without losing their work.
             this.isEditing = true;
-            this.isNewSession = wasNewSession;
             this.cdr.markForCheck();
             this.toast.error('Error!', 'Failed to save. Please check your connection and try again.');
           }
@@ -197,42 +166,17 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   cancel(): void {
-    const title = this.isNewSession ? 'Discard New Year?' : 'Cancel Editing?';
-    const text = this.isNewSession
-      ? `Are you sure you want to discard the new academic year (${this.currentSession}) setup for bus fees?`
-      : 'Are you sure you want to cancel editing the bus fees?';
-    const confirmButtonText = 'Yes, discard!';
-    const cancelButtonText = 'No, continue editing!';
-
     this.toast.confirm({
-      title,
-      message: text,
-      confirmText: confirmButtonText,
-      cancelText: cancelButtonText,
+      title: 'Cancel Editing?',
+      message: 'Are you sure you want to discard your changes?',
+      confirmText: 'Yes, discard!',
+      cancelText: 'No, continue editing!',
       danger: true,
     }).then((confirmed) => {
       if (confirmed) {
         this.isEditing = false;
-        const wasNewSession = this.isNewSession;
-        this.isNewSession = false;
-
-        if (wasNewSession) {
-          if (this.academicYears.length > 0) {
-            this.academicYears.pop();
-          }
-          if (this.academicYears.length > 0) {
-            this.currentSession = this.academicYears[this.academicYears.length - 1];
-            this.cdr.markForCheck();
-            this.fetchBusFees();
-          } else {
-            this.currentSession = '';
-            this.busFeeStructures = [];
-            this.cdr.markForCheck();
-          }
-        } else {
-          this.busFeeStructures = JSON.parse(JSON.stringify(this.originalBusFees));
-          this.cdr.markForCheck();
-        }
+        this.busFeeStructures = JSON.parse(JSON.stringify(this.originalBusFees));
+        this.cdr.markForCheck();
         this.toast.info('Cancelled!', 'Bus fee changes have been discarded.');
       }
     });
@@ -243,10 +187,5 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   trackByIndex(index: number): number { return index; }
-  trackBySession(index: number, session: string): string { return session; }
-
-  getFormattedSession(session: string): string {
-    const parts = session.split('-');
-    return `<span class="math-inline">\{parts\[0\]\}\-</span>{parts[1].slice(2)}`;
-  }
+  trackBySession(_index: number, session: AcademicSession): number { return session.id; }
 }

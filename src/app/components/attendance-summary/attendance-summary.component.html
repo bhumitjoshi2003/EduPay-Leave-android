@@ -54,6 +54,13 @@
         <option *ngFor="let c of classList" [value]="c">Class {{ c }}</option>
       </select>
 
+      <!-- Section filter -->
+      <select *ngIf="sections.length > 0" [(ngModel)]="selectedSectionId" (ngModelChange)="onSectionSelect($event)"
+        aria-label="Select section" class="as-select">
+        <option [ngValue]="null">All Sections</option>
+        <option *ngFor="let sec of sections" [ngValue]="sec.id">{{ sec.name }}</option>
+      </select>
+
       <!-- Student selector (student view only) -->
       <select *ngIf="viewMode === 'student'" [(ngModel)]="selectedStudentId" aria-label="Select student"
         class="as-select" [disabled]="studentList.length === 0">

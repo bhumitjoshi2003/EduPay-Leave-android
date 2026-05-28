@@ -22,6 +22,17 @@
     </div>
   </div>
 
+  <!-- ── Section Chips ────────────────────────────────────────────── -->
+  <div class="ta-chips-wrap" *ngIf="sections.length > 0">
+    <div class="ta-chips">
+      <button class="ta-chip ta-chip-section" [class.ta-chip-active]="selectedSectionId === null"
+        (click)="onSectionSelect(null)">All Sections</button>
+      <button *ngFor="let sec of sections" class="ta-chip ta-chip-section"
+        [class.ta-chip-active]="selectedSectionId === sec.id"
+        (click)="onSectionSelect(sec.id!)">{{ sec.name }}</button>
+    </div>
+  </div>
+
   <!-- ── Controls Card ─────────────────────────────────────────────── -->
   <div class="ta-controls">
     <h2 class="ta-class-title">Class {{ selectedClass }}</h2>

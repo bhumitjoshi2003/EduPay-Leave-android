@@ -3,7 +3,8 @@ export interface Student {
   name: string;
   className: string;
   classId?: number;
-  sectionId?: number;
+  sectionId?: number | null;
+  sectionName?: string;
   phoneNumber?: string;
   email?: string;
   gender?: string;

@@ -27,4 +27,8 @@ export class FeeHeadService {
   updateFeeHead(id: number, feeHead: FeeHead): Observable<FeeHead> {
     return this.http.put<FeeHead>(`${this.apiUrl}/${id}`, feeHead);
   }
+
+  deleteFeeHead(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

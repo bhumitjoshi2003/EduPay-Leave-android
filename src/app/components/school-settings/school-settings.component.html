@@ -243,6 +243,38 @@
               </div>
             </div>
           </div>
+
+          <!-- Academic Sessions -->
+          <div class="ss-info-section" *ngIf="isAdmin">
+            <div class="ss-info-section-label" style="display:flex;align-items:center;justify-content:space-between;">
+              <span>Academic Sessions</span>
+              <button class="ss-btn ss-btn-sm ss-btn-primary" (click)="createNextSession()" [disabled]="creatingSession">
+                {{ creatingSession ? 'Creating...' : '+ Add Next Session' }}
+              </button>
+            </div>
+            <div *ngIf="sessionsLoading" class="ss-info-row" style="justify-content:center;padding:1rem;">
+              Loading sessions...
+            </div>
+            <div *ngIf="!sessionsLoading && sessions.length === 0" class="ss-info-row" style="justify-content:center;padding:1rem;color:#94a3b8;">
+              No sessions yet. Click "Add Next Session" to create one.
+            </div>
+            <div *ngFor="let s of sessions" class="ss-info-row" style="align-items:center;">
+              <div class="ss-info-row-icon">📅</div>
+              <div class="ss-info-row-body" style="flex:1;">
+                <span class="ss-info-row-label" style="font-weight:600;">{{ s.label }}</span>
+                <span class="ss-info-row-value">{{ s.startDate | date:'mediumDate' }} — {{ s.endDate | date:'mediumDate' }}</span>
+              </div>
+              <span *ngIf="s.current" style="background:#059669;color:#fff;padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;margin-left:auto;">
+                Current
+              </span>
+              <button *ngIf="!s.current" class="ss-btn ss-btn-sm" style="margin-left:auto;font-size:0.75rem;" (click)="setCurrentSession(s.id)">
+                Set Current
+              </button>
+              <button *ngIf="!s.current" class="ss-btn ss-btn-sm" style="margin-left:8px;font-size:0.75rem;color:#dc2626;border-color:#fecaca;" (click)="deleteSession(s)">
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       </ng-container>
 

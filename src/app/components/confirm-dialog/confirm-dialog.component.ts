@@ -1,5 +1,6 @@
 import { Component, Inject, SecurityContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -8,12 +9,13 @@ import { ConfirmDialogData } from '../../services/toast.service';
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule],
+  imports: [CommonModule, FormsModule, MatDialogModule, MatButtonModule],
   templateUrl: './confirm-dialog.component.html',
   styleUrl: './confirm-dialog.component.css',
 })
 export class ConfirmDialogComponent {
   sanitizedHtml: SafeHtml | null = null;
+  confirmInput = '';
 
   constructor(
     public ref: MatDialogRef<ConfirmDialogComponent>,
@@ -23,6 +25,10 @@ export class ConfirmDialogComponent {
     if (data.html) {
       this.sanitizedHtml = this.sanitizer.sanitize(SecurityContext.HTML, data.html) ?? '';
     }
+  }
+
+  get confirmDisabled(): boolean {
+    return !!this.data.requiredInput && this.confirmInput !== this.data.requiredInput;
   }
 
   get iconName(): string {

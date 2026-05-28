@@ -48,8 +48,10 @@ export class StudentService {
     return this.http.get<Student>(`${this.baseUrl}/${studentId}`);
   }
 
-  getActiveStudentsByClass(selectedClass: string): Observable<StudentDTO[]> {
-    return this.http.get<StudentDTO[]>(`${this.baseUrl}/active/class/${selectedClass}`);
+  getActiveStudentsByClass(selectedClass: string, sectionId?: number): Observable<StudentDTO[]> {
+    let params = new HttpParams();
+    if (sectionId) params = params.set('sectionId', sectionId);
+    return this.http.get<StudentDTO[]>(`${this.baseUrl}/active/class/${selectedClass}`, { params });
   }
 
   updateStudent(studentId: string, payload: { studentDetails: Partial<Student>; effectiveFromMonth: number | null }): Observable<Student> {
@@ -60,12 +62,16 @@ export class StudentService {
     return this.http.post<Student>(this.baseUrl, studentData);
   }
 
-  getNewStudentsByClass(selectedClass: string): Observable<StudentDTO[]> {
-    return this.http.get<StudentDTO[]>(`${this.baseUrl}/new/class/${selectedClass}`);
+  getNewStudentsByClass(selectedClass: string, sectionId?: number): Observable<StudentDTO[]> {
+    let params = new HttpParams();
+    if (sectionId) params = params.set('sectionId', sectionId);
+    return this.http.get<StudentDTO[]>(`${this.baseUrl}/new/class/${selectedClass}`, { params });
   }
 
-  getInactiveStudentsByClass(selectedClass: string): Observable<StudentDTO[]> {
-    return this.http.get<StudentDTO[]>(`${this.baseUrl}/inactive/class/${selectedClass}`);
+  getInactiveStudentsByClass(selectedClass: string, sectionId?: number): Observable<StudentDTO[]> {
+    let params = new HttpParams();
+    if (sectionId) params = params.set('sectionId', sectionId);
+    return this.http.get<StudentDTO[]>(`${this.baseUrl}/inactive/class/${selectedClass}`, { params });
   }
 
   downloadBulkTemplate(): Observable<Blob> {

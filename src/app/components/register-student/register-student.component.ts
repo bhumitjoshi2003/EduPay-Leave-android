@@ -8,7 +8,9 @@ import { Router } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../auth/auth.service';
-import { SchoolService } from '../../services/school.service';
+import { SchoolService, SchoolClass } from '../../services/school.service';
+import { SectionService } from '../../services/section.service';
+import { Section } from '../../interfaces/section';
 
 @Component({
   selector: 'app-register-student',
@@ -22,6 +24,8 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
   studentForm: FormGroup;
   isBusUser = false;
   classList: string[] = [];
+  managedClasses: SchoolClass[] = [];
+  sections: Section[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -31,7 +35,8 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private sectionService: SectionService
   ) {
     this.studentForm = this.fb.group({
       studentId: ['', Validators.required],
@@ -43,6 +48,7 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
       gender: ['', Validators.required],
       fatherName: [''],
       motherName: [''],
+      sectionId: [null],
       takesBus: [false],
       distance: [''],
       joiningDate: ['', Validators.required]
@@ -62,6 +68,23 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.toast.error('Error', 'Failed to load class list.');
+      }
+    });
+    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => { this.managedClasses = classes; },
+      error: () => {}
+    });
+    // Load sections when class changes
+    this.studentForm.get('className')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(className => {
+      this.sections = [];
+      this.studentForm.get('sectionId')?.setValue(null);
+      if (!className) return;
+      const cls = this.managedClasses.find(c => c.name === className);
+      if (cls) {
+        this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
+          next: sections => { this.sections = sections; this.cdr.markForCheck(); },
+          error: () => {}
+        });
       }
     });
     this.studentForm.get('takesBus')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => {

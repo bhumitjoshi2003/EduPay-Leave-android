@@ -92,6 +92,22 @@
   color: #fff;
 }
 
+/* ── Section Chips ───────────────────────────────────────────────── */
+.me-section-chips {
+  display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.me-sec-chip {
+  padding: 5px 14px; border-radius: 16px; border: 1px solid #d1d5db;
+  background: #f9fafb; font-size: 0.8rem; font-weight: 600;
+  color: #374151; cursor: pointer; transition: all 0.15s ease;
+}
+.me-sec-chip:hover { border-color: #f97316; color: #c2410c; }
+.me-sec-active {
+  background: linear-gradient(135deg, #c2410c, #f97316); color: #fff;
+  border-color: transparent;
+}
+.me-sec-active:hover { color: #fff; }
+
 /* ── Filters ─────────────────────────────────────────────────────── */
 .me-filters {
   display: flex;

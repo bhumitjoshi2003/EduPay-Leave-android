@@ -139,6 +139,13 @@
             </select>
           </div>
           <div class="sa-form-group">
+            <label>Academic Year Starts</label>
+            <select class="sa-input" name="academicYearStartMonth" [(ngModel)]="onboardForm.academicYearStartMonth">
+              <option *ngFor="let m of academicMonths" [ngValue]="m.value">{{ m.label }}</option>
+            </select>
+            <small class="sa-hint">Month when the academic session begins (e.g. April for most Indian schools).</small>
+          </div>
+          <div class="sa-form-group">
             <label>Email</label>
             <input class="sa-input" type="email" name="schoolEmail" [(ngModel)]="onboardForm.email"
               #schoolEmail="ngModel" email placeholder="school@example.com"

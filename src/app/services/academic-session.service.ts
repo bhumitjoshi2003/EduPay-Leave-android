@@ -27,4 +27,8 @@ export class AcademicSessionService {
   setCurrentSession(sessionId: number): Observable<AcademicSession> {
     return this.http.put<AcademicSession>(`${this.apiUrl}/${sessionId}/set-current`, {});
   }
+
+  deleteSession(sessionId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${sessionId}`);
+  }
 }

@@ -4,7 +4,9 @@ import { LeaveService } from '../../services/leave.service';
 import { StudentService } from '../../services/student.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, formatDate } from '@angular/common';
-import { SchoolService } from '../../services/school.service';
+import { SchoolService, SchoolClass } from '../../services/school.service';
+import { SectionService } from '../../services/section.service';
+import { Section } from '../../interfaces/section';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -51,7 +53,9 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   hasStudents: boolean = false;
 
   classList: string[] = [];
-
+  managedClasses: SchoolClass[] = [];
+  sections: Section[] = [];
+  selectedSectionId: number | null = null;
 
   constructor(
     private leaveService: LeaveService,
@@ -62,7 +66,8 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private sectionService: SectionService
   ) { }
 
   ngOnDestroy(): void {
@@ -82,6 +87,10 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
         this.toast.error('Error', 'Failed to load class list.');
       }
     });
+    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => { this.managedClasses = classes; },
+      error: () => {}
+    });
     this.getUserRoleAndLoadData();
   }
 
@@ -100,6 +109,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
 
       if (this.loggedInUserRole === 'ADMIN') {
         this.selectedClass = localStorage.getItem('lastSelectedClass') || '';
+        if (this.selectedClass) this.loadSectionsForClass(this.selectedClass);
         this.loadStudentsAndApplyAttendance();
       } else {
         this.getTeacherClassAndLoadStudents();
@@ -122,7 +132,24 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
 
   onClassSelect(selectedClass: string): void {
     this.selectedClass = selectedClass;
+    this.selectedSectionId = null;
+    this.sections = [];
     localStorage.setItem('lastSelectedClass', selectedClass);
+    this.loadSectionsForClass(selectedClass);
+    this.loadStudentsAndApplyAttendance();
+  }
+
+  loadSectionsForClass(className: string): void {
+    const cls = this.managedClasses.find(c => c.name === className);
+    if (!cls) return;
+    this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: sections => { this.sections = sections; this.cdr.markForCheck(); },
+      error: () => {}
+    });
+  }
+
+  onSectionSelect(sectionId: number | null): void {
+    this.selectedSectionId = sectionId;
     this.loadStudentsAndApplyAttendance();
   }
 
@@ -136,7 +163,8 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     const classAtRequest = this.selectedClass;
     const dateAtRequest = this.attendanceDate;
 
-    this.studentService.getActiveStudentsByClass(classAtRequest).pipe(takeUntil(this.destroy$)).subscribe({
+    const secId = this.selectedSectionId ?? undefined;
+    this.studentService.getActiveStudentsByClass(classAtRequest, secId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (studentLeaveDTOs) => {
         if (this.selectedClass !== classAtRequest || this.attendanceDate !== dateAtRequest) return;
         this.students = studentLeaveDTOs.map((dto) => ({

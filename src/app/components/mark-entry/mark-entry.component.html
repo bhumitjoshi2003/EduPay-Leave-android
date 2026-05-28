@@ -31,7 +31,7 @@
     </div>
     <div class="me-filter-group" *ngIf="role === 'ADMIN'">
       <label>Class</label>
-      <select [(ngModel)]="selectedClass" (ngModelChange)="loadExams()">
+      <select [(ngModel)]="selectedClass" (ngModelChange)="onClassChange()">
         <option *ngFor="let c of classOptions; trackBy: trackByIndex" [value]="c">Class {{ c }}</option>
       </select>
     </div>
@@ -46,6 +46,15 @@
         <option *ngFor="let e of exams; trackBy: trackById" [ngValue]="e.id">{{ e.examName }}</option>
       </select>
     </div>
+  </div>
+
+  <!-- Section Chips -->
+  <div class="me-section-chips" *ngIf="sections.length > 0">
+    <button class="me-sec-chip" [class.me-sec-active]="selectedSectionId === null"
+      (click)="onSectionSelect(null)">All Sections</button>
+    <button *ngFor="let sec of sections" class="me-sec-chip"
+      [class.me-sec-active]="selectedSectionId === sec.id"
+      (click)="onSectionSelect(sec.id!)">{{ sec.name }}</button>
   </div>
 
   <!-- MODE A — BY SUBJECT -->

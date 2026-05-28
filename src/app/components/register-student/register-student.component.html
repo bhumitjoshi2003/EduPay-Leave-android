@@ -64,6 +64,13 @@
           </select>
           <span class="rs-err" *ngIf="studentForm.controls['className'].invalid && (studentForm.controls['className'].dirty || studentForm.controls['className'].touched)">Class is required.</span>
         </div>
+        <div class="rs-field" *ngIf="sections.length > 0">
+          <label class="rs-label">Section</label>
+          <select formControlName="sectionId" class="rs-input rs-select">
+            <option [ngValue]="null">-- None --</option>
+            <option *ngFor="let sec of sections" [ngValue]="sec.id">{{ sec.name }}</option>
+          </select>
+        </div>
         <div class="rs-field">
           <label class="rs-label">Joining Date <span class="rs-req">*</span></label>
           <input type="date" formControlName="joiningDate" class="rs-input">

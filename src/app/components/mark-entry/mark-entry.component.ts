@@ -11,7 +11,9 @@ import { TeacherService } from '../../services/teacher.service';
 import { StudentService } from '../../services/student.service';
 import { AcademicSessionService } from '../../services/academic-session.service';
 import { LoggerService } from '../../services/logger.service';
-import { SchoolService } from '../../services/school.service';
+import { SchoolService, SchoolClass } from '../../services/school.service';
+import { SectionService } from '../../services/section.service';
+import { Section } from '../../interfaces/section';
 
 @Component({
   selector: 'app-mark-entry',
@@ -49,6 +51,9 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
   originalMarksB: Record<number, number | null> = {};
 
   saving = false;
+  managedClasses: SchoolClass[] = [];
+  sections: Section[] = [];
+  selectedSectionId: number | null = null;
 
   constructor(
     private examService: ExamConfigService,
@@ -60,7 +65,8 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
     private toast: ToastService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private sectionService: SectionService
   ) { }
 
   ngOnInit(): void {
@@ -69,6 +75,10 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
 
     this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
       next: classes => { this.classOptions = classes; this.cdr.markForCheck(); },
+      error: () => {}
+    });
+    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => { this.managedClasses = classes; },
       error: () => {}
     });
 
@@ -94,12 +104,16 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
         next: (t) => {
           this.selectedClass = t.classTeacher ?? '';
           this.cdr.markForCheck();
-          if (this.selectedClass) this.loadExams();
+          if (this.selectedClass) {
+            this.loadSectionsForClass(this.selectedClass);
+            this.loadExams();
+          }
         },
         error: (e) => this.logger.error('Error fetching teacher:', e),
       });
     } else {
       this.selectedClass = this.classOptions.length > 0 ? this.classOptions[0] : '1';
+      this.loadSectionsForClass(this.selectedClass);
       this.loadExams();
     }
   }
@@ -116,6 +130,29 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     this.resetStudentSelection();
     // If an exam is already selected, trigger the appropriate data load for the new mode
     if (this.selectedExamId) {
+      this.onExamChange();
+    }
+  }
+
+  onClassChange(): void {
+    this.selectedSectionId = null;
+    this.sections = [];
+    this.loadSectionsForClass(this.selectedClass);
+    this.loadExams();
+  }
+
+  loadSectionsForClass(className: string): void {
+    const cls = this.managedClasses.find(c => c.name === className);
+    if (!cls) return;
+    this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: sections => { this.sections = sections; this.cdr.markForCheck(); },
+      error: () => {}
+    });
+  }
+
+  onSectionSelect(sectionId: number | null): void {
+    this.selectedSectionId = sectionId;
+    if (this.selectedExamId && this.mode === 'student') {
       this.onExamChange();
     }
   }
@@ -138,9 +175,10 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     if (this.mode === 'subject') {
       this.loadExamSubjects();
     } else {
+      const secId = this.selectedSectionId ?? undefined;
       forkJoin([
         this.examService.getExamSubjects(this.selectedExamId),
-        this.studentService.getActiveStudentsByClass(this.selectedClass),
+        this.studentService.getActiveStudentsByClass(this.selectedClass, secId),
       ]).pipe(takeUntil(this.destroy$)).subscribe({
         next: ([subjects, studentList]) => {
           this.examSubjects = subjects;

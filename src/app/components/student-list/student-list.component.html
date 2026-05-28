@@ -7,7 +7,7 @@
       <div>
         <h1 class="sl-hero-title">Students</h1>
         <p class="sl-hero-sub">
-          {{ loggedInUserRole === 'TEACHER' ? 'Class ' + selectedClass : 'Class ' + selectedClass }}
+          Class {{ selectedClass }}
         </p>
       </div>
     </div>
@@ -24,6 +24,17 @@
       <button *ngFor="let c of classList; trackBy: trackByClass"
         class="sl-chip" [class.sl-chip-active]="selectedClass === c"
         (click)="onClassSelect(c)">{{ c }}</button>
+    </div>
+  </div>
+
+  <!-- ── Section Chips ────────────────────────────────────────────── -->
+  <div class="sl-chips-wrap" *ngIf="sections.length > 0">
+    <div class="sl-chips">
+      <button class="sl-chip sl-chip-section" [class.sl-chip-active]="selectedSectionId === null"
+        (click)="onSectionSelect(null)">All Sections</button>
+      <button *ngFor="let sec of sections" class="sl-chip sl-chip-section"
+        [class.sl-chip-active]="selectedSectionId === sec.id"
+        (click)="onSectionSelect(sec.id!)">{{ sec.name }}</button>
     </div>
   </div>
 

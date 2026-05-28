@@ -40,6 +40,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     const isAuthUrl =
       request.url.includes('/auth/login') ||
+      request.url.includes('/auth/logout') ||
       request.url.includes('/auth/refresh-token') ||
       request.url.includes('/auth/request-password-reset') ||
       request.url.includes('/auth/reset-password');
@@ -74,10 +75,15 @@ export class AuthInterceptor implements HttpInterceptor {
           const toast = this.injector.get(ToastService);
           const msg = typeof body === 'string' ? body : body?.message;
           if (msg === 'Unknown school' || msg === 'Forbidden') {
-            // Tenant validation failed — stale cookie or slug mismatch. Force re-login.
-            toast.error('Session Expired', 'Your session is no longer valid. Please log in again.');
+            // Tenant validation failed — stale cookie from a different school session.
+            // Call logout to clear the HttpOnly cookies via Set-Cookie: Max-Age=0 response,
+            // then redirect to login so the user can start a fresh session.
             this.authStateService.clearUser();
-            this.router.navigate(['/home']);
+            this.authService.logout().subscribe({
+              complete: () => this.router.navigate(['/home']),
+              error: () => this.router.navigate(['/home']),
+            });
+            toast.error('Session Expired', 'Your session is no longer valid. Please log in again.');
           } else if (body?.code === 'RESOURCE_LIMIT_EXCEEDED') {
             toast.error('Limit Reached', body.message || 'You have reached your plan limit for this resource.');
           } else if (body?.code === 'FEATURE_NOT_AVAILABLE') {

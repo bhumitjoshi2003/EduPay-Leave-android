@@ -9,7 +9,9 @@ import { Subject, takeUntil, switchMap, forkJoin, of, EMPTY } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
-import { SchoolService } from '../../services/school.service';
+import { SchoolService, SchoolClass } from '../../services/school.service';
+import { SectionService } from '../../services/section.service';
+import { Section } from '../../interfaces/section';
 
 interface Student {
   studentId: string;
@@ -37,6 +39,9 @@ export class StudentListComponent implements OnInit, OnDestroy {
   loggedInUserRole: string = '';
   selectedClass: string = '';
   classList: string[] = [];
+  managedClasses: SchoolClass[] = [];
+  sections: Section[] = [];
+  selectedSectionId: number | null = null;
 
   constructor(
     private studentService: StudentService,
@@ -46,7 +51,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private sectionService: SectionService
   ) { }
 
   ngOnDestroy(): void {
@@ -61,13 +67,14 @@ export class StudentListComponent implements OnInit, OnDestroy {
       switchMap(className => {
         this.isLoading = true;
         this.cdr.markForCheck();
+        const secId = this.selectedSectionId ?? undefined;
 
-        const active$ = this.studentService.getActiveStudentsByClass(className);
+        const active$ = this.studentService.getActiveStudentsByClass(className, secId);
         const upcoming$ = this.loggedInUserRole === 'ADMIN'
-          ? this.studentService.getNewStudentsByClass(className)
+          ? this.studentService.getNewStudentsByClass(className, secId)
           : of([] as Student[]);
         const inactive$ = this.loggedInUserRole === 'ADMIN'
-          ? this.studentService.getInactiveStudentsByClass(className)
+          ? this.studentService.getInactiveStudentsByClass(className, secId)
           : of([] as Student[]);
 
         return forkJoin([active$, upcoming$, inactive$]).pipe(
@@ -99,12 +106,17 @@ export class StudentListComponent implements OnInit, OnDestroy {
       this.teacherId = user.userId;
 
       if (this.loggedInUserRole === 'ADMIN') {
+        this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+          next: classes => { this.managedClasses = classes; },
+          error: () => {}
+        });
         this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
           next: (classes) => {
             this.classList = classes;
             this.selectedClass = localStorage.getItem('lastSelectedClass') || classes[0] || '';
             this.cdr.markForCheck();
             if (this.selectedClass) {
+              this.loadSectionsForClass(this.selectedClass);
               this.loadStudents();
             } else {
               // No classes configured yet — stop the loader and show empty state
@@ -157,6 +169,23 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
   onClassSelect(selectedClass: string): void {
     this.selectedClass = selectedClass;
+    this.selectedSectionId = null;
+    this.sections = [];
+    this.loadSectionsForClass(selectedClass);
+    this.loadStudents();
+  }
+
+  loadSectionsForClass(className: string): void {
+    const cls = this.managedClasses.find(c => c.name === className);
+    if (!cls) return;
+    this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: sections => { this.sections = sections; this.cdr.markForCheck(); },
+      error: () => {}
+    });
+  }
+
+  onSectionSelect(sectionId: number | null): void {
+    this.selectedSectionId = sectionId;
     this.loadStudents();
   }
 

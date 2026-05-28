@@ -9,6 +9,8 @@ import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
 import { NotificationChannelService } from '../../services/notification-channel.service';
 import { NotificationChannel } from '../../interfaces/notification-channel';
+import { AcademicSessionService } from '../../services/academic-session.service';
+import { AcademicSession } from '../../interfaces/academic-session';
 
 @Component({
   selector: 'app-school-settings',
@@ -50,6 +52,11 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   subscriptionHistory: SubscriptionHistoryItem[] = [];
   historyLoading = false;
 
+  // Academic sessions
+  sessions: AcademicSession[] = [];
+  sessionsLoading = false;
+  creatingSession = false;
+
   // Notification channels tab
   channelsLoading = false;
   notificationChannels: NotificationChannel[] = [];
@@ -81,7 +88,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private logger: LoggerService,
-    private notificationChannelService: NotificationChannelService
+    private notificationChannelService: NotificationChannelService,
+    private academicSessionService: AcademicSessionService
   ) {}
 
   ngOnInit(): void {
@@ -89,6 +97,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     this.role = user?.role ?? '';
     this.loadSettings();
     this.loadEntitlement();
+    this.loadSessions();
   }
 
   ngOnDestroy(): void {
@@ -549,6 +558,109 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
         this.logger.error('Failed to toggle channel', err);
         this.toast.error('Error', 'Failed to update notification channel.');
         this.savingChannelType = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  // ── Academic Sessions ──────────────────────────────────────────────
+  loadSessions(): void {
+    this.sessionsLoading = true;
+    this.cdr.markForCheck();
+    this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (sessions) => {
+        this.sessions = sessions;
+        this.sessionsLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to load academic sessions', e);
+        this.sessionsLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  createNextSession(): void {
+    const startMonth = this.settings?.academicYearStartMonth || 4;
+    let nextStartYear: number;
+
+    if (this.sessions.length === 0) {
+      const now = new Date();
+      nextStartYear = (now.getMonth() + 1) >= startMonth ? now.getFullYear() : now.getFullYear() - 1;
+    } else {
+      const sorted = [...this.sessions].sort((a, b) => a.label.localeCompare(b.label));
+      const lastLabel = sorted[sorted.length - 1].label;
+      nextStartYear = parseInt(lastLabel.split('-')[0]) + 1;
+    }
+
+    const label = `${nextStartYear}-${nextStartYear + 1}`;
+    if (this.sessions.some(s => s.label === label)) {
+      this.toast.warning('Exists', `Session ${label} already exists.`);
+      return;
+    }
+
+    const startDate = `${nextStartYear}-${String(startMonth).padStart(2, '0')}-01`;
+    const endDt = new Date(nextStartYear + 1, startMonth - 1, 0);
+    const endDate = `${endDt.getFullYear()}-${String(endDt.getMonth() + 1).padStart(2, '0')}-${String(endDt.getDate()).padStart(2, '0')}`;
+
+    this.creatingSession = true;
+    this.cdr.markForCheck();
+    this.academicSessionService.createSession({
+      label, startDate, endDate, current: this.sessions.length === 0
+    } as any).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.toast.success('Created', `Session ${label} created.`);
+        this.creatingSession = false;
+        this.loadSessions();
+      },
+      error: (e) => {
+        this.logger.error('Failed to create session', e);
+        const msg = typeof e?.error === 'string' ? e.error : e?.error?.message;
+        this.toast.error('Error', msg || 'Failed to create session.');
+        this.creatingSession = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  setCurrentSession(sessionId: number): void {
+    this.academicSessionService.setCurrentSession(sessionId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.toast.success('Updated', 'Current session updated.');
+        this.loadSessions();
+      },
+      error: (e) => {
+        this.logger.error('Failed to set current session', e);
+        this.toast.error('Error', 'Failed to update current session.');
+      }
+    });
+  }
+
+  async deleteSession(session: AcademicSession): Promise<void> {
+    const confirmed = await this.toast.confirm({
+      title: `Delete Session ${session.label}?`,
+      html: `<p>This will permanently delete the academic session <strong>${session.label}</strong> and all associated fee structure rules and student fee configs.</p><p>This action <strong>cannot be undone</strong>.</p>`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true,
+      icon: 'danger',
+      requiredInput: 'DELETE',
+    });
+    if (!confirmed) return;
+
+    this.sessionsLoading = true;
+    this.cdr.markForCheck();
+    this.academicSessionService.deleteSession(session.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.toast.success('Deleted', `Session ${session.label} has been deleted.`);
+        this.loadSessions();
+      },
+      error: (e) => {
+        this.logger.error('Failed to delete session', e);
+        const msg = typeof e?.error === 'string' ? e.error : e?.error?.message;
+        this.toast.error('Error', msg || 'Failed to delete session.');
+        this.sessionsLoading = false;
         this.cdr.markForCheck();
       }
     });
