@@ -52,4 +52,8 @@ export class ExamConfigService {
   deleteExamSubject(entryId: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/subjects/${entryId}`);
   }
+
+  bulkSyncExamSubjects(examId: number, subjects: { subjectName: string; maxMarks: number; examDate: string }[]): Observable<ExamSubjectEntry[]> {
+    return this.http.put<ExamSubjectEntry[]>(`${this.base}/${examId}/subjects/bulk`, subjects);
+  }
 }

@@ -174,6 +174,10 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
     return student.subjects.find(s => s.subjectName === subjectName)?.marksObtained ?? null;
   }
 
+  isEnrolled(student: ClassStudentResult, subjectName: string): boolean {
+    return student.subjects.some(s => s.subjectName === subjectName);
+  }
+
   openReportCard(studentId: string, examId: number | null): void {
     const queryParams: Record<string, string> = {
       studentId,

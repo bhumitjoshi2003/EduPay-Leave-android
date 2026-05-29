@@ -1,12 +1,25 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { ToastService } from '../../services/toast.service';
 import { ExamConfigService, ExamConfig, ExamSubjectEntry } from '../../services/exam-config.service';
+import { SubjectConfigService, ClassSubject } from '../../services/subject-config.service';
 import { LoggerService } from '../../services/logger.service';
 import { AcademicSessionService } from '../../services/academic-session.service';
 import { SchoolService } from '../../services/school.service';
+
+/** One row in the subject checklist (class subject or extra). */
+interface SubjectRow {
+  subjectName: string;
+  checked: boolean;
+  maxMarks: number | null;
+  examDate: string;
+  isElective: boolean;
+  optionalGroup: string | null;
+  isExtra: boolean;          // true = user-added, not from class config
+  existingEntryId?: number;  // set if this subject was already saved for this exam
+}
 
 @Component({
   selector: 'app-exam-config',
@@ -27,18 +40,21 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
   exams: ExamConfig[] = [];
   isLoadingExams = false;
   expandedExamId: number | null = null;
-  examSubjects: Record<number, ExamSubjectEntry[]> = {};
+
+  // Per-exam subject setup state
+  subjectRows: Record<number, SubjectRow[]> = {};
+  defaultMaxMarks: Record<number, number> = {};
+  savingExam: Record<number, boolean> = {};
+  loadingSubjects: Record<number, boolean> = {};
 
   newExamName = '';
 
-  newSubject: Record<number, { subjectName: string; maxMarks: number | null; examDate: string }> = {};
-
-  editingEntry: ExamSubjectEntry | null = null;
-  editMaxMarks: number | null = null;
-  editExamDate = '';
+  // Cached class subjects to avoid re-fetching on every toggle
+  private classSubjectsCache: Record<string, ClassSubject[]> = {};
 
   constructor(
     private examService: ExamConfigService,
+    private subjectConfigService: SubjectConfigService,
     private academicSessionService: AcademicSessionService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
@@ -78,7 +94,9 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
   loadExams(): void {
     this.exams = [];
     this.expandedExamId = null;
-    this.examSubjects = {};
+    this.subjectRows = {};
+    this.defaultMaxMarks = {};
+    this.classSubjectsCache = {};
     this.isLoadingExams = true;
     this.cdr.markForCheck();
     this.examService.getExams(this.selectedSession, this.selectedClass)
@@ -104,19 +122,108 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
       return;
     }
     this.expandedExamId = exam.id;
-    if (!this.examSubjects[exam.id]) {
-      this.loadExamSubjects(exam.id);
+    if (!this.subjectRows[exam.id]) {
+      this.loadSubjectSetup(exam);
     }
   }
 
-  loadExamSubjects(examId: number): void {
-    this.examService.getExamSubjects(examId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => {
-        this.examSubjects = { ...this.examSubjects, [examId]: data };
-        this.cdr.markForCheck();
+  /** Load class subjects + existing exam subjects and merge into the checklist. */
+  loadSubjectSetup(exam: ExamConfig): void {
+    this.loadingSubjects[exam.id] = true;
+    this.cdr.markForCheck();
+
+    const classSubjects$ = this.classSubjectsCache[exam.className]
+      ? new Subject<ClassSubject[]>() as any // will be replaced below
+      : this.subjectConfigService.getClassSubjects(exam.className);
+
+    // If cached, just use the cache
+    if (this.classSubjectsCache[exam.className]) {
+      this.mergeSubjectSetup(exam, this.classSubjectsCache[exam.className]);
+      return;
+    }
+
+    forkJoin([
+      this.subjectConfigService.getClassSubjects(exam.className),
+      this.examService.getExamSubjects(exam.id)
+    ]).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ([classSubjects, examEntries]) => {
+        this.classSubjectsCache[exam.className] = classSubjects;
+        this.mergeSubjectSetup(exam, classSubjects, examEntries);
       },
-      error: (e) => this.logger.error('Error loading exam subjects:', e),
+      error: (e) => {
+        this.logger.error('Error loading subject setup:', e);
+        this.loadingSubjects[exam.id] = false;
+        this.cdr.markForCheck();
+        this.toast.error('Error', 'Failed to load subjects.');
+      },
     });
+  }
+
+  private mergeSubjectSetup(exam: ExamConfig, classSubjects: ClassSubject[], examEntries?: ExamSubjectEntry[]): void {
+    // If examEntries not provided, fetch them
+    if (!examEntries) {
+      this.examService.getExamSubjects(exam.id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (entries) => this.mergeSubjectSetup(exam, classSubjects, entries),
+        error: (e) => {
+          this.logger.error('Error loading exam subjects:', e);
+          this.loadingSubjects[exam.id] = false;
+          this.cdr.markForCheck();
+        },
+      });
+      return;
+    }
+
+    const entryByName: Record<string, ExamSubjectEntry> = {};
+    for (const e of examEntries) {
+      entryByName[e.subjectName] = e;
+    }
+
+    const rows: SubjectRow[] = [];
+    const classSubjectNames = new Set<string>();
+
+    // Class subjects first
+    for (const cs of classSubjects) {
+      classSubjectNames.add(cs.subjectName);
+      const existing = entryByName[cs.subjectName];
+      rows.push({
+        subjectName: cs.subjectName,
+        checked: !!existing,
+        maxMarks: existing?.maxMarks ?? null,
+        examDate: existing?.examDate ?? '',
+        isElective: cs.optional,
+        optionalGroup: cs.optionalGroup,
+        isExtra: false,
+        existingEntryId: existing?.id,
+      });
+    }
+
+    // Extra subjects (in exam but not in class config)
+    for (const entry of examEntries) {
+      if (!classSubjectNames.has(entry.subjectName)) {
+        rows.push({
+          subjectName: entry.subjectName,
+          checked: true,
+          maxMarks: entry.maxMarks,
+          examDate: entry.examDate,
+          isElective: false,
+          optionalGroup: null,
+          isExtra: true,
+          existingEntryId: entry.id,
+        });
+      }
+    }
+
+    // Infer a sensible default maxMarks from existing entries
+    const existingMarks = examEntries.map(e => e.maxMarks).filter(m => m > 0);
+    if (!this.defaultMaxMarks[exam.id]) {
+      this.defaultMaxMarks[exam.id] = existingMarks.length > 0
+        ? existingMarks[0]
+        : 80;
+    }
+
+    this.subjectRows[exam.id] = rows;
+    this.loadingSubjects[exam.id] = false;
+    this.cdr.markForCheck();
   }
 
   addExam(): void {
@@ -127,9 +234,11 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (exam) => {
           this.exams = [...this.exams, exam];
-          this.examSubjects[exam.id] = [];
           this.newExamName = '';
           this.cdr.markForCheck();
+          // Auto-expand the new exam
+          this.expandedExamId = exam.id;
+          this.loadSubjectSetup(exam);
         },
         error: (e) => {
           this.logger.error('Error adding exam:', e);
@@ -150,7 +259,8 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
       this.examService.deleteExam(id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.exams = this.exams.filter(e => e.id !== id);
-          delete this.examSubjects[id];
+          delete this.subjectRows[id];
+          delete this.defaultMaxMarks[id];
           if (this.expandedExamId === id) this.expandedExamId = null;
           this.cdr.markForCheck();
         },
@@ -162,81 +272,138 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
     });
   }
 
-  initNewSubject(examId: number): void {
-    if (!this.newSubject[examId]) {
-      this.newSubject[examId] = { subjectName: '', maxMarks: null, examDate: '' };
+  /** Apply default max marks to all rows that don't have a value yet. */
+  applyDefaultMarks(examId: number): void {
+    const def = this.defaultMaxMarks[examId];
+    if (!def || def <= 0) return;
+    for (const row of this.subjectRows[examId] ?? []) {
+      if (row.checked && !row.maxMarks) {
+        row.maxMarks = def;
+      }
     }
-  }
-
-  addExamSubject(examId: number): void {
-    const s = this.newSubject[examId];
-    if (!s?.subjectName.trim() || !s.maxMarks || !s.examDate) {
-      this.toast.warning('Incomplete', 'Please fill in subject name, max marks, and exam date.');
-      return;
-    }
-    this.examService.addExamSubject(examId, s.subjectName.trim(), s.maxMarks, s.examDate)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (entry) => {
-          this.examSubjects[examId] = [...(this.examSubjects[examId] || []), entry];
-          this.newSubject[examId] = { subjectName: '', maxMarks: null, examDate: '' };
-          this.cdr.markForCheck();
-        },
-        error: (e) => {
-          this.logger.error('Error adding exam subject:', e);
-          this.toast.error('Error', 'Could not add subject. It may already exist for this exam.');
-        },
-      });
-  }
-
-  startEdit(entry: ExamSubjectEntry): void {
-    this.editingEntry = entry;
-    this.editMaxMarks = entry.maxMarks;
-    this.editExamDate = entry.examDate;
     this.cdr.markForCheck();
   }
 
-  cancelEdit(): void {
-    this.editingEntry = null;
+  /** Toggle all class subjects on/off. */
+  toggleAll(examId: number, checked: boolean): void {
+    for (const row of this.subjectRows[examId] ?? []) {
+      if (!row.isExtra) row.checked = checked;
+    }
     this.cdr.markForCheck();
   }
 
-  saveEdit(examId: number): void {
-    if (!this.editingEntry || !this.editMaxMarks || !this.editExamDate) return;
-    this.examService.updateExamSubject(this.editingEntry.id, this.editMaxMarks, this.editExamDate)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (updated) => {
-          this.examSubjects[examId] = this.examSubjects[examId].map(e => e.id === updated.id ? updated : e);
-          this.editingEntry = null;
-          this.cdr.markForCheck();
-        },
-        error: (e) => this.logger.error('Error updating exam subject:', e),
-      });
-  }
-
-  deleteExamSubject(examId: number, entryId: number): void {
-    this.toast.confirm({
-      title: 'Remove subject?',
-      message: 'This will delete the subject entry and all marks recorded for it.',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
-      danger: true,
-    }).then((confirmed) => {
-      if (!confirmed) return;
-      this.examService.deleteExamSubject(entryId).pipe(takeUntil(this.destroy$)).subscribe({
-        next: () => {
-          this.examSubjects[examId] = this.examSubjects[examId].filter(e => e.id !== entryId);
-          this.cdr.markForCheck();
-        },
-        error: (e) => {
-          this.logger.error('Error deleting exam subject:', e);
-          this.toast.error('Error', 'Could not delete subject entry.');
-        },
-      });
+  /** Add an empty extra subject row. */
+  addExtraSubject(examId: number): void {
+    const rows = this.subjectRows[examId];
+    if (!rows) return;
+    rows.push({
+      subjectName: '',
+      checked: true,
+      maxMarks: this.defaultMaxMarks[examId] ?? null,
+      examDate: '',
+      isElective: false,
+      optionalGroup: null,
+      isExtra: true,
     });
+    this.cdr.markForCheck();
+  }
+
+  removeExtraSubject(examId: number, index: number): void {
+    const rows = this.subjectRows[examId];
+    if (!rows) return;
+    rows.splice(index, 1);
+    this.cdr.markForCheck();
+  }
+
+  /** Save all checked subjects in one bulk call. */
+  saveAllSubjects(examId: number): void {
+    const rows = this.subjectRows[examId];
+    if (!rows) return;
+
+    const checked = rows.filter(r => r.checked);
+
+    // Validate
+    for (const r of checked) {
+      if (!r.subjectName.trim()) {
+        this.toast.warning('Incomplete', 'Each subject must have a name.');
+        return;
+      }
+      if (!r.maxMarks || r.maxMarks <= 0) {
+        this.toast.warning('Incomplete', `Please set max marks for "${r.subjectName}".`);
+        return;
+      }
+      if (!r.examDate) {
+        this.toast.warning('Incomplete', `Please set exam date for "${r.subjectName}".`);
+        return;
+      }
+    }
+
+    // Check for duplicate subject names
+    const names = new Set<string>();
+    for (const r of checked) {
+      const name = r.subjectName.trim().toLowerCase();
+      if (names.has(name)) {
+        this.toast.warning('Duplicate', `Subject "${r.subjectName}" appears more than once.`);
+        return;
+      }
+      names.add(name);
+    }
+
+    const payload = checked.map(r => ({
+      subjectName: r.subjectName.trim(),
+      maxMarks: r.maxMarks!,
+      examDate: r.examDate,
+    }));
+
+    this.savingExam[examId] = true;
+    this.cdr.markForCheck();
+
+    this.examService.bulkSyncExamSubjects(examId, payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (saved) => {
+          this.savingExam[examId] = false;
+          // Refresh the rows with server-returned IDs
+          const entryByName: Record<string, ExamSubjectEntry> = {};
+          for (const e of saved) entryByName[e.subjectName] = e;
+          for (const row of rows) {
+            const entry = entryByName[row.subjectName];
+            if (entry) row.existingEntryId = entry.id;
+          }
+          // Remove unchecked extra rows that had no existing entry
+          this.subjectRows[examId] = rows.filter(r => r.checked || r.existingEntryId);
+          this.cdr.markForCheck();
+          this.toast.success('Saved', `${saved.length} subject(s) configured for this exam.`);
+        },
+        error: (e) => {
+          this.savingExam[examId] = false;
+          this.logger.error('Error saving exam subjects:', e);
+          this.toast.error('Error', 'Failed to save exam subjects.');
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  get allClassChecked(): boolean {
+    const rows = this.subjectRows[this.expandedExamId!];
+    if (!rows) return false;
+    const classRows = rows.filter(r => !r.isExtra);
+    return classRows.length > 0 && classRows.every(r => r.checked);
+  }
+
+  getClassRows(examId: number): SubjectRow[] {
+    return (this.subjectRows[examId] ?? []).filter(r => !r.isExtra);
+  }
+
+  getExtraRows(examId: number): SubjectRow[] {
+    return (this.subjectRows[examId] ?? []).filter(r => r.isExtra);
+  }
+
+  getExtraRowIndex(examId: number, row: SubjectRow): number {
+    return (this.subjectRows[examId] ?? []).indexOf(row);
   }
 
   trackById(index: number, item: { id: number }): number { return item.id; }
   trackByIndex(index: number): number { return index; }
+  trackByName(index: number, row: SubjectRow): string { return row.subjectName + index; }
 }

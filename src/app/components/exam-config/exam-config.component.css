@@ -150,6 +150,7 @@
   white-space: nowrap;
 }
 .btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary.btn-sm { padding: 6px 12px; }
 
 .btn-outline {
@@ -165,6 +166,7 @@
   margin-top: 10px;
 }
 .btn-outline:hover { background: #fff1f2; }
+.btn-outline.btn-compact { margin-top: 0; padding: 5px 12px; font-size: 0.8rem; }
 
 .btn-delete {
   background: none;
@@ -178,41 +180,7 @@
   white-space: nowrap;
 }
 .btn-delete:hover { background: #fde8e8; }
-
-.btn-edit {
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
-  color: #9f1239;
-  border-radius: 4px;
-  padding: 4px 10px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.btn-save {
-  background: #d4edda;
-  border: 1px solid #28a745;
-  color: #155724;
-  border-radius: 4px;
-  padding: 4px 10px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.btn-cancel {
-  background: #f8d7da;
-  border: 1px solid #dc3545;
-  color: #721c24;
-  border-radius: 4px;
-  padding: 4px 10px;
-  cursor: pointer;
-  font-size: 0.82rem;
-  white-space: nowrap;
-}
+.btn-delete.btn-compact { padding: 4px 6px; font-size: 0.85rem; }
 
 /* ── Accordion ───────────────────────────────────────────────────── */
 .ec-accordion {
@@ -260,40 +228,166 @@
   padding: 16px 18px 18px;
 }
 
-/* ── Subject Table ───────────────────────────────────────────────── */
-.ec-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 14px;
+/* ── Defaults row ────────────────────────────────────────────────── */
+.ec-defaults-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecdd3;
+}
+
+.ec-default-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ec-default-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #9f1239;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Section labels ──────────────────────────────────────────────── */
+.ec-section-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #fecdd3;
+}
+
+.ec-section-label > span:first-child {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #9f1239;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ec-section-extra {
+  margin-top: 20px;
+}
+
+.ec-section-hint {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.ec-toggle-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.ec-toggle-all input[type="checkbox"] {
+  accent-color: #e11d48;
+  width: 15px;
+  height: 15px;
+}
+
+/* ── Subject checklist ───────────────────────────────────────────── */
+.ec-subject-list {
+  margin-bottom: 8px;
+}
+
+.ec-subject-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  gap: 10px;
+  transition: opacity 0.2s;
+}
+
+.ec-subject-row:last-child {
+  border-bottom: none;
+}
+
+.ec-row-unchecked {
+  opacity: 0.5;
+}
+
+.ec-check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.ec-check-label input[type="checkbox"] {
+  accent-color: #e11d48;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.ec-subj-name {
+  font-weight: 600;
+  color: #1f2937;
   font-size: 0.9rem;
 }
 
-.ec-table th {
-  background: #fff1f2;
-  color: #9f1239;
-  padding: 9px 12px;
-  text-align: left;
+.ec-elective-badge {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.65rem;
   font-weight: 700;
-  border-bottom: 2px solid #fecdd3;
-  white-space: nowrap;
+  padding: 2px 7px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.ec-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid #eee;
-  color: #333;
+.ec-group-tag {
+  display: inline-block;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
 }
 
-.ec-table tbody tr:last-child td { border-bottom: none; }
-.ec-table tbody tr:hover td { background: #fff5f5; }
-
-.ec-actions {
+.ec-row-inputs {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── Extra subject rows ──────────────────────────────────────────── */
+.ec-extra-row {
+  padding: 8px 12px;
+}
+
+.ec-extra-inputs {
+  display: flex;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
+  width: 100%;
 }
 
+/* ── Inputs ──────────────────────────────────────────────────────── */
 .ec-input {
   width: 160px;
   padding: 5px 8px;
@@ -310,14 +404,21 @@
   font-size: 0.88rem;
 }
 
-.ec-add-subject-row {
+/* ── Save bar ────────────────────────────────────────────────────── */
+.ec-save-bar {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 2px solid #fecdd3;
   display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  padding-top: 8px;
+  justify-content: flex-end;
 }
 
+.btn-save-all {
+  padding: 10px 28px;
+  font-size: 0.92rem;
+}
+
+/* ── Misc ────────────────────────────────────────────────────────── */
 .ec-empty { color: #888; font-style: italic; padding: 12px 0; }
 .ec-empty-sub { color: #aaa; font-style: italic; font-size: 0.88rem; margin: 0 0 8px; }
 
@@ -328,8 +429,6 @@
 
 /* ── Tablet (≤ 768px) ────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .ec-container { padding: 18px; border-radius: 10px; }
-  .ec-table { font-size: 0.85rem; }
   .ec-input { width: 130px; }
   .ec-input-sm { width: 90px; }
   .ec-accordion-body { padding: 12px 14px 14px; }
@@ -337,8 +436,6 @@
 
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .ec-container { width: 98%; padding: 14px; }
-  .ec-title { font-size: 1rem; }
   .ec-filters { flex-direction: column; gap: 12px; }
   .ec-filter-group { width: 100%; }
   .ec-filter-group select { width: 100%; min-width: unset; font-size: 1rem; padding: 10px 12px; box-sizing: border-box; }
@@ -348,41 +445,45 @@
   .ec-accordion-header { padding: 12px 14px; }
   .ec-exam-name { font-size: 0.95rem; }
   .ec-accordion-body { padding: 10px 12px 14px; }
-  .ec-table, .ec-table tbody { display: block; width: 100%; }
-  .ec-table thead { display: none; }
-  .ec-table tbody tr {
-    display: block;
-    border: 1px solid #fecdd3;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background: #fff8f8;
-    overflow: hidden;
-  }
-  .ec-table tbody tr:hover td { background: transparent; }
-  .ec-table tbody td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 9px 12px;
-    border: none;
-    border-bottom: 1px solid #fff1f2;
-    font-size: 0.88rem;
+
+  .ec-defaults-row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .ec-defaults-row .btn-outline { width: 100%; text-align: center; }
+
+  .ec-subject-row {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 8px;
   }
-  .ec-table tbody td:last-child { border-bottom: none; }
-  .ec-table tbody td::before {
-    content: attr(data-label);
-    font-weight: 700;
-    color: #9f1239;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    flex-shrink: 0;
-    min-width: 80px;
+
+  .ec-row-inputs {
+    width: 100%;
+    flex-wrap: wrap;
   }
-  .ec-input, .ec-input-sm { width: 100%; font-size: 1rem; padding: 8px 10px; box-sizing: border-box; }
-  .ec-add-subject-row { flex-direction: column; align-items: stretch; gap: 8px; }
-  .ec-add-subject-row .btn-primary { width: 100%; padding: 10px; text-align: center; box-sizing: border-box; }
-  .ec-actions { justify-content: flex-end; gap: 8px; }
-  .ec-table .btn-edit, .ec-table .btn-save, .ec-table .btn-cancel { box-sizing: border-box; padding: 8px 16px; font-size: 0.85rem; }
+
+  .ec-row-inputs .ec-input-sm {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    font-size: 1rem;
+    padding: 8px 10px;
+    box-sizing: border-box;
+  }
+
+  .ec-extra-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ec-extra-inputs .ec-input,
+  .ec-extra-inputs .ec-input-sm {
+    width: 100%;
+    font-size: 1rem;
+    padding: 8px 10px;
+    box-sizing: border-box;
+  }
+
+  .ec-save-bar { justify-content: stretch; }
+  .btn-save-all { width: 100%; text-align: center; padding: 12px; font-size: 1rem; }
+
+  .ec-section-label { flex-direction: column; align-items: flex-start; gap: 4px; }
 }

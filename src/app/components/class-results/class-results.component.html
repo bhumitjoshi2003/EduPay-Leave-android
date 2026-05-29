@@ -82,12 +82,18 @@
             <div class="cr-student-id">{{ student.studentId }}</div>
           </td>
           <td *ngFor="let s of examSubjects; trackBy: trackById" class="cr-cell-marks">
-            <ng-container *ngIf="getMarks(student, s.subjectName) !== null; else absent">
-              {{ getMarks(student, s.subjectName) }}
+            <ng-container *ngIf="isEnrolled(student, s.subjectName); else notEnrolled">
+              <ng-container *ngIf="getMarks(student, s.subjectName) !== null; else noMark">
+                {{ getMarks(student, s.subjectName) }}
+              </ng-container>
+              <ng-template #noMark><span class="cr-absent">—</span></ng-template>
             </ng-container>
-            <ng-template #absent><span class="cr-absent">—</span></ng-template>
+            <ng-template #notEnrolled><span class="cr-na">N/A</span></ng-template>
           </td>
-          <td class="cr-cell-total">{{ student.totalMarksObtained }}/{{ student.totalMaxMarks }}</td>
+          <td class="cr-cell-total">
+            <div>{{ student.totalMarksObtained }}/{{ student.totalMaxMarks }}</div>
+            <div class="cr-pct">{{ student.percentage }}%</div>
+          </td>
           <td class="cr-cell-action">
             <button class="cr-btn-report" (click)="openReportCard(student.studentId, null)" title="Full Report Card">&#128438;</button>
             <button class="cr-btn-report cr-btn-report-exam" (click)="openReportCard(student.studentId, selectedExamId)" title="This Exam">&#128196;</button>

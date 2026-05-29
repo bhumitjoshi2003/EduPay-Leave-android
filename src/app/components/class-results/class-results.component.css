@@ -195,6 +195,8 @@
 .cr-student-id   { font-size: 0.75rem; color: #888; }
 
 .cr-absent { color: #ccc; }
+.cr-na { color: #d4d4d8; font-size: 0.75em; font-style: italic; }
+.cr-pct { font-size: 0.75em; color: #0e7490; font-weight: 600; margin-top: 1px; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-8px); }
