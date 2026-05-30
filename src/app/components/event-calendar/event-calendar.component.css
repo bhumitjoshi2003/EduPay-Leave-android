@@ -75,55 +75,56 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 18px;
-
-    background: #0f172a;
-    /* deep navy */
+    background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%);
     color: #ffffff;
-
     font-size: 1.2rem;
     font-weight: 600;
-
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: none;
 }
 
 .calendar-header h2 {
     margin: 0;
     font-size: 1.4rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.5px;
+    color: #fff;
 }
 
 .calendar-header button {
-    background: transparent;
-    border: 1px solid #334155;
-    color: #e2e8f0;
-
+    background: rgba(96, 165, 250, 0.15);
+    border: 1.5px solid rgba(96, 165, 250, 0.4);
+    color: #93c5fd;
     font-size: 1.2rem;
     cursor: pointer;
-
     padding: 8px 12px;
     border-radius: 8px;
-
     transition: all 0.2s ease;
+    font-weight: 600;
 }
 
 .calendar-header button:hover {
-    background: #1e293b;
-    border-color: #475569;
+    background: rgba(96, 165, 250, 0.28);
+    border-color: #60a5fa;
+    color: #fff;
 }
 
 .calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    background-color: #f1f5f9;
-    padding: 15px 0;
-    font-weight: 600;
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+    padding: 12px 0;
+    font-weight: 700;
     text-align: center;
-    color: #64748b;
-    border-bottom: 1px solid #c0c0c0;
+    color: rgba(255, 255, 255, 0.85);
+    border-bottom: none;
     font-size: 0.75em;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
     text-transform: uppercase;
+}
+
+/* Tint Sunday in the header */
+.calendar-weekdays div:nth-child(7) {
+    color: #93c5fd;
 }
 
 .calendar-grid {

@@ -220,6 +220,7 @@ export class ElectiveAssignmentComponent implements OnInit, OnDestroy {
     Promise.all(ops).then(() => {
       student.saved = { ...student.selections };
       student.saving = false;
+      this.toast.success('Saved', 'Elective choice updated successfully.');
       this.cdr.markForCheck();
     }).catch((e) => {
       this.logger.error('Error saving elective for student:', e);

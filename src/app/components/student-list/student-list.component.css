@@ -85,6 +85,17 @@
   overflow: hidden;
 }
 
+.section-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  align-self: center;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
 .sl-chips {
   display: flex;
   gap: 8px;
@@ -92,6 +103,7 @@
   padding: 4px 2px 8px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  align-items: center;
 }
 .sl-chips::-webkit-scrollbar { display: none; }
 

@@ -50,6 +50,7 @@
 
   <!-- Section Chips -->
   <div class="me-section-chips" *ngIf="sections.length > 0">
+    <span class="section-label">Sections</span>
     <button class="me-sec-chip" [class.me-sec-active]="selectedSectionId === null"
       (click)="onSectionSelect(null)">All Sections</button>
     <button *ngFor="let sec of sections" class="me-sec-chip"
@@ -102,9 +103,11 @@
       </table>
     </div>
 
-    <p *ngIf="selectedSubjectEntryId && subjectStudents.length === 0" class="me-empty">
-      No students found for this subject.
-    </p>
+    <div *ngIf="selectedSubjectEntryId && subjectStudents.length === 0" class="me-empty">
+      <div class="me-empty-icon">👤</div>
+      <p class="me-empty-title">No students found</p>
+      <p class="me-empty-sub">No students found for this subject.</p>
+    </div>
   </ng-container>
 
   <!-- MODE B — BY STUDENT -->
@@ -152,12 +155,18 @@
       </table>
     </div>
 
-    <p *ngIf="selectedStudentId && studentSubjects.length === 0" class="me-empty">
-      No subjects found for this student in this exam.
-    </p>
+    <div *ngIf="selectedStudentId && studentSubjects.length === 0" class="me-empty">
+      <div class="me-empty-icon">📚</div>
+      <p class="me-empty-title">No subjects found</p>
+      <p class="me-empty-sub">No subjects found for this student in this exam.</p>
+    </div>
   </ng-container>
 
-  <p *ngIf="!selectedExamId" class="me-empty">Select a session, class, and exam to begin.</p>
+  <div *ngIf="!selectedExamId" class="me-empty">
+    <div class="me-empty-icon">📝</div>
+    <p class="me-empty-title">Get started</p>
+    <p class="me-empty-sub">Select a session, class, and exam to begin.</p>
+  </div>
 
   </div><!-- /.me-card -->
 </div><!-- /.me-page -->

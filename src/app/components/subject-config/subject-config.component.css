@@ -84,24 +84,32 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 12px;
+  padding: 14px 18px;
 }
 
 .sc-controls label {
-  font-weight: 600;
-  color: #0d9488;
+  font-weight: 700;
+  color: #0f766e;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .sc-controls select,
 .sc-add-row input {
   padding: 8px 12px;
-  border: 1px solid #5eead4;
-  border-radius: 6px;
+  border: 1.5px solid #5eead4;
+  border-radius: 8px;
   font-size: 0.9rem;
   outline: none;
   transition: border-color 0.2s;
   background: #fff;
+  font-family: inherit;
 }
 
 .sc-controls select:focus,
@@ -116,6 +124,10 @@
   margin-bottom: 16px;
   align-items: center;
   flex-wrap: wrap;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 12px;
+  padding: 14px 18px;
 }
 
 .sc-add-row input {
@@ -172,17 +184,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
-  border-radius: 6px;
-  background: #f0fdfa;
-  border-left: 5px solid #5eead4;
+  padding: 11px 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f0fdfa 0%, #f0fdf9 100%);
+  border-left: 4px solid #14b8a6;
   margin-bottom: 8px;
   font-size: 0.92rem;
-  color: #333;
+  color: #1c1917;
   gap: 8px;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
-.sc-item:hover { background: #ccfbf1; }
+.sc-item:hover {
+  background: linear-gradient(135deg, #ccfbf1 0%, #d5f5f0 100%);
+  box-shadow: 0 2px 8px rgba(13,148,136,0.1);
+  transform: translateX(2px);
+}
 
 .sc-empty {
   color: #888;
@@ -206,22 +223,24 @@
 .sc-accordion {
   margin-bottom: 10px;
   border: 1px solid #99f6e4;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .sc-accordion-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background: #f0fdfa;
+  padding: 13px 16px;
+  background: linear-gradient(135deg, rgba(15,118,110,0.06) 0%, rgba(13,148,136,0.08) 100%);
   cursor: pointer;
   user-select: none;
   transition: background 0.2s;
   gap: 10px;
+  border-bottom: 1px solid #99f6e4;
 }
-.sc-accordion-header:hover { background: #ccfbf1; }
+.sc-accordion-header:hover { background: linear-gradient(135deg, rgba(15,118,110,0.1) 0%, rgba(13,148,136,0.12) 100%); }
 
 .sc-accordion-title {
   font-weight: 700;

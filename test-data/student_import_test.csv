@@ -1,7 +1,7 @@
-Student ID,Student Name,Email,Phone Number,Date of Birth,Class,Gender,Father Name,Mother Name,Takes Bus,Distance (km),Joining Date,Leaving Date
-Stu_001,Ravi Sharma,ravi.sharma@test.com,9876543210,2012-06-15,1,Male,Suresh Sharma,Meena Sharma,false,,2024-04-01,
-Stu_002,Priya Patel,priya.patel@test.com,9876543211,2013-09-22,1,Female,Ramesh Patel,Sunita Patel,true,8,2024-04-01,
-Stu_003,Aakash Verma,aakash.verma@test.com,9876543212,2011-03-10,2,Male,Vijay Verma,Kavita Verma,false,,2024-04-01,
-Stu_004,Sneha Gupta,sneha.gupta@test.com,9876543213,2014-11-05,2,Female,Ankit Gupta,Rekha Gupta,true,12,2024-04-01,
-Stu_001,Duplicate Row,duplicate@test.com,9999999999,2012-01-01,2,Male,Father Name,Mother Name,false,,2024-04-01,
-Stu_005,Hari,missing.name@test.com,9876543214,2010-07-18,1,Male,Naresh Singh,Poonam Singh,false,,2024-04-01,
+Student ID,Student Name,Email,Phone Number,Date of Birth,Class,Section,Gender,Father Name,Mother Name,Takes Bus,Distance (km),Joining Date,Leaving Date
+Stu_001,Ravi Sharma,ravi.sharma@test.com,9876543210,2012-06-15,1,A,Male,Suresh Sharma,Meena Sharma,false,,2024-04-01,
+Stu_002,Priya Patel,priya.patel@test.com,9876543211,2013-09-22,1,B,Female,Ramesh Patel,Sunita Patel,true,8,2024-04-01,
+Stu_003,Aakash Verma,aakash.verma@test.com,9876543212,2011-03-10,2,,Male,Vijay Verma,Kavita Verma,false,,2024-04-01,
+Stu_004,Sneha Gupta,sneha.gupta@test.com,9876543213,2014-11-05,2,,Female,Ankit Gupta,Rekha Gupta,true,12,2024-04-01,
+Stu_001,Duplicate Row,duplicate@test.com,9999999999,2012-01-01,2,,Male,Father Name,Mother Name,false,,2024-04-01,
+Stu_005,Hari,missing.name@test.com,9876543214,2010-07-18,1,A,Male,Naresh Singh,Poonam Singh,false,,2024-04-01,

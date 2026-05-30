@@ -120,7 +120,7 @@
 .an-spinner {
   width: 28px; height: 28px;
   border: 3px solid #e0e0e0;
-  border-top-color: #059669;
+  border-top-color: #4338ca;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -271,7 +271,7 @@
   cursor: pointer;
   outline: none;
 }
-.an-trend-select:focus { border-color: #059669; }
+.an-trend-select:focus { border-color: #4338ca; }
 
 .an-trend-toggle {
   display: flex;
@@ -293,7 +293,7 @@
 }
 .an-toggle-btn:first-child { border-right: 1.5px solid #e2e8f0; }
 .an-toggle-active {
-  background: #059669;
+  background: #4338ca;
   color: #fff;
 }
 

@@ -16,6 +16,7 @@
   <!-- Class chips -->
   <div class="ss-chips-wrap" *ngIf="!noEligibleClasses">
     <div class="ss-chips">
+      <span class="class-label">Class</span>
       <button *ngFor="let c of eligibleClasses; trackBy: trackById"
         class="ss-chip" [class.ss-chip-active]="selectedClass === c.name"
         (click)="onClassSelect(c.name)">{{ c.name }}</button>

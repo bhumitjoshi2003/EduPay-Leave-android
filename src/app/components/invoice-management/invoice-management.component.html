@@ -97,7 +97,9 @@
       </div>
 
       <div class="inv-empty" *ngIf="invoices.length === 0">
-        <p>No invoices found for this filter.</p>
+        <div class="inv-empty-icon">🧾</div>
+        <p class="inv-empty-title">No invoices found</p>
+        <p class="inv-empty-sub">No invoices found for this filter.</p>
       </div>
 
       <!-- Pagination -->

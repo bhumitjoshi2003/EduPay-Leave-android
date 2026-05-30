@@ -44,7 +44,11 @@
   </div>
 
   <!-- Exam List -->
-  <div *ngIf="!isLoadingExams && exams.length === 0" class="ec-empty">No exams configured for Class {{ selectedClass }}, {{ selectedSession }}.</div>
+  <div *ngIf="!isLoadingExams && exams.length === 0" class="ec-empty">
+    <div class="ec-empty-icon">📝</div>
+    <p class="ec-empty-title">No exams configured</p>
+    <p class="ec-empty-sub">No exams configured for Class {{ selectedClass }}, {{ selectedSession }}.</p>
+  </div>
 
   <div *ngFor="let exam of exams; trackBy: trackById" class="ec-accordion">
     <div class="ec-accordion-header" (click)="toggleExam(exam)">
@@ -112,11 +116,13 @@
         <div class="ec-subject-list">
           <div *ngFor="let row of getExtraRows(exam.id); let i = index; trackBy: trackByName"
                class="ec-subject-row ec-extra-row">
-            <div class="ec-extra-inputs">
-              <input type="text" [(ngModel)]="row.subjectName" placeholder="Subject name" class="ec-input" aria-label="Extra subject name" />
+            <div class="ec-extra-label">
+              <input type="text" [(ngModel)]="row.subjectName" placeholder="Subject name" class="ec-extra-name-input" aria-label="Extra subject name" />
+              <button class="ec-extra-remove" (click)="removeExtraSubject(exam.id, getExtraRowIndex(exam.id, row))" aria-label="Remove extra subject">&#x2715;</button>
+            </div>
+            <div class="ec-row-inputs">
               <input type="number" [(ngModel)]="row.maxMarks" placeholder="Max" min="1" class="ec-input-sm" aria-label="Max marks" />
               <input type="date" [(ngModel)]="row.examDate" class="ec-input-sm" aria-label="Exam date" />
-              <button class="btn-delete btn-compact" (click)="removeExtraSubject(exam.id, getExtraRowIndex(exam.id, row))" aria-label="Remove extra subject">&#x2715;</button>
             </div>
           </div>
         </div>

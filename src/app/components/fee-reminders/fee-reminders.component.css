@@ -60,10 +60,10 @@
 
 /* ── Controls Card ─────────────────────────────────────────────────── */
 .fr-controls {
-  background: #fff;
-  border-radius: 16px;
+  background: #fef2f2;
+  border-radius: 12px;
   padding: 16px 18px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  border: 1px solid #fecaca;
 }
 
 .fr-controls-row {
@@ -82,7 +82,7 @@
 .fr-label {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #64748b;
+  color: #dc2626;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }

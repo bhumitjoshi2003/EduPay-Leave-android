@@ -41,18 +41,21 @@
   </div>
 
   <!-- Section chips — only shown when the class has sections -->
-  <div class="me-section-chips" *ngIf="sections.length > 0">
-    <button class="me-sec-chip" [class.me-sec-active]="selectedSectionId === null"
+  <div class="cr-section-chips" *ngIf="sections.length > 0">
+    <span class="section-label">Sections</span>
+    <button class="cr-sec-chip" [class.cr-sec-active]="selectedSectionId === null"
       (click)="onSectionSelect(null)">All Sections</button>
-    <button *ngFor="let sec of sections" class="me-sec-chip"
-      [class.me-sec-active]="selectedSectionId === sec.id"
+    <button *ngFor="let sec of sections" class="cr-sec-chip"
+      [class.cr-sec-active]="selectedSectionId === sec.id"
       (click)="onSectionSelect(sec.id!)">{{ sec.name }}</button>
   </div>
 
   <div *ngIf="loading" class="cr-loading">Loading results…</div>
 
   <div *ngIf="!loading && selectedExamId && results.length === 0" class="cr-empty">
-    No marks entered yet for this exam.
+    <div class="cr-empty-icon">📊</div>
+    <p class="cr-empty-title">No marks entered</p>
+    <p class="cr-empty-sub">No marks have been entered for this exam yet.</p>
   </div>
 
   <div *ngIf="!loading && results.length > 0" class="cr-table-wrapper">
@@ -103,6 +106,10 @@
     </table>
   </div>
 
-  <p *ngIf="!selectedExamId" class="cr-empty">Select a session, class, and exam to view results.</p>
+  <div *ngIf="!selectedExamId" class="cr-empty">
+    <div class="cr-empty-icon">🔍</div>
+    <p class="cr-empty-title">View class results</p>
+    <p class="cr-empty-sub">Select a session, class, and exam to view results.</p>
+  </div>
   </div><!-- /.cr-card -->
 </div><!-- /.cr-page -->

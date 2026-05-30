@@ -25,6 +25,7 @@
   <!-- ── Section Chips ────────────────────────────────────────────── -->
   <div class="ta-chips-wrap" *ngIf="sections.length > 0">
     <div class="ta-chips">
+      <span class="section-label">Sections</span>
       <button class="ta-chip ta-chip-section" [class.ta-chip-active]="selectedSectionId === null"
         (click)="onSectionSelect(null)">All Sections</button>
       <button *ngFor="let sec of sections" class="ta-chip ta-chip-section"

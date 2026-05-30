@@ -30,6 +30,7 @@
   <!-- ── Section Chips ────────────────────────────────────────────── -->
   <div class="sl-chips-wrap" *ngIf="sections.length > 0">
     <div class="sl-chips">
+      <span class="section-label">Sections</span>
       <button class="sl-chip sl-chip-section" [class.sl-chip-active]="selectedSectionId === null"
         (click)="onSectionSelect(null)">All Sections</button>
       <button *ngFor="let sec of sections" class="sl-chip sl-chip-section"

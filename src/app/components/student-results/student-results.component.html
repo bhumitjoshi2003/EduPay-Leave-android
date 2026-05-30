@@ -33,7 +33,9 @@
   <div *ngIf="loading" class="sr-loading">Loading results…</div>
 
   <div *ngIf="!loading && results.length === 0" class="sr-empty">
-    No results found for {{ selectedSession }}.
+    <div class="sr-empty-icon">📋</div>
+    <p class="sr-empty-title">No results found</p>
+    <p class="sr-empty-sub">No results found for {{ selectedSession }}.</p>
   </div>
 
   <!-- ── Progress Tracker View ─────────────────────────────────────── -->
