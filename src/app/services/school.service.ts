@@ -335,4 +335,5 @@ export class SchoolService {
   updateSubscriptionConfig(data: Partial<GlobalSubscriptionConfig>): Observable<GlobalSubscriptionConfig> {
     return this.http.put<GlobalSubscriptionConfig>(`${this.superAdminUrl}/subscription-config`, data);
   }
+
 }

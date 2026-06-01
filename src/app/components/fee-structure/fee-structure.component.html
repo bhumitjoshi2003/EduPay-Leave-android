@@ -140,6 +140,23 @@
     </div>
   </div>
 
+  <!-- Mobile fee head actions (visible only on mobile where thead is hidden) -->
+  <div class="fs-mobile-heads" *ngIf="!isLoading && !rulesLoading && feeHeads.length > 0 && canEdit() && !isEditing">
+    <div class="fs-mobile-heads-label">Fee Heads</div>
+    <div class="fs-mobile-heads-list">
+      <div class="fs-mobile-head-chip" *ngFor="let fh of feeHeads; trackBy: trackByFeeHead">
+        <div class="fs-mobile-head-info">
+          <span class="fs-mobile-head-name">{{ fh.name }}</span>
+          <span class="fs-mobile-head-freq">{{ frequencyLabel(fh.frequency) }}</span>
+        </div>
+        <div class="fs-mobile-head-actions">
+          <button class="fs-th-btn" title="Edit" (click)="startEditFeeHead(fh)">✎</button>
+          <button class="fs-th-btn fs-th-btn-del" title="Delete" (click)="deleteFeeHead(fh)">✕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Fee Grid Table -->
   <div class="fs-table-wrap" *ngIf="!isLoading && !rulesLoading && hasData() && feeHeads.length > 0">
     <div class="fs-table-scroll">

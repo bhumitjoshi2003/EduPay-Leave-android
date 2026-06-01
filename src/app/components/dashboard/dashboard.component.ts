@@ -20,6 +20,8 @@ import { WelcomeDialogComponent } from '../welcome-dialog/welcome-dialog.compone
 import { Subject, takeUntil, interval, Subscription } from 'rxjs';
 import { NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { Capacitor } from '@capacitor/core';
+import { AppUpdate, AppUpdateAvailability } from '@capawesome/capacitor-app-update';
 
 @Component({
   selector: 'app-dashboard',
@@ -48,6 +50,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   hasShownWelcomeMessage: boolean = false;
   unreadNotificationCount: number = 0;
   showMoreMenu: boolean = false;
+  showUpdateBanner = false;
+  latestAppVersion = '';
   private ngUnsubscribe = new Subject<void>();
   private welcomeMessageKey = 'hasShownWelcome';
   private pollingIntervalSubscription: Subscription | undefined;
@@ -82,6 +86,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.pollingIntervalSubscription = interval(60000)
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe(() => this.fetchUnreadCount());
+    this.checkForAppUpdate();
+    this.onVisibilityChange = this.onVisibilityChange.bind(this);
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
   }
 
   ngOnDestroy(): void {
@@ -89,6 +96,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
     if (this.pollingIntervalSubscription) {
       this.pollingIntervalSubscription.unsubscribe();
+    }
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
+  }
+
+  private onVisibilityChange(): void {
+    if (document.visibilityState === 'visible') {
+      this.authStateService.loadCurrentUser().then(() => {
+        this.cdr.markForCheck();
+      });
     }
   }
 
@@ -234,7 +250,30 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   showSubscriptionWarning(): boolean {
-    return this.authStateService.isSubscriptionWarning() && !this.isSuperAdmin();
+    return this.authStateService.isSubscriptionWarning() && this.isAdmin();
+  }
+
+  private async checkForAppUpdate(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const info = await AppUpdate.getAppUpdateInfo();
+      if (info.updateAvailability === AppUpdateAvailability.UPDATE_AVAILABLE) {
+        this.latestAppVersion = info.availableVersionName ?? '';
+        this.showUpdateBanner = true;
+        this.cdr.markForCheck();
+      }
+    } catch { /* plugin not available or check failed */ }
+  }
+
+  openPlayStore(): void {
+    AppUpdate.openAppStore().catch(() => {
+      window.open('https://play.google.com/store/apps/details?id=in.edunexify.app', '_system');
+    });
+  }
+
+  dismissUpdateBanner(): void {
+    this.showUpdateBanner = false;
+    this.cdr.markForCheck();
   }
 
   logout() {

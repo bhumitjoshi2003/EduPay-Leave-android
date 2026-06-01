@@ -203,6 +203,9 @@ input[type="number"]::-webkit-inner-spin-button {
   100% { background-position: -200% 0; }
 }
 
+/* ── Mobile Fee Head Strip (hidden on desktop) ───────────────── */
+.fs-mobile-heads { display: none; }
+
 /* ── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .fs-controls-row { flex-direction: column; align-items: stretch; }
@@ -212,6 +215,68 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 @media (max-width: 600px) {
+  .fs-mobile-heads {
+    display: block;
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  .fs-mobile-heads-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #0369a1;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 10px;
+  }
+  .fs-mobile-heads-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .fs-mobile-head-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 10px;
+  }
+  .fs-mobile-head-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .fs-mobile-head-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .fs-mobile-head-freq {
+    font-size: 0.68rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .fs-mobile-head-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .fs-mobile-head-actions .fs-th-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+
   .fs-table-scroll { border-radius: 0; border: none; }
   .fs-table, .fs-table tbody { display: block; width: 100%; min-width: unset; }
   .fs-table thead { display: none; }

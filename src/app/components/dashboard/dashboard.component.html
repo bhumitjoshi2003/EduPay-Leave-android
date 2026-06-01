@@ -87,19 +87,37 @@
     <div class="sub-warning-banner"
          [class.sub-warning-expired]="subscriptionStatus === 'EXPIRED'"
          *ngIf="showSubscriptionWarning()">
-      <mat-icon class="sub-warn-icon">warning</mat-icon>
-      <div class="sub-warn-body">
-        <strong *ngIf="subscriptionStatus === 'GRACE'">Grace Period Active</strong>
-        <strong *ngIf="subscriptionStatus === 'EXPIRED'">Subscription Expired</strong>
-        <span *ngIf="subscriptionStatus === 'GRACE'">Subscription expired. Renew immediately to avoid losing access.</span>
-        <span *ngIf="subscriptionStatus === 'EXPIRED'">Access restricted. Contact your administrator to renew.</span>
+      <div class="sub-warn-left">
+        <div class="sub-warn-icon-wrap">
+          <mat-icon>{{ subscriptionStatus === 'EXPIRED' ? 'error' : 'schedule' }}</mat-icon>
+        </div>
+        <div class="sub-warn-body">
+          <strong *ngIf="subscriptionStatus === 'GRACE'">Grace Period Active</strong>
+          <strong *ngIf="subscriptionStatus === 'EXPIRED'">Subscription Expired</strong>
+          <span *ngIf="subscriptionStatus === 'GRACE'">Your plan has expired. Renew now to continue uninterrupted access.</span>
+          <span *ngIf="subscriptionStatus === 'EXPIRED'">Your grace period has ended. Some features may be restricted.</span>
+        </div>
       </div>
-      <a *ngIf="isAdmin()" class="sub-warn-renew-btn" routerLink="/dashboard/school-settings">
-        Renew
+      <a class="sub-warn-renew-btn" routerLink="/dashboard/school-settings">
+        Renew Now →
       </a>
     </div>
 
     <router-outlet></router-outlet>
+
+    <!-- App update banner (Capacitor Android only) -->
+    <div class="app-update-banner" *ngIf="showUpdateBanner">
+      <div class="app-update-left">
+        <mat-icon>system_update</mat-icon>
+        <span>New version (v{{ latestAppVersion }}) available</span>
+      </div>
+      <div class="app-update-actions">
+        <button class="app-update-btn" (click)="openPlayStore()">Update</button>
+        <button class="app-update-dismiss" (click)="dismissUpdateBanner()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- ── Bottom Navigation Bar ──────────────────────────────────────── -->
