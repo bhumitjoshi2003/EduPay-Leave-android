@@ -70,6 +70,14 @@ export class AuthInterceptor implements HttpInterceptor {
         if (error.status === 401 && !isAuthUrl) {
           return this.handleTokenExpiry(clonedReq, next);
         }
+        if (error.status === 402) {
+          const toast = this.injector.get(ToastService);
+          const body = error.error;
+          const msg = typeof body === 'string' ? body : body?.message;
+          toast.error('Subscription Expired', msg || 'Your subscription has expired. Please renew to continue.');
+          this.router.navigate(['/dashboard/school-settings']);
+          return throwError(() => error);
+        }
         if (error.status === 403) {
           const body = error.error;
           const toast = this.injector.get(ToastService);
@@ -124,11 +132,18 @@ export class AuthInterceptor implements HttpInterceptor {
         })
       );
     } else {
-      // Other requests that fail while refresh is in progress wait here
+      // Other requests that fail while refresh is in progress wait here.
+      // Skip the initial false (set when refresh starts), wait for the outcome.
       return this.refreshDone$.pipe(
-        filter(done => done === true),
+        filter(done => done === true || !this.isRefreshing),
         take(1),
-        switchMap(() => next.handle(request))
+        switchMap((done) => {
+          if (done) {
+            return next.handle(request);
+          }
+          // Refresh failed — propagate the error instead of hanging forever
+          return throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Token refresh failed' }));
+        })
       );
     }
   }

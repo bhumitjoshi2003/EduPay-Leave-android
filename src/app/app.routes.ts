@@ -124,7 +124,7 @@ export const routes: Routes = [
       {
         path: 'holiday-calendar',
         loadComponent: () => import('./components/holiday-calendar/holiday-calendar.component').then(m => m.HolidayCalendarComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER', 'STUDENT'] }
       },
 
       // ── Admin-only routes ─────────────────────────────────────────────

@@ -14,6 +14,8 @@ import { MatInputModule } from '@angular/material/input';
 import { environment } from '../../../environments/environment';
 import { CalendarEvent } from '../../interfaces/event-calendar.component';
 import { AttendanceService } from '../../services/attendance.service';
+import { SchoolHolidayService } from '../../services/school-holiday.service';
+import { SchoolHoliday } from '../../interfaces/school-holiday';
 import { forkJoin, Subject, takeUntil, debounceTime, fromEvent } from 'rxjs';
 
 interface DayCell {
@@ -49,6 +51,7 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
   eventMap = new Map<string, CalendarEvent[]>();
 
   attendanceMap: { [date: string]: string } = {};
+  holidayMap: { [date: string]: string } = {};
   studentId: string = '';
 
   currentUserRole = '';
@@ -78,6 +81,7 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
     private studentService: StudentService,
     private teacherService: TeacherService,
     private attendanceService: AttendanceService,
+    private holidayService: SchoolHolidayService,
     @Inject(PLATFORM_ID) private platformId: Object,
     private logger: LoggerService
   ) {
@@ -559,16 +563,24 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth() + 1;
 
+    const monthStart = format(startOfMonth(this.currentDate), 'yyyy-MM-dd');
+    const monthEnd = format(endOfMonth(this.currentDate), 'yyyy-MM-dd');
+
     const absent$ = this.attendanceService.getMonthlyAttendance(this.studentId, this.currentUserClass, year, month);
     const workingDays$ = this.attendanceService.getMonthlyAttendance('X', this.currentUserClass, year, month);
+    const holidays$ = this.holidayService.getHolidaysByRange(monthStart, monthEnd);
 
-    forkJoin([absent$, workingDays$]).pipe(takeUntil(this.destroy$)).subscribe({
-      next: ([absentData, workingDaysData]) => {
+    forkJoin([absent$, workingDays$, holidays$]).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ([absentData, workingDaysData, holidays]) => {
 
         const absentSet = new Set(absentData.map(a => a.date));
         const workingSet = new Set(workingDaysData.map(w => w.date));
 
+        const holidaySet = new Map<string, string>();
+        holidays.forEach(h => holidaySet.set(h.date, h.name));
+
         this.attendanceMap = {};
+        this.holidayMap = {};
 
         const today = new Date();
 
@@ -583,16 +595,18 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
           }
 
           if (workingSet.has(dateStr)) {
-
+            // Attendance was taken — P/A always wins over holiday
             if (absentSet.has(dateStr)) {
               this.attendanceMap[dateStr] = 'A';
             } else {
               this.attendanceMap[dateStr] = 'P';
             }
-
-          } else {
+          } else if (holidaySet.has(dateStr)) {
+            // No attendance taken and it's a holiday — show H
             this.attendanceMap[dateStr] = 'H';
+            this.holidayMap[dateStr] = holidaySet.get(dateStr)!;
           }
+          // else: no attendance and not a holiday — leave blank
 
         });
         this.cdr.markForCheck();

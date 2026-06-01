@@ -234,6 +234,10 @@
             <div class="more-icon-bg c-orange"><mat-icon>history</mat-icon></div>
             <span>Payment History</span>
           </a>
+          <a class="more-item" routerLink="/dashboard/holiday-calendar" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-orange"><mat-icon>beach_access</mat-icon></div>
+            <span>Holiday Calendar</span>
+          </a>
           <a class="more-item" routerLink="/dashboard/notice" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-red"><mat-icon>campaign</mat-icon></div>
             <span>Notice Board</span>
@@ -266,6 +270,10 @@
             <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
             <span>Event Calendar</span>
           </a>
+          <a class="more-item" routerLink="/dashboard/holiday-calendar" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-orange"><mat-icon>beach_access</mat-icon></div>
+            <span>Holiday Calendar</span>
+          </a>
           <a class="more-item" routerLink="/dashboard/notice" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-red"><mat-icon>campaign</mat-icon></div>
             <span>Notice Board</span>
@@ -281,6 +289,10 @@
           <a class="more-item" routerLink="/dashboard/attendance-summary" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
             <span>Attendance</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/holiday-calendar" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-orange"><mat-icon>beach_access</mat-icon></div>
+            <span>Holiday Calendar</span>
           </a>
         </ng-container>
 
@@ -325,6 +337,10 @@
           <a class="more-item" *ngIf="hasFeature('EVENT_CALENDAR')" routerLink="/dashboard/event-calendar" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-purple"><mat-icon>event</mat-icon></div>
             <span>Event Calendar</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/holiday-calendar" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-amber"><mat-icon>beach_access</mat-icon></div>
+            <span>Holidays</span>
           </a>
           <a class="more-item" routerLink="/dashboard/notice" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-red"><mat-icon>campaign</mat-icon></div>

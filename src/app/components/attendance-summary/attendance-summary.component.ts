@@ -2,8 +2,10 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, switchMap } from 'rxjs';
+import { Subject, takeUntil, switchMap, forkJoin } from 'rxjs';
 import { AttendanceService } from '../../services/attendance.service';
+import { SchoolHolidayService } from '../../services/school-holiday.service';
+import { SchoolHoliday } from '../../interfaces/school-holiday';
 import { StudentService } from '../../services/student.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { LoggerService } from '../../services/logger.service';
@@ -65,6 +67,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
 
   /** Shared cache so we don't re-fetch on re-expand */
   private dailyDetailCache = new Map<string, DailyDetail>();
+  private holidayCache = new Map<string, Map<string, string>>();
 
   classList: string[] = [];
   managedClasses: SchoolClass[] = [];
@@ -90,7 +93,8 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     private toast: ToastService,
     private schoolService: SchoolService,
     private academicSessionService: AcademicSessionService,
-    private sectionService: SectionService
+    private sectionService: SectionService,
+    private holidayService: SchoolHolidayService
   ) {}
 
   ngOnInit(): void {
@@ -238,6 +242,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     this.rowCalendarLoading.clear();
     this.expandAllActive = false;
     this.dailyDetailCache.clear();
+    this.holidayCache.clear();
   }
 
   loadStudentList(): void {
@@ -308,18 +313,28 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
       return;
     }
     const key = `${this.selectedMonth}-${this.selectedYear}`;
-    if (this.dailyDetailCache.has(key)) {
-      this.currentCalendarWeeks = this.buildCalendarCells(this.selectedYear, this.selectedMonth, this.dailyDetailCache.get(key)!);
+    if (this.dailyDetailCache.has(key) && this.holidayCache.has(key)) {
+      this.currentCalendarWeeks = this.buildCalendarCells(this.selectedYear, this.selectedMonth, this.dailyDetailCache.get(key)!, this.holidayCache.get(key)!);
       this.cdr.markForCheck();
     } else {
       this.calendarLoading = true;
       this.currentCalendarWeeks = [];
       this.cdr.markForCheck();
-      this.attendanceService.getStudentDailyDetail(this.selectedStudentId, this.selectedMonth, this.selectedYear)
-        .pipe(takeUntil(this.destroy$)).subscribe({
-          next: (detail) => {
+
+      const start = `${this.selectedYear}-${String(this.selectedMonth).padStart(2, '0')}-01`;
+      const daysInMonth = new Date(this.selectedYear, this.selectedMonth, 0).getDate();
+      const end = `${this.selectedYear}-${String(this.selectedMonth).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+
+      forkJoin([
+        this.attendanceService.getStudentDailyDetail(this.selectedStudentId, this.selectedMonth, this.selectedYear),
+        this.holidayService.getHolidaysByRange(start, end)
+      ]).pipe(takeUntil(this.destroy$)).subscribe({
+          next: ([detail, holidays]) => {
             this.dailyDetailCache.set(key, detail);
-            this.currentCalendarWeeks = this.buildCalendarCells(this.selectedYear, this.selectedMonth, detail);
+            const hMap = new Map<string, string>();
+            holidays.forEach(h => hMap.set(h.date, h.name));
+            this.holidayCache.set(key, hMap);
+            this.currentCalendarWeeks = this.buildCalendarCells(this.selectedYear, this.selectedMonth, detail, hMap);
             this.calendarLoading = false;
             this.cdr.markForCheck();
           },
@@ -364,21 +379,31 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
   }
 
   private loadRowDetailIfNeeded(row: MonthlyBreakdown, key: string): void {
-    if (this.dailyDetailCache.has(key)) {
+    if (this.dailyDetailCache.has(key) && this.holidayCache.has(key)) {
       const detail = this.dailyDetailCache.get(key)!;
       const monthNum = this.getMonthNumber(row.month);
-      this.rowCalendarWeeks.set(key, this.buildCalendarCells(row.year, monthNum, detail));
+      this.rowCalendarWeeks.set(key, this.buildCalendarCells(row.year, monthNum, detail, this.holidayCache.get(key)!));
       this.cdr.markForCheck();
       return;
     }
     const monthNum = this.getMonthNumber(row.month);
     this.rowCalendarLoading.add(key);
     this.cdr.markForCheck();
-    this.attendanceService.getStudentDailyDetail(this.selectedStudentId, monthNum, row.year)
-      .pipe(takeUntil(this.destroy$)).subscribe({
-        next: (detail) => {
+
+    const start = `${row.year}-${String(monthNum).padStart(2, '0')}-01`;
+    const daysInMonth = new Date(row.year, monthNum, 0).getDate();
+    const end = `${row.year}-${String(monthNum).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+
+    forkJoin([
+      this.attendanceService.getStudentDailyDetail(this.selectedStudentId, monthNum, row.year),
+      this.holidayService.getHolidaysByRange(start, end)
+    ]).pipe(takeUntil(this.destroy$)).subscribe({
+        next: ([detail, holidays]) => {
           this.dailyDetailCache.set(key, detail);
-          this.rowCalendarWeeks.set(key, this.buildCalendarCells(row.year, monthNum, detail));
+          const hMap = new Map<string, string>();
+          holidays.forEach(h => hMap.set(h.date, h.name));
+          this.holidayCache.set(key, hMap);
+          this.rowCalendarWeeks.set(key, this.buildCalendarCells(row.year, monthNum, detail, hMap));
           this.rowCalendarLoading.delete(key);
           this.cdr.markForCheck();
         },
@@ -409,7 +434,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
 
   // ── Calendar builder ─────────────────────────────────────────────
 
-  private buildCalendarCells(year: number, month: number, detail: DailyDetail): CalendarCell[][] {
+  private buildCalendarCells(year: number, month: number, detail: DailyDetail, holidays: Map<string, string> = new Map()): CalendarCell[][] {
     const schoolDaySet = new Set(detail.schoolDays);
     const absentDaySet = new Set(detail.absentDays);
     const firstDow = new Date(year, month - 1, 1).getDay(); // 0=Sun
@@ -424,12 +449,16 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       let status: CellStatus;
+      let holidayName: string | undefined;
       if (schoolDaySet.has(dateStr)) {
         status = absentDaySet.has(dateStr) ? 'absent' : 'present';
+      } else if (holidays.has(dateStr)) {
+        status = 'holiday';
+        holidayName = holidays.get(dateStr);
       } else {
         status = 'closed';
       }
-      cells.push({ date: dateStr, day: d, status });
+      cells.push({ date: dateStr, day: d, status, holidayName });
     }
 
     const weeks: CalendarCell[][] = [];

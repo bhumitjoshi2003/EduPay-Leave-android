@@ -102,9 +102,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private onVisibilityChange(): void {
     if (document.visibilityState === 'visible') {
-      this.authStateService.loadCurrentUser().then(() => {
-        this.cdr.markForCheck();
-      });
+      this.authStateService.loadCurrentUser()
+        .then(() => this.cdr.markForCheck())
+        .catch(() => {});
     }
   }
 

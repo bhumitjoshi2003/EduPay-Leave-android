@@ -32,10 +32,11 @@ export interface DailyDetail {
   absentDays: string[];
 }
 
-export type CellStatus = 'present' | 'absent' | 'closed' | 'empty';
+export type CellStatus = 'present' | 'absent' | 'closed' | 'holiday' | 'empty';
 
 export interface CalendarCell {
   date: string | null;
   day: number | null;
   status: CellStatus;
+  holidayName?: string;
 }

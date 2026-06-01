@@ -47,7 +47,7 @@
                         </span>
 
                         <span *ngIf="attendanceMap[getDateKey(dayCell.date)] === 'H'" class="attendance-circle holiday"
-                            title="Holiday">H</span>
+                            [title]="holidayMap[getDateKey(dayCell.date)] || 'Holiday'">H</span>
                     </span>
 
                     <ng-container *ngIf="isMobileView">

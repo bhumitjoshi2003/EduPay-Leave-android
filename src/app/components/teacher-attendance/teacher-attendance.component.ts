@@ -16,8 +16,9 @@ import { AttendanceService } from '../../services/attendance.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { TeacherService } from '../../services/teacher.service';
 import { Teacher } from '../../interfaces/teacher';
-import { Subject, takeUntil, switchMap, of } from 'rxjs';
+import { Subject, takeUntil, switchMap, of, firstValueFrom } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { SchoolHolidayService } from '../../services/school-holiday.service';
 
 interface Student {
   studentId: string;
@@ -67,7 +68,8 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private schoolService: SchoolService,
-    private sectionService: SectionService
+    private sectionService: SectionService,
+    private holidayService: SchoolHolidayService
   ) { }
 
   ngOnDestroy(): void {
@@ -160,6 +162,36 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const dateStr = formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en');
+    this.holidayService.getHolidaysByRange(dateStr, dateStr)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async (holidays) => {
+          if (holidays.length > 0) {
+            const holidayName = holidays[0].name;
+            const confirmed = await this.toast.confirm({
+              title: 'Holiday: ' + holidayName,
+              message: `This date is marked as a holiday (${holidayName}). Do you still want to mark attendance?`,
+              confirmText: 'Yes, continue',
+              cancelText: 'Cancel',
+            });
+            if (!confirmed) {
+              this.students = [];
+              this.hasStudents = false;
+              this.cdr.markForCheck();
+              return;
+            }
+          }
+          this.doLoadStudents();
+        },
+        error: () => {
+          // If holiday check fails, proceed anyway
+          this.doLoadStudents();
+        }
+      });
+  }
+
+  private doLoadStudents(): void {
     const classAtRequest = this.selectedClass;
     const dateAtRequest = this.attendanceDate;
 
