@@ -330,6 +330,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
+  margin-bottom: 12px;
 }
 
 .as-breakdown-actions { display: flex; gap: 8px; }

@@ -577,7 +577,14 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
         const workingSet = new Set(workingDaysData.map(w => w.date));
 
         const holidaySet = new Map<string, string>();
-        holidays.forEach(h => holidaySet.set(h.date, h.name));
+        holidays.forEach(h => {
+          const d = new Date(h.startDate);
+          const end = new Date(h.endDate);
+          while (d <= end) {
+            holidaySet.set(d.toISOString().slice(0, 10), h.name);
+            d.setDate(d.getDate() + 1);
+          }
+        });
 
         this.attendanceMap = {};
         this.holidayMap = {};
@@ -591,6 +598,11 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
           const cellDate = new Date(dateStr);
 
           if (cellDate > today) {
+            // Future date — only show H for holidays, no P/A
+            if (holidaySet.has(dateStr)) {
+              this.attendanceMap[dateStr] = 'H';
+              this.holidayMap[dateStr] = holidaySet.get(dateStr)!;
+            }
             return;
           }
 

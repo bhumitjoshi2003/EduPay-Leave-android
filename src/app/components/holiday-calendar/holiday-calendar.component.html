@@ -3,20 +3,30 @@
   <!-- Hero -->
   <div class="hc-hero">
     <div class="hc-hero-left">
-      <div class="hc-hero-icon">📅</div>
+      <div class="hc-hero-icon-wrap">🗓️</div>
       <div>
         <h1 class="hc-hero-title">Holiday Calendar</h1>
-        <p class="hc-hero-sub">Manage school holidays and breaks</p>
+        <p class="hc-hero-sub">{{ isAdmin ? 'Manage school holidays and breaks' : 'View upcoming holidays and breaks' }}</p>
+      </div>
+    </div>
+    <div class="hc-hero-right" *ngIf="!loading">
+      <div class="hc-hero-stat">
+        <span class="hc-hero-stat-num">{{ holidays.length }}</span>
+        <span class="hc-hero-stat-label">{{ holidays.length === 1 ? 'Holiday' : 'Holidays' }}</span>
       </div>
     </div>
   </div>
 
   <!-- Controls -->
   <div class="hc-controls">
-    <select class="hc-select" [(ngModel)]="selectedSession" (ngModelChange)="onSessionChange()">
-      <option *ngFor="let s of sessions" [value]="s">{{ s }}</option>
-    </select>
-    <button class="hc-btn hc-btn-primary" *ngIf="isAdmin" (click)="openAddForm()">+ Add Holiday</button>
+    <div class="hc-controls-left">
+      <select class="hc-select" [(ngModel)]="selectedSession" (ngModelChange)="onSessionChange()">
+        <option *ngFor="let s of sessions" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+    <button class="hc-btn hc-btn-primary" *ngIf="isAdmin" (click)="openAddForm()">
+      <span class="hc-btn-icon-inner">+</span> Add Holiday
+    </button>
   </div>
 
   <!-- Loading -->
@@ -27,47 +37,103 @@
 
   <!-- Empty state -->
   <div class="hc-empty" *ngIf="!loading && holidays.length === 0">
-    <div class="hc-empty-icon">🏖️</div>
+    <div class="hc-empty-illustration">
+      <span class="hc-empty-icon">🏖️</span>
+    </div>
     <p class="hc-empty-title">No holidays found</p>
     <p class="hc-empty-sub">No holidays have been added for this session yet.</p>
+    <button class="hc-btn hc-btn-primary" *ngIf="isAdmin" (click)="openAddForm()" style="margin-top: 16px;">
+      <span class="hc-btn-icon-inner">+</span> Add First Holiday
+    </button>
   </div>
 
-  <!-- Holiday list -->
-  <div class="hc-list" *ngIf="!loading && holidays.length > 0">
-    <div class="hc-card" *ngFor="let holiday of holidays">
-      <div class="hc-card-date">
-        <span class="hc-date-day">{{ holiday.date | date:'dd' }}</span>
-        <span class="hc-date-month">{{ holiday.date | date:'MMM' }}</span>
-        <span class="hc-date-year">{{ holiday.date | date:'yyyy' }}</span>
+  <!-- Holiday list grouped by month -->
+  <ng-container *ngIf="!loading && holidays.length > 0">
+    <div class="hc-month-group" *ngFor="let group of groupedHolidays">
+      <div class="hc-month-header">
+        <span class="hc-month-name">{{ group.monthName }}</span>
+        <span class="hc-month-count">{{ group.holidays.length }}</span>
       </div>
-      <div class="hc-card-info">
-        <span class="hc-card-name">{{ holiday.name }}</span>
-        <span class="hc-card-type">{{ getTypeLabel(holiday.holidayType) }}</span>
-      </div>
-      <div class="hc-card-actions" *ngIf="isAdmin">
-        <button class="hc-btn-icon" (click)="openEditForm(holiday)" title="Edit">✏️</button>
-        <button class="hc-btn-icon hc-btn-danger" (click)="deleteHoliday(holiday)" title="Delete">🗑️</button>
+
+      <div class="hc-list">
+        <div class="hc-card" *ngFor="let holiday of group.holidays"
+             [ngClass]="'hc-card--' + holiday.holidayType.toLowerCase()">
+          <div class="hc-card-accent"></div>
+
+          <!-- Single day -->
+          <ng-container *ngIf="!isMultiDay(holiday)">
+            <div class="hc-card-date">
+              <span class="hc-date-day">{{ holiday.startDate | date:'dd' }}</span>
+              <span class="hc-date-weekday">{{ holiday.startDate | date:'EEE' }}</span>
+            </div>
+          </ng-container>
+
+          <!-- Multi-day range -->
+          <ng-container *ngIf="isMultiDay(holiday)">
+            <div class="hc-card-date-range">
+              <div class="hc-range-from">
+                <span class="hc-date-day">{{ holiday.startDate | date:'dd' }}</span>
+                <span class="hc-date-weekday">{{ holiday.startDate | date:'MMM' }}</span>
+              </div>
+              <span class="hc-range-arrow">→</span>
+              <div class="hc-range-to">
+                <span class="hc-date-day">{{ holiday.endDate | date:'dd' }}</span>
+                <span class="hc-date-weekday">{{ holiday.endDate | date:'MMM' }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <div class="hc-card-divider"></div>
+          <div class="hc-card-info">
+            <span class="hc-card-name">{{ holiday.name }}</span>
+            <div class="hc-card-meta">
+              <span class="hc-card-type-badge" [ngClass]="'hc-type--' + holiday.holidayType.toLowerCase()">
+                {{ getTypeLabel(holiday.holidayType) }}
+              </span>
+              <span class="hc-card-days" *ngIf="isMultiDay(holiday)">{{ getDayCount(holiday) }} days</span>
+            </div>
+          </div>
+          <div class="hc-card-actions" *ngIf="isAdmin">
+            <button class="hc-action-btn hc-action-edit" (click)="openEditForm(holiday)" title="Edit">
+              <span class="material-icons hc-action-icon">edit</span>
+            </button>
+            <button class="hc-action-btn hc-action-delete" (click)="deleteHoliday(holiday)" title="Delete">
+              <span class="material-icons hc-action-icon">delete</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+  </ng-container>
 
   <!-- Add/Edit form overlay -->
   <div class="hc-overlay" *ngIf="showForm" (click)="cancelForm()">
     <div class="hc-form-card" (click)="$event.stopPropagation()">
-      <h3 class="hc-form-title">{{ editingId ? 'Edit Holiday' : 'Add Holiday' }}</h3>
+      <div class="hc-form-header">
+        <h3 class="hc-form-title">{{ editingId ? 'Edit Holiday' : 'Add Holiday' }}</h3>
+        <button class="hc-form-close" (click)="cancelForm()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
 
       <label class="hc-label">
-        Name
+        <span class="hc-label-text">Holiday Name</span>
         <input class="hc-input" [(ngModel)]="form.name" placeholder="e.g. Republic Day" />
       </label>
 
-      <label class="hc-label">
-        Date
-        <input class="hc-input" type="date" [(ngModel)]="form.date" />
-      </label>
+      <div class="hc-date-row">
+        <label class="hc-label hc-label-half">
+          <span class="hc-label-text">Start Date</span>
+          <input class="hc-input" type="date" [(ngModel)]="form.startDate" />
+        </label>
+        <label class="hc-label hc-label-half">
+          <span class="hc-label-text">End Date <span class="hc-optional">(optional)</span></span>
+          <input class="hc-input" type="date" [(ngModel)]="form.endDate" [min]="form.startDate" />
+        </label>
+      </div>
 
       <label class="hc-label">
-        Type
+        <span class="hc-label-text">Type</span>
         <select class="hc-input" [(ngModel)]="form.holidayType">
           <option *ngFor="let t of holidayTypes" [value]="t.value">{{ t.label }}</option>
         </select>
@@ -76,7 +142,7 @@
       <div class="hc-form-actions">
         <button class="hc-btn hc-btn-secondary" (click)="cancelForm()">Cancel</button>
         <button class="hc-btn hc-btn-primary" [disabled]="saving" (click)="saveHoliday()">
-          {{ saving ? 'Saving…' : (editingId ? 'Update' : 'Add') }}
+          {{ saving ? 'Saving…' : (editingId ? 'Update' : 'Add Holiday') }}
         </button>
       </div>
     </div>

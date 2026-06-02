@@ -9,8 +9,6 @@ import { SchoolHoliday } from '../../interfaces/school-holiday';
 import { StudentService } from '../../services/student.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { LoggerService } from '../../services/logger.service';
-import { Capacitor } from '@capacitor/core';
-import { ToastService } from '../../services/toast.service';
 import { SchoolService, SchoolClass } from '../../services/school.service';
 import { SectionService } from '../../services/section.service';
 import { Section } from '../../interfaces/section';
@@ -90,7 +88,6 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     private authStateService: AuthStateService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService,
     private schoolService: SchoolService,
     private academicSessionService: AcademicSessionService,
     private sectionService: SectionService,
@@ -120,8 +117,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
         this.initYears();
         this.cdr.markForCheck();
       },
-      error: (e) => {
-        this.logger.error('Failed to load sessions', e);
+      error: () => {
         this.initYears();
         this.cdr.markForCheck();
       }
@@ -135,10 +131,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
       )
     ).subscribe({
       next: (students) => { this.studentList = students; this.cdr.markForCheck(); },
-      error: (err) => {
-        this.logger.error('Failed to load students:', err);
-        this.toast.error('Error', 'Failed to load student list. Please try again.');
-      }
+      error: (err) => this.logger.error('Failed to load students:', err)
     });
 
     if (this.role === 'STUDENT') {
@@ -332,7 +325,14 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
           next: ([detail, holidays]) => {
             this.dailyDetailCache.set(key, detail);
             const hMap = new Map<string, string>();
-            holidays.forEach(h => hMap.set(h.date, h.name));
+            holidays.forEach(h => {
+              const d = new Date(h.startDate);
+              const end = new Date(h.endDate);
+              while (d <= end) {
+                hMap.set(d.toISOString().slice(0, 10), h.name);
+                d.setDate(d.getDate() + 1);
+              }
+            });
             this.holidayCache.set(key, hMap);
             this.currentCalendarWeeks = this.buildCalendarCells(this.selectedYear, this.selectedMonth, detail, hMap);
             this.calendarLoading = false;
@@ -401,7 +401,14 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
         next: ([detail, holidays]) => {
           this.dailyDetailCache.set(key, detail);
           const hMap = new Map<string, string>();
-          holidays.forEach(h => hMap.set(h.date, h.name));
+          holidays.forEach(h => {
+            const d = new Date(h.startDate);
+            const end = new Date(h.endDate);
+            while (d <= end) {
+              hMap.set(d.toISOString().slice(0, 10), h.name);
+              d.setDate(d.getDate() + 1);
+            }
+          });
           this.holidayCache.set(key, hMap);
           this.rowCalendarWeeks.set(key, this.buildCalendarCells(row.year, monthNum, detail, hMap));
           this.rowCalendarLoading.delete(key);
@@ -446,13 +453,23 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
       cells.push({ date: null, day: null, status: 'empty' });
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const cellDate = new Date(year, month - 1, d);
       let status: CellStatus;
       let holidayName: string | undefined;
-      if (schoolDaySet.has(dateStr)) {
+
+      if (cellDate > today) {
+        // Future date — show nothing
+        status = 'closed';
+      } else if (schoolDaySet.has(dateStr)) {
+        // Attendance was marked — P/A wins (class was working even if it's a school holiday)
         status = absentDaySet.has(dateStr) ? 'absent' : 'present';
       } else if (holidays.has(dateStr)) {
+        // No attendance marked and it's a holiday
         status = 'holiday';
         holidayName = holidays.get(dateStr);
       } else {
@@ -488,7 +505,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
 
   getPeriodLabel(): string {
     if (this.periodType === 'month') {
-      return `${this.months.find(m => m.value === +this.selectedMonth)?.label} ${this.selectedYear}`;
+      return `${this.months.find(m => m.value === this.selectedMonth)?.label} ${this.selectedYear}`;
     }
     return `Academic Year ${this.selectedSession}`;
   }
@@ -502,10 +519,6 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
   }
 
   printReport(): void {
-    if (Capacitor.isNativePlatform()) {
-      this.toast.info('Not Available', 'Printing is not supported on the mobile app. Please use the web version.');
-      return;
-    }
     window.print();
   }
 

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule, formatDate } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { SchoolHolidayService } from '../../services/school-holiday.service';
@@ -32,6 +32,11 @@ export class HolidayCalendarComponent implements OnInit, OnDestroy {
   showForm = false;
   editingId: number | null = null;
   form: SchoolHoliday = this.emptyForm();
+
+  private readonly monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   readonly holidayTypes = [
     { value: 'NATIONAL', label: 'National Holiday' },
@@ -112,8 +117,18 @@ export class HolidayCalendarComponent implements OnInit, OnDestroy {
   }
 
   saveHoliday(): void {
-    if (!this.form.name || !this.form.date || !this.form.holidayType) {
+    if (!this.form.name || !this.form.startDate || !this.form.holidayType) {
       this.toast.warning('Missing Fields', 'Please fill in all required fields.');
+      return;
+    }
+
+    // Default endDate to startDate if not set
+    if (!this.form.endDate) {
+      this.form.endDate = this.form.startDate;
+    }
+
+    if (this.form.endDate < this.form.startDate) {
+      this.toast.warning('Invalid Dates', 'End date cannot be before start date.');
       return;
     }
 
@@ -162,11 +177,35 @@ export class HolidayCalendarComponent implements OnInit, OnDestroy {
     });
   }
 
+  get groupedHolidays(): { monthName: string; holidays: SchoolHoliday[] }[] {
+    const groups = new Map<string, SchoolHoliday[]>();
+    for (const h of this.holidays) {
+      const d = new Date(h.startDate);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(h);
+    }
+    return Array.from(groups.entries()).map(([key, holidays]) => {
+      const d = new Date(holidays[0].startDate);
+      return { monthName: `${this.monthNames[d.getMonth()]} ${d.getFullYear()}`, holidays };
+    });
+  }
+
+  isMultiDay(holiday: SchoolHoliday): boolean {
+    return holiday.startDate !== holiday.endDate;
+  }
+
+  getDayCount(holiday: SchoolHoliday): number {
+    const start = new Date(holiday.startDate);
+    const end = new Date(holiday.endDate);
+    return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  }
+
   getTypeLabel(type: string): string {
     return this.holidayTypes.find(t => t.value === type)?.label ?? type;
   }
 
   private emptyForm(): SchoolHoliday {
-    return { date: '', name: '', holidayType: 'SCHOOL', affectsAll: true };
+    return { startDate: '', endDate: '', name: '', holidayType: 'SCHOOL', affectsAll: true };
   }
 }
