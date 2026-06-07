@@ -250,6 +250,10 @@
 
         <!-- TEACHER (class teacher) more items -->
         <ng-container *ngIf="isTeacher() && ClassTeacher">
+          <a class="more-item" routerLink="/dashboard/teacher-checkin" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-teal"><mat-icon>fingerprint</mat-icon></div>
+            <span>My Check-in</span>
+          </a>
           <a class="more-item" routerLink="/dashboard/timetable" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-indigo"><mat-icon>schedule</mat-icon></div>
             <span>Timetable</span>
@@ -282,6 +286,10 @@
 
         <!-- TEACHER (not class teacher) more items -->
         <ng-container *ngIf="isTeacher() && !ClassTeacher">
+          <a class="more-item" routerLink="/dashboard/teacher-checkin" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-teal"><mat-icon>fingerprint</mat-icon></div>
+            <span>My Check-in</span>
+          </a>
           <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/class-results" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-amber"><mat-icon>leaderboard</mat-icon></div>
             <span>Class Results</span>
@@ -317,6 +325,10 @@
           <a class="more-item" routerLink="/dashboard/attendance-summary" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-blue"><mat-icon>summarize</mat-icon></div>
             <span>Attendance</span>
+          </a>
+          <a class="more-item" routerLink="/dashboard/staff-attendance" (click)="closeMoreMenu()">
+            <div class="more-icon-bg c-indigo"><mat-icon>badge</mat-icon></div>
+            <span>Staff Attendance</span>
           </a>
           <a class="more-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/mark-entry" (click)="closeMoreMenu()">
             <div class="more-icon-bg c-purple"><mat-icon>grade</mat-icon></div>

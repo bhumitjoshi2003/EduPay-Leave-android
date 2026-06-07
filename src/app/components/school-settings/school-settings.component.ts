@@ -33,7 +33,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   isEditing = false;
   editForm: Partial<SchoolSettings> = {};
 
-  activeTab: 'general' | 'razorpay' | 'features' | 'subscription' | 'channels' = 'general';
+  activeTab: 'general' | 'razorpay' | 'features' | 'subscription' | 'channels' | 'staff-attendance' = 'general';
   razorpayKeyId = '';
   razorpayKeySecret = '';
 
@@ -61,6 +61,20 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   channelsLoading = false;
   notificationChannels: NotificationChannel[] = [];
   savingChannelType: string | null = null;
+
+  // Staff attendance settings
+  staffAttendanceForm: Partial<{
+    schoolLatitude: number;
+    schoolLongitude: number;
+    geofenceRadius: number;
+    schoolStartTime: string;
+    lateThresholdMinutes: number;
+    checkinWindowStart: string;
+    checkinWindowEnd: string;
+  }> = {};
+  isEditingStaffAttendance = false;
+  savingStaffAttendance = false;
+  fetchingLocation = false;
 
   // Logo upload
   logoPreviewUrl: string | null = null;
@@ -521,6 +535,11 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     return this.role === 'ADMIN';
   }
 
+  get schoolInitials(): string {
+    const name = this.settings?.name ?? '';
+    return name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase() || '?';
+  }
+
   get isSuperAdmin(): boolean {
     return this.role === 'SUPER_ADMIN';
   }
@@ -678,5 +697,87 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       WHATSAPP: 'Send WhatsApp messages via WhatsApp Business API.'
     };
     return desc[type] ?? '';
+  }
+
+  // ── Staff Attendance Settings ─────────────────────────────────────
+  startStaffAttendanceEdit(): void {
+    if (!this.settings) return;
+    this.staffAttendanceForm = {
+      schoolLatitude: this.settings.schoolLatitude ?? undefined,
+      schoolLongitude: this.settings.schoolLongitude ?? undefined,
+      geofenceRadius: this.settings.geofenceRadius ?? 200,
+      schoolStartTime: this.settings.schoolStartTime ?? '',
+      lateThresholdMinutes: this.settings.lateThresholdMinutes ?? 5,
+      checkinWindowStart: this.settings.checkinWindowStart ?? '',
+      checkinWindowEnd: this.settings.checkinWindowEnd ?? '',
+    };
+    this.isEditingStaffAttendance = true;
+  }
+
+  cancelStaffAttendanceEdit(): void {
+    this.isEditingStaffAttendance = false;
+    this.staffAttendanceForm = {};
+  }
+
+  useCurrentLocation(): void {
+    if (!navigator.geolocation) {
+      this.toast.warning('Not Supported', 'Geolocation is not supported by your browser.');
+      return;
+    }
+    this.fetchingLocation = true;
+    this.cdr.markForCheck();
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.staffAttendanceForm.schoolLatitude = Math.round(pos.coords.latitude * 1000000) / 1000000;
+        this.staffAttendanceForm.schoolLongitude = Math.round(pos.coords.longitude * 1000000) / 1000000;
+        this.fetchingLocation = false;
+        this.toast.success('Location Found', 'GPS coordinates captured successfully.');
+        this.cdr.markForCheck();
+      },
+      (err) => {
+        this.fetchingLocation = false;
+        this.toast.error('Location Error', 'Could not get your location. Please enter coordinates manually.');
+        this.logger.error('Geolocation error', err);
+        this.cdr.markForCheck();
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
+  }
+
+  saveStaffAttendanceSettings(): void {
+    const f = this.staffAttendanceForm;
+    if (f.schoolLatitude == null || f.schoolLongitude == null) {
+      this.toast.warning('Validation', 'School coordinates are required.');
+      return;
+    }
+    if (!f.schoolStartTime) {
+      this.toast.warning('Validation', 'School start time is required.');
+      return;
+    }
+    if (!f.checkinWindowStart || !f.checkinWindowEnd) {
+      this.toast.warning('Validation', 'Check-in window start and end times are required.');
+      return;
+    }
+    this.savingStaffAttendance = true;
+    this.cdr.markForCheck();
+    this.schoolService.updateSettings(f as any).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (updated) => {
+        this.settings = updated;
+        this.isEditingStaffAttendance = false;
+        this.savingStaffAttendance = false;
+        this.toast.success('Saved', 'Staff attendance settings updated successfully.');
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to save staff attendance settings', e);
+        this.toast.error('Error', 'Failed to save settings. Please try again.');
+        this.savingStaffAttendance = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  get isStaffAttendanceConfigured(): boolean {
+    return !!(this.settings?.schoolLatitude && this.settings?.schoolLongitude && this.settings?.schoolStartTime);
   }
 }

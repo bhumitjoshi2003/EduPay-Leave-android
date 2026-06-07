@@ -124,6 +124,14 @@ export interface SchoolSettings {
   academicYearStartMonth: number;   // 1=Jan, 4=Apr (default), 7=Jul, etc.
   workingDays: string;              // comma-separated, e.g. "MONDAY,TUESDAY,...,SATURDAY"
   gradingSystem: string;            // CBSE | PERCENTAGE | LETTER
+  // Staff attendance / GPS check-in settings
+  schoolLatitude?: number;
+  schoolLongitude?: number;
+  geofenceRadius?: number;          // meters, default 200
+  schoolStartTime?: string;         // "HH:mm"
+  lateThresholdMinutes?: number;    // minutes after start time, default 5
+  checkinWindowStart?: string;      // "HH:mm"
+  checkinWindowEnd?: string;        // "HH:mm"
 }
 
 @Injectable({ providedIn: 'root' })

@@ -126,6 +126,16 @@ export const routes: Routes = [
         loadComponent: () => import('./components/holiday-calendar/holiday-calendar.component').then(m => m.HolidayCalendarComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER', 'STUDENT'] }
       },
+      {
+        path: 'teacher-checkin',
+        loadComponent: () => import('./components/teacher-checkin/teacher-checkin.component').then(m => m.TeacherCheckinComponent),
+        canActivate: [roleGuard], data: { roles: ['TEACHER'] }
+      },
+      {
+        path: 'staff-attendance',
+        loadComponent: () => import('./components/staff-attendance/staff-attendance.component').then(m => m.StaffAttendanceComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
 
       // ── Admin-only routes ─────────────────────────────────────────────
       {

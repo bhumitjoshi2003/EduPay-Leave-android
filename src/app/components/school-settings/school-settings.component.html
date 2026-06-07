@@ -5,12 +5,7 @@
     <div class="ss-hero-ring ss-ring-1"></div>
     <div class="ss-hero-ring ss-ring-2"></div>
     <div class="ss-hero-body">
-      <div class="ss-hero-avatar">
-        <ng-container *ngIf="settings?.logoUrl; else heroInitials">
-          <img [src]="tenantService.getLogoUrl(settings!.logoUrl)" class="ss-hero-logo-img" alt="logo">
-        </ng-container>
-        <ng-template #heroInitials>{{ getInitials(settings?.name) }}</ng-template>
-      </div>
+      <div class="ss-hero-avatar">{{ schoolInitials }}</div>
       <div class="ss-hero-text">
         <h1 class="ss-hero-name">{{ settings?.name || 'School Settings' }}</h1>
         <p class="ss-hero-location" *ngIf="settings?.city">
@@ -49,26 +44,31 @@
 
     <!-- ── Tabs ─────────────────────────────────────────────────────── -->
     <div class="ss-tabs">
-      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'general'" (click)="onTabChange('general')">
+      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'general'" (click)="activeTab = 'general'">
         <span class="ss-tab-icon">🏫</span>
         <span class="ss-tab-label">General</span>
       </button>
-      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'razorpay'" (click)="onTabChange('razorpay')">
+      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'razorpay'" (click)="activeTab = 'razorpay'">
         <span class="ss-tab-icon">💳</span>
         <span class="ss-tab-label">Payments</span>
       </button>
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'features'"
-              (click)="onTabChange('features'); loadFeatures()">
+              (click)="activeTab = 'features'; loadFeatures()">
         <span class="ss-tab-icon">⚡</span>
         <span class="ss-tab-label">Features</span>
       </button>
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'channels'"
-              (click)="onTabChange('channels'); loadChannels()">
+              (click)="activeTab = 'channels'; loadChannels()">
         <span class="ss-tab-icon">🔔</span>
         <span class="ss-tab-label">Channels</span>
       </button>
+      <button class="ss-tab" [class.ss-tab-active]="activeTab === 'staff-attendance'"
+              (click)="activeTab = 'staff-attendance'">
+        <span class="ss-tab-icon">📍</span>
+        <span class="ss-tab-label">Staff Attendance</span>
+      </button>
       <button class="ss-tab" [class.ss-tab-active]="activeTab === 'subscription'"
-              (click)="onTabChange('subscription'); loadEntitlement(true); loadAvailablePlans()">
+              (click)="activeTab = 'subscription'; loadEntitlement(true); loadAvailablePlans()">
         <span class="ss-tab-icon">📊</span>
         <span class="ss-tab-label">Plan</span>
       </button>
@@ -84,7 +84,7 @@
             <div class="ss-card-icon-box ss-icon-box-purple">🎨</div>
             <div>
               <h2 class="ss-card-title">School Logo</h2>
-              <p class="ss-card-subtitle">Displayed on the login screen and reports</p>
+              <p class="ss-card-subtitle">Displayed on the login screen, emails, and reports</p>
             </div>
           </div>
         </div>
@@ -100,10 +100,11 @@
                 <img [src]="tenantService.getLogoUrl(settings!.logoUrl)" class="ss-logo-img" alt="School logo">
               </ng-container>
               <ng-template #logoInitials>
-                <div class="ss-logo-initials">{{ getInitials(settings!.name) }}</div>
+                <div class="ss-logo-initials">{{ schoolInitials }}</div>
               </ng-template>
             </ng-template>
           </div>
+
           <div class="ss-logo-controls" *ngIf="isAdmin">
             <ng-container *ngIf="!logoFile">
               <label class="ss-btn ss-btn-ghost ss-logo-pick-btn" for="logoInput">
@@ -144,13 +145,6 @@
               <div class="ss-info-row-body">
                 <span class="ss-info-row-label">School Name</span>
                 <span class="ss-info-row-value">{{ settings.name || '—' }}</span>
-              </div>
-            </div>
-            <div class="ss-info-row">
-              <div class="ss-info-row-icon">🔗</div>
-              <div class="ss-info-row-body">
-                <span class="ss-info-row-label">Short Name / Slug</span>
-                <span class="ss-info-row-value">{{ settings.slug || '—' }}</span>
               </div>
             </div>
             <div class="ss-info-row">
@@ -206,7 +200,7 @@
             <div class="ss-info-row">
               <div class="ss-info-row-icon">🗺️</div>
               <div class="ss-info-row-body">
-                <span class="ss-info-row-label">State &amp; PIN</span>
+                <span class="ss-info-row-label">State &amp; Pincode</span>
                 <span class="ss-info-row-value">{{ settings.state || '—' }} — {{ settings.pincode || '—' }}</span>
               </div>
             </div>
@@ -217,7 +211,7 @@
             <div class="ss-info-row">
               <div class="ss-info-row-icon">📅</div>
               <div class="ss-info-row-body">
-                <span class="ss-info-row-label">Year Start Month</span>
+                <span class="ss-info-row-label">Academic Year Start</span>
                 <span class="ss-info-row-value">{{ academicYearStartLabel }}</span>
               </div>
             </div>
@@ -268,6 +262,31 @@
               </button>
             </div>
           </div>
+
+          <div class="ss-info-section">
+            <div class="ss-info-section-label">Subscription</div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">📦</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Plan</span>
+                <span class="ss-info-row-value">{{ settings.plan || '—' }}</span>
+              </div>
+            </div>
+            <div class="ss-info-row">
+              <div class="ss-info-row-icon">👥</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Max Students</span>
+                <span class="ss-info-row-value">{{ settings.maxStudents || 'Unlimited' }}</span>
+              </div>
+            </div>
+            <div class="ss-info-row" *ngIf="settings.expiryDate">
+              <div class="ss-info-row-icon">📅</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Expiry Date</span>
+                <span class="ss-info-row-value">{{ settings.expiryDate | date:'d MMM yyyy' }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </ng-container>
 
@@ -290,10 +309,6 @@
               <div class="ss-form-group ss-full">
                 <label class="ss-label">School Name <span class="ss-required">*</span></label>
                 <input class="ss-input" type="text" [(ngModel)]="editForm.name" placeholder="Full school name">
-              </div>
-              <div class="ss-form-group">
-                <label class="ss-label">Short Name / Slug</label>
-                <input class="ss-input" type="text" [(ngModel)]="editForm.slug" placeholder="e.g. my-school">
               </div>
               <div class="ss-form-group">
                 <label class="ss-label">Board / Affiliation</label>
@@ -328,7 +343,7 @@
               </div>
               <div class="ss-form-group ss-full">
                 <label class="ss-label">Website</label>
-                <input class="ss-input" type="text" [(ngModel)]="editForm.website" placeholder="https://...">
+                <input class="ss-input" type="url" [(ngModel)]="editForm.website" placeholder="https://yourschool.com">
               </div>
             </div>
           </div>
@@ -338,7 +353,7 @@
             <div class="ss-form-grid">
               <div class="ss-form-group ss-full">
                 <label class="ss-label">Address</label>
-                <input class="ss-input" type="text" [(ngModel)]="editForm.address" placeholder="Street, Village, etc.">
+                <input class="ss-input" type="text" [(ngModel)]="editForm.address" placeholder="Street address">
               </div>
               <div class="ss-form-group">
                 <label class="ss-label">City</label>
@@ -368,6 +383,7 @@
                 <select class="ss-input" [(ngModel)]="editForm.academicYearStartMonth">
                   <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.label }}</option>
                 </select>
+                <span class="ss-field-hint">First month of the school year (e.g. April for India, July for many international schools)</span>
               </div>
               <div class="ss-form-group">
                 <label class="ss-label">Grading System</label>
@@ -438,15 +454,18 @@
           <div class="ss-form-grid">
             <div class="ss-form-group ss-full">
               <label class="ss-label">Razorpay Key ID</label>
-              <input class="ss-input" type="text" [(ngModel)]="razorpayKeyId" placeholder="rzp_live_...">
+              <input class="ss-input" type="text" [(ngModel)]="razorpayKeyId"
+                     placeholder="rzp_live_xxxxxxxxxxxxxxxxxx" autocomplete="off">
             </div>
             <div class="ss-form-group ss-full">
               <label class="ss-label">Razorpay Key Secret</label>
-              <input class="ss-input" type="password" [(ngModel)]="razorpayKeySecret" placeholder="Your key secret">
+              <input class="ss-input" type="password" [(ngModel)]="razorpayKeySecret"
+                     placeholder="Enter key secret" autocomplete="new-password">
             </div>
           </div>
           <div class="ss-form-actions">
-            <button class="ss-btn ss-btn-primary" (click)="saveRazorpayKeys()" [disabled]="savingRazorpay">
+            <button class="ss-btn ss-btn-primary" (click)="saveRazorpayKeys()"
+                    [disabled]="savingRazorpay">
               {{ savingRazorpay ? 'Saving…' : settings.razorpayConfigured ? '🔄 Update Keys' : '+ Add Keys' }}
             </button>
           </div>
@@ -781,6 +800,145 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- ══════════ STAFF ATTENDANCE TAB ══════════ -->
+    <ng-container *ngIf="activeTab === 'staff-attendance'">
+
+      <!-- Status banner -->
+      <div class="ss-card" *ngIf="!isEditingStaffAttendance">
+        <div class="ss-card-header">
+          <h3 class="ss-card-title">GPS Check-in Configuration</h3>
+          <button class="ss-edit-btn" (click)="startStaffAttendanceEdit()">Edit</button>
+        </div>
+
+        <div *ngIf="!isStaffAttendanceConfigured" class="ss-sa-banner ss-sa-banner-warn">
+          <span class="ss-sa-banner-icon">⚠️</span>
+          <div>
+            <strong>Not Configured</strong>
+            <p>Set your school location and timing to enable GPS-based teacher check-in.</p>
+          </div>
+        </div>
+
+        <div *ngIf="isStaffAttendanceConfigured" class="ss-sa-banner ss-sa-banner-ok">
+          <span class="ss-sa-banner-icon">✅</span>
+          <div>
+            <strong>Active</strong>
+            <p>GPS check-in is configured and ready for teachers.</p>
+          </div>
+        </div>
+
+        <!-- View mode -->
+        <div class="ss-sa-grid">
+          <div class="ss-sa-item">
+            <span class="ss-sa-label">School Latitude</span>
+            <span class="ss-sa-value">{{ settings.schoolLatitude ?? 'Not set' }}</span>
+          </div>
+          <div class="ss-sa-item">
+            <span class="ss-sa-label">School Longitude</span>
+            <span class="ss-sa-value">{{ settings.schoolLongitude ?? 'Not set' }}</span>
+          </div>
+          <div class="ss-sa-item">
+            <span class="ss-sa-label">Geofence Radius</span>
+            <span class="ss-sa-value">{{ settings.geofenceRadius ?? 200 }} meters</span>
+          </div>
+          <div class="ss-sa-item">
+            <span class="ss-sa-label">School Start Time</span>
+            <span class="ss-sa-value">{{ settings.schoolStartTime || 'Not set' }}</span>
+          </div>
+          <div class="ss-sa-item">
+            <span class="ss-sa-label">Late Threshold</span>
+            <span class="ss-sa-value">{{ settings.lateThresholdMinutes ?? 5 }} minutes</span>
+          </div>
+          <div class="ss-sa-item">
+            <span class="ss-sa-label">Check-in Window</span>
+            <span class="ss-sa-value">{{ settings.checkinWindowStart || '—' }} to {{ settings.checkinWindowEnd || '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit mode -->
+      <div class="ss-card" *ngIf="isEditingStaffAttendance">
+        <div class="ss-card-header">
+          <h3 class="ss-card-title">Edit GPS Check-in Settings</h3>
+        </div>
+
+        <div class="ss-sa-section">
+          <h4 class="ss-sa-section-title">School Location</h4>
+          <p class="ss-sa-section-desc">Set the GPS coordinates of your school. Teachers must be within the geofence radius to check in.</p>
+          <div class="ss-sa-form-row">
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Latitude</label>
+              <input type="number" step="0.000001" class="ss-sa-input"
+                     [(ngModel)]="staffAttendanceForm.schoolLatitude" placeholder="e.g. 28.613939">
+            </div>
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Longitude</label>
+              <input type="number" step="0.000001" class="ss-sa-input"
+                     [(ngModel)]="staffAttendanceForm.schoolLongitude" placeholder="e.g. 77.209023">
+            </div>
+          </div>
+          <button class="ss-sa-location-btn" (click)="useCurrentLocation()" [disabled]="fetchingLocation">
+            <span *ngIf="!fetchingLocation">📍 Use Current Location</span>
+            <span *ngIf="fetchingLocation">Fetching location...</span>
+          </button>
+        </div>
+
+        <div class="ss-sa-section">
+          <h4 class="ss-sa-section-title">Geofence</h4>
+          <p class="ss-sa-section-desc">Maximum distance (in meters) from school where check-in is allowed.</p>
+          <div class="ss-sa-form-row">
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Radius (meters)</label>
+              <input type="number" min="50" max="5000" class="ss-sa-input"
+                     [(ngModel)]="staffAttendanceForm.geofenceRadius" placeholder="200">
+            </div>
+          </div>
+          <div class="ss-sa-radius-hint" *ngIf="staffAttendanceForm.geofenceRadius">
+            Teachers must be within <strong>{{ staffAttendanceForm.geofenceRadius }}m</strong> of school to check in.
+          </div>
+        </div>
+
+        <div class="ss-sa-section">
+          <h4 class="ss-sa-section-title">Timing</h4>
+          <p class="ss-sa-section-desc">Define when school starts and the check-in window.</p>
+          <div class="ss-sa-form-row">
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">School Start Time</label>
+              <input type="time" class="ss-sa-input"
+                     [(ngModel)]="staffAttendanceForm.schoolStartTime">
+            </div>
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Late Threshold (minutes)</label>
+              <input type="number" min="0" max="60" class="ss-sa-input"
+                     [(ngModel)]="staffAttendanceForm.lateThresholdMinutes" placeholder="5">
+            </div>
+          </div>
+          <div class="ss-sa-form-row">
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Check-in Window Start</label>
+              <input type="time" class="ss-sa-input"
+                     [(ngModel)]="staffAttendanceForm.checkinWindowStart">
+            </div>
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Check-in Window End</label>
+              <input type="time" class="ss-sa-input"
+                     [(ngModel)]="staffAttendanceForm.checkinWindowEnd">
+            </div>
+          </div>
+          <div class="ss-sa-radius-hint" *ngIf="staffAttendanceForm.schoolStartTime && staffAttendanceForm.lateThresholdMinutes != null">
+            Arrivals after <strong>{{ staffAttendanceForm.lateThresholdMinutes }}</strong> minutes past {{ staffAttendanceForm.schoolStartTime }} will be marked <strong>LATE</strong>.
+          </div>
+        </div>
+
+        <div class="ss-sa-actions">
+          <button class="ss-save-btn" (click)="saveStaffAttendanceSettings()" [disabled]="savingStaffAttendance">
+            {{ savingStaffAttendance ? 'Saving...' : 'Save Settings' }}
+          </button>
+          <button class="ss-cancel-btn" (click)="cancelStaffAttendanceEdit()">Cancel</button>
         </div>
       </div>
 

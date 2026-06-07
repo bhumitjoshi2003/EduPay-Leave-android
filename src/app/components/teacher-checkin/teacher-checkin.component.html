@@ -1,0 +1,138 @@
+<div class="tc-page">
+
+  <!-- ── Hero ───────────────────────────────────────── -->
+  <div class="tc-hero">
+    <div class="tc-hero-blob tc-blob-1"></div>
+    <div class="tc-hero-blob tc-blob-2"></div>
+    <div class="tc-hero-content">
+      <div>
+        <h1 class="tc-hero-greeting">{{ greeting }}, {{ userName }}</h1>
+        <p class="tc-hero-date">{{ todayDateStr }}</p>
+      </div>
+      <div class="tc-hero-clock">{{ currentTime }}</div>
+    </div>
+  </div>
+
+  <!-- ── Check-in / Check-out Card ─────────────────── -->
+  <div class="tc-action-card">
+    <!-- Not checked in yet -->
+    <ng-container *ngIf="!hasCheckedIn">
+      <div class="tc-action-body">
+        <p class="tc-action-prompt">Tap the button below to mark your attendance</p>
+        <button class="tc-checkin-btn tc-btn-pulse" (click)="checkIn()" [disabled]="isCheckingIn">
+          <span class="tc-btn-icon">📍</span>
+          <span *ngIf="!isCheckingIn">Check In</span>
+          <span *ngIf="isCheckingIn">Locating...</span>
+        </button>
+        <p class="tc-gps-note">GPS location will be used to verify your presence</p>
+      </div>
+    </ng-container>
+
+    <!-- Checked in, not checked out -->
+    <ng-container *ngIf="hasCheckedIn && !hasCheckedOut">
+      <div class="tc-status-card" [class.tc-status-ontime]="todayRecord?.status === 'ON_TIME'" [class.tc-status-late]="todayRecord?.status === 'LATE'">
+        <div class="tc-status-header">
+          <span class="tc-status-badge" [ngClass]="getStatusClass(todayRecord!.status)">
+            {{ getStatusLabel(todayRecord!.status) }}
+          </span>
+          <span class="tc-status-time">{{ formatCheckInTime(todayRecord!.checkInTime) }}</span>
+        </div>
+        <div class="tc-status-details">
+          <div class="tc-status-detail">
+            <span class="tc-detail-label">Distance</span>
+            <span class="tc-detail-value">{{ todayRecord!.distanceFromSchool?.toFixed(0) ?? '—' }}m</span>
+          </div>
+          <div class="tc-status-detail">
+            <span class="tc-detail-label">Method</span>
+            <span class="tc-detail-value">{{ todayRecord!.method }}</span>
+          </div>
+        </div>
+      </div>
+      <button class="tc-checkout-btn" (click)="checkOut()" [disabled]="isCheckingOut">
+        <span *ngIf="!isCheckingOut">Check Out</span>
+        <span *ngIf="isCheckingOut">Locating...</span>
+      </button>
+    </ng-container>
+
+    <!-- Checked out -->
+    <ng-container *ngIf="hasCheckedIn && hasCheckedOut">
+      <div class="tc-status-card tc-status-done">
+        <div class="tc-status-header">
+          <span class="tc-status-badge" [ngClass]="getStatusClass(todayRecord!.status)">
+            {{ getStatusLabel(todayRecord!.status) }}
+          </span>
+          <span class="tc-status-time">Done for today</span>
+        </div>
+        <div class="tc-status-details">
+          <div class="tc-status-detail">
+            <span class="tc-detail-label">Check-in</span>
+            <span class="tc-detail-value">{{ formatCheckInTime(todayRecord!.checkInTime) }}</span>
+          </div>
+          <div class="tc-status-detail">
+            <span class="tc-detail-label">Check-out</span>
+            <span class="tc-detail-value">{{ formatCheckInTime(todayRecord!.checkOutTime) }}</span>
+          </div>
+          <div class="tc-status-detail">
+            <span class="tc-detail-label">Distance</span>
+            <span class="tc-detail-value">{{ todayRecord!.distanceFromSchool?.toFixed(0) ?? '—' }}m</span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <div *ngIf="gpsError" class="tc-gps-error">{{ gpsError }}</div>
+  </div>
+
+  <!-- ── Monthly Summary Stats ─────────────────────── -->
+  <div class="tc-stats-row" *ngIf="monthlyData">
+    <div class="tc-stat-card tc-stat-present">
+      <span class="tc-stat-num">{{ monthlyData.presentDays }}</span>
+      <span class="tc-stat-label">Present</span>
+    </div>
+    <div class="tc-stat-card tc-stat-late">
+      <span class="tc-stat-num">{{ monthlyData.lateDays }}</span>
+      <span class="tc-stat-label">Late</span>
+    </div>
+    <div class="tc-stat-card tc-stat-absent">
+      <span class="tc-stat-num">{{ monthlyData.absentDays }}</span>
+      <span class="tc-stat-label">Absent</span>
+    </div>
+    <div class="tc-stat-card tc-stat-ontime">
+      <span class="tc-stat-num">{{ monthlyData.onTimePercentage }}%</span>
+      <span class="tc-stat-label">On Time</span>
+    </div>
+  </div>
+
+  <!-- ── Monthly Calendar ──────────────────────────── -->
+  <div class="tc-calendar-card">
+    <div class="tc-cal-header">
+      <button class="tc-cal-nav" (click)="goToPreviousMonth()" aria-label="Previous month">&larr;</button>
+      <h3 class="tc-cal-title">{{ monthNames[selectedMonth - 1] }} {{ selectedYear }}</h3>
+      <button class="tc-cal-nav" (click)="goToNextMonth()" aria-label="Next month">&rarr;</button>
+    </div>
+
+    <div class="tc-cal-legend">
+      <div class="tc-legend-item"><span class="tc-legend-dot tc-dot-ontime"></span> On Time</div>
+      <div class="tc-legend-item"><span class="tc-legend-dot tc-dot-late"></span> Late</div>
+      <div class="tc-legend-item"><span class="tc-legend-dot tc-dot-absent"></span> Absent</div>
+      <div class="tc-legend-item"><span class="tc-legend-dot tc-dot-leave"></span> Leave</div>
+    </div>
+
+    <div class="tc-cal-weekdays">
+      <div *ngFor="let d of ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']">{{ d }}</div>
+    </div>
+
+    <div *ngIf="isLoading" class="tc-cal-loading">Loading...</div>
+
+    <div class="tc-cal-grid" *ngIf="!isLoading">
+      <div *ngFor="let day of calendarDays"
+           class="tc-cal-day"
+           [ngClass]="getCellClass(day)"
+           [class.tc-cal-today]="isToday(day)">
+        <span *ngIf="day.date" class="tc-cal-num">{{ day.date }}</span>
+        <span *ngIf="day.date && day.status" class="tc-cal-status-dot" [ngClass]="getStatusClass(day.status)"></span>
+      </div>
+    </div>
+  </div>
+
+</div>

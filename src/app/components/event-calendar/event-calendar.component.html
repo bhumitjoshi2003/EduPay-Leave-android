@@ -20,14 +20,36 @@
         <button (click)="goToNextMonth()" aria-label="Next month">&#x2192;</button>
     </div>
 
+    <!-- Legend -->
+    <div class="ec-legend">
+      <div class="ec-legend-item" *ngIf="currentUserRole === 'STUDENT'">
+        <span class="ec-legend-dot ec-legend-present"></span>
+        <span class="ec-legend-label">Present</span>
+      </div>
+      <div class="ec-legend-item" *ngIf="currentUserRole === 'STUDENT'">
+        <span class="ec-legend-dot ec-legend-absent"></span>
+        <span class="ec-legend-label">Absent</span>
+      </div>
+      <div class="ec-legend-item">
+        <span class="ec-legend-dot ec-legend-holiday"></span>
+        <span class="ec-legend-label">Holiday</span>
+      </div>
+      <div class="ec-legend-item">
+        <span class="ec-legend-dot ec-legend-today"></span>
+        <span class="ec-legend-label">Today</span>
+      </div>
+    </div>
+
     <div class="calendar-weekdays">
         <div *ngFor="let d of ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']">{{ d }}</div>
     </div>
 
     <div class="calendar-grid">
         <ng-container *ngFor="let dayCell of daysInMonth; trackBy: trackByDayCell">
-            <div class="calendar-day" [class.empty]="!dayCell.date"
+            <div class="calendar-day"
+                [class.empty]="!dayCell.date"
                 [class.today]="dayCell.date && isToday(dayCell.date)"
+                [ngClass]="getCellStatusClass(dayCell.date)"
                 (click)="dayCell.date && (isMobileView ? toggleMobileDayEvents(dayCell) : openDayPopover($event, dayCell.date))">
                 <ng-container *ngIf="dayCell.date">
                     <span class="day-number">
@@ -48,7 +70,13 @@
 
                         <span *ngIf="attendanceMap[getDateKey(dayCell.date)] === 'H'" class="attendance-circle holiday"
                             [title]="holidayMap[getDateKey(dayCell.date)] || 'Holiday'">H</span>
+
                     </span>
+
+                    <!-- Holiday name chip -->
+                    <div *ngIf="holidayMap[getDateKey(dayCell.date)]" class="holiday-chip">
+                      {{ holidayMap[getDateKey(dayCell.date)] }}
+                    </div>
 
                     <ng-container *ngIf="isMobileView">
                         <div *ngIf="dayCell.events.length" class="mobile-event-list"
@@ -111,7 +139,7 @@
                 <ng-container *ngIf="selectedEvent.videoLinks?.length">
                     <p class="video-links-heading"><strong>Video Links:</strong></p>
                     <ul>
-                        <li *ngFor="let l of selectedEvent.videoLinks"><a (click)="openExternalLink(l)" style="cursor:pointer;">{{ l }}</a></li>
+                        <li *ngFor="let l of selectedEvent.videoLinks"><a [href]="l" target="_blank">{{ l }}</a></li>
                     </ul>
                 </ng-container>
             </ng-container>

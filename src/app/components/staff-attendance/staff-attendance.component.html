@@ -1,0 +1,187 @@
+<div class="sa-page">
+
+  <!-- ── Hero ───────────────────────────────────────── -->
+  <div class="sa-hero">
+    <div class="sa-hero-blob sa-blob-1"></div>
+    <div class="sa-hero-blob sa-blob-2"></div>
+    <div class="sa-hero-content">
+      <div class="sa-hero-icon">👥</div>
+      <div>
+        <h1 class="sa-hero-title">Staff Attendance</h1>
+        <p class="sa-hero-sub">Track teacher check-in and punctuality</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── View Toggle ────────────────────────────────── -->
+  <div class="sa-view-toggle">
+    <button class="sa-toggle-btn" [class.sa-toggle-active]="viewMode === 'daily'" (click)="switchToDaily()">Daily View</button>
+    <button class="sa-toggle-btn" [class.sa-toggle-active]="viewMode === 'monthly'" (click)="switchToMonthly()">Monthly Report</button>
+  </div>
+
+  <!-- ══════════ DAILY VIEW ══════════ -->
+  <ng-container *ngIf="viewMode === 'daily'">
+
+    <!-- Date picker + Mark button -->
+    <div class="sa-controls">
+      <div class="sa-date-group">
+        <label class="sa-date-label">Date</label>
+        <input type="date" class="sa-date-input" [(ngModel)]="selectedDate" (change)="onDateChange()">
+      </div>
+      <button class="sa-mark-btn" (click)="openMarkDialog()">+ Mark Attendance</button>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="sa-summary-row">
+      <div class="sa-summary-card">
+        <span class="sa-sum-num">{{ allTeachers.length }}</span>
+        <span class="sa-sum-label">Total</span>
+      </div>
+      <div class="sa-summary-card sa-sum-present">
+        <span class="sa-sum-num">{{ presentCount }}</span>
+        <span class="sa-sum-label">Present</span>
+      </div>
+      <div class="sa-summary-card sa-sum-late">
+        <span class="sa-sum-num">{{ lateCount }}</span>
+        <span class="sa-sum-label">Late</span>
+      </div>
+      <div class="sa-summary-card sa-sum-absent">
+        <span class="sa-sum-num">{{ absentCount }}</span>
+        <span class="sa-sum-label">Absent</span>
+      </div>
+      <div class="sa-summary-card sa-sum-halfday">
+        <span class="sa-sum-num">{{ halfDayCount }}</span>
+        <span class="sa-sum-label">Half Day</span>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="sa-loading">Loading records...</div>
+
+    <!-- Empty -->
+    <div *ngIf="!isLoading && records.length === 0" class="sa-empty">
+      <div class="sa-empty-icon">📋</div>
+      <p>No attendance records for this date.</p>
+    </div>
+
+    <!-- Teacher list -->
+    <div class="sa-teacher-list" *ngIf="!isLoading && records.length > 0">
+      <div *ngFor="let record of records" class="sa-teacher-row">
+        <div class="sa-teacher-avatar" *ngIf="!getPhotoUrl(record)">
+          {{ getTeacherInitials(record.teacherName) }}
+        </div>
+        <img *ngIf="getPhotoUrl(record)" [src]="getPhotoUrl(record)" class="sa-teacher-photo" alt="">
+        <div class="sa-teacher-info">
+          <span class="sa-teacher-name">{{ record.teacherName }}</span>
+          <span class="sa-teacher-meta">
+            <ng-container *ngIf="record.checkInTime">{{ formatTime(record.checkInTime) }}</ng-container>
+            <ng-container *ngIf="record.distanceFromSchool != null"> · {{ record.distanceFromSchool.toFixed(0) }}m</ng-container>
+            <ng-container *ngIf="record.markedByAdmin"> · Admin</ng-container>
+          </span>
+        </div>
+        <span class="sa-badge" [ngClass]="getStatusClass(record.status)">
+          {{ getStatusLabel(record.status) }}
+        </span>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ══════════ MONTHLY VIEW ══════════ -->
+  <ng-container *ngIf="viewMode === 'monthly'">
+
+    <div class="sa-month-header">
+      <button class="sa-month-nav" (click)="goToPreviousMonth()">&larr;</button>
+      <h3 class="sa-month-title">{{ monthNames[summaryMonth - 1] }} {{ summaryYear }}</h3>
+      <button class="sa-month-nav" (click)="goToNextMonth()">&rarr;</button>
+    </div>
+
+    <div *ngIf="loadingSummary" class="sa-loading">Loading summary...</div>
+
+    <ng-container *ngIf="!loadingSummary && monthlySummary">
+      <div class="sa-summary-row">
+        <div class="sa-summary-card">
+          <span class="sa-sum-num">{{ monthlySummary.totalWorkingDays }}</span>
+          <span class="sa-sum-label">Working Days</span>
+        </div>
+        <div class="sa-summary-card sa-sum-present">
+          <span class="sa-sum-num">{{ monthlySummary.presentDays }}</span>
+          <span class="sa-sum-label">Present</span>
+        </div>
+        <div class="sa-summary-card sa-sum-late">
+          <span class="sa-sum-num">{{ monthlySummary.lateDays }}</span>
+          <span class="sa-sum-label">Late</span>
+        </div>
+        <div class="sa-summary-card sa-sum-absent">
+          <span class="sa-sum-num">{{ monthlySummary.absentDays }}</span>
+          <span class="sa-sum-label">Absent</span>
+        </div>
+        <div class="sa-summary-card sa-sum-halfday">
+          <span class="sa-sum-num">{{ monthlySummary.halfDayDays }}</span>
+          <span class="sa-sum-label">Half Day</span>
+        </div>
+      </div>
+
+      <!-- Monthly records table -->
+      <div class="sa-table-wrapper" *ngIf="monthlySummary.records.length > 0">
+        <table class="sa-table">
+          <thead>
+            <tr>
+              <th>Teacher</th>
+              <th>Date</th>
+              <th>Check-in</th>
+              <th>Status</th>
+              <th>Distance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of monthlySummary.records">
+              <td>{{ r.teacherName }}</td>
+              <td>{{ r.date }}</td>
+              <td>{{ formatTime(r.checkInTime) }}</td>
+              <td><span class="sa-badge sa-badge-sm" [ngClass]="getStatusClass(r.status)">{{ getStatusLabel(r.status) }}</span></td>
+              <td>{{ r.distanceFromSchool?.toFixed(0) ?? '—' }}m</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+
+  </ng-container>
+
+  <!-- ── Admin Mark Dialog ─────────────────────────── -->
+  <div *ngIf="showMarkDialog" class="sa-dialog-backdrop" (click)="closeMarkDialog()">
+    <div class="sa-dialog" (click)="$event.stopPropagation()">
+      <div class="sa-dialog-header">
+        <h3>Mark Teacher Attendance</h3>
+        <button class="sa-dialog-close" (click)="closeMarkDialog()">×</button>
+      </div>
+      <div class="sa-dialog-body">
+        <div class="sa-dialog-field">
+          <label>Teacher</label>
+          <select [(ngModel)]="markForm.teacherId">
+            <option value="">Select teacher</option>
+            <option *ngFor="let t of allTeachers" [value]="t.teacherId">{{ t.name }}</option>
+          </select>
+        </div>
+        <div class="sa-dialog-field">
+          <label>Date</label>
+          <input type="date" [(ngModel)]="markForm.date">
+        </div>
+        <div class="sa-dialog-field">
+          <label>Status</label>
+          <select [(ngModel)]="markForm.status">
+            <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="sa-dialog-footer">
+        <button class="sa-dialog-cancel" (click)="closeMarkDialog()">Cancel</button>
+        <button class="sa-dialog-submit" (click)="submitAdminMark()" [disabled]="isMarking">
+          {{ isMarking ? 'Saving...' : 'Mark Attendance' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
