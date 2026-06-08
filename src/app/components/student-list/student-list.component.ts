@@ -33,7 +33,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
   private loadClass$ = new Subject<string>();
   activeStudents: Student[] = [];
   newStudents: Student[] = [];
-  inactiveStudents: Student[] = [];
+  alumniStudents: Student[] = [];
+  leftStudents: Student[] = [];
   isLoading: boolean = true;
   teacherId: string = '';
   loggedInUserRole: string = '';
@@ -73,12 +74,15 @@ export class StudentListComponent implements OnInit, OnDestroy {
         const upcoming$ = this.loggedInUserRole === 'ADMIN'
           ? this.studentService.getNewStudentsByClass(className, secId)
           : of([] as Student[]);
-        const inactive$ = this.loggedInUserRole === 'ADMIN'
-          ? this.studentService.getInactiveStudentsByClass(className, secId)
+        const alumni$ = this.loggedInUserRole === 'ADMIN'
+          ? this.studentService.getAlumniByClass(className, secId)
+          : of([] as Student[]);
+        const left$ = this.loggedInUserRole === 'ADMIN'
+          ? this.studentService.getLeftStudentsByClass(className, secId)
           : of([] as Student[]);
 
-        return forkJoin([active$, upcoming$, inactive$]).pipe(
-          map(([active, upcoming, inactive]) => ({ active, upcoming, inactive })),
+        return forkJoin([active$, upcoming$, alumni$, left$]).pipe(
+          map(([active, upcoming, alumni, left]) => ({ active, upcoming, alumni, left })),
           catchError(err => {
             this.logger.error('Error loading students:', err);
             this.toast.error('Error', 'Failed to load students. Please try again.');
@@ -88,10 +92,11 @@ export class StudentListComponent implements OnInit, OnDestroy {
           })
         );
       })
-    ).subscribe(({ active, upcoming, inactive }) => {
+    ).subscribe(({ active, upcoming, alumni, left }) => {
       this.activeStudents = active;
       this.newStudents = upcoming;
-      this.inactiveStudents = inactive;
+      this.alumniStudents = alumni;
+      this.leftStudents = left;
       this.isLoading = false;
       this.cdr.markForCheck();
     });
@@ -171,7 +176,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
     this.sections = [];
     this.activeStudents = [];
     this.newStudents = [];
-    this.inactiveStudents = [];
+    this.alumniStudents = [];
+    this.leftStudents = [];
     this.isLoading = true;
     this.cdr.markForCheck();
     this.loadSectionsForClass(selectedClass, () => this.loadStudents());

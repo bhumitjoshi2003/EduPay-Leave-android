@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { SchoolService, SchoolSettings, SchoolEntitlementSummary, PlanDetail, SubscriptionHistoryItem, SchoolFeature } from '../../services/school.service';
 import { TenantService } from '../../services/tenant.service';
@@ -103,15 +104,25 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     private toast: ToastService,
     private logger: LoggerService,
     private notificationChannelService: NotificationChannelService,
-    private academicSessionService: AcademicSessionService
+    private academicSessionService: AcademicSessionService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     const user = this.authStateService.getUser();
     this.role = user?.role ?? '';
+
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'subscription' || tab === 'features' || tab === 'razorpay' || tab === 'channels' || tab === 'staff-attendance') {
+      this.activeTab = tab;
+    }
+
     this.loadSettings();
     this.loadEntitlement();
     this.loadSessions();
+    if (this.activeTab === 'subscription') {
+      this.loadAvailablePlans();
+    }
   }
 
   ngOnDestroy(): void {

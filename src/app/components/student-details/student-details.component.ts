@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
 import { SchoolService, SchoolClass } from '../../services/school.service';
 import { SectionService } from '../../services/section.service';
 import { Section } from '../../interfaces/section';
+import { StudentExitRequest, PendingDuesInfo } from '../../interfaces/student';
 
 interface StudentDetails {
   studentId?: string;
@@ -31,6 +32,9 @@ interface StudentDetails {
   leavingDate?: string;
   status?: string;
   photoUrl?: string;
+  reasonForLeaving?: string;
+  conductAtLeaving?: string;
+  exitRemarks?: string;
 }
 
 @Component({
@@ -77,6 +81,31 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
   classList: string[] = [];
   managedClasses: SchoolClass[] = [];
   sections: Section[] = [];
+
+  // Exit modal state
+  showExitModal = false;
+  exitLoading = false;
+  exitRequest: StudentExitRequest = {
+    exitType: 'WITHDRAWN',
+    reasonForLeaving: '',
+    conductAtLeaving: '',
+    leavingDate: new Date().toISOString().split('T')[0],
+    exitRemarks: ''
+  };
+  pendingDues: PendingDuesInfo | null = null;
+
+  readonly exitReasons = [
+    'Family relocation',
+    'Admitted to another school',
+    'Financial reasons',
+    'Health reasons',
+    'Completed studies',
+    'Disciplinary action',
+    'Migration abroad',
+    'Other'
+  ];
+
+  readonly conductOptions = ['Excellent', 'Good', 'Satisfactory', 'Needs Improvement'];
 
   constructor(
     private route: ActivatedRoute,
@@ -422,6 +451,93 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
       this.updatedDetails.sectionName = undefined;
     }
     this.loadSectionsForClass(className);
+  }
+
+  // ── Exit Workflow ──────────────────────────────────────────────────
+
+  isExitStatus(): boolean {
+    const s = this.studentDetails?.status;
+    return s === 'GRADUATED' || s === 'TRANSFERRED' || s === 'WITHDRAWN';
+  }
+
+  openExitModal(): void {
+    this.exitRequest = {
+      exitType: 'WITHDRAWN',
+      reasonForLeaving: '',
+      conductAtLeaving: '',
+      leavingDate: new Date().toISOString().split('T')[0],
+      exitRemarks: ''
+    };
+    this.pendingDues = null;
+    this.showExitModal = true;
+    this.cdr.markForCheck();
+
+    this.studentService.checkPendingDues(this.studentId).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+      next: (dues) => { this.pendingDues = dues; this.cdr.markForCheck(); },
+      error: () => {}
+    });
+  }
+
+  closeExitModal(): void {
+    this.showExitModal = false;
+    this.cdr.markForCheck();
+  }
+
+  submitExit(): void {
+    if (!this.exitRequest.reasonForLeaving) {
+      this.toast.error('Required', 'Please select a reason for leaving.');
+      return;
+    }
+    if (!this.exitRequest.leavingDate) {
+      this.toast.error('Required', 'Please set a leaving date.');
+      return;
+    }
+
+    this.exitLoading = true;
+    this.cdr.markForCheck();
+
+    this.studentService.exitStudent(this.studentId, this.exitRequest).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+      next: (student) => {
+        this.studentDetails = student;
+        this.updatedDetails = { ...student };
+        this.showExitModal = false;
+        this.exitLoading = false;
+        this.cdr.markForCheck();
+
+        const label = this.exitRequest.exitType === 'GRADUATED' ? 'graduated' :
+                      this.exitRequest.exitType === 'TRANSFERRED' ? 'transferred' : 'withdrawn';
+        this.toast.success('Done', `Student has been marked as ${label}.`);
+      },
+      error: (err) => {
+        this.exitLoading = false;
+        this.cdr.markForCheck();
+        const msg = typeof err?.error === 'string' ? err.error : 'Failed to exit student.';
+        this.toast.error('Error', msg);
+      }
+    });
+  }
+
+  readmitStudent(): void {
+    this.toast.confirm({
+      title: 'Re-admit Student?',
+      message: `This will set ${this.studentDetails?.name} back to ACTIVE status and clear all exit details. Continue?`,
+      confirmText: 'Yes, re-admit',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
+      this.studentService.readmitStudent(this.studentId).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+        next: (student) => {
+          this.studentDetails = student;
+          this.updatedDetails = { ...student };
+          this.cdr.markForCheck();
+          this.toast.success('Re-admitted', `${student.name} is now active again.`);
+        },
+        error: (err) => {
+          const msg = typeof err?.error === 'string' ? err.error : 'Failed to re-admit student.';
+          this.toast.error('Error', msg);
+        }
+      });
+    });
   }
 
   goBack(): void {

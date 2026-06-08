@@ -957,15 +957,12 @@ select.ss-input { appearance: auto; cursor: pointer; }
 }
 .ss-plan-upgrade-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-.ss-plan-current-label {
-  margin-top: 8px;
-  text-align: center;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #1d4ed8;
-  padding: 8px 0;
-  background: rgba(29,78,216,0.08);
-  border-radius: 10px;
+.ss-plan-renew-btn {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 3px 10px rgba(5,150,105,0.3);
+}
+.ss-plan-renew-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 18px rgba(5,150,105,0.4);
 }
 
 .ss-divider { border: none; border-top: 1px solid #f1f5f9; margin: 16px 0; }

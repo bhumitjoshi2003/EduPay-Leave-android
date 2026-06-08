@@ -98,7 +98,7 @@
           <span *ngIf="subscriptionStatus === 'EXPIRED'">Your grace period has ended. Some features may be restricted.</span>
         </div>
       </div>
-      <a class="sub-warn-renew-btn" routerLink="/dashboard/school-settings">
+      <a class="sub-warn-renew-btn" routerLink="/dashboard/school-settings" [queryParams]="{ tab: 'subscription' }">
         Renew Now →
       </a>
     </div>

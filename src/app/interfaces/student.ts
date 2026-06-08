@@ -17,4 +17,20 @@ export interface Student {
   leavingDate?: string;
   status?: string;
   photoUrl?: string;
+  reasonForLeaving?: string;
+  conductAtLeaving?: string;
+  exitRemarks?: string;
+}
+
+export interface StudentExitRequest {
+  exitType: 'GRADUATED' | 'TRANSFERRED' | 'WITHDRAWN';
+  reasonForLeaving: string;
+  conductAtLeaving?: string;
+  leavingDate: string;
+  exitRemarks?: string;
+}
+
+export interface PendingDuesInfo {
+  hasPendingDues: boolean;
+  unpaidMonths: number;
 }

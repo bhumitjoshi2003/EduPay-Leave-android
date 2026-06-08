@@ -751,9 +751,10 @@
                       [disabled]="upgradingPlanId === plan.id" (click)="startUpgrade(plan)">
                 {{ upgradingPlanId === plan.id ? 'Processing…' : 'Choose Plan' }}
               </button>
-              <div class="ss-plan-current-label" *ngIf="entitlement?.planName === plan.name">
-                ✓ Current Plan
-              </div>
+              <button class="ss-plan-upgrade-btn ss-plan-renew-btn" *ngIf="entitlement?.planName === plan.name"
+                      [disabled]="upgradingPlanId === plan.id" (click)="startUpgrade(plan)">
+                {{ upgradingPlanId === plan.id ? 'Processing…' : 'Renew Plan' }}
+              </button>
             </div>
           </div>
 

@@ -62,7 +62,7 @@
 
   <!-- ── Empty ──────────────────────────────────────────────────────── -->
   <div class="sl-empty"
-    *ngIf="!isLoading && activeStudents.length === 0 && newStudents.length === 0 && inactiveStudents.length === 0">
+    *ngIf="!isLoading && activeStudents.length === 0 && newStudents.length === 0 && alumniStudents.length === 0 && leftStudents.length === 0">
     <div class="sl-empty-icon">🔍</div>
     <p class="sl-empty-title">No students found</p>
     <p class="sl-empty-sub">{{ classList.length === 0 ? 'No classes configured yet. Go to School Settings → Classes to add them first.' : 'No students found for the selected class.' }}</p>
@@ -109,19 +109,40 @@
     </div>
   </div>
 
-  <!-- ── Inactive Students ─────────────────────────────────────────── -->
-  <div class="sl-section" *ngIf="inactiveStudents.length > 0">
+  <!-- ── Alumni (Graduated) ──────────────────────────────────────────── -->
+  <div class="sl-section" *ngIf="alumniStudents.length > 0">
     <div class="sl-section-header">
-      <span class="sl-section-dot sl-dot-inactive"></span>
-      <h2 class="sl-section-title">Inactive</h2>
-      <span class="sl-section-count sl-count-inactive">{{ inactiveStudents.length }}</span>
+      <span class="sl-section-dot sl-dot-alumni"></span>
+      <h2 class="sl-section-title">Alumni</h2>
+      <span class="sl-section-count sl-count-alumni">{{ alumniStudents.length }}</span>
     </div>
     <div class="sl-list">
-      <div class="sl-card sl-card-inactive" *ngFor="let s of inactiveStudents; trackBy: trackByStudentId"
+      <div class="sl-card sl-card-alumni" *ngFor="let s of alumniStudents; trackBy: trackByStudentId"
         (click)="viewStudentDetails(s.studentId)">
-        <div class="sl-avatar sl-avatar-inactive">{{ s.name.charAt(0).toUpperCase() }}</div>
+        <div class="sl-avatar sl-avatar-alumni">{{ s.name.charAt(0).toUpperCase() }}</div>
         <div class="sl-card-info">
-          <span class="sl-card-name sl-name-inactive">{{ s.name }}</span>
+          <span class="sl-card-name">{{ s.name }}</span>
+          <span class="sl-card-id">{{ s.studentId }}</span>
+        </div>
+        <span class="sl-alumni-tag">GRADUATED</span>
+        <span class="sl-arrow">›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Left (Transferred / Withdrawn) ────────────────────────────── -->
+  <div class="sl-section" *ngIf="leftStudents.length > 0">
+    <div class="sl-section-header">
+      <span class="sl-section-dot sl-dot-left"></span>
+      <h2 class="sl-section-title">Left</h2>
+      <span class="sl-section-count sl-count-left">{{ leftStudents.length }}</span>
+    </div>
+    <div class="sl-list">
+      <div class="sl-card sl-card-left" *ngFor="let s of leftStudents; trackBy: trackByStudentId"
+        (click)="viewStudentDetails(s.studentId)">
+        <div class="sl-avatar sl-avatar-left">{{ s.name.charAt(0).toUpperCase() }}</div>
+        <div class="sl-card-info">
+          <span class="sl-card-name sl-name-left">{{ s.name }}</span>
           <span class="sl-card-id">{{ s.studentId }}</span>
         </div>
         <span class="sl-arrow">›</span>

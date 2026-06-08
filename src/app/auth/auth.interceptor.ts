@@ -74,8 +74,13 @@ export class AuthInterceptor implements HttpInterceptor {
           const toast = this.injector.get(ToastService);
           const body = error.error;
           const msg = typeof body === 'string' ? body : body?.message;
-          toast.error('Subscription Expired', msg || 'Your subscription has expired. Please renew to continue.');
-          this.router.navigate(['/dashboard/school-settings']);
+          const role = this.authStateService.getUserRole();
+          if (role === 'ADMIN' || role === 'SUB_ADMIN') {
+            toast.error('Subscription Expired', msg || 'Your subscription has expired. Please renew to continue.');
+            this.router.navigate(['/dashboard/school-settings'], { queryParams: { tab: 'subscription' } });
+          } else {
+            toast.error('Read-Only Mode', 'Your school\'s subscription has expired. You can view data but cannot make changes. Please contact your school administrator.');
+          }
           return throwError(() => error);
         }
         if (error.status === 403) {

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Student } from '../interfaces/student';
+import { Student, StudentExitRequest, PendingDuesInfo } from '../interfaces/student';
 
 interface StudentDTO {
   studentId: string;
@@ -107,6 +107,30 @@ export class StudentService {
   searchStudents(query: string): Observable<Student[]> {
     const params = new HttpParams().set('q', query);
     return this.http.get<Student[]>(`${this.baseUrl}/search`, { params });
+  }
+
+  getAlumniByClass(selectedClass: string, sectionId?: number): Observable<StudentDTO[]> {
+    let params = new HttpParams();
+    if (sectionId) params = params.set('sectionId', sectionId);
+    return this.http.get<StudentDTO[]>(`${this.baseUrl}/alumni/class/${selectedClass}`, { params });
+  }
+
+  getLeftStudentsByClass(selectedClass: string, sectionId?: number): Observable<StudentDTO[]> {
+    let params = new HttpParams();
+    if (sectionId) params = params.set('sectionId', sectionId);
+    return this.http.get<StudentDTO[]>(`${this.baseUrl}/left/class/${selectedClass}`, { params });
+  }
+
+  checkPendingDues(studentId: string): Observable<PendingDuesInfo> {
+    return this.http.get<PendingDuesInfo>(`${this.baseUrl}/${studentId}/pending-dues`);
+  }
+
+  exitStudent(studentId: string, request: StudentExitRequest): Observable<Student> {
+    return this.http.post<Student>(`${this.baseUrl}/${studentId}/exit`, request);
+  }
+
+  readmitStudent(studentId: string): Observable<Student> {
+    return this.http.post<Student>(`${this.baseUrl}/${studentId}/readmit`, {});
   }
 
 }

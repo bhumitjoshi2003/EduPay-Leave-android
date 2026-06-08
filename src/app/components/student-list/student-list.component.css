@@ -264,6 +264,30 @@
   flex-shrink: 0;
 }
 
+.sl-alumni-tag {
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* ── Alumni ──────────────────────────────────────────────────────── */
+.sl-dot-alumni { background: #f59e0b; }
+.sl-count-alumni { background: #fffbeb; color: #92400e; }
+.sl-card-alumni { opacity: 0.85; }
+.sl-avatar-alumni { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+
+/* ── Left (Transferred / Withdrawn) ─────────────────────────────── */
+.sl-dot-left { background: #94a3b8; }
+.sl-count-left { background: #f1f5f9; color: #94a3b8; }
+.sl-card-left { opacity: 0.72; }
+.sl-avatar-left { background: linear-gradient(135deg, #94a3b8, #cbd5e1); }
+.sl-name-left { color: #94a3b8; }
+
 .sl-arrow {
   font-size: 1.3rem;
   color: #cbd5e1;

@@ -195,7 +195,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   handleInitialNavigation(): void {
     // Expired ADMIN must renew — override whatever page they were on.
     if (this.Role === 'ADMIN' && this.subscriptionStatus === 'EXPIRED') {
-      this.router.navigate(['/dashboard/school-settings']);
+      this.router.navigate(['/dashboard/school-settings'], { queryParams: { tab: 'subscription' } });
       return;
     }
 
