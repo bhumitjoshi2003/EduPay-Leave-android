@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { FeePayment, RecordPaymentRequest, StudentFeeConfig, CreditNote } from '../interfaces/fee-payment';
+import { PaginatedResponse } from './leave.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,16 +24,16 @@ export class FeePaymentService {
     return this.http.get<FeePayment>(`${this.paymentUrl}/${paymentId}`);
   }
 
-  getPaymentHistory(page: number, size: number, studentId?: string, status?: string): Observable<any> {
+  getPaymentHistory(page: number, size: number, studentId?: string, status?: string): Observable<PaginatedResponse<FeePayment>> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (studentId) params = params.set('studentId', studentId);
     if (status) params = params.set('status', status);
-    return this.http.get(this.paymentUrl, { params });
+    return this.http.get<PaginatedResponse<FeePayment>>(this.paymentUrl, { params });
   }
 
-  getStudentPaymentHistory(studentId: string, page: number, size: number): Observable<any> {
+  getStudentPaymentHistory(studentId: string, page: number, size: number): Observable<PaginatedResponse<FeePayment>> {
     const params = new HttpParams().set('page', page).set('size', size);
-    return this.http.get(`${this.paymentUrl}/student/${studentId}`, { params });
+    return this.http.get<PaginatedResponse<FeePayment>>(`${this.paymentUrl}/student/${studentId}`, { params });
   }
 
   // --- Student Fee Configs ---
@@ -57,9 +58,9 @@ export class FeePaymentService {
     return this.http.post<CreditNote>(`${this.creditUrl}/${creditNoteId}/approve`, {});
   }
 
-  getCreditNotes(page: number, size: number, status?: string): Observable<any> {
+  getCreditNotes(page: number, size: number, status?: string): Observable<PaginatedResponse<CreditNote>> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (status) params = params.set('status', status);
-    return this.http.get(this.creditUrl, { params });
+    return this.http.get<PaginatedResponse<CreditNote>>(this.creditUrl, { params });
   }
 }

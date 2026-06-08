@@ -97,24 +97,92 @@ export interface GlobalSubscriptionConfig {
   updatedAt: string;
 }
 
+export interface SchoolSubscription {
+  id?: number;
+  schoolId: number;
+  planId: number | null;
+  planName?: string;
+  status: string;
+  startDate?: string;
+  endDate?: string;
+  trialEndsAt?: string;
+  expiresAt?: string;
+  graceEndsAt?: string;
+  billingCycle?: string;
+  notes?: string;
+}
+
+export interface SchoolFeature {
+  featureKey: string;
+  displayName: string;
+  description: string;
+  category: string;
+  enabled: boolean;
+  effectivelyOn: boolean;
+  planGranted: boolean;
+  overrideState: string;
+  isAlwaysOn: boolean;
+}
+
+export interface SuperAdminDashboard {
+  totalSchools: number;
+  activeSchools: number;
+  totalStudents: number;
+  totalTeachers: number;
+  revenueThisMonth: number;
+  [key: string]: unknown;
+}
+
+export interface RazorpayOrder {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+export interface UpgradeVerification {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+  planId: number | string;
+  billingCycle?: string;
+}
+
+export interface OnboardSchoolRequest {
+  name: string;
+  slug: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  phone?: string;
+  email?: string;
+  adminUserId: string;
+  adminName: string;
+  adminPhone: string;
+  adminDob: string;
+  adminGender: string;
+  adminEmail: string;
+  adminPassword: string;
+}
+
 export interface SchoolSettings {
   id: number;
   name: string;
   slug: string;
-  address: string;
-  city: string;
-  state: string;
-  pincode: string;
-  phone: string;
-  email: string;
-  website: string;
-  logoUrl: string;
-  themeColor: string;
-  contactPersonName: string;
-  boardType: string;
-  plan: string;
-  maxStudents: number;
-  expiryDate: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  logoUrl: string | null;
+  themeColor: string | null;
+  contactPersonName: string | null;
+  boardType: string | null;
+  plan: string | null;
+  maxStudents: number | null;
+  expiryDate: string | null;
   active: boolean;
   razorpayConfigured: boolean;
   adminUserId?: string;
@@ -178,8 +246,8 @@ export class SchoolService {
     return this.http.delete<void>(`${this.baseUrl}/classes/${id}`);
   }
 
-  reorderClasses(orderedIds: number[]): Observable<any> {
-    return this.http.patch(`${this.baseUrl}/classes/reorder`, orderedIds);
+  reorderClasses(orderedIds: number[]): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/classes/reorder`, orderedIds);
   }
 
   toggleStreamEligible(id: number, eligible: boolean): Observable<SchoolClass> {
@@ -206,15 +274,15 @@ export class SchoolService {
 
   // ── SUPER_ADMIN ──────────────────────────────────────────────────────────
 
-  getDashboard(): Observable<any> {
-    return this.http.get<any>(`${this.superAdminUrl}/dashboard`);
+  getDashboard(): Observable<SuperAdminDashboard> {
+    return this.http.get<SuperAdminDashboard>(`${this.superAdminUrl}/dashboard`);
   }
 
   listAllSchools(): Observable<SchoolSettings[]> {
     return this.http.get<SchoolSettings[]>(`${this.superAdminUrl}/schools`);
   }
 
-  onboardSchool(data: any): Observable<SchoolSettings> {
+  onboardSchool(data: OnboardSchoolRequest): Observable<SchoolSettings> {
     return this.http.post<SchoolSettings>(`${this.superAdminUrl}/schools`, data);
   }
 
@@ -241,20 +309,20 @@ export class SchoolService {
 
   // ── Subscription management (SUPER_ADMIN) ─────────────────────────────────
 
-  getSchoolSubscription(schoolId: number): Observable<any> {
-    return this.http.get<any>(`${this.superAdminUrl}/schools/${schoolId}/subscription`);
+  getSchoolSubscription(schoolId: number): Observable<SchoolSubscription> {
+    return this.http.get<SchoolSubscription>(`${this.superAdminUrl}/schools/${schoolId}/subscription`);
   }
 
-  assignSubscription(schoolId: number, data: any): Observable<any> {
-    return this.http.post<any>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, data);
+  assignSubscription(schoolId: number, data: Partial<SchoolSubscription>): Observable<SchoolSubscription> {
+    return this.http.post<SchoolSubscription>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, data);
   }
 
-  updateSchoolSubscription(schoolId: number, data: any): Observable<any> {
-    return this.http.put<any>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, data);
+  updateSchoolSubscription(schoolId: number, data: Partial<SchoolSubscription>): Observable<SchoolSubscription> {
+    return this.http.put<SchoolSubscription>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, data);
   }
 
-  refreshEntitlement(schoolId: number): Observable<any> {
-    return this.http.post<any>(`${this.superAdminUrl}/schools/${schoolId}/subscription/refresh`, {});
+  refreshEntitlement(schoolId: number): Observable<void> {
+    return this.http.post<void>(`${this.superAdminUrl}/schools/${schoolId}/subscription/refresh`, {});
   }
 
   getEntitlement(): Observable<SchoolEntitlementSummary> {
@@ -265,22 +333,22 @@ export class SchoolService {
     return this.http.get<PlanDetail[]>(`${environment.apiUrl}/public/plans`);
   }
 
-  createUpgradeOrder(planId: number, billingCycle: string): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/subscription/upgrade/order`, { planId, billingCycle });
+  createUpgradeOrder(planId: number, billingCycle: string): Observable<RazorpayOrder> {
+    return this.http.post<RazorpayOrder>(`${this.baseUrl}/subscription/upgrade/order`, { planId, billingCycle });
   }
 
-  verifyUpgradePayment(data: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/subscription/upgrade/verify`, data);
+  verifyUpgradePayment(data: UpgradeVerification): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/subscription/upgrade/verify`, data);
   }
 
   // ── School-level feature overrides (ADMIN) ────────────────────────────────
 
-  getSchoolFeatures(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/features`);
+  getSchoolFeatures(): Observable<SchoolFeature[]> {
+    return this.http.get<SchoolFeature[]>(`${this.baseUrl}/features`);
   }
 
-  setFeatureOverride(featureKey: string, overrideState: 'DEFAULT' | 'DISABLED'): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/features/${featureKey}/override`, { overrideState });
+  setFeatureOverride(featureKey: string, overrideState: 'DEFAULT' | 'DISABLED'): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/features/${featureKey}/override`, { overrideState });
   }
 
   getSubscriptionHistory(): Observable<SubscriptionHistoryItem[]> {
@@ -289,12 +357,12 @@ export class SchoolService {
 
   // ── Per-school feature overrides (SUPER_ADMIN) ────────────────────────────
 
-  getSuperAdminSchoolFeatures(schoolId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.superAdminUrl}/schools/${schoolId}/features`);
+  getSuperAdminSchoolFeatures(schoolId: number): Observable<SchoolFeature[]> {
+    return this.http.get<SchoolFeature[]>(`${this.superAdminUrl}/schools/${schoolId}/features`);
   }
 
-  setSuperAdminFeatureOverride(schoolId: number, featureKey: string, overrideState: string): Observable<any> {
-    return this.http.put<any>(`${this.superAdminUrl}/schools/${schoolId}/features/${featureKey}/override`,
+  setSuperAdminFeatureOverride(schoolId: number, featureKey: string, overrideState: string): Observable<void> {
+    return this.http.put<void>(`${this.superAdminUrl}/schools/${schoolId}/features/${featureKey}/override`,
       { overrideState });
   }
 

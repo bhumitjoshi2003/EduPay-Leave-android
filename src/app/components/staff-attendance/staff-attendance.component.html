@@ -75,7 +75,7 @@
           <span class="sa-teacher-name">{{ record.teacherName }}</span>
           <span class="sa-teacher-meta">
             <ng-container *ngIf="record.checkInTime">{{ formatTime(record.checkInTime) }}</ng-container>
-            <ng-container *ngIf="record.distanceFromSchool != null"> · {{ record.distanceFromSchool.toFixed(0) }}m</ng-container>
+            <ng-container *ngIf="record.distanceFromSchool != null"> · {{ formatDistance(record.distanceFromSchool) }}</ng-container>
             <ng-container *ngIf="record.markedByAdmin"> · Admin</ng-container>
           </span>
         </div>
@@ -140,7 +140,7 @@
               <td>{{ r.date }}</td>
               <td>{{ formatTime(r.checkInTime) }}</td>
               <td><span class="sa-badge sa-badge-sm" [ngClass]="getStatusClass(r.status)">{{ getStatusLabel(r.status) }}</span></td>
-              <td>{{ r.distanceFromSchool?.toFixed(0) ?? '—' }}m</td>
+              <td>{{ formatDistance(r.distanceFromSchool) }}</td>
             </tr>
           </tbody>
         </table>

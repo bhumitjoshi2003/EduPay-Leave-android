@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { SchoolService, SchoolSettings, PlanDetail, FeatureCatalogItem, GlobalSubscriptionConfig } from '../../services/school.service';
+import { SchoolService, SchoolSettings, PlanDetail, FeatureCatalogItem, GlobalSubscriptionConfig, SchoolFeature, SchoolSubscription } from '../../services/school.service';
 import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
 
@@ -142,7 +142,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     if (!this.plans.length) {
       this.schoolService.getPlans(true).pipe(takeUntil(this.destroy$)).subscribe({
         next: (plans) => { this.plans = plans; this.cdr.markForCheck(); },
-        error: () => {}
+        error: (err) => this.logger.error('Failed to load plans', err)
       });
     }
     if (!this.subscriptionConfig) {
@@ -152,7 +152,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
           this.configForm = { gracePeriodDays: config.gracePeriodDays, defaultTrialDays: config.defaultTrialDays, expiryNotifyDays: config.expiryNotifyDays };
           this.cdr.markForCheck();
         },
-        error: () => {}
+        error: (err) => this.logger.error('Failed to load subscription config', err)
       });
     }
     this.cdr.markForCheck();
@@ -278,9 +278,9 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     this.saving = true;
     this.cdr.markForCheck();
 
-    const payload: any = {
+    const payload: Partial<SchoolSettings> & Record<string, unknown> = {
       name: f.name.trim(),
-      slug: f.slug.trim() || null,
+      slug: f.slug.trim(),
       boardType: f.boardType || null,
       email: f.email || null,
       phone: f.phone || null,
@@ -610,7 +610,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
   // ── Per-school feature overrides (SUPER_ADMIN) ────────────────────────────
 
-  schoolFeatures = new Map<number, any[]>();
+  schoolFeatures = new Map<number, SchoolFeature[]>();
   loadingFeaturesFor: number | null = null;
   savingFeatureFor: string | null = null;
 
@@ -629,7 +629,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     if (!this.plans.length) {
       this.schoolService.getPlans(true).pipe(takeUntil(this.destroy$)).subscribe({
         next: (plans) => { this.plans = plans; this.cdr.markForCheck(); },
-        error: () => {}
+        error: (err) => this.logger.error('Failed to load plans', err)
       });
     }
     this.loadSchoolSubscription(school.id);
@@ -674,13 +674,13 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       ? this.schoolService.updateSchoolSubscription(schoolId, this.subForm)
       : this.schoolService.assignSubscription(schoolId, this.subForm);
     req$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (sub: any) => {
+      next: (sub: SchoolSubscription) => {
         this.schoolSubscriptions.set(schoolId, sub);
         this.savingSubFor = null;
         this.cdr.markForCheck();
         this.toast.success('Saved', 'Subscription updated successfully.');
       },
-      error: (err: any) => {
+      error: (err) => {
         this.logger.error('Save subscription failed', err);
         this.savingSubFor = null;
         this.cdr.markForCheck();
@@ -742,8 +742,8 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  schoolFeaturesByCategory(features: any[]): { category: string; items: any[] }[] {
-    const map = new Map<string, any[]>();
+  schoolFeaturesByCategory(features: SchoolFeature[]): { category: string; items: SchoolFeature[] }[] {
+    const map = new Map<string, SchoolFeature[]>();
     for (const f of features) {
       const cat = f.category ?? 'General';
       if (!map.has(cat)) map.set(cat, []);

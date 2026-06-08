@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, NgZone } from '@angular/core';
-import { EMPTY } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, Output, NgZone } from '@angular/core';
+import { EMPTY, Subject } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
 import { LoggerService } from '../../services/logger.service';
 import { RazorpayService, RazorpayOrderResponse, RazorpayPaymentResponse } from '../../services/razorpay.service';
 import { PaymentData } from '../../interfaces/payment-data';
@@ -16,7 +16,8 @@ declare var Razorpay: any;
   styleUrl: './payment.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PaymentComponent {
+export class PaymentComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
 
   constructor(
     private razorpayService: RazorpayService,
@@ -47,11 +48,11 @@ export class PaymentComponent {
   };
 
   @Input() disabled: boolean = false;
-  @Output() paymentSuccess = new EventEmitter<any>();
+  @Output() paymentSuccess = new EventEmitter<RazorpayPaymentResponse>();
   @Output() paymentProcessingStarted = new EventEmitter<void>();
   @Output() paymentProcessCompleted = new EventEmitter<void>();
 
-  studentDetails: any;
+  studentDetails: { name: string; email?: string; phoneNumber?: string } | null = null;
 
   initiatePayment() {
     this.paymentProcessingStarted.emit();
@@ -102,7 +103,7 @@ export class PaymentComponent {
         const orderPayload = { ...this.paymentData, totalAmount: this.paymentData.totalAmount * 100 };
         return this.razorpayService.createOrder(orderPayload);
       })
-    ).subscribe({
+    ).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: RazorpayOrderResponse) => {
         const options = {
           key: response.razorpayKey,
@@ -112,9 +113,9 @@ export class PaymentComponent {
           description: 'Fee Payment',
           order_id: response.orderId,
           prefill: {
-            name: this.studentDetails.name || '',
-            email: this.studentDetails.email || '',
-            contact: this.studentDetails.phoneNumber || ''
+            name: this.studentDetails?.name || '',
+            email: this.studentDetails?.email || '',
+            contact: this.studentDetails?.phoneNumber || ''
           },
           theme: { color: '#3399cc' },
           method: { netbanking: true, card: true, upi: true, wallet: false },
@@ -158,7 +159,7 @@ export class PaymentComponent {
   }
 
   verifyPayment(paymentResponse: RazorpayPaymentResponse, orderDetails: RazorpayOrderResponse) {
-    this.razorpayService.verifyPayment(paymentResponse, orderDetails).subscribe({
+    this.razorpayService.verifyPayment(paymentResponse, orderDetails).pipe(takeUntil(this.destroy$)).subscribe({
       next: (result) => {
         if (result.success) {
           this.paymentSuccess.emit(paymentResponse);
@@ -173,5 +174,10 @@ export class PaymentComponent {
         this.paymentProcessCompleted.emit();
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

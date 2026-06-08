@@ -175,9 +175,9 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateFieldValue(field: keyof TeacherDetails, event: any): void {
+  updateFieldValue(field: keyof TeacherDetails, event: Event): void {
     if (this.updatedDetails) {
-      this.updatedDetails[field] = event.target.value;
+      this.updatedDetails[field] = (event.target as HTMLInputElement).value;
     }
   }
 

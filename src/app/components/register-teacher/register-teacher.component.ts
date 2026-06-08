@@ -65,7 +65,7 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
   onSubmit() {
     if (this.teacherForm.valid) {
       this.teacherService.addTeacher(this.teacherForm.value).pipe(
-        switchMap((response: any) => {
+        switchMap((response: { teacherId: string }) => {
           const tempPassword = this.generateTempPassword();
           return this.authService.register({
             userId: response.teacherId,

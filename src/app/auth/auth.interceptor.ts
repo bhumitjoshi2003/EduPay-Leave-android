@@ -114,7 +114,7 @@ export class AuthInterceptor implements HttpInterceptor {
       this.refreshDone$.next(false);
 
       return this.authService.refreshToken().pipe(
-        tap((userInfo: any) => {
+        tap((userInfo) => {
           this.authStateService.setUser(userInfo);
         }),
         switchMap(() => {

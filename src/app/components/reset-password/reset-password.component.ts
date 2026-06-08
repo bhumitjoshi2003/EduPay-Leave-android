@@ -21,7 +21,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   loading = false;
   hideNewPassword = true;
   hideConfirmPassword = true;
-  resetToken: any;
+  resetToken: string | null = null;
 
   constructor(
     private fb: FormBuilder,

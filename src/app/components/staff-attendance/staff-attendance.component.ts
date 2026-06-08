@@ -240,4 +240,10 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
   getTeacherInitials(name: string): string {
     return name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase();
   }
+
+  formatDistance(meters: number | null | undefined): string {
+    if (meters == null) return '—';
+    if (meters >= 1000) return (meters / 1000).toFixed(1) + ' km';
+    return meters.toFixed(0) + ' m';
+  }
 }

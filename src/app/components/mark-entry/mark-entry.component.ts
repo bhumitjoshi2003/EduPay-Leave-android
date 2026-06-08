@@ -75,11 +75,11 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
 
     this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
       next: classes => { this.classOptions = classes; this.cdr.markForCheck(); },
-      error: () => {}
+      error: (err) => this.logger.error('Failed to load classes', err)
     });
     this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
       next: classes => { this.managedClasses = classes; },
-      error: () => {}
+      error: (err) => this.logger.error('Failed to load managed classes', err)
     });
 
     this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
@@ -97,7 +97,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     });
   }
 
-  private initAfterSettings(user: any): void {
+  private initAfterSettings(user: { userId: string; role: string } | null): void {
     if (this.role === 'TEACHER') {
       const teacherId = user!.userId;
       this.teacherService.getTeacher(teacherId).pipe(takeUntil(this.destroy$)).subscribe({
@@ -146,7 +146,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     if (!cls) return;
     this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: sections => { this.sections = sections; this.cdr.markForCheck(); },
-      error: () => {}
+      error: (err) => this.logger.error('Failed to load sections', err)
     });
   }
 
@@ -184,7 +184,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
       ]).pipe(takeUntil(this.destroy$)).subscribe({
         next: ([subjects, studentList]) => {
           this.examSubjects = subjects;
-          this.students = studentList.map((s: any) => ({ studentId: s.studentId, name: s.name }));
+          this.students = studentList.map((s: { studentId: string; name: string }) => ({ studentId: s.studentId, name: s.name }));
           this.cdr.markForCheck();
         },
         error: (e) => { this.logger.error('Error loading exam data:', e); this.toast.error('Error', 'Failed to load exam data.'); },

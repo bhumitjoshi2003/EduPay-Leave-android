@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { SchoolService, SchoolSettings, SchoolEntitlementSummary, PlanDetail, SubscriptionHistoryItem } from '../../services/school.service';
+import { SchoolService, SchoolSettings, SchoolEntitlementSummary, PlanDetail, SubscriptionHistoryItem, SchoolFeature } from '../../services/school.service';
 import { TenantService } from '../../services/tenant.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
@@ -39,7 +39,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
 
   // Features tab
   featuresLoading = false;
-  schoolFeatures: any[] = [];
+  schoolFeatures: SchoolFeature[] = [];
   savingFeatureKey: string | null = null;
 
   // Subscription tab
@@ -281,7 +281,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  toggleFeatureOverride(feature: any): void {
+  toggleFeatureOverride(feature: SchoolFeature): void {
     if (feature.isAlwaysOn || !feature.planGranted) return;
     const newState: 'DEFAULT' | 'DISABLED' = feature.overrideState === 'DISABLED' ? 'DEFAULT' : 'DISABLED';
     this.savingFeatureKey = feature.featureKey;
@@ -397,8 +397,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  featuresByCategory(): { category: string; features: any[] }[] {
-    const map = new Map<string, any[]>();
+  featuresByCategory(): { category: string; features: SchoolFeature[] }[] {
+    const map = new Map<string, SchoolFeature[]>();
     for (const f of this.schoolFeatures) {
       if (!map.has(f.category)) map.set(f.category, []);
       map.get(f.category)!.push(f);

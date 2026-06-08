@@ -2,12 +2,19 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AuthStateService } from './auth-state.service';
+import { AuthStateService, UserInfo } from './auth-state.service';
 
 interface ChangePasswordRequest {
   userId: string;
   oldPassword: string;
   newPassword: string;
+}
+
+interface RegisterRequest {
+  userId: string;
+  password: string;
+  role: string;
+  email: string;
 }
 
 @Injectable({
@@ -19,21 +26,21 @@ export class AuthService {
 
   constructor(private http: HttpClient, private authStateService: AuthStateService) { }
 
-  register(userData: any): Observable<any> {
+  register(userData: RegisterRequest): Observable<string> {
     return this.http.post(`${this.apiUrl}/register`, userData, { responseType: 'text' });
   }
 
-  login(userId: string, password: string, schoolSlug?: string | null): Observable<any> {
+  login(userId: string, password: string, schoolSlug?: string | null): Observable<UserInfo> {
     const body: Record<string, string> = { userId, password };
     if (schoolSlug) body['schoolSlug'] = schoolSlug;
-    return this.http.post<any>(`${this.apiUrl}/login`, body, { withCredentials: true });
+    return this.http.post<UserInfo>(`${this.apiUrl}/login`, body, { withCredentials: true });
   }
 
-  refreshToken(): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/refresh-token`, {}, { withCredentials: true });
+  refreshToken(): Observable<UserInfo> {
+    return this.http.post<UserInfo>(`${this.apiUrl}/refresh-token`, {}, { withCredentials: true });
   }
 
-  logout(): Observable<any> {
+  logout(): Observable<string> {
     return this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true, responseType: 'text' }).pipe(
       tap(() => {
         this.authStateService.clearUser();
@@ -42,15 +49,15 @@ export class AuthService {
     );
   }
 
-  changePassword(request: ChangePasswordRequest): Observable<any> {
+  changePassword(request: ChangePasswordRequest): Observable<string> {
     return this.http.post(`${this.apiUrl}/change-password`, request, { responseType: 'text', withCredentials: true });
   }
 
-  requestPasswordReset(userId: string, email: string): Observable<any> {
+  requestPasswordReset(userId: string, email: string): Observable<string> {
     return this.http.post(`${this.apiUrl}/request-password-reset`, { userId, email }, { responseType: 'text' });
   }
 
-  resetPassword(token: string, newPassword: string): Observable<any> {
+  resetPassword(token: string, newPassword: string): Observable<string> {
     const params = new HttpParams().set('token', token);
     return this.http.post(this.apiUrl + '/reset-password', { newPassword }, { params, responseType: 'text' });
   }

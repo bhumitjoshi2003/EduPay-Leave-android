@@ -285,10 +285,10 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateFieldValue(field: keyof StudentDetails, event: any): void {
+  updateFieldValue(field: keyof StudentDetails, event: Event): void {
     if (this.updatedDetails) {
-      const value = (field === 'takesBus') ? event.target.checked : event.target.value;
-      this.updatedDetails[field] = value;
+      const target = event.target as HTMLInputElement;
+      (this.updatedDetails as Record<string, unknown>)[field] = (field === 'takesBus') ? target.checked : target.value;
 
       // Clear error immediately when user fixes the field
       if (this.validationErrors[field]) {

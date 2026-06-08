@@ -59,11 +59,11 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
 
     this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
       next: classes => { this.classOptions = classes; this.cdr.markForCheck(); },
-      error: () => {}
+      error: (err) => this.logger.error('Failed to load classes', err)
     });
     this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
       next: classes => { this.managedClasses = classes; },
-      error: () => {}
+      error: (err) => this.logger.error('Failed to load managed classes', err)
     });
 
     this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
@@ -81,7 +81,7 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private initAfterSettings(user: any): void {
+  private initAfterSettings(user: { userId: string; role: string } | null): void {
     if (this.role === 'TEACHER') {
       this.teacherService.getTeacher(user!.userId).pipe(takeUntil(this.destroy$)).subscribe({
         next: (t) => {
@@ -106,7 +106,7 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
     if (!cls) return;
     this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: sections => { this.sections = sections; this.cdr.markForCheck(); },
-      error: () => {}
+      error: (err) => this.logger.error('Failed to load sections', err)
     });
   }
 

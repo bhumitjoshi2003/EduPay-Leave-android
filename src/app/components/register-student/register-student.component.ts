@@ -84,7 +84,7 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
       if (cls) {
         this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
           next: sections => { this.sections = sections; this.cdr.markForCheck(); },
-          error: () => {}
+          error: (err) => this.logger.error('Failed to load sections', err)
         });
       }
     });
@@ -103,7 +103,7 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
     if (this.studentForm.valid) {
       this.studentService.addStudent(this.studentForm.value).pipe(
         takeUntil(this.destroy$),
-        switchMap((response: any) => {
+        switchMap((response: { studentId: string }) => {
           const tempPassword = this.generateTempPassword();
           return this.authService.register({
             userId: response.studentId,

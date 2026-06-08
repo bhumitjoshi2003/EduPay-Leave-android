@@ -163,7 +163,7 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
             if (record.status === 'ON_TIME') {
               this.toast.success('Checked In', 'You are on time! Have a great day.');
             } else {
-              this.toast.warning('Checked In — Late', `You were marked as LATE. Distance: ${record.distanceFromSchool?.toFixed(0)}m`);
+              this.toast.warning('Checked In — Late', `You were marked as LATE. Distance: ${this.formatDistance(record.distanceFromSchool)}`);
             }
             this.loadMonthlyData();
             this.cdr.markForCheck();
@@ -302,5 +302,11 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   isToday(day: CalendarDay): boolean {
     if (!day.fullDate) return false;
     return day.fullDate === new Date().toISOString().slice(0, 10);
+  }
+
+  formatDistance(meters: number | null | undefined): string {
+    if (meters == null) return '—';
+    if (meters >= 1000) return (meters / 1000).toFixed(1) + ' km';
+    return meters.toFixed(0) + ' m';
   }
 }

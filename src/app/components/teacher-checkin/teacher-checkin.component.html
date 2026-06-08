@@ -40,7 +40,7 @@
         <div class="tc-status-details">
           <div class="tc-status-detail">
             <span class="tc-detail-label">Distance</span>
-            <span class="tc-detail-value">{{ todayRecord!.distanceFromSchool?.toFixed(0) ?? '—' }}m</span>
+            <span class="tc-detail-value">{{ formatDistance(todayRecord!.distanceFromSchool) }}</span>
           </div>
           <div class="tc-status-detail">
             <span class="tc-detail-label">Method</span>
@@ -74,7 +74,7 @@
           </div>
           <div class="tc-status-detail">
             <span class="tc-detail-label">Distance</span>
-            <span class="tc-detail-value">{{ todayRecord!.distanceFromSchool?.toFixed(0) ?? '—' }}m</span>
+            <span class="tc-detail-value">{{ formatDistance(todayRecord!.distanceFromSchool) }}</span>
           </div>
         </div>
       </div>

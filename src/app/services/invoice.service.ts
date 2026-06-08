@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Invoice, InvoiceGenerationRequest, StudentFeeOverview } from '../interfaces/invoice';
+import { PaginatedResponse } from './leave.service';
 
 @Injectable({
   providedIn: 'root'
@@ -43,13 +44,13 @@ export class InvoiceService {
   getInvoices(
     page: number, size: number,
     studentId?: string, sessionId?: number, status?: string
-  ): Observable<any> {
+  ): Observable<PaginatedResponse<Invoice>> {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size);
     if (studentId) params = params.set('studentId', studentId);
     if (sessionId != null) params = params.set('sessionId', sessionId);
     if (status) params = params.set('status', status);
-    return this.http.get(this.apiUrl, { params });
+    return this.http.get<PaginatedResponse<Invoice>>(this.apiUrl, { params });
   }
 }

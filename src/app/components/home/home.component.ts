@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { Router } from '@angular/router';
@@ -8,7 +8,7 @@ import { TenantService } from '../../services/tenant.service';
 
 import { FormsModule } from '@angular/forms';
 import { DemoService } from '../../services/demo.service';
-import { timeout, TimeoutError } from 'rxjs';
+import { Subject, takeUntil, timeout, TimeoutError } from 'rxjs';
 
 import { ToastService } from '../../services/toast.service';
 
@@ -20,7 +20,8 @@ import { ToastService } from '../../services/toast.service';
   styleUrl: './home.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   authenticated    = false;
   showLoginForm    = false;
   showDemoForm     = false;
@@ -93,14 +94,14 @@ export class HomeComponent implements OnInit {
     // Capture slug now — this is the school whose branded page the user is on (null on generic page)
     const brandedSlug = this.tenantService.slug;
 
-    this.authService.login(this.userId, this.password, brandedSlug).subscribe({
+    this.authService.login(this.userId, this.password, brandedSlug).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         // Option A — frontend safety net: if on a branded page, verify the logged-in
         // user actually belongs to this school before setting any app state.
         // The backend (Option B) already rejects mismatches with 403, so this only
         // fires if something slips through.
         if (brandedSlug && response.schoolSlug && response.schoolSlug !== brandedSlug) {
-          this.authService.logout().subscribe();
+          this.authService.logout().pipe(takeUntil(this.destroy$)).subscribe();
           this.toast.error('Wrong School', 'This account does not belong to this school. Please use the correct login page.');
           return;
         }
@@ -145,7 +146,7 @@ export class HomeComponent implements OnInit {
   }
 
   logout() {
-    this.authService.logout().subscribe({
+    this.authService.logout().pipe(takeUntil(this.destroy$)).subscribe({
       next: () => { this.authenticated = false; this.cdr.markForCheck(); },
       error: () => { this.authenticated = false; this.cdr.markForCheck(); }
     });
@@ -183,7 +184,7 @@ export class HomeComponent implements OnInit {
       numberOfStudents: this.demo.students.trim() || undefined,
       city:             this.demo.city.trim() || undefined,
       message:          this.demo.message.trim() || undefined
-    }).pipe(timeout(20000)).subscribe({
+    }).pipe(timeout(20000), takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.sendingDemo = false;
         this.showDemoForm = false;
@@ -201,6 +202,11 @@ export class HomeComponent implements OnInit {
           : this.toast.error('Submission Failed', 'Could not send your request. Please try again or contact us directly.');
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   togglePasswordVisibility() {
@@ -236,7 +242,7 @@ export class HomeComponent implements OnInit {
     this.sendingReset = true;
     this.cdr.markForCheck();
 
-    this.authService.requestPasswordReset(uid, email).subscribe({
+    this.authService.requestPasswordReset(uid, email).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         this.sendingReset   = false;
         this.showForgotForm = false;
