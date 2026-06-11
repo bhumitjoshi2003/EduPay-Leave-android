@@ -147,10 +147,10 @@ Reactive forms (`ReactiveFormsModule`, `FormBuilder`) for complex forms. Templat
 - `register.component.ts` — admin registers student or teacher (tab toggle, no own form logic)
 - `register-student.component.ts` / `register-teacher.component.ts` — actual registration forms
 - `bulk-import.component.ts` / `teacher-bulk-import.component.ts` — CSV bulk import
-- `student-promotion.component.ts` — promotes students to next class at year end
-- `student-list.component.ts` — lists active/upcoming/inactive students per class; uses `Subject` + `switchMap` + `forkJoin` to batch load and cancel stale requests
+- `student-promotion.component.ts` — promotes students to next class at year end; PASS_OUT action sets status to `GRADUATED` (not INACTIVE)
+- `student-list.component.ts` — lists active/upcoming/alumni/left students per class; uses `Subject` + `switchMap` + `forkJoin` to batch load and cancel stale requests
 - `teacher-list.component.ts` — lists teachers
-- `student-details.component.ts` / `teacher-details.component.ts` / `admin-details.component.ts` — profile pages
+- `student-details.component.ts` / `teacher-details.component.ts` / `admin-details.component.ts` — profile pages; student-details includes exit modal (Mark as Left) and re-admission flow
 
 ### Notifications & Communication
 - `notice.component.ts` — school-wide notices
@@ -211,6 +211,42 @@ Every repository query filters by `schoolId`. `SecurityUtil.getSchoolId()` extra
 - If build hangs at `:app:packageRelease` — run `./gradlew --stop`, clear `android/.gradle` and `android/app/build`, then retry
 - Signed APK via Android Studio "Generate Signed Bundle/APK" UI (signing config is NOT in build.gradle — handled by the IDE wizard)
 - Output: `android/app/build/outputs/apk/release/` (APK) or `android/app/build/outputs/bundle/release/` (AAB)
+
+---
+
+## Student Exit Workflow (June 2026)
+
+### Student Statuses
+`StudentStatus` enum: `ACTIVE`, `INACTIVE` (legacy→migrated to WITHDRAWN), `UPCOMING`, `GRADUATED`, `TRANSFERRED`, `WITHDRAWN`
+- `isExitStatus()` helper returns true for GRADUATED, TRANSFERRED, WITHDRAWN, INACTIVE
+- Flyway `V6__student_exit_statuses.sql` adds exit columns + migrates INACTIVE→WITHDRAWN
+- `Student` entity has exit fields: `reasonForLeaving`, `conductAtLeaving`, `exitRemarks`
+
+### Exit Flow
+- Admin clicks "Mark as Left" on student-details → exit modal with type/reason/conduct/date/remarks
+- Pending dues check (`GET /api/students/{id}/pending-dues`) warns before exit
+- `POST /api/students/{id}/exit` sets exit status + fields
+- `POST /api/students/{id}/readmit` clears exit fields, sets ACTIVE
+- `GET /api/students/alumni/class/{className}` — GRADUATED students
+- `GET /api/students/left/class/{className}` — TRANSFERRED + WITHDRAWN students
+
+### Scheduler Safety
+- `StudentStatusScheduler` no longer auto-sets INACTIVE; removed `updateStatusInactive()` call
+- `updateStatusUpcoming` and `updateStatusActive` queries exclude exit statuses via `NOT IN` clause
+- `calculateStatus()` in `StudentService` preserves exit statuses (returns current status unchanged if `isExitStatus()`)
+
+### Promotion Integration
+- `StudentPromotionService` PASS_OUT action → `GRADUATED` (was INACTIVE), sets `reasonForLeaving = "Completed final year"`
+
+### Frontend (both repos)
+- `Student` interface has `reasonForLeaving?`, `conductAtLeaving?`, `exitRemarks?`
+- `StudentExitRequest` and `PendingDuesInfo` interfaces in `student.ts`
+- `student.service.ts` has `exitStudent()`, `readmitStudent()`, `checkPendingDues()`, `getAlumniByClass()`, `getLeftStudentsByClass()`
+- Student list shows 4 sections: Active, New Admissions, Alumni (gold), Left (gray)
+- Student details: exit modal, exit info display, re-admit button for exited students
+
+### Teacher Check-in
+- `teacher-checkin.component.ts` — uses `navigator.geolocation` (browser) or Capacitor Geolocation (native); requires browser location permission on web
 
 ---
 

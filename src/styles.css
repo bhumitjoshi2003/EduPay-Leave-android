@@ -33,11 +33,82 @@ body {
   --edu-shadow-md:    0 4px 18px rgba(30, 58, 95, 0.14);
   --edu-shadow-lg:    0 8px 40px rgba(30, 58, 95, 0.14);
 
-  /* Spacing tokens */
-  --edu-radius-sm:    6px;
-  --edu-radius-md:    10px;
-  --edu-radius-lg:    14px;
-  --edu-radius-xl:    18px;
+  /* ── Typography scale ─────────────────────────────── */
+  --edu-text-xs:      0.75rem;   /* badges, micro labels */
+  --edu-text-sm:      0.82rem;   /* subtitles, secondary */
+  --edu-text-base:    0.88rem;   /* body, buttons */
+  --edu-text-md:      1rem;      /* card titles, empty state titles */
+  --edu-text-lg:      1.25rem;   /* hero titles (standard) */
+  --edu-text-xl:      1.5rem;    /* hero titles (dashboards/lists) */
+
+  /* ── Border radius ─────────────────────────────────── */
+  --edu-radius-sm:    8px;       /* inputs, small badges */
+  --edu-radius-md:    12px;      /* buttons, stat cards */
+  --edu-radius-lg:    16px;      /* content cards, hero mobile */
+  --edu-radius-xl:    20px;      /* hero sections, profile cards */
+
+  /* ── Box shadows ───────────────────────────────────── */
+  --edu-shadow-card:  0 2px 12px rgba(0, 0, 0, 0.06);
+  --edu-shadow-stat:  0 2px 8px rgba(0, 0, 0, 0.05);
+  --edu-shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.25);
+
+  /* ── Hero tokens ───────────────────────────────────── */
+  --edu-hero-radius:       20px;
+  --edu-hero-padding:      22px 24px;
+  --edu-hero-title-size:   1.25rem;
+  --edu-hero-title-weight: 800;
+  --edu-hero-sub-size:     0.78rem;
+  --edu-hero-icon-size:    52px;
+  --edu-hero-icon-font:    1.7rem;
+  --edu-hero-icon-radius:  14px;
+  --edu-hero-icon-bg:      rgba(255, 255, 255, 0.18);
+  --edu-hero-blob1-size:   130px;
+  --edu-hero-blob2-size:   80px;
+
+  /* ── Button tokens ─────────────────────────────────── */
+  --edu-btn-sm-padding:    6px 14px;
+  --edu-btn-sm-font:       0.78rem;
+  --edu-btn-sm-radius:     8px;
+  --edu-btn-md-padding:    9px 18px;
+  --edu-btn-md-font:       0.85rem;
+  --edu-btn-md-radius:     12px;
+  --edu-btn-lg-padding:    12px 24px;
+  --edu-btn-lg-font:       0.92rem;
+  --edu-btn-lg-radius:     12px;
+  --edu-btn-weight:        700;
+
+  /* ── Input tokens ──────────────────────────────────── */
+  --edu-input-padding:     9px 12px;
+  --edu-input-border:      1.5px solid #e2e8f0;
+  --edu-input-radius:      10px;
+  --edu-input-font:        0.88rem;
+  --edu-input-focus-shadow: 0 0 0 3px;
+
+  /* ── Empty state tokens ────────────────────────────── */
+  --edu-empty-icon-size:   2.5rem;
+  --edu-empty-title-size:  1rem;
+  --edu-empty-sub-size:    0.85rem;
+  --edu-empty-title-color: #374151;
+  --edu-empty-sub-color:   #94a3b8;
+
+  /* ── Card tokens ───────────────────────────────────── */
+  --edu-card-radius:       16px;
+  --edu-card-padding:      20px;
+  --edu-card-bg:           #fff;
+
+  /* ── Modal tokens ──────────────────────────────────── */
+  --edu-modal-radius:      16px;
+  --edu-modal-padding:     28px 24px 22px;
+  --edu-modal-max-width:   440px;
+  --edu-modal-overlay:     rgba(0, 0, 0, 0.55);
+
+  /* ── Danger colors ─────────────────────────────────── */
+  --edu-danger:            #dc2626;
+  --edu-danger-light:      #f87171;
+  --edu-success:           #059669;
+  --edu-success-light:     #34d399;
+  --edu-warning:           #d97706;
+  --edu-warning-light:     #fbbf24;
 
   /* Touch target minimum */
   --edu-touch-min:    44px;

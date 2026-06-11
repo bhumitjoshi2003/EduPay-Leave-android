@@ -20,7 +20,7 @@
   overflow: hidden;
   background: linear-gradient(135deg, #1e3a5f 0%, #1f6f8b 45%, #4fbdbd 100%);
   border-radius: 16px;
-  padding: 14px 16px 18px;
+  padding: 22px 24px;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
@@ -56,10 +56,10 @@
 }
 
 .nb-hero-icon-wrap {
-  font-size: 1.4rem;
+  font-size: 1.7rem;
   background: rgba(255,255,255,0.15);
-  border-radius: 10px;
-  width: 40px; height: 40px;
+  border-radius: 14px;
+  width: 52px; height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -68,7 +68,7 @@
 
 .nb-hero-title {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.2px;
@@ -155,9 +155,9 @@
   border: 2px dashed #d0dfe8;
   box-shadow: 0 2px 12px rgba(0,0,0,0.05);
 }
-.nb-empty-big-icon { font-size: 3.5rem; margin-bottom: 14px; }
-.nb-empty-title { margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: #333; }
-.nb-empty-text { margin: 0; color: #888; font-size: 0.95rem; }
+.nb-empty-big-icon { font-size: 2.5rem; margin-bottom: 14px; }
+.nb-empty-title { margin: 0 0 8px; font-size: 1rem; font-weight: 700; color: #333; }
+.nb-empty-text { margin: 0; color: #888; font-size: 1rem; }
 
 /* ─────────────────────────────────────────────────────────────────
    STUDENT / TEACHER — Notice cards grid
@@ -733,8 +733,8 @@
     gap: 12px;
   }
   .nb-hero-left { gap: 12px; }
-  .nb-hero-icon-wrap { width: 46px; height: 46px; font-size: 1.8rem; }
-  .nb-hero-title { font-size: 1.35rem; }
+  .nb-hero-icon-wrap { width: 44px; height: 44px; font-size: 1.4rem; }
+  .nb-hero-title { font-size: 1.25rem; }
   .nb-hero-sub { font-size: 0.8rem; }
   .nb-hero-right { width: 100%; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
   .nb-hero-stats { gap: 8px; }

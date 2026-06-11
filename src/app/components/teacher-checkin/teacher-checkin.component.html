@@ -4,12 +4,15 @@
   <div class="tc-hero">
     <div class="tc-hero-blob tc-blob-1"></div>
     <div class="tc-hero-blob tc-blob-2"></div>
-    <div class="tc-hero-content">
-      <div>
-        <h1 class="tc-hero-greeting">{{ greeting }}, {{ userName }}</h1>
-        <p class="tc-hero-date">{{ todayDateStr }}</p>
+    <div class="tc-hero-left">
+      <div class="tc-hero-icon">🏢</div>
+      <div class="tc-hero-text">
+        <h1>{{ greeting }}, {{ userName }}</h1>
+        <p>{{ todayDateStr }}</p>
       </div>
-      <div class="tc-hero-clock">{{ currentTime }}</div>
+    </div>
+    <div class="tc-hero-clock-wrap">
+      <span class="tc-hero-clock">{{ currentTime }}</span>
     </div>
   </div>
 
@@ -85,26 +88,43 @@
 
   <!-- ── Monthly Summary Stats ─────────────────────── -->
   <div class="tc-stats-row" *ngIf="monthlyData">
-    <div class="tc-stat-card tc-stat-present">
-      <span class="tc-stat-num">{{ monthlyData.presentDays }}</span>
-      <span class="tc-stat-label">Present</span>
+    <div class="tc-stat-card" style="--c1:#059669;--c2:#34d399">
+      <div class="tc-stat-icon">✅</div>
+      <div class="tc-stat-info">
+        <span class="tc-stat-num">{{ monthlyData.presentDays }}</span>
+        <span class="tc-stat-label">Present</span>
+      </div>
+      <div class="tc-stat-bg">📋</div>
     </div>
-    <div class="tc-stat-card tc-stat-late">
-      <span class="tc-stat-num">{{ monthlyData.lateDays }}</span>
-      <span class="tc-stat-label">Late</span>
+    <div class="tc-stat-card" style="--c1:#d97706;--c2:#fbbf24">
+      <div class="tc-stat-icon">⏰</div>
+      <div class="tc-stat-info">
+        <span class="tc-stat-num">{{ monthlyData.lateDays }}</span>
+        <span class="tc-stat-label">Late</span>
+      </div>
+      <div class="tc-stat-bg">🕐</div>
     </div>
-    <div class="tc-stat-card tc-stat-absent">
-      <span class="tc-stat-num">{{ monthlyData.absentDays }}</span>
-      <span class="tc-stat-label">Absent</span>
+    <div class="tc-stat-card" style="--c1:#dc2626;--c2:#f87171">
+      <div class="tc-stat-icon">😔</div>
+      <div class="tc-stat-info">
+        <span class="tc-stat-num">{{ monthlyData.absentDays }}</span>
+        <span class="tc-stat-label">Absent</span>
+      </div>
+      <div class="tc-stat-bg">📅</div>
     </div>
-    <div class="tc-stat-card tc-stat-ontime">
-      <span class="tc-stat-num">{{ monthlyData.onTimePercentage }}%</span>
-      <span class="tc-stat-label">On Time</span>
+    <div class="tc-stat-card" style="--c1:#0891b2;--c2:#22d3ee">
+      <div class="tc-stat-icon">📊</div>
+      <div class="tc-stat-info">
+        <span class="tc-stat-num">{{ monthlyData.onTimePercentage }}%</span>
+        <span class="tc-stat-label">On Time</span>
+      </div>
+      <div class="tc-stat-bg">📈</div>
     </div>
   </div>
 
   <!-- ── Monthly Calendar ──────────────────────────── -->
   <div class="tc-calendar-card">
+    <h2 class="tc-section-title">Monthly Attendance</h2>
     <div class="tc-cal-header">
       <button class="tc-cal-nav" (click)="goToPreviousMonth()" aria-label="Previous month">&larr;</button>
       <h3 class="tc-cal-title">{{ monthNames[selectedMonth - 1] }} {{ selectedYear }}</h3>

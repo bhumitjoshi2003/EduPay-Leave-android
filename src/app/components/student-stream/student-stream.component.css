@@ -9,7 +9,7 @@
   position: relative;
   background: linear-gradient(135deg, #065f46 0%, #059669 55%, #10b981 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -301,6 +301,28 @@
 
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
+  .ss-card { padding: 14px 10px; }
+
+  .ss-bulk-panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .ss-bulk-select {
+    max-width: 100%;
+    min-width: unset;
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px 12px;
+    box-sizing: border-box;
+  }
+  .ss-bulk-btn {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+
   .ss-table-wrapper { overflow-x: hidden; }
 
   .ss-table,
@@ -357,7 +379,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
-    padding: 12px 14px;
+    padding: 22px 24px;
   }
 
   .ss-table tbody td[data-label="Actions"]::before { display: none; }

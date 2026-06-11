@@ -18,7 +18,7 @@
   position: relative;
   background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 55%, #6366f1 100%);
   border-radius: 20px;
-  padding: 28px 22px 32px;
+  padding: 22px 24px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;

@@ -9,7 +9,7 @@
   position: relative;
   background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 55%, #f87171 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -23,7 +23,7 @@
   opacity: 0.12;
   pointer-events: none;
 }
-.fr-blob-1 { width: 120px; height: 120px; background: #fff;    top: -30px; right: -20px; }
+.fr-blob-1 { width: 130px; height: 130px; background: #fff;    top: -30px; right: -20px; }
 .fr-blob-2 { width: 80px;  height: 80px;  background: #fca5a5; bottom: -20px; left: 40%; }
 
 .fr-hero-left {
@@ -36,7 +36,7 @@
 }
 
 .fr-hero-icon {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   background: rgba(255,255,255,0.18);
   border-radius: 14px;
   width: 52px; height: 52px;
@@ -46,7 +46,7 @@
 
 .fr-hero-title {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.3px;
@@ -54,7 +54,7 @@
 
 .fr-hero-sub {
   margin: 2px 0 0;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: rgba(255,255,255,0.78);
 }
 
@@ -383,9 +383,9 @@
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   text-align: center;
 }
-.fr-empty-icon  { font-size: 2.8rem; margin-bottom: 4px; }
+.fr-empty-icon  { font-size: 2.5rem; margin-bottom: 4px; }
 .fr-empty-title { font-size: 1rem; font-weight: 700; color: #374151; margin: 0; }
-.fr-empty-sub   { font-size: 0.8rem; color: #94a3b8; margin: 0; }
+.fr-empty-sub   { font-size: 0.85rem; color: #94a3b8; margin: 0; }
 
 /* ── Print ───────────────────────────────────────────────────────── */
 .fr-print-header { display: none; }

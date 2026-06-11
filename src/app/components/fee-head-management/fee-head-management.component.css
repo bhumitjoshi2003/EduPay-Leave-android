@@ -34,8 +34,8 @@
 .fhm-btn-outline { background: transparent; border: 1.5px solid #e2e8f0; color: #64748b; }
 
 .fhm-empty { text-align: center; padding: 40px 20px; }
-.fhm-empty-title { font-size: 0.95rem; font-weight: 700; color: #374151; margin: 0; }
-.fhm-empty-sub { font-size: 0.8rem; color: #94a3b8; margin: 6px 0 0; }
+.fhm-empty-title { font-size: 1rem; font-weight: 700; color: #374151; margin: 0; }
+.fhm-empty-sub { font-size: 0.85rem; color: #94a3b8; margin: 6px 0 0; }
 
 .fhm-list { display: flex; flex-direction: column; gap: 8px; }
 .fhm-row { padding: 12px 14px; background: #f8fafc; border: 1px solid #e8edf2; border-radius: 12px; cursor: pointer; transition: box-shadow 0.15s; }

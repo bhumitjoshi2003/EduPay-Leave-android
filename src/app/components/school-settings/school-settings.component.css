@@ -11,8 +11,8 @@
 .ss-hero {
   position: relative;
   background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 55%, #93c5fd 100%);
-  border-radius: 22px;
-  padding: 22px 20px 18px;
+  border-radius: 20px;
+  padding: 22px 24px;
   overflow: hidden;
   color: #fff;
 }
@@ -36,13 +36,13 @@
 }
 
 .ss-hero-avatar {
-  width: 56px; height: 56px;
-  border-radius: 16px;
+  width: 52px; height: 52px;
+  border-radius: 14px;
   background: rgba(255,255,255,0.18);
   backdrop-filter: blur(8px);
   border: 2px solid rgba(255,255,255,0.3);
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.7rem;
   font-weight: 800;
   color: #fff;
   flex-shrink: 0;
@@ -51,7 +51,7 @@
 
 .ss-hero-name {
   margin: 0 0 3px;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.3px;
@@ -510,7 +510,7 @@ select.ss-input { appearance: auto; cursor: pointer; }
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 22px 24px;
   border-radius: 14px;
   border: 1.5px solid #e8edf2;
   background: #f8fafc;
@@ -662,9 +662,9 @@ select.ss-input { appearance: auto; cursor: pointer; }
   min-height: 120px;
 }
 
-.ss-empty-icon  { font-size: 2.2rem; }
-.ss-empty-title { margin: 0; font-size: 0.95rem; font-weight: 700; color: #1e293b; }
-.ss-empty-sub   { margin: 0; font-size: 0.82rem; color: #94a3b8; }
+.ss-empty-icon  { font-size: 2.5rem; }
+.ss-empty-title { margin: 0; font-size: 1rem; font-weight: 700; color: #1e293b; }
+.ss-empty-sub   { margin: 0; font-size: 0.85rem; color: #94a3b8; }
 
 /* ── Loading ─────────────────────────────────────────────────────────── */
 .ss-loading-card {

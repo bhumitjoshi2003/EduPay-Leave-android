@@ -8,7 +8,7 @@
   position: relative;
   background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 55%, #3b82f6 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 14px;
   display: flex;
   align-items: center;
@@ -32,9 +32,9 @@
   position: relative;
   z-index: 1;
 }
-.pt-hero-icon { font-size: 2rem; flex-shrink: 0; }
-.pt-hero-title { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
-.pt-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.8); margin: 3px 0 0; }
+.pt-hero-icon { font-size: 1.7rem; width: 52px; height: 52px; border-radius: 14px; background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.pt-hero-title { font-size: 1.25rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
+.pt-hero-sub { font-size: 0.78rem; font-weight: 500; color: rgba(255,255,255,0.8); margin: 3px 0 0; }
 .pt-hero-session { display: flex; flex-direction: column; gap: 4px; position: relative; z-index: 1; }
 .pt-hero-session-label { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.4px; }
 .pt-hero-session-select {

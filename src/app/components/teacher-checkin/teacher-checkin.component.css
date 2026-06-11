@@ -1,78 +1,109 @@
 /* ── Base ──────────────────────────────────────────────── */
 .tc-page {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 0 16px 40px;
-  font-family: 'Segoe UI', -apple-system, sans-serif;
+  padding-bottom: 16px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 /* ── Hero ──────────────────────────────────────────────── */
 .tc-hero {
   position: relative;
-  background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+  background: linear-gradient(135deg, #134e4a 0%, #0f766e 55%, #14b8a6 100%);
   border-radius: 20px;
-  padding: 32px 28px;
-  margin-bottom: 24px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   overflow: hidden;
   color: #fff;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 .tc-hero-blob {
   position: absolute;
   border-radius: 50%;
   opacity: 0.12;
-  background: #fff;
+  pointer-events: none;
 }
-.tc-blob-1 { width: 200px; height: 200px; top: -60px; right: -40px; }
-.tc-blob-2 { width: 120px; height: 120px; bottom: -30px; left: -20px; }
-.tc-hero-content {
-  position: relative;
+.tc-blob-1 { width: 130px; height: 130px; background: #fff; top: -40px; right: -30px; }
+.tc-blob-2 { width: 80px; height: 80px; background: #99f6e4; bottom: -20px; left: 30%; }
+
+.tc-hero-left {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
 }
-.tc-hero-greeting {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0 0 4px;
+
+.tc-hero-icon {
+  font-size: 1.7rem;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
-.tc-hero-date {
-  font-size: 14px;
-  opacity: 0.85;
+
+.tc-hero-text h1 {
   margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
 }
+
+.tc-hero-text p {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: rgba(153, 246, 228, 0.9);
+}
+
+.tc-hero-clock-wrap {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
+  padding: 10px 18px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
 .tc-hero-clock {
-  font-size: 32px;
+  font-size: 1.3rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1px;
+  color: #fff;
 }
 
 /* ── Action Card ──────────────────────────────────────── */
 .tc-action-card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 28px 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+  margin-bottom: 16px;
   text-align: center;
 }
 .tc-action-body { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .tc-action-prompt {
-  font-size: 15px;
+  font-size: 0.88rem;
   color: #64748b;
   margin: 0;
 }
 
 .tc-checkin-btn {
-  width: 180px;
-  height: 180px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
   border: none;
   background: linear-gradient(135deg, #0f766e, #14b8a6);
   color: #fff;
-  font-size: 20px;
+  font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -82,10 +113,11 @@
   gap: 8px;
   transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 8px 30px rgba(15, 118, 110, 0.35);
+  font-family: inherit;
 }
-.tc-checkin-btn:hover:not(:disabled) { transform: scale(1.04); }
+.tc-checkin-btn:active { transform: scale(0.96); }
 .tc-checkin-btn:disabled { opacity: 0.7; cursor: not-allowed; }
-.tc-btn-icon { font-size: 32px; }
+.tc-btn-icon { font-size: 2rem; }
 
 .tc-btn-pulse {
   animation: pulse-ring 2s ease-out infinite;
@@ -97,7 +129,7 @@
 }
 
 .tc-gps-note {
-  font-size: 12px;
+  font-size: 0.72rem;
   color: #94a3b8;
   margin: 0;
 }
@@ -109,12 +141,13 @@
   background: transparent;
   color: #0f766e;
   border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 700;
   cursor: pointer;
+  font-family: inherit;
   transition: background 0.2s;
 }
-.tc-checkout-btn:hover:not(:disabled) { background: #f0fdfa; }
+.tc-checkout-btn:active { background: #f0fdfa; }
 .tc-checkout-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ── Status Card ──────────────────────────────────────── */
@@ -136,8 +169,8 @@
 .tc-status-badge {
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 .status-ontime { background: #059669; color: #fff; }
 .status-late { background: #d97706; color: #fff; }
@@ -146,7 +179,7 @@
 .status-halfday { background: #8b5cf6; color: #fff; }
 
 .tc-status-time {
-  font-size: 14px;
+  font-size: 0.82rem;
   color: #64748b;
   font-weight: 500;
 }
@@ -157,8 +190,8 @@
   flex-wrap: wrap;
 }
 .tc-status-detail { display: flex; flex-direction: column; gap: 2px; }
-.tc-detail-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
-.tc-detail-value { font-size: 15px; font-weight: 600; color: #1e293b; }
+.tc-detail-label { font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+.tc-detail-value { font-size: 0.88rem; font-weight: 600; color: #1e293b; }
 
 .tc-gps-error {
   margin-top: 12px;
@@ -167,93 +200,116 @@
   border: 1px solid #fca5a5;
   border-radius: 8px;
   color: #b91c1c;
-  font-size: 13px;
+  font-size: 0.78rem;
 }
 
-/* ── Stats Row ────────────────────────────────────────── */
+/* ── Stats Row (gradient cards) ──────────────────────── */
 .tc-stats-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
 }
 .tc-stat-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px 12px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  border-top: 3px solid transparent;
+  position: relative;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  border-radius: 16px;
+  padding: 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
-.tc-stat-present { border-top-color: #059669; }
-.tc-stat-late { border-top-color: #d97706; }
-.tc-stat-absent { border-top-color: #dc2626; }
-.tc-stat-ontime { border-top-color: #0891b2; }
-
+.tc-stat-icon { font-size: 1.4rem; line-height: 1; flex-shrink: 0; z-index: 1; }
+.tc-stat-info { display: flex; flex-direction: column; gap: 2px; z-index: 1; }
 .tc-stat-num {
-  display: block;
-  font-size: 28px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: -0.5px;
 }
 .tc-stat-label {
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 500;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
+}
+.tc-stat-bg {
+  position: absolute;
+  right: -6px; bottom: -8px;
+  font-size: 3rem;
+  opacity: 0.12;
+  line-height: 1;
+  pointer-events: none;
 }
 
-/* ── Calendar ─────────────────────────────────────────── */
+/* ── Calendar Card ───────────────────────────────────── */
 .tc-calendar-card {
   background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
 }
+
+.tc-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0 0 14px;
+}
+
 .tc-cal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .tc-cal-title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   color: #1e293b;
   margin: 0;
 }
 .tc-cal-nav {
-  background: #f1f5f9;
-  border: none;
+  background: #f0fdfa;
+  border: 1.5px solid #99f6e4;
   border-radius: 8px;
-  width: 36px;
-  height: 36px;
-  font-size: 18px;
+  width: 34px;
+  height: 34px;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
+  color: #0f766e;
+  font-weight: 600;
 }
-.tc-cal-nav:hover { background: #e2e8f0; }
+.tc-cal-nav:active { background: #ccfbf1; }
 
 .tc-cal-legend {
   display: flex;
-  gap: 16px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 .tc-legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 5px;
+  font-size: 0.68rem;
   color: #64748b;
+  font-weight: 500;
 }
 .tc-legend-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 .tc-dot-ontime { background: #059669; }
@@ -265,22 +321,25 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
   color: #94a3b8;
-  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
 }
 
 .tc-cal-loading {
   text-align: center;
   padding: 40px;
   color: #94a3b8;
+  font-size: 0.85rem;
 }
 
 .tc-cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 3px;
 }
 .tc-cal-day {
   position: relative;
@@ -290,7 +349,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 0.78rem;
   font-weight: 500;
   transition: background 0.15s;
 }
@@ -308,32 +367,15 @@
   outline-offset: -2px;
 }
 
-.tc-cal-num { font-size: 14px; }
+.tc-cal-num { font-size: 0.78rem; }
 .tc-cal-status-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 .tc-cal-status-dot.status-ontime { background: #059669; }
 .tc-cal-status-dot.status-late { background: #d97706; }
 .tc-cal-status-dot.status-absent { background: #dc2626; }
 .tc-cal-status-dot.status-leave { background: #6366f1; }
 .tc-cal-status-dot.status-halfday { background: #8b5cf6; }
-
-/* ── Responsive ───────────────────────────────────────── */
-@media (max-width: 640px) {
-  .tc-hero { padding: 24px 20px; border-radius: 16px; }
-  .tc-hero-greeting { font-size: 20px; }
-  .tc-hero-clock { font-size: 24px; }
-  .tc-checkin-btn { width: 150px; height: 150px; font-size: 18px; }
-  .tc-stats-row { grid-template-columns: repeat(2, 1fr); }
-  .tc-stat-num { font-size: 22px; }
-  .tc-cal-day { font-size: 12px; }
-  .tc-cal-legend { gap: 10px; }
-}
-
-@media (max-width: 380px) {
-  .tc-hero-content { flex-direction: column; text-align: center; }
-  .tc-stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-}

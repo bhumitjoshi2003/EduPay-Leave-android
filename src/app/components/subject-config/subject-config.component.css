@@ -9,7 +9,7 @@
   position: relative;
   background: linear-gradient(135deg, #0f766e 0%, #0d9488 55%, #2dd4bf 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -274,7 +274,7 @@
 
 /* ── Tablet (≤ 768px) ────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .sc-container { padding: 18px; border-radius: 10px; }
+  .sc-container { padding: 0; border-radius: 10px; }
   .sc-tab { padding: 7px 14px; font-size: 0.85rem; }
   .sc-body { padding: 16px; }
   .sc-add-row input { max-width: 100%; }
@@ -282,11 +282,11 @@
 
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .sc-container { width: 98%; padding: 14px; }
+  .sc-container { width: 100%; padding: 0; }
   .sc-header h2 { font-size: 1rem; }
   .sc-tabs { gap: 6px; }
   .sc-tab { padding: 8px 14px; font-size: 0.82rem; border-radius: 16px; }
-  .sc-body { padding: 14px; border-radius: 8px; }
+  .sc-body { padding: 10px; border-radius: 8px; }
   .sc-controls { flex-direction: column; align-items: stretch; }
   .sc-controls select { width: 100%; font-size: 1rem; padding: 10px 12px; box-sizing: border-box; }
   .sc-add-row { flex-direction: column; align-items: stretch; }

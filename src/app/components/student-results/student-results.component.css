@@ -9,7 +9,7 @@
   position: relative;
   background: linear-gradient(135deg, #164e63 0%, #0e7490 55%, #22d3ee 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -283,15 +283,19 @@
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .sr-container {
-    width: 98%;
+    width: 100%;
+    padding: 0;
   }
+
+  .sr-controls { padding: 10px 12px; }
+  .sr-card { padding: 14px 12px; }
 
   .sr-header {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
     margin-bottom: 12px;
-    padding: 14px 16px;
+    padding: 14px 12px;
   }
 
   .sr-header h2 { font-size: 1rem; }

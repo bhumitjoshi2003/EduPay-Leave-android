@@ -8,7 +8,7 @@
   position: relative;
   background: linear-gradient(135deg, #134e4a 0%, #0f766e 55%, #14b8a6 100%);
   border-radius: 20px;
-  padding: 28px 22px 32px;
+  padding: 22px 24px;
   margin: 0 0 20px;
   display: flex;
   align-items: center;
@@ -23,8 +23,8 @@
   opacity: 0.12;
   pointer-events: none;
 }
-.ra-blob-1 { width: 140px; height: 140px; background: #fff; top: -40px; right: -30px; }
-.ra-blob-2 { width: 90px;  height: 90px;  background: #99f6e4; bottom: -20px; left: 30%; }
+.ra-blob-1 { width: 130px; height: 130px; background: #fff; top: -40px; right: -30px; }
+.ra-blob-2 { width: 80px;  height: 80px;  background: #99f6e4; bottom: -20px; left: 30%; }
 
 .ra-hero-left {
   display: flex;
@@ -35,12 +35,12 @@
 }
 
 .ra-hero-icon {
-  font-size: 2.2rem;
+  font-size: 1.7rem;
   flex-shrink: 0;
 }
 
 .ra-hero-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
   margin: 0;
   color: #fff;
@@ -49,7 +49,7 @@
 }
 
 .ra-hero-sub {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 500;
   color: rgba(255,255,255,0.8);
   margin: 3px 0 0;

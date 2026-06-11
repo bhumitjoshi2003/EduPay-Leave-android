@@ -9,7 +9,7 @@
   position: relative;
   background: linear-gradient(135deg, #1e293b 0%, #1e3a5f 55%, #334155 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -89,7 +89,7 @@
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   text-align: center;
 }
-.al-empty-icon  { font-size: 2.8rem; margin-bottom: 4px; }
+.al-empty-icon  { font-size: 2.5rem; margin-bottom: 4px; }
 .al-empty-title { font-size: 1rem; font-weight: 700; color: #374151; margin: 0; }
 
 /* ── Section ──────────────────────────────────────────────────────── */

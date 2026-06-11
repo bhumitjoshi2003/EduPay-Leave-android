@@ -9,7 +9,7 @@
   position: relative;
   background: linear-gradient(135deg, #164e63 0%, #0e7490 55%, #22d3ee 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -262,7 +262,7 @@
 
 /* ── Tablet (≤ 768px) ────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .cr-container { padding: 18px; border-radius: 10px; }
+  .cr-container { padding: 0; border-radius: 10px; }
   .cr-table { font-size: 0.82rem; }
   .cr-table th, .cr-table td { padding: 8px 9px; }
   .cr-filter-group select { min-width: 120px; }
@@ -272,10 +272,11 @@
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .cr-container {
-    width: 98%;
-    padding: 14px;
+    width: 100%;
+    padding: 0;
   }
 
+  .cr-card { padding: 14px 12px; }
   .cr-title { font-size: 1rem; }
 
   .cr-filters {

@@ -9,7 +9,7 @@
   position: relative;
   background: linear-gradient(135deg, #c2410c 0%, #ea580c 55%, #fb923c 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -35,10 +35,10 @@
   z-index: 1;
 }
 
-.me-hero-icon { font-size: 2rem; flex-shrink: 0; }
+.me-hero-icon { font-size: 1.7rem; flex-shrink: 0; }
 
 .me-hero-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
   margin: 0;
   color: #fff;
@@ -47,7 +47,7 @@
 }
 
 .me-hero-sub {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 500;
   color: rgba(255,255,255,0.85);
   margin: 3px 0 0;
@@ -284,7 +284,7 @@
 
 /* ── Tablet (≤ 768px) ────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .me-container { padding: 18px; border-radius: 10px; }
+  .me-container { padding: 0; border-radius: 10px; }
   .me-filters { gap: 10px; }
   .me-filter-group select { min-width: 130px; }
   .me-mark-input { width: 80px; }
@@ -294,7 +294,8 @@
 
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .me-container { width: 98%; padding: 14px; }
+  .me-container { width: 100%; padding: 0; }
+  .me-card { padding: 14px 10px; }
   .me-mode-toggle { width: 100%; }
   .me-mode-toggle button { padding: 10px 12px; font-size: 0.85rem; }
   .me-filters { flex-direction: column; gap: 12px; }
@@ -304,7 +305,7 @@
   .me-table-wrapper { overflow-x: hidden; border: none; }
   .me-table-header {
     background: #fff7ed;
-    padding: 12px 14px;
+    padding: 22px 24px;
     border-radius: 8px 8px 0 0;
     font-size: 0.88rem;
   }

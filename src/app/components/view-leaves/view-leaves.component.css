@@ -21,7 +21,7 @@
   position: relative;
   background: linear-gradient(135deg, #134e4a 0%, #0f766e 55%, #2dd4bf 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -49,7 +49,7 @@
 }
 
 .vl-hero-icon {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   background: rgba(255, 255, 255, 0.16);
   border-radius: 14px;
   width: 52px; height: 52px;
@@ -59,7 +59,7 @@
 
 .vl-hero-title {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.3px;
@@ -222,10 +222,10 @@
   align-items: center;
   gap: 5px;
   padding: 7px 14px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #99f6e4;
   border-radius: 20px;
-  background: #f8fafc;
-  color: #64748b;
+  background: #f0fdfa;
+  color: #0f766e;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
@@ -233,7 +233,7 @@
   font-family: inherit;
   transition: background 0.15s, border-color 0.15s;
 }
-.vl-btn-clear:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.vl-btn-clear:hover { background: #ccfbf1; border-color: #2dd4bf; }
 
 .vl-clear-icon { font-size: 1rem; line-height: 1; font-weight: 700; }
 
@@ -287,9 +287,9 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   text-align: center;
 }
-.vl-empty-icon  { font-size: 2.8rem; margin-bottom: 4px; }
+.vl-empty-icon  { font-size: 2.5rem; margin-bottom: 4px; }
 .vl-empty-title { font-size: 1rem; font-weight: 700; color: #374151; margin: 0; }
-.vl-empty-sub   { font-size: 0.8rem; color: #94a3b8; margin: 0; max-width: 260px; line-height: 1.5; }
+.vl-empty-sub   { font-size: 0.85rem; color: #94a3b8; margin: 0; max-width: 260px; line-height: 1.5; }
 
 /* ── Section / List ───────────────────────────────────────────────── */
 .vl-section {

@@ -13,7 +13,7 @@
   width: 100%;
   background: linear-gradient(135deg, #0f2d1a 0%, #14532d 100%);
   border-radius: 0;
-  padding: 12px 14px;
+  padding: 22px 24px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -75,7 +75,7 @@
   overflow: hidden; color: #fff;
 }
 .pha-blob { position: absolute; border-radius: 50%; opacity: 0.12; pointer-events: none; }
-.pha-blob-1 { width: 140px; height: 140px; background: #fff;    top: -40px; right: -20px; }
+.pha-blob-1 { width: 130px; height: 130px; background: #fff;    top: -40px; right: -20px; }
 .pha-blob-2 { width: 80px;  height: 80px;  background: #86efac; bottom: -20px; left: 40%; }
 
 .pha-hero-left {
@@ -270,9 +270,9 @@
   padding: 60px 20px; background: #fff; border-radius: 18px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06); text-align: center;
 }
-.pha-empty-icon  { font-size: 2.8rem; margin-bottom: 4px; }
+.pha-empty-icon  { font-size: 2.5rem; margin-bottom: 4px; }
 .pha-empty-title { font-size: 1rem; font-weight: 700; color: #374151; margin: 0; }
-.pha-empty-sub   { font-size: 0.8rem; color: #94a3b8; margin: 0; }
+.pha-empty-sub   { font-size: 0.85rem; color: #94a3b8; margin: 0; }
 
 /* ── Pagination ───────────────────────────────────────────────── */
 .pha-pagination {

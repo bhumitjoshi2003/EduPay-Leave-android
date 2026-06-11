@@ -22,8 +22,8 @@
   opacity: 0.12;
   pointer-events: none;
 }
-.tdet-blob-1 { width: 160px; height: 160px; background: #fff; top: -50px; right: -40px; }
-.tdet-blob-2 { width: 100px; height: 100px; background: #4fbdbd; bottom: -30px; left: 25%; }
+.tdet-blob-1 { width: 130px; height: 130px; background: #fff; top: -50px; right: -40px; }
+.tdet-blob-2 { width: 80px; height: 80px; background: #4fbdbd; bottom: -30px; left: 25%; }
 
 .tdet-hero-bar {
   display: flex;
@@ -150,7 +150,7 @@
 @keyframes tdet-spin { to { transform: rotate(360deg); } }
 
 .tdet-hero-name {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #fff;
   margin: 0;

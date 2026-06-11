@@ -9,7 +9,7 @@
   position: relative;
   background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 55%, #a78bfa 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -28,7 +28,7 @@
 .ea-hero-left { display: flex; align-items: center; gap: 14px; z-index: 1; }
 .ea-hero-icon { font-size: 2rem; flex-shrink: 0; }
 .ea-hero-title { font-size: 1.5rem; font-weight: 800; margin: 0; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
-.ea-hero-sub { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.85); margin: 3px 0 0; }
+.ea-hero-sub { font-size: 0.78rem; font-weight: 500; color: rgba(255,255,255,0.85); margin: 3px 0 0; }
 
 /* ── Card ─────────────────────────────────────────────────────────── */
 .ea-card {
@@ -272,6 +272,7 @@
 
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
+  .ea-card { padding: 14px 10px; }
   .ea-filters { flex-direction: column; gap: 12px; }
   .ea-filter-group { width: 100%; }
   .ea-filter-group select { width: 100%; min-width: unset; font-size: 1rem; padding: 10px 12px; box-sizing: border-box; }
@@ -332,7 +333,7 @@
 
   .ea-table tbody td[data-label="Action"] {
     justify-content: stretch;
-    padding: 12px 14px;
+    padding: 22px 24px;
   }
   .ea-table tbody td[data-label="Action"]::before { display: none; }
   .ea-btn-save {

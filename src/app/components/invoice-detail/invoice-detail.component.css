@@ -2,7 +2,7 @@
 
 .invd-hero { background: linear-gradient(135deg,#4f46e5 0%,#7c3aed 55%,#a855f7 100%); border-radius: 20px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; color: #fff; flex-wrap: wrap; gap: 12px; }
 .invd-hero-title { margin: 0; font-size: 1.25rem; font-weight: 800; }
-.invd-hero-sub { margin: 2px 0 0; font-size: 0.82rem; color: rgba(255,255,255,0.8); }
+.invd-hero-sub { margin: 2px 0 0; font-size: 0.78rem; color: rgba(255,255,255,0.8); }
 .invd-status { font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 10px; }
 .invd-status-paid { background: rgba(255,255,255,0.2); color: #bbf7d0; }
 .invd-status-issued { background: rgba(255,255,255,0.2); color: #c7d2fe; }

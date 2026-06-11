@@ -8,7 +8,7 @@
   position: relative;
   background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 55%, #0ea5e9 100%);
   border-radius: 20px;
-  padding: 24px 20px 28px;
+  padding: 22px 24px;
   margin: 0 0 16px;
   display: flex;
   align-items: center;
@@ -23,7 +23,7 @@
   opacity: 0.12;
   pointer-events: none;
 }
-.sl-blob-1 { width: 120px; height: 120px; background: #fff;    top: -30px; right: -20px; }
+.sl-blob-1 { width: 130px; height: 130px; background: #fff;    top: -30px; right: -20px; }
 .sl-blob-2 { width: 80px;  height: 80px;  background: #7dd3fc; bottom: -20px; left: 40%; }
 
 .sl-hero-left {
@@ -46,7 +46,7 @@
 
 .sl-hero-title {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.3px;
@@ -141,9 +141,9 @@
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   text-align: center;
 }
-.sl-empty-icon  { font-size: 2.8rem; margin-bottom: 4px; }
+.sl-empty-icon  { font-size: 2.5rem; margin-bottom: 4px; }
 .sl-empty-title { font-size: 1rem; font-weight: 700; color: #374151; margin: 0; }
-.sl-empty-sub   { font-size: 0.8rem; color: #94a3b8; margin: 0; }
+.sl-empty-sub   { font-size: 0.85rem; color: #94a3b8; margin: 0; }
 
 /* ── Section ──────────────────────────────────────────────────────── */
 .sl-section {

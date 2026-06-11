@@ -14,7 +14,7 @@
   overflow: hidden;
   background: linear-gradient(135deg, #c2410c 0%, #ea580c 45%, #fb923c 100%);
   border-radius: 20px;
-  padding: 22px 24px 26px;
+  padding: 22px 24px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -187,9 +187,9 @@
   justify-content: center;
   margin: 0 auto 16px;
 }
-.hc-empty-icon { font-size: 2.2rem; }
-.hc-empty-title { font-size: 1.05rem; font-weight: 700; color: #475569; margin: 0 0 6px; }
-.hc-empty-sub { font-size: 0.82rem; margin: 0; color: #94a3b8; }
+.hc-empty-icon { font-size: 2.5rem; }
+.hc-empty-title { font-size: 1rem; font-weight: 700; color: #475569; margin: 0 0 6px; }
+.hc-empty-sub { font-size: 0.85rem; margin: 0; color: #94a3b8; }
 
 /* ─────────────────────────────────────────────────────────────────
    Month group headers
@@ -281,7 +281,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 14px;
+  padding: 22px 24px;
   flex-shrink: 0;
 }
 .hc-range-from,
@@ -496,7 +496,7 @@
 ───────────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .hc-hero { padding: 18px 16px 22px; }
-  .hc-hero-title { font-size: 1.15rem; }
+  .hc-hero-title { font-size: 1.25rem; }
   .hc-hero-stat { padding: 8px 14px; }
   .hc-hero-stat-num { font-size: 1.25rem; }
   .hc-card-date { padding: 12px 10px; min-width: 46px; }
