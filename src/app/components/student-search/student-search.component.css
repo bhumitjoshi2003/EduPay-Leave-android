@@ -23,17 +23,30 @@
 .ss-blob-1 { width: 130px; height: 130px; background: #fff;    top: -40px; right: -30px; }
 .ss-blob-2 { width: 80px;  height: 80px;  background: #99f6e4; bottom: -25px; left: 30%; }
 
-.ss-hero-inner { position: relative; z-index: 1; }
+.ss-hero-inner {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 14px;
+}
+
+.ss-hero-icon {
+  font-size: 1.8rem;
+  background: rgba(255,255,255,0.16);
+  border-radius: 14px;
+  width: 50px; height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
 
 .ss-hero-title {
-  font-size: 1.7rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  margin: 0 0 6px;
-  letter-spacing: 0.01em;
+  margin: 0 0 2px;
+  letter-spacing: -0.2px;
 }
 
 .ss-hero-sub {
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   opacity: 0.82;
   margin: 0;
 }
@@ -41,7 +54,7 @@
 /* ── Search bar ──────────────────────────────────────────────────── */
 .ss-search-wrap {
   padding: 0 0 4px;
-  margin-top: -20px;
+  margin-top: 14px;
 }
 
 .ss-search-box {

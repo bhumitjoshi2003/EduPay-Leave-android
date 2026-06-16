@@ -13,7 +13,6 @@
   padding: 22px 24px;
   overflow: hidden;
   color: #fff;
-  text-align: center;
 }
 
 .ef-blob {
@@ -25,10 +24,10 @@
 .ef-blob-1 { width: 130px; height: 130px; background: #fff; top: -40px; right: -30px; }
 .ef-blob-2 { width: 80px;  height: 80px;  background: #a5f3fc; bottom: -25px; left: 30%; }
 
-.ef-hero-bar {
+.ef-hero-row {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  gap: 14px;
   position: relative;
   z-index: 1;
 }
@@ -46,21 +45,20 @@
 }
 .ef-back-btn:hover { background: rgba(255,255,255,0.28); }
 
-.ef-hero-center {
-  position: relative;
-  z-index: 1;
-}
-
 .ef-hero-icon {
-  font-size: 1.7rem;
-  margin-bottom: 8px;
+  font-size: 1.8rem;
+  background: rgba(255,255,255,0.16);
+  border-radius: 14px;
+  width: 50px; height: 50px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
   line-height: 1;
 }
 
 .ef-hero-title {
   font-size: 1.25rem;
   font-weight: 800;
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   color: #fff;
   letter-spacing: -0.3px;
   line-height: 1.2;

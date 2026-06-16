@@ -131,6 +131,8 @@ export class AuthInterceptor implements HttpInterceptor {
           // Refresh token itself is expired/invalid → log out
           this.isRefreshing = false;
           this.refreshDone$.next(false);
+          this.refreshDone$.complete();
+          this.refreshDone$ = new BehaviorSubject<boolean>(false);
           this.authStateService.clearUser();
           this.router.navigate(['/home']);
           return throwError(() => refreshError);

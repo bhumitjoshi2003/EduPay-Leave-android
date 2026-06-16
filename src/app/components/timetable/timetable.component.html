@@ -9,10 +9,6 @@
         <p class="tt-hero-sub">Weekly class &amp; teacher schedules</p>
       </div>
     </div>
-    <button class="tt-print-btn no-print" (click)="printTimetable()"
-      *ngIf="(hasAnyEntry() && !isTeacher()) || (isTeacher() && hasAnyTeacherEntry())">
-      🖨 Print
-    </button>
     <div class="tt-blob tt-blob-1"></div>
     <div class="tt-blob tt-blob-2"></div>
   </div>

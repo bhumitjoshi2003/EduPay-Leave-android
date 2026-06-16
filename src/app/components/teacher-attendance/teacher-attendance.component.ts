@@ -299,43 +299,44 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  saveAttendance(): void {
-    this.toast.confirm({
-      title: 'Confirm Save',
-      message: 'Are you sure you want to save the attendance?',
-      confirmText: 'Yes, save it!',
+  async saveAttendance(): Promise<void> {
+    const confirmed = await this.toast.confirm({
+      title: 'Save Attendance',
+      message: `You are about to save attendance for ${this.students.length} students. Are you sure?`,
+      icon: 'question',
+      confirmText: 'Yes, Save',
       cancelText: 'Cancel',
-    }).then((confirmed) => {
-      if (confirmed) {
-        const attendanceData: AttendanceData[] = this.students
-          .filter((student) => student.absent)
-          .map((student) => ({
-            studentId: student.studentId,
-            chargePaid: student.chargePaid,
-            date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
-            className: this.selectedClass,
-            status: student.status,
-          }));
+      danger: false,
+    });
+    if (!confirmed) return;
 
-        attendanceData.push({
-          studentId: 'X',
-          chargePaid: true,
-          date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
-          className: this.selectedClass,
-          status: 'ABSENT',
-        });
+    const attendanceData: AttendanceData[] = this.students
+      .filter((student) => student.absent)
+      .map((student) => ({
+        studentId: student.studentId,
+        chargePaid: student.chargePaid,
+        date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
+        className: this.selectedClass,
+        status: student.status,
+      }));
 
-        this.attendanceService.saveAttendance(attendanceData).pipe(takeUntil(this.destroy$)).subscribe({
-          next: () => {
-            this.toast.success('Attendance Saved!', 'Attendance data saved successfully.');
-            this.applyAttendanceAndLeavesToStudents();
-          },
-          error: (error) => {
-            this.logger.error('Error saving attendance:', error);
-            this.toast.error('Error!', error.error || 'Failed to save attendance. Please try again.');
-          },
-        });
-      }
+    attendanceData.push({
+      studentId: 'X',
+      chargePaid: true,
+      date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
+      className: this.selectedClass,
+      status: 'ABSENT',
+    });
+
+    this.attendanceService.saveAttendance(attendanceData).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.toast.success('Attendance Saved!', 'Attendance data saved successfully.');
+        this.applyAttendanceAndLeavesToStudents();
+      },
+      error: (error) => {
+        this.logger.error('Error saving attendance:', error);
+        this.toast.error('Error!', error.error || 'Failed to save attendance. Please try again.');
+      },
     });
   }
 

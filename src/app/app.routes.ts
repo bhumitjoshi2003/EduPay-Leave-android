@@ -333,7 +333,8 @@ export const routes: Routes = [
       },
       {
         path: 'event-calendar',
-        loadComponent: () => import('./components/event-calendar/event-calendar.component').then(m => m.EventCalendarComponent)
+        loadComponent: () => import('./components/event-calendar/event-calendar.component').then(m => m.EventCalendarComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN'] }
       },
       {
         path: 'payment',

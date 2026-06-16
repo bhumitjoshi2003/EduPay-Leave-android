@@ -4,18 +4,18 @@
   <div class="ef-hero">
     <div class="ef-blob ef-blob-1"></div>
     <div class="ef-blob ef-blob-2"></div>
-    <div class="ef-hero-bar">
+    <div class="ef-hero-row">
       <button type="button" class="ef-back-btn" (click)="onCancel()" title="Back">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
       </button>
-    </div>
-    <div class="ef-hero-center">
       <div class="ef-hero-icon">📅</div>
-      <h1 class="ef-hero-title">{{ isEditMode ? 'Edit Event' : 'Create Event' }}</h1>
-      <p class="ef-hero-sub">{{ isEditMode ? 'Update event details' : 'Add a new school event' }}</p>
+      <div>
+        <h1 class="ef-hero-title">{{ isEditMode ? 'Edit Event' : 'Create Event' }}</h1>
+        <p class="ef-hero-sub">{{ isEditMode ? 'Update event details' : 'Add a new school event' }}</p>
+      </div>
     </div>
   </div>
 

@@ -9,12 +9,6 @@
         <p class="hc-hero-sub">{{ isAdmin ? 'Manage school holidays and breaks' : 'View upcoming holidays and breaks' }}</p>
       </div>
     </div>
-    <div class="hc-hero-right" *ngIf="!loading">
-      <div class="hc-hero-stat">
-        <span class="hc-hero-stat-num">{{ holidays.length }}</span>
-        <span class="hc-hero-stat-label">{{ holidays.length === 1 ? 'Holiday' : 'Holidays' }}</span>
-      </div>
-    </div>
   </div>
 
   <!-- Controls -->
