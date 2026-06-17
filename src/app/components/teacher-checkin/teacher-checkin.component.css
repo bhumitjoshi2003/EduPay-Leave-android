@@ -9,15 +9,14 @@
   position: relative;
   background: linear-gradient(135deg, #134e4a 0%, #0f766e 55%, #14b8a6 100%);
   border-radius: 20px;
-  padding: 22px 24px;
+  padding: 18px 18px;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   overflow: hidden;
   color: #fff;
-  gap: 14px;
-  flex-wrap: wrap;
+  gap: 10px;
 }
 .tc-hero-blob {
   position: absolute;
@@ -31,51 +30,60 @@
 .tc-hero-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex: 1;
+  min-width: 0;
   position: relative;
   z-index: 1;
 }
 
 .tc-hero-icon {
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   background: rgba(255, 255, 255, 0.18);
-  border-radius: 14px;
-  width: 52px; height: 52px;
+  border-radius: 12px;
+  width: 44px; height: 44px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 
+.tc-hero-text {
+  min-width: 0;
+}
+
 .tc-hero-text h1 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.3px;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tc-hero-text p {
   margin: 2px 0 0;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: rgba(153, 246, 228, 0.9);
+  white-space: nowrap;
 }
 
 .tc-hero-clock-wrap {
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 14px;
-  padding: 10px 18px;
+  border-radius: 12px;
+  padding: 8px 14px;
   position: relative;
   z-index: 1;
   flex-shrink: 0;
 }
 
 .tc-hero-clock {
-  font-size: 1.3rem;
+  font-size: 1.05rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   color: #fff;
 }
 
@@ -83,10 +91,10 @@
 .tc-action-card {
   background: #fff;
   border-radius: 18px;
-  padding: 28px 24px;
+  padding: 20px 18px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   text-align: center;
 }
 .tc-action-body { display: flex; flex-direction: column; align-items: center; gap: 16px; }
@@ -97,20 +105,20 @@
 }
 
 .tc-checkin-btn {
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   border: none;
   background: linear-gradient(135deg, #0f766e, #14b8a6);
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 8px 30px rgba(15, 118, 110, 0.35);
   font-family: inherit;
@@ -207,31 +215,31 @@
 .tc-stats-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 .tc-stat-card {
   position: relative;
   background: linear-gradient(135deg, var(--c1), var(--c2));
-  border-radius: 16px;
-  padding: 16px 14px;
+  border-radius: 14px;
+  padding: 12px 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
 }
-.tc-stat-icon { font-size: 1.4rem; line-height: 1; flex-shrink: 0; z-index: 1; }
-.tc-stat-info { display: flex; flex-direction: column; gap: 2px; z-index: 1; }
+.tc-stat-icon { font-size: 1.2rem; line-height: 1; flex-shrink: 0; z-index: 1; }
+.tc-stat-info { display: flex; flex-direction: column; gap: 1px; z-index: 1; }
 .tc-stat-num {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: #fff;
   line-height: 1;
   letter-spacing: -0.5px;
 }
 .tc-stat-label {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.82);
   text-transform: uppercase;
@@ -240,7 +248,7 @@
 .tc-stat-bg {
   position: absolute;
   right: -6px; bottom: -8px;
-  font-size: 3rem;
+  font-size: 2.5rem;
   opacity: 0.12;
   line-height: 1;
   pointer-events: none;
@@ -329,11 +337,14 @@
   margin-bottom: 6px;
 }
 
-.tc-cal-loading {
-  text-align: center;
-  padding: 40px;
-  color: #94a3b8;
-  font-size: 0.85rem;
+.tc-cal-skeleton {
+  background: #f1f5f9;
+}
+.tc-sk-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: block;
 }
 
 .tc-cal-grid {

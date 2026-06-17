@@ -31,10 +31,10 @@
 }
 
 .sa-hero-icon {
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   background: rgba(255, 255, 255, 0.18);
-  border-radius: 14px;
-  width: 52px; height: 52px;
+  border-radius: 12px;
+  width: 44px; height: 44px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -145,32 +145,32 @@
 /* ── Stat Cards (gradient) ──────────────────────────── */
 .sa-stats-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   margin-bottom: 16px;
 }
 .sa-stat-card {
   position: relative;
   background: linear-gradient(135deg, var(--c1), var(--c2));
-  border-radius: 16px;
-  padding: 16px 14px;
+  border-radius: 14px;
+  padding: 12px 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
 }
-.sa-stat-emoji { font-size: 1.4rem; line-height: 1; flex-shrink: 0; z-index: 1; }
-.sa-stat-info { display: flex; flex-direction: column; gap: 2px; z-index: 1; }
+.sa-stat-emoji { font-size: 1.1rem; line-height: 1; flex-shrink: 0; z-index: 1; }
+.sa-stat-info { display: flex; flex-direction: column; gap: 1px; z-index: 1; }
 .sa-stat-num {
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #fff;
   line-height: 1;
   letter-spacing: -0.5px;
 }
 .sa-stat-label {
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.82);
   text-transform: uppercase;
@@ -179,7 +179,7 @@
 .sa-stat-bg {
   position: absolute;
   right: -6px; bottom: -8px;
-  font-size: 3rem;
+  font-size: 2.2rem;
   opacity: 0.12;
   line-height: 1;
   pointer-events: none;
@@ -340,36 +340,33 @@
 }
 .sa-month-nav:active { background: #d1fae5; }
 
-/* ── Table ───────────────────────────────────────────── */
-.sa-table-wrapper {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #a7f3d0;
+/* ── Date Groups (monthly records) ──────────────────── */
+.sa-date-group {
+  margin-bottom: 14px;
 }
-.sa-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.82rem;
+.sa-date-group:last-child { margin-bottom: 0; }
+
+.sa-date-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 0 2px;
 }
-.sa-table th {
-  background: linear-gradient(135deg, #065f46 0%, #059669 100%);
-  color: #fff;
-  padding: 10px 12px;
-  text-align: left;
+.sa-date-label-text {
+  font-size: 0.75rem;
   font-weight: 700;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  border-bottom: none;
+  color: #475569;
+  letter-spacing: 0.2px;
 }
-.sa-table th:first-child { border-radius: 11px 0 0 0; }
-.sa-table th:last-child  { border-radius: 0 11px 0 0; }
-.sa-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #d1fae5;
-  color: #1c1917;
+.sa-date-count {
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 1px 7px;
+  border-radius: 10px;
 }
-.sa-table tbody tr:last-child td { border-bottom: none; }
 
 /* ── Dialog ──────────────────────────────────────────── */
 .sa-dialog-backdrop {

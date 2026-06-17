@@ -38,6 +38,7 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   isCheckingIn = false;
   isCheckingOut = false;
   gpsError: string | null = null;
+  skeletonDays = Array(35);
 
   readonly monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -71,7 +72,7 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
 
   private updateTime(): void {
     const now = new Date();
-    this.currentTime = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    this.currentTime = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
     this.cdr.markForCheck();
   }
 

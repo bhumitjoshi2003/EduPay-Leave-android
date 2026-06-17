@@ -246,4 +246,34 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
     if (meters >= 1000) return (meters / 1000).toFixed(1) + ' km';
     return meters.toFixed(0) + ' m';
   }
+
+  get groupedRecords(): { date: string; displayDate: string; records: TeacherAttendanceRecord[] }[] {
+    if (!this.monthlySummary?.records.length) return [];
+    const map = new Map<string, TeacherAttendanceRecord[]>();
+    for (const r of this.monthlySummary.records) {
+      const list = map.get(r.date) ?? [];
+      list.push(r);
+      map.set(r.date, list);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([date, records]) => ({
+        date,
+        displayDate: new Date(date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }),
+        records
+      }));
+  }
+
+  trackByDate(_: number, group: { date: string }): string { return group.date; }
+  trackByRecordId(_: number, record: TeacherAttendanceRecord): number { return record.id; }
+
+  getBorderClass(status: string): string {
+    switch (status) {
+      case 'LATE': return 'sa-card-late';
+      case 'ABSENT': return 'sa-card-absent';
+      case 'ON_LEAVE': return 'sa-card-leave';
+      case 'HALF_DAY': return 'sa-card-halfday';
+      default: return '';
+    }
+  }
 }

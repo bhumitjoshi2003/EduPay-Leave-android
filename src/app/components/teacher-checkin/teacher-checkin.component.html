@@ -142,7 +142,11 @@
       <div *ngFor="let d of ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']">{{ d }}</div>
     </div>
 
-    <div *ngIf="isLoading" class="tc-cal-loading">Loading...</div>
+    <div class="tc-cal-grid" *ngIf="isLoading">
+      <div *ngFor="let _ of skeletonDays" class="tc-cal-day tc-cal-skeleton">
+        <span class="sk-shimmer tc-sk-circle"></span>
+      </div>
+    </div>
 
     <div class="tc-cal-grid" *ngIf="!isLoading">
       <div *ngFor="let day of calendarDays"

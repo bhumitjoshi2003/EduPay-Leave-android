@@ -103,10 +103,8 @@
 
         <!-- Main info -->
         <div class="vl-card-body">
-          <span class="vl-card-name">{{ leave.studentName }}</span>
-          <div class="vl-card-meta">
-            <span class="vl-class-tag">Class {{ leave.className }}</span>
-            <span class="vl-dot">·</span>
+          <div class="vl-card-name-row">
+            <span class="vl-card-name">{{ leave.studentName }}</span>
             <span class="vl-card-id">{{ leave.studentId }}</span>
           </div>
           <span class="vl-card-reason" *ngIf="leave.reason">{{ leave.reason }}</span>
