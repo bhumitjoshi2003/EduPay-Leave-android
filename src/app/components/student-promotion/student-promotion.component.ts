@@ -90,13 +90,13 @@ export class StudentPromotionComponent implements OnInit, OnDestroy {
     return group.className === '12';
   }
 
-  execute(): void {
+  async execute(): Promise<void> {
     const total = this.decisions.size;
     const promoted = this.promotedCount;
     const detained = this.detainedCount;
     const passedOut = this.passOutCount;
 
-    this.toast.confirm({
+    const confirmed = await this.toast.confirm({
       title: 'Confirm Promotion',
       html: `
         <p style="margin-bottom:12px;color:#374151;">This will update <strong>${total}</strong> students:</p>
@@ -110,10 +110,21 @@ export class StudentPromotionComponent implements OnInit, OnDestroy {
       confirmText: 'Yes, Execute Promotion',
       cancelText: 'Cancel',
       icon: 'warning',
-    }).then((confirmed) => {
-      if (!confirmed) return;
-      this.doExecute();
     });
+    if (!confirmed) return;
+
+    // Issue #45: Extra confirmation required when graduating (PASS_OUT) students
+    if (passedOut > 0) {
+      const passOutConfirmed = await this.toast.confirm({
+        title: 'Graduate Students?',
+        message: `This will permanently graduate ${passedOut} student(s) from the final year. This action cannot be undone without individual re-admission. Are you absolutely sure?`,
+        confirmText: 'Yes, Graduate Them',
+        cancelText: 'Go Back',
+      });
+      if (!passOutConfirmed) return;
+    }
+
+    this.doExecute();
   }
 
   private doExecute(): void {

@@ -80,6 +80,10 @@
       </div>
 
       <span class="ef-error"
+        *ngIf="eventForm.hasError('pastDateInvalid') && (eventForm.get('startDate')?.touched)">
+        Event start date cannot be in the past.
+      </span>
+      <span class="ef-error"
         *ngIf="eventForm.hasError('dateRangeInvalid') && (eventForm.get('endDate')?.touched || eventForm.get('startDate')?.touched)">
         End date cannot be before start date
       </span>
@@ -126,6 +130,7 @@
           </svg>
           {{ selectedFile ? selectedFile.name : 'Choose image' }}
         </label>
+        <small class="ef-hint">Accepted: JPG, PNG, WebP · Max 5MB</small>
 
         <div class="ef-image-preview" *ngIf="imagePreviewUrl">
           <img [src]="imagePreviewUrl" alt="Preview">

@@ -10,14 +10,14 @@ export interface UserInfo {
   className: string | null;
   schoolSlug: string | null;
   // Entitlement fields — null for SUPER_ADMIN or schools with no subscription
-  featureKeys: string[];
+  featureKeys: string[] | null;
   planTier: string | null;
   planVersion: string | null;
   subscriptionStatus: string | null;
   trialEndsAt: string | null;
   expiresAt: string | null;
   graceEndsAt: string | null;
-  permissionKeys: string[];
+  permissionKeys: string[] | null;
 }
 
 @Injectable({
@@ -69,18 +69,17 @@ export class AuthStateService {
   /** UX-only feature check — backend is always authoritative. */
   hasFeature(featureKey: string): boolean {
     const keys = this.user?.featureKeys;
-    if (!keys || keys.length === 0) return true;
+    if (!keys || keys.length === 0) return false;
     return keys.includes(featureKey);
   }
 
   /**
    * UX-only permission check — backend is always authoritative.
-   * Returns true if the user's role has the given permission key,
-   * or if no permission data is loaded (graceful fallback).
+   * Returns false if no permission data is loaded (deny by default).
    */
   hasPermission(permissionKey: string): boolean {
     const keys = this.user?.permissionKeys;
-    if (!keys || keys.length === 0) return true;
+    if (!keys || keys.length === 0) return false;
     return keys.includes(permissionKey);
   }
 

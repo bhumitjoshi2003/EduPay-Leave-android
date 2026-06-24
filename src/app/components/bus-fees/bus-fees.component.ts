@@ -148,6 +148,33 @@ export class BusFeesComponent implements OnInit, OnDestroy {
       cancelText: 'Cancel',
     }).then((confirmed) => {
       if (confirmed) {
+        // Issue #24: Validate distance and fee values
+        for (const slab of this.busFeeStructures) {
+          if (slab.minDistance < 0) {
+            this.toast.error('Validation', 'Distance values cannot be negative.');
+            return;
+          }
+          if (slab.fees < 0) {
+            this.toast.error('Validation', 'Fee amounts cannot be negative.');
+            return;
+          }
+          if (slab.maxDistance !== null && slab.maxDistance !== undefined && slab.minDistance > slab.maxDistance) {
+            this.toast.error('Validation', 'Minimum distance cannot exceed maximum distance.');
+            return;
+          }
+        }
+
+        // Issue #25: Detect overlapping distance ranges
+        const sorted = [...this.busFeeStructures].sort((a, b) => a.minDistance - b.minDistance);
+        for (let i = 0; i < sorted.length - 1; i++) {
+          const curr = sorted[i];
+          const next = sorted[i + 1];
+          if (curr.maxDistance !== null && curr.maxDistance !== undefined && curr.maxDistance >= next.minDistance) {
+            this.toast.error('Overlapping Ranges', `Distance ranges overlap between slabs ${i + 1} and ${i + 2}.`);
+            return;
+          }
+        }
+
         this.isEditing = false;
         this.cdr.markForCheck();
         this.busFeesService.updateBusFees(this.currentSession!.label, this.busFeeStructures).pipe(takeUntil(this.destroy$)).subscribe({

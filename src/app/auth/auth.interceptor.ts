@@ -128,10 +128,11 @@ export class AuthInterceptor implements HttpInterceptor {
           return next.handle(request);
         }),
         catchError((refreshError) => {
-          // Refresh token itself is expired/invalid → log out
+          // Refresh token itself is expired/invalid → unblock queued requests with error,
+          // then log out. Use error() so queued filter(done => done === true) never emits
+          // and the error propagates correctly to each waiting request.
           this.isRefreshing = false;
-          this.refreshDone$.next(false);
-          this.refreshDone$.complete();
+          this.refreshDone$.error(new HttpErrorResponse({ status: 401, statusText: 'Token refresh failed' }));
           this.refreshDone$ = new BehaviorSubject<boolean>(false);
           this.authStateService.clearUser();
           this.router.navigate(['/home']);
@@ -140,17 +141,13 @@ export class AuthInterceptor implements HttpInterceptor {
       );
     } else {
       // Other requests that fail while refresh is in progress wait here.
-      // Skip the initial false (set when refresh starts), wait for the outcome.
+      // Only emit when refresh truly succeeded (done === true) to avoid
+      // the race condition where isRefreshing becomes false on failure
+      // before the subject emits, causing premature retry with done=false.
       return this.refreshDone$.pipe(
-        filter(done => done === true || !this.isRefreshing),
+        filter(done => done === true),
         take(1),
-        switchMap((done) => {
-          if (done) {
-            return next.handle(request);
-          }
-          // Refresh failed — propagate the error instead of hanging forever
-          return throwError(() => new HttpErrorResponse({ status: 401, statusText: 'Token refresh failed' }));
-        })
+        switchMap(() => next.handle(request))
       );
     }
   }

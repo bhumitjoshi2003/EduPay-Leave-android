@@ -3,6 +3,9 @@ import { PaymentData } from '../interfaces/payment-data';
 import { MonthViewModel } from '../components/fees/fees.component';
 
 const PLATFORM_FEE_PERCENTAGE = 0.015;
+// TODO: Make late fee brackets configurable per school via school-settings API
+// Current values are hardcoded: ₹12/15/18/21 per day based on months overdue
+// Issue #49: These should be fetched from backend school configuration, not hardcoded here.
 const LATE_FEE_PER_DAY = [12, 15, 18, 21];
 
 export interface RecalculateResult {

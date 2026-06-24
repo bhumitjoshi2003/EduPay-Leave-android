@@ -227,6 +227,12 @@
                     <div class="form-actions">
                         <button type="submit" [disabled]="!eventForm.valid" class="save-btn">Save Changes</button>
                         <button type="button" class="cancel-btn" (click)="toggleEditMode($event)">Cancel</button>
+                        <button *ngIf="currentUserRole === 'ADMIN' && isEditing"
+                                type="button"
+                                class="ec-btn-delete"
+                                (click)="deleteCurrentEvent()">
+                          Delete Event
+                        </button>
                     </div>
                 </form>
             </ng-container>

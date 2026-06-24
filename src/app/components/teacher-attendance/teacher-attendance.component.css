@@ -290,3 +290,17 @@
 }
 .ta-status-select:focus { border-color: #059669; }
 .ta-status-select:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Already Marked Badge ──────────────────────────────────────── */
+.attendance-marked-badge {
+  display: inline-block;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}

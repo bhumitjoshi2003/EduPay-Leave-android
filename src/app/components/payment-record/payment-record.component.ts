@@ -81,7 +81,23 @@ export class PaymentRecordComponent implements OnInit, OnDestroy {
     return this.allocations.reduce((sum, a) => sum + (a.amount || 0), 0);
   }
 
+  fillMaxAllocations(): void {
+    this.allocations?.forEach((a: any) => a.amount = a.maxAmount);
+    this.cdr.markForCheck();
+  }
+
   recordPayment(): void {
+    // Validate no allocation is negative
+    if (this.allocations?.some((a: any) => a.amount < 0)) {
+      this.toast.error('Invalid Amount', 'Allocation amounts cannot be negative.');
+      return;
+    }
+    // Validate no allocation exceeds max
+    const overAllocated = this.allocations?.filter((a: any) => a.amount > a.maxAmount);
+    if (overAllocated && overAllocated.length > 0) {
+      this.toast.error('Validation Error', 'One or more allocations exceed the outstanding balance.');
+      return;
+    }
     const filtered = this.allocations.filter(a => a.amount > 0);
     if (filtered.length === 0) {
       this.toast.warning('Required', 'Enter at least one allocation amount.');

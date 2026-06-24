@@ -34,6 +34,12 @@ export class BulkImportComponent {
       if (!file.name.endsWith('.csv')) {
         this.importError = 'Only CSV files are accepted.';
         this.selectedFile = null;
+        input.value = '';
+      } else if (file.size > 50 * 1024 * 1024) {
+        // Issue #77: File size limit
+        this.importError = 'File too large. CSV must be under 50MB.';
+        this.selectedFile = null;
+        input.value = '';
       } else {
         this.importError = '';
         this.selectedFile = file;
@@ -57,6 +63,10 @@ export class BulkImportComponent {
     if (file) {
       if (!file.name.endsWith('.csv')) {
         this.importError = 'Only CSV files are accepted.';
+        this.selectedFile = null;
+      } else if (file.size > 50 * 1024 * 1024) {
+        // Issue #77: File size limit
+        this.importError = 'File too large. CSV must be under 50MB.';
         this.selectedFile = null;
       } else {
         this.importError = '';
@@ -115,6 +125,21 @@ export class BulkImportComponent {
 
   goToStudentList(): void {
     this.router.navigate(['/dashboard/student-list']);
+  }
+
+  // Issue #31: Download error rows as CSV for easy correction
+  downloadErrorCSV(): void {
+    if (!this.result?.errors?.length) return;
+    const lines = ['Row,Student ID,Error',
+      ...this.result.errors.map((e: BulkImportError) => `${e.row},"${e.studentId || ''}","${e.reason}"`)
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'import-errors.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   trackByRow(index: number, error: BulkImportError): number { return error.row; }

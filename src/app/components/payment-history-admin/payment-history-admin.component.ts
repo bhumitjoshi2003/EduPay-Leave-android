@@ -11,6 +11,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastService } from '../../services/toast.service';
+import { AuthStateService } from '../../auth/auth-state.service';
 import { Capacitor } from '@capacitor/core';
 import { PaymentHistory } from '../../interfaces/payment-history';
 import { DatePipe } from '@angular/common';
@@ -58,9 +59,14 @@ export class PaymentHistoryAdminComponent implements OnInit, OnDestroy {
   totalPages: number = 0;
   pageSizes: number[] = [5, 10, 20, 50];
 
-  constructor(private router: Router, private paymentHistoryService: PaymentHistoryService, private datePipe: DatePipe, private logger: LoggerService, private cdr: ChangeDetectorRef, private toast: ToastService, private schoolService: SchoolService) { }
+  constructor(private router: Router, private paymentHistoryService: PaymentHistoryService, private datePipe: DatePipe, private logger: LoggerService, private cdr: ChangeDetectorRef, private toast: ToastService, private schoolService: SchoolService, private authStateService: AuthStateService) { }
 
   ngOnInit(): void {
+    const role = this.authStateService.getUserRole();
+    if (role !== 'ADMIN') {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
     this.schoolService.getClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe(classes => {
       this.classList = classes;
       this.cdr.markForCheck();

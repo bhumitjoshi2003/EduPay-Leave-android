@@ -21,6 +21,11 @@
   <!-- Upload area (hidden once result is shown) -->
   <ng-container *ngIf="!result">
 
+    <div class="import-help">
+      <strong>Required columns:</strong> name, email, phone, className, dateOfBirth (YYYY-MM-DD), gender (MALE/FEMALE)
+      <br><small>Download the template above for the correct format.</small>
+    </div>
+
     <div class="instructions-card">
       <div class="instructions-card__step">
         <span class="step-number">1</span>
@@ -126,6 +131,9 @@
     </div>
 
     <div class="action-row action-row--result">
+      <button *ngIf="result?.errors?.length" class="secondary-btn" (click)="downloadErrorCSV()">
+        &#8595; Download Error Report ({{ result!.errors.length }} rows)
+      </button>
       <button class="secondary-btn" (click)="reset()">Import Another File</button>
       <button class="import-btn" (click)="goToStudentList()">Go to Student List</button>
     </div>

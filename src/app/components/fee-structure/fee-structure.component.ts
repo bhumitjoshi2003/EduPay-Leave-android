@@ -184,6 +184,17 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
             amount: Math.round((this.feeGrid[cls][fh.id!] || 0) * 100), // rupees → paise
             effectiveFrom: today,
           }));
+
+        // Issue #22: Validate no duplicate fee head IDs per class
+        const feeHeadIds = rules.map((r: any) => r.feeHeadId ?? r.feeHead?.id);
+        const uniqueIds = new Set(feeHeadIds.filter(Boolean));
+        if (uniqueIds.size !== feeHeadIds.filter(Boolean).length) {
+          this.isEditing = true;
+          this.cdr.markForCheck();
+          this.toast.error('Duplicate Fee Heads', 'Each fee head can only appear once per class.');
+          return;
+        }
+
         if (rules.length > 0) {
           saveCalls[cls] = this.feeRuleService.saveRulesForClass(sessionId, cls, rules);
         }

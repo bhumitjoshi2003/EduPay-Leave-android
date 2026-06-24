@@ -10,7 +10,10 @@ export const authGuard: CanActivateFn = (_route, state) => {
     return true;
   }
 
-  localStorage.setItem('redirectUrl', state.url);
+  const url = state.url;
+  if (url && url.startsWith('/') && !url.startsWith('//')) {
+    localStorage.setItem('redirectUrl', url);
+  }
   router.navigate(['/home']);
   return false;
 };

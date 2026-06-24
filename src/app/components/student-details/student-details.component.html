@@ -256,9 +256,12 @@
   <div class="cp-modal exit-modal" (click)="$event.stopPropagation()">
     <h3 class="cp-title">Mark Student as Left</h3>
 
-    <div *ngIf="pendingDues?.hasPendingDues" class="exit-dues-warning">
-      This student has <strong>{{ pendingDues!.unpaidMonths }} unpaid month(s)</strong> of fees.
-      You can still proceed, but consider collecting dues first.
+    <div *ngIf="pendingDues?.hasPendingDues" class="dues-warning">
+      <p class="text-warning">This student has <strong>{{ pendingDues!.unpaidMonths }} unpaid month(s)</strong> of fees.</p>
+      <label>
+        <input type="checkbox" [(ngModel)]="acknowledgedDues" />
+        I acknowledge the outstanding dues and confirm proceeding with exit.
+      </label>
     </div>
 
     <div class="cp-field">
@@ -288,7 +291,7 @@
 
     <div class="cp-field">
       <label class="cp-label">Leaving Date *</label>
-      <input type="date" class="cp-input" [(ngModel)]="exitRequest.leavingDate">
+      <input type="date" class="cp-input" [(ngModel)]="exitRequest.leavingDate" [max]="todayStr">
     </div>
 
     <div class="cp-field">

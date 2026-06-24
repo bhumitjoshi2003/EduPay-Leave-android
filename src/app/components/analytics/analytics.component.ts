@@ -34,6 +34,8 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
 
   isLoading = true;
   error = '';
+  hasData: boolean = false;
+  analyticsError: string | null = null;
   today = new Date();
 
   // ── Fee trend (bar) ───────────────────────────────────────────
@@ -176,12 +178,19 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
         this.buildFeeTrend(feeTrend);
         this.buildAttendance(classStats);
         this.buildDistribution(classStats);
+        this.hasData = (feeTrend?.length > 0 || classStats?.length > 0);
+        if (!this.hasData) {
+          this.analyticsError = 'No analytics data available yet. Create classes and record transactions to see insights.';
+        } else {
+          this.analyticsError = null;
+        }
         this.isLoading = false;
         this.cdr.markForCheck();
       },
       error: e => {
         this.logger.error('Analytics load error:', e);
         this.error = 'Failed to load analytics data. Please refresh.';
+        this.analyticsError = 'Failed to load analytics data. Please try refreshing the page.';
         this.isLoading = false;
         this.cdr.markForCheck();
       }

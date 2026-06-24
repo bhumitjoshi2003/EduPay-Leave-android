@@ -24,6 +24,10 @@ export const roleGuard: CanActivateFn = (route, state) => {
 
   const allowedRoles: string[] = route.data['roles'] ?? [];
 
+  if (!route.data?.['roles'] || route.data['roles'].length === 0) {
+    console.warn(`[RoleGuard] Route "${route.routeConfig?.path}" has no role requirements — verify this is intentional.`);
+  }
+
   if (allowedRoles.length === 0) {
     return true;
   }

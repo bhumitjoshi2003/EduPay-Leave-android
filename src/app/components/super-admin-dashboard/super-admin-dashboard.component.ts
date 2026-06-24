@@ -228,7 +228,9 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     if (!phoneRx.test(f.adminPhone.trim()))           return 'Admin phone must be exactly 10 digits.';
     if (!f.adminDob)                                  return 'Admin date of birth is required.';
     if (!f.adminPassword)                             return 'Admin password is required.';
-    if (f.adminPassword.length < 6)                   return 'Admin password must be at least 6 characters.';
+    if (f.adminPassword.length < 8)                   return 'Admin password must be at least 8 characters.';
+    if (!/[A-Z]/.test(f.adminPassword))               return 'Admin password must contain at least one uppercase letter.';
+    if (!/[0-9]/.test(f.adminPassword))               return 'Admin password must contain at least one number.';
     return null;
   }
 

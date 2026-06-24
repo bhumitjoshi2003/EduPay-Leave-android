@@ -30,6 +30,7 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
   managedClasses: SchoolClass[] = [];
   sections: Section[] = [];
   selectedSectionId: number | null = null;
+  showClassDropdown: boolean = true;
 
   selectedSession = '';
   selectedClass = '';
@@ -83,6 +84,8 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
 
   private initAfterSettings(user: { userId: string; role: string } | null): void {
     if (this.role === 'TEACHER') {
+      // Issue #44: Lock teacher to their assigned class — no dropdown shown
+      this.showClassDropdown = false;
       this.teacherService.getTeacher(user!.userId).pipe(takeUntil(this.destroy$)).subscribe({
         next: (t) => {
           this.selectedClass = t.classTeacher ?? '';
@@ -95,6 +98,7 @@ export class ClassResultsComponent implements OnInit, OnDestroy {
         error: (e) => this.logger.error('Error fetching teacher:', e),
       });
     } else {
+      this.showClassDropdown = true;
       this.selectedClass = this.classOptions.length > 0 ? this.classOptions[0] : '1';
       this.loadSectionsForClass(this.selectedClass);
       this.loadExams();

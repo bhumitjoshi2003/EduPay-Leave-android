@@ -19,7 +19,10 @@ export const featureGuard: CanActivateFn = (route, _state) => {
   const router = inject(Router);
 
   const featureKey: string | undefined = route.data['featureKey'];
-  if (!featureKey) return true;
+  if (!featureKey) {
+    console.warn(`[FeatureGuard] Route "${route.routeConfig?.path}" has no featureKey defined.`);
+    return true; // Still allow but at least warn
+  }
 
   if (authState.hasFeature(featureKey)) return true;
 

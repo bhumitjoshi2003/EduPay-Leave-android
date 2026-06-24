@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { TeacherService } from '../../services/teacher.service';
-import { TeacherAttendanceRecord, TeacherAttendanceSummary } from '../../interfaces/teacher-checkin';
+import { TeacherAttendanceRecord, TeacherAttendanceSummary, SchoolTiming } from '../../interfaces/teacher-checkin';
 import { Teacher } from '../../interfaces/teacher';
 import { TenantService } from '../../services/tenant.service';
 import { LoggerService } from '../../services/logger.service';
@@ -35,8 +35,14 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
 
   // Admin mark dialog
   showMarkDialog = false;
-  markForm = { teacherId: '', date: '', status: 'ON_TIME' };
+  isEditMode = false;
+  editingRecordId: number | null = null;
+  markForm = { teacherId: '', date: '', status: 'ON_TIME', checkInTime: '', checkOutTime: '' };
   isMarking = false;
+  formDirty = false;
+
+  // School timing for auto-status
+  schoolTiming: SchoolTiming | null = null;
 
   readonly statusOptions = [
     { value: 'ON_TIME', label: 'On Time' },
@@ -68,6 +74,7 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadDailyRecords();
     this.loadTeachers();
+    this.loadSchoolTiming();
   }
 
   ngOnDestroy(): void {
@@ -99,10 +106,28 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (teachers) => {
-          this.allTeachers = teachers;
+          // Deduplicate by teacherId
+          const seen = new Set<string>();
+          this.allTeachers = teachers.filter(t => {
+            if (seen.has(t.teacherId)) return false;
+            seen.add(t.teacherId);
+            return true;
+          });
           this.cdr.markForCheck();
         },
         error: (err) => this.logger.error('Failed to load teachers', err)
+      });
+  }
+
+  private loadSchoolTiming(): void {
+    this.checkinService.getSchoolTiming()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (timing) => {
+          this.schoolTiming = timing;
+          this.cdr.markForCheck();
+        },
+        error: () => {} // non-critical
       });
   }
 
@@ -162,28 +187,107 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
   }
 
   openMarkDialog(): void {
-    this.markForm = { teacherId: '', date: this.selectedDate, status: 'ON_TIME' };
+    this.isEditMode = false;
+    this.editingRecordId = null;
+    this.formDirty = false;
+    this.markForm = { teacherId: '', date: this.selectedDate, status: 'ON_TIME', checkInTime: '', checkOutTime: '' };
     this.showMarkDialog = true;
   }
 
-  closeMarkDialog(): void {
-    this.showMarkDialog = false;
+  openEditDialog(record: TeacherAttendanceRecord): void {
+    this.isEditMode = true;
+    this.editingRecordId = record.id;
+    this.formDirty = false;
+    this.markForm = {
+      teacherId: record.teacherId,
+      date: record.date, // CRITICAL: set from record, not from selectedDate
+      status: record.status,
+      checkInTime: record.checkInTime ? this.extractTime(record.checkInTime) : '',
+      checkOutTime: record.checkOutTime ? this.extractTime(record.checkOutTime) : '',
+    };
+    this.showMarkDialog = true;
   }
 
-  submitAdminMark(): void {
+  async closeMarkDialog(): Promise<void> {
+    if (this.formDirty) {
+      const discard = await this.toast.confirm({
+        title: 'Unsaved Changes',
+        message: 'You have unsaved changes. Are you sure you want to close?',
+        confirmText: 'Discard',
+        cancelText: 'Keep Editing',
+        danger: true,
+      });
+      if (!discard) return;
+    }
+    this.showMarkDialog = false;
+    this.isEditMode = false;
+    this.editingRecordId = null;
+    this.formDirty = false;
+  }
+
+  onCheckInTimeChange(): void {
+    if (!this.markForm.checkInTime || !this.schoolTiming?.startTime) return;
+    const status = this.calculateStatus(this.markForm.checkInTime);
+    if (status) {
+      this.markForm.status = status;
+    }
+  }
+
+  private calculateStatus(checkInTime: string): string | null {
+    if (!this.schoolTiming?.startTime) return null;
+    const threshold = this.schoolTiming.lateThresholdMinutes ?? 5;
+    const [startH, startM] = this.schoolTiming.startTime.split(':').map(Number);
+    const [inH, inM] = checkInTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM + threshold;
+    const inMinutes = inH * 60 + inM;
+    return inMinutes > startMinutes ? 'LATE' : 'ON_TIME';
+  }
+
+  async submitAdminMark(): Promise<void> {
     if (!this.markForm.teacherId || !this.markForm.date || !this.markForm.status) {
-      this.toast.warning('Validation', 'Please fill all fields.');
+      this.toast.warning('Validation', 'Please fill all required fields.');
       return;
     }
+
+    if (['ON_TIME', 'LATE'].includes(this.markForm.status) && !this.markForm.checkInTime) {
+      this.toast.warning('Required', 'Check-in time is required when status is On Time or Late.');
+      return;
+    }
+
+    const selectedDate = new Date(this.markForm.date);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    if (selectedDate < thirtyDaysAgo) {
+      const proceed = await this.toast.confirm({
+        title: 'Old Date Selected',
+        message: 'You are marking attendance for a date more than 30 days ago. Continue?',
+        confirmText: 'Yes, Continue',
+        cancelText: 'Cancel',
+      });
+      if (!proceed) return;
+    }
+
     this.isMarking = true;
     this.cdr.markForCheck();
-    this.checkinService.adminMark(this.markForm)
+
+    const req: any = {
+      teacherId: this.markForm.teacherId,
+      date: this.markForm.date,
+      status: this.markForm.status,
+    };
+    if (this.markForm.checkInTime) req.checkInTime = this.markForm.checkInTime;
+    if (this.markForm.checkOutTime) req.checkOutTime = this.markForm.checkOutTime;
+
+    this.checkinService.adminMark(req)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.toast.success('Marked', 'Teacher attendance marked successfully.');
+          this.toast.success('Saved', this.isEditMode ? 'Attendance updated successfully.' : 'Teacher attendance marked successfully.');
           this.isMarking = false;
           this.showMarkDialog = false;
+          this.isEditMode = false;
+          this.editingRecordId = null;
+          this.formDirty = false;
           this.loadDailyRecords();
           this.cdr.markForCheck();
         },
@@ -197,6 +301,22 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
   }
 
   // ── Helpers ──
+
+  get todayStr(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  /** Get unique teachers not already having a record for the selected date */
+  get availableTeachers(): Teacher[] {
+    if (this.isEditMode) return this.allTeachers;
+    const recordedIds = new Set(this.records.map(r => r.teacherId));
+    return this.allTeachers.filter(t => !recordedIds.has(t.teacherId));
+  }
+
+  private extractTime(isoTime: string): string {
+    const d = new Date(isoTime);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
 
   get presentCount(): number { return this.records.filter(r => r.status === 'ON_TIME' || r.status === 'LATE').length; }
   get lateCount(): number { return this.records.filter(r => r.status === 'LATE').length; }

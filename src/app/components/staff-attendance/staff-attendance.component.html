@@ -96,11 +96,12 @@
     <div class="sa-section" *ngIf="!isLoading && records.length > 0">
       <h2 class="sa-section-title">Today's Records</h2>
       <div class="sa-teacher-list">
-        <div *ngFor="let record of records" class="sa-teacher-card"
+        <div *ngFor="let record of records" class="sa-teacher-card sa-card-clickable"
              [class.sa-card-late]="record.status === 'LATE'"
              [class.sa-card-absent]="record.status === 'ABSENT'"
              [class.sa-card-leave]="record.status === 'ON_LEAVE'"
-             [class.sa-card-halfday]="record.status === 'HALF_DAY'">
+             [class.sa-card-halfday]="record.status === 'HALF_DAY'"
+             (click)="openEditDialog(record)">
           <div class="sa-teacher-avatar" *ngIf="!getPhotoUrl(record)">
             {{ getTeacherInitials(record.teacherName) }}
           </div>
@@ -109,6 +110,7 @@
             <span class="sa-teacher-name">{{ record.teacherName }}</span>
             <span class="sa-teacher-meta">
               <ng-container *ngIf="record.checkInTime">{{ formatTime(record.checkInTime) }}</ng-container>
+              <ng-container *ngIf="record.checkOutTime"> → {{ formatTime(record.checkOutTime) }}</ng-container>
               <ng-container *ngIf="record.distanceFromSchool != null"> · {{ formatDistance(record.distanceFromSchool) }}</ng-container>
               <ng-container *ngIf="record.markedByAdmin"> · Admin</ng-container>
             </span>
@@ -221,32 +223,44 @@
   <div *ngIf="showMarkDialog" class="sa-dialog-backdrop" (click)="closeMarkDialog()">
     <div class="sa-dialog" (click)="$event.stopPropagation()">
       <div class="sa-dialog-header">
-        <h3>Mark Teacher Attendance</h3>
+        <h3>{{ isEditMode ? 'Edit Attendance' : 'Mark Teacher Attendance' }}</h3>
         <button class="sa-dialog-close" (click)="closeMarkDialog()">&times;</button>
       </div>
       <div class="sa-dialog-body">
         <div class="sa-dialog-field">
           <label>Teacher</label>
-          <select [(ngModel)]="markForm.teacherId">
+          <select [(ngModel)]="markForm.teacherId" [disabled]="isEditMode" (change)="formDirty = true">
             <option value="">Select teacher</option>
-            <option *ngFor="let t of allTeachers" [value]="t.teacherId">{{ t.name }}</option>
+            <option *ngFor="let t of availableTeachers" [value]="t.teacherId">{{ t.name }}</option>
           </select>
         </div>
         <div class="sa-dialog-field">
           <label>Date</label>
-          <input type="date" [(ngModel)]="markForm.date">
+          <input type="date" [(ngModel)]="markForm.date" [disabled]="isEditMode" [max]="todayStr" (change)="formDirty = true">
+        </div>
+        <div class="sa-dialog-field">
+          <label>Check-in Time</label>
+          <input type="time" [(ngModel)]="markForm.checkInTime" (change)="onCheckInTimeChange(); formDirty = true">
+          <span *ngIf="schoolTiming?.startTime" class="sa-field-hint">
+            School starts at {{ schoolTiming!.startTime }}
+          </span>
+        </div>
+        <div class="sa-dialog-field">
+          <label>Check-out Time <span class="sa-optional">(Optional)</span></label>
+          <input type="time" [(ngModel)]="markForm.checkOutTime" (change)="formDirty = true">
         </div>
         <div class="sa-dialog-field">
           <label>Status</label>
-          <select [(ngModel)]="markForm.status">
+          <select [(ngModel)]="markForm.status" (change)="formDirty = true">
             <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
           </select>
+          <span class="sa-field-hint">Auto-set from check-in time. Override if needed.</span>
         </div>
       </div>
       <div class="sa-dialog-footer">
         <button class="sa-dialog-cancel" (click)="closeMarkDialog()">Cancel</button>
         <button class="sa-dialog-submit" (click)="submitAdminMark()" [disabled]="isMarking">
-          {{ isMarking ? 'Saving...' : 'Mark Attendance' }}
+          {{ isMarking ? 'Saving...' : (isEditMode ? 'Update' : 'Mark Attendance') }}
         </button>
       </div>
     </div>

@@ -101,10 +101,10 @@ export class ClassManagementComponent implements OnInit, OnDestroy {
   removeClass(cls: SchoolClass): void {
     this.toast.confirm({
       title: `Remove "${cls.name}"?`,
-      message: 'This will remove the class. You can re-add it later.',
+      message: 'Removing this class will affect all students, timetable entries, and fee records associated with it. This action cannot be easily undone. Are you sure?',
       icon: 'warning',
       danger: true,
-      confirmText: 'Yes, remove',
+      confirmText: 'Yes, Remove',
       cancelText: 'Cancel',
     }).then((confirmed) => {
       if (!confirmed) return;

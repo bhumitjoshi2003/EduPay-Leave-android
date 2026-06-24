@@ -42,6 +42,14 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
   sendingId: string | null = null;   // single reminder in-flight
   sendingBulk = false;
 
+  /**
+   * Issue #46: Per-student reminder state tracking.
+   * 'idle' | 'sending' | 'sent' | 'failed'
+   * Note: If a student has no registered contact (phone/email/FCM token),
+   * the backend may silently skip delivery. States here track API call outcomes only.
+   */
+  reminderStates: Map<string, 'idle' | 'sending' | 'sent' | 'failed'> = new Map();
+
   // ── Pagination ───────────────────────────────────────────────────
   currentPage = 0;
   pageSize = 10;
@@ -189,17 +197,20 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
     if (this.sendingId || this.reminderSent.has(student.studentId)) return;
 
     this.sendingId = student.studentId;
+    this.reminderStates.set(student.studentId, 'sending');
     this.cdr.markForCheck();
 
     this.feeReminderService.sendReminder(student.studentId, this.selectedSession)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.reminderSent.add(student.studentId);
+          this.reminderStates.set(student.studentId, 'sent');
           this.sendingId = null;
           this.cdr.markForCheck();
         },
         error: (err) => {
           this.logger.error('Failed to send reminder:', err);
+          this.reminderStates.set(student.studentId, 'failed');
           this.sendingId = null;
           this.cdr.markForCheck();
           this.toast.error('Error', 'Failed to send reminder. Please try again.');
@@ -227,16 +238,21 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
 
       const ids = unsent.map(s => s.studentId);
+      ids.forEach(id => this.reminderStates.set(id, 'sending'));
       this.feeReminderService.sendBulkReminders(ids, this.selectedSession)
         .pipe(takeUntil(this.destroy$)).subscribe({
           next: (res) => {
-            ids.forEach(id => this.reminderSent.add(id));
+            ids.forEach(id => {
+              this.reminderSent.add(id);
+              this.reminderStates.set(id, 'sent');
+            });
             this.sendingBulk = false;
             this.cdr.markForCheck();
             this.toast.success('Reminders sent!', `Successfully sent ${res.sent} reminder${res.sent !== 1 ? 's' : ''}.`);
           },
           error: (err) => {
             this.logger.error('Failed to send bulk reminders:', err);
+            ids.forEach(id => this.reminderStates.set(id, 'failed'));
             this.sendingBulk = false;
             this.cdr.markForCheck();
             this.toast.error('Error', 'Failed to send reminders. Please try again.');

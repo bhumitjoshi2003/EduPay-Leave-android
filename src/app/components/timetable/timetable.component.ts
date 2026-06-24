@@ -437,9 +437,22 @@ export class TimetableComponent implements OnInit, OnDestroy {
     });
   }
 
+  checkTimeConflict(day: string, startTime: string, endTime: string, excludeId?: number): boolean {
+    if (!startTime || !endTime) return false;
+    return this.entries
+      .filter((e: TimetableEntry) => e.day === day && e.id !== excludeId)
+      .some((e: TimetableEntry) => startTime < e.endTime && e.startTime < endTime);
+  }
+
+  get timetableHeading(): string {
+    const cls = this.selectedClass ?? '';
+    const section = this.selectedSectionName ?? '';
+    return section ? `Class ${cls} – Section ${section}` : `Class ${cls}`;
+  }
+
   printTimetable(): void {
     if (Capacitor.isNativePlatform()) {
-      this.toast.info('Not Available', 'Printing is not supported on the mobile app. Please use the web version.');
+      this.toast.info('Print Not Available', 'Printing is not supported on the mobile app. Please use the web version at edunexify.co.in');
       return;
     }
     window.print();

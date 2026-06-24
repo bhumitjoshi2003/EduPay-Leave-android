@@ -198,15 +198,17 @@
 
             <td data-label="Action" class="no-print">
               <button class="fr-remind-btn"
-                [class.fr-remind-sent]="reminderSent.has(s.studentId)"
-                [class.fr-remind-sending]="sendingId === s.studentId"
+                [class.fr-remind-sent]="reminderStates.get(s.studentId) === 'sent'"
+                [class.fr-remind-sending]="reminderStates.get(s.studentId) === 'sending'"
+                [class.fr-remind-failed]="reminderStates.get(s.studentId) === 'failed'"
                 [disabled]="!!sendingId || sendingBulk || reminderSent.has(s.studentId)"
                 (click)="sendReminder(s)"
                 [attr.aria-label]="'Send fee reminder to ' + s.studentName">
-                <ng-container *ngIf="reminderSent.has(s.studentId)">✓ Sent</ng-container>
-                <ng-container *ngIf="sendingId === s.studentId">…</ng-container>
-                <ng-container *ngIf="sendingId !== s.studentId && !reminderSent.has(s.studentId)">
-                  Remind
+                <ng-container [ngSwitch]="reminderStates.get(s.studentId)">
+                  <ng-container *ngSwitchCase="'sending'">Sending…</ng-container>
+                  <ng-container *ngSwitchCase="'sent'">✓ Sent</ng-container>
+                  <ng-container *ngSwitchCase="'failed'">✗ Failed</ng-container>
+                  <ng-container *ngSwitchDefault>Remind</ng-container>
                 </ng-container>
               </button>
             </td>

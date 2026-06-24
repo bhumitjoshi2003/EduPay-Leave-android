@@ -6,7 +6,8 @@ import {
   TeacherCheckinRequest,
   AdminMarkRequest,
   TeacherAttendanceRecord,
-  TeacherAttendanceSummary
+  TeacherAttendanceSummary,
+  SchoolTiming
 } from '../interfaces/teacher-checkin';
 
 @Injectable({ providedIn: 'root' })
@@ -40,5 +41,9 @@ export class TeacherCheckinService {
   getSummary(month: number, year: number): Observable<TeacherAttendanceSummary> {
     const params = new HttpParams().set('month', month).set('year', year);
     return this.http.get<TeacherAttendanceSummary>(`${this.baseUrl}/summary`, { params });
+  }
+
+  getSchoolTiming(): Observable<SchoolTiming> {
+    return this.http.get<SchoolTiming>(`${this.baseUrl}/school-timing`);
   }
 }

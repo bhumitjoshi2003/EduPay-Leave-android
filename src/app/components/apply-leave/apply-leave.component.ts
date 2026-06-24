@@ -227,8 +227,15 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
       }
 
       if (leaveDate.getDay() === 0) {
-        this.errorMessage = 'Even the server takes Sundays off. Please choose another day!';
+        this.errorMessage = 'Sundays are non-working days. Please select a weekday.';
         return;
+      }
+
+      // Soft warning for leave applications more than 30 days in the future
+      const daysAhead = Math.ceil((leaveDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysAhead > 30) {
+        this.toast.warning('Long Advance Notice', `You are applying for leave ${daysAhead} days in advance. For extended leave, contact your school administration directly.`);
+        // Don't return — just warn
       }
 
       const formattedLeaveDate = leaveDate.toISOString().split('T')[0];

@@ -189,6 +189,7 @@
   <div class="tt-modal" (click)="$event.stopPropagation()">
 
     <h3 class="tt-modal-title">{{ isEditMode ? 'Edit Period' : 'Add Period' }}</h3>
+    <h3 class="tt-section-heading" *ngIf="selectedClass">{{ timetableHeading }}</h3>
 
     <div class="tt-modal-meta" *ngIf="modalForm.day">
       {{ dayLabels[modalForm.day] }}<span *ngIf="modalForm.className"> · Class {{ modalForm.className }}</span><span *ngIf="modalForm.sectionName"> – {{ modalForm.sectionName }}</span>
@@ -227,6 +228,10 @@
           <label class="tt-field-label" for="modal-end">End Time</label>
           <input id="modal-end" type="time" class="tt-field-input" [(ngModel)]="modalForm.endTime">
         </div>
+      </div>
+
+      <div class="tt-conflict-warn" *ngIf="checkTimeConflict(modalForm.day, modalForm.startTime, modalForm.endTime, modalForm.id)">
+        ⚠ Another subject is already scheduled for this time slot.
       </div>
 
       <div class="tt-field">

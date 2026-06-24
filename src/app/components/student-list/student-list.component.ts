@@ -16,6 +16,8 @@ import { Section } from '../../interfaces/section';
 interface Student {
   studentId: string;
   name: string;
+  status?: string;
+  readmissionDate?: string;
 }
 
 @Component({
@@ -199,5 +201,18 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
   navigateToBulkImport(): void {
     this.router.navigate(['/dashboard/student-bulk-import']);
+  }
+
+  // Issue #30: Status badge color for alumni/left sections
+  getExitBadgeClass(status: string): string {
+    if (status === 'GRADUATED') return 'badge-success';
+    if (status === 'TRANSFERRED') return 'badge-info';
+    if (status === 'WITHDRAWN') return 'badge-warning';
+    return 'badge-secondary';
+  }
+
+  // Issue #81: Re-admitted badge
+  isReadmitted(student: Student): boolean {
+    return !!student.readmissionDate;
   }
 }

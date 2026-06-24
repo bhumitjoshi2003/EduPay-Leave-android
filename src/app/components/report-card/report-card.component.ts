@@ -9,6 +9,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { MarksService, ExamResult } from '../../services/marks.service';
 import { LoggerService } from '../../services/logger.service';
 import { SchoolService } from '../../services/school.service';
+import { AuthStateService } from '../../auth/auth-state.service';
 import { Capacitor } from '@capacitor/core';
 import { ToastService } from '../../services/toast.service';
 
@@ -44,6 +45,7 @@ export class ReportCardComponent implements OnInit, OnDestroy {
     private titleService: Title,
     private marksService: MarksService,
     private schoolService: SchoolService,
+    private authState: AuthStateService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
     private toast: ToastService,
@@ -59,6 +61,15 @@ export class ReportCardComponent implements OnInit, OnDestroy {
     this.examId = examIdStr ? Number(examIdStr) : null;
 
     if (!this.studentId || !this.session) {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
+    // Issue #14: Students can only view their own report card
+    const role = this.authState.getUserRole();
+    const authUserId = this.authState.getUserId();
+    if (role === 'STUDENT' && this.studentId && this.studentId !== String(authUserId)) {
+      this.toast.error('Access Denied', 'You can only view your own report card.');
       this.router.navigate(['/dashboard']);
       return;
     }
@@ -135,6 +146,9 @@ export class ReportCardComponent implements OnInit, OnDestroy {
     return this.gradeFromPct(percentage);
   }
 
+  // TODO: Grade ranges are currently hardcoded for CBSE.
+  // These should be loaded from school-settings to support different boards (ICSE, State Board, IB).
+  // See school-settings API for gradeConfig field (to be implemented).
   private gradeFromPct(pct: number): string {
     switch (this.gradingSystem) {
       case 'PERCENTAGE':

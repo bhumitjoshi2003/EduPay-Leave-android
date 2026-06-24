@@ -74,15 +74,15 @@
         <tbody>
           <tr *ngFor="let fee of busFeeStructures; trackBy: trackByIndex">
             <td data-label="Min Distance">
-              <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.minDistance" />
+              <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.minDistance" min="0" />
               <span *ngIf="!isEditing">{{ fee.minDistance }} km</span>
             </td>
             <td data-label="Max Distance">
-              <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.maxDistance" />
+              <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.maxDistance" min="0" />
               <span *ngIf="!isEditing">{{ fee.maxDistance !== null ? fee.maxDistance + ' km' : 'Above' }}</span>
             </td>
             <td data-label="Fee">
-              <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.fees" />
+              <input *ngIf="isEditing" type="number" class="bf-input" [(ngModel)]="fee.fees" min="0" />
               <span *ngIf="!isEditing" class="bf-fee-val">₹ {{ fee.fees | number }}</span>
             </td>
           </tr>

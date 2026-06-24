@@ -23,6 +23,9 @@
   <div class="pr-card" *ngIf="outstanding.length > 0">
     <h2 class="pr-card-title">Outstanding Invoices</h2>
 
+    <div class="pr-alloc-header">
+      <button type="button" class="btn-secondary" (click)="fillMaxAllocations()">Pay Full Balance</button>
+    </div>
     <div class="pr-alloc-list">
       <div class="pr-alloc-row" *ngFor="let alloc of allocations; let i = index">
         <div class="pr-alloc-info">

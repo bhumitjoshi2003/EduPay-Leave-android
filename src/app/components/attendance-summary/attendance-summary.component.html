@@ -169,7 +169,8 @@
               <span class="as-legend-item"><span class="as-legend-dot dot-present"></span> Present</span>
               <span class="as-legend-item"><span class="as-legend-dot dot-absent"></span> Absent</span>
               <span class="as-legend-item"><span class="as-legend-dot dot-holiday"></span> Holiday</span>
-              <span class="as-legend-item"><span class="as-legend-dot dot-closed"></span> No school</span>
+              <span class="as-legend-item"><span class="as-legend-dot dot-unmarked"></span> Unmarked</span>
+              <span class="as-legend-item"><span class="as-legend-dot dot-future"></span> Future</span>
             </div>
             <!-- Day-of-week header -->
             <div class="as-cal-header">
@@ -178,7 +179,10 @@
             <!-- Weeks -->
             <div *ngFor="let week of currentCalendarWeeks; trackBy: trackByIndex" class="as-cal-week">
               <div *ngFor="let cell of week; trackBy: trackByIndex" class="as-cal-cell"
-                [ngClass]="'cell-' + cell.status" [attr.title]="cell.holidayName || cell.date">
+                [ngClass]="'cell-' + cell.status"
+                [class.as-future]="cell.status === 'future'"
+                [class.as-unmarked]="cell.status === 'unmarked'"
+                [attr.title]="cell.holidayName || cell.date">
                 <span *ngIf="cell.day !== null">{{ cell.day }}</span>
               </div>
             </div>
@@ -251,14 +255,18 @@
                           <span class="as-legend-item"><span class="as-legend-dot dot-present"></span> Present</span>
                           <span class="as-legend-item"><span class="as-legend-dot dot-absent"></span> Absent</span>
                           <span class="as-legend-item"><span class="as-legend-dot dot-holiday"></span> Holiday</span>
-                          <span class="as-legend-item"><span class="as-legend-dot dot-closed"></span> No school</span>
+                          <span class="as-legend-item"><span class="as-legend-dot dot-unmarked"></span> Unmarked</span>
+                          <span class="as-legend-item"><span class="as-legend-dot dot-future"></span> Future</span>
                         </div>
                         <div class="as-cal-header">
                           <span *ngFor="let d of dayNames; trackBy: trackByIndex">{{ d }}</span>
                         </div>
                         <div *ngFor="let week of getRowCalendar(row); trackBy: trackByIndex" class="as-cal-week">
                           <div *ngFor="let cell of week; trackBy: trackByIndex" class="as-cal-cell"
-                            [ngClass]="'cell-' + cell.status" [attr.title]="cell.holidayName || cell.date">
+                            [ngClass]="'cell-' + cell.status"
+                            [class.as-future]="cell.status === 'future'"
+                            [class.as-unmarked]="cell.status === 'unmarked'"
+                            [attr.title]="cell.holidayName || cell.date">
                             <span *ngIf="cell.day !== null">{{ cell.day }}</span>
                           </div>
                         </div>

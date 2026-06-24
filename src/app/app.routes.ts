@@ -95,12 +95,12 @@ export const routes: Routes = [
       {
         path: 'event-new',
         loadComponent: () => import('./components/event-form/event-form.component').then(m => m.EventFormComponent),
-        canActivate: [roleGuard], data: { roles: ['TEACHER', 'ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
       {
         path: 'event-edit/:id',
         loadComponent: () => import('./components/event-form/event-form.component').then(m => m.EventFormComponent),
-        canActivate: [roleGuard], data: { roles: ['TEACHER', 'ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
 
       // ── Super Admin ───────────────────────────────────────────────────
@@ -329,7 +329,7 @@ export const routes: Routes = [
       {
         path: 'notice',
         loadComponent: () => import('./components/notice/notice.component').then(m => m.NoticeComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN'] }
       },
       {
         path: 'event-calendar',
@@ -338,7 +338,9 @@ export const routes: Routes = [
       },
       {
         path: 'payment',
-        loadComponent: () => import('./components/payment/payment.component').then(m => m.PaymentComponent)
+        loadComponent: () => import('./components/payment/payment.component').then(m => m.PaymentComponent),
+        canActivate: [authGuard],
+        data: { roles: ['STUDENT', 'ADMIN'] }
       },
     ],
   },

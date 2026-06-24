@@ -85,6 +85,7 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
   // Exit modal state
   showExitModal = false;
   exitLoading = false;
+  acknowledgedDues: boolean = false;
   exitRequest: StudentExitRequest = {
     exitType: 'WITHDRAWN',
     reasonForLeaving: '',
@@ -414,6 +415,12 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     const file = input.files[0];
     input.value = '';
 
+    // Issue #58: File size check
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.error('File Too Large', 'Profile photo must be less than 5MB.');
+      return;
+    }
+
     this.photoUploading = true;
     this.cdr.markForCheck();
 
@@ -460,6 +467,10 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     return s === 'GRADUATED' || s === 'TRANSFERRED' || s === 'WITHDRAWN';
   }
 
+  get todayStr(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
   openExitModal(): void {
     this.exitRequest = {
       exitType: 'WITHDRAWN',
@@ -469,6 +480,7 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
       exitRemarks: ''
     };
     this.pendingDues = null;
+    this.acknowledgedDues = false;
     this.showExitModal = true;
     this.cdr.markForCheck();
 
@@ -490,6 +502,26 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     }
     if (!this.exitRequest.leavingDate) {
       this.toast.error('Required', 'Please set a leaving date.');
+      return;
+    }
+
+    // Issue #34: Validate leaving date is not in the future and not before joining date
+    if (this.exitRequest.leavingDate) {
+      const leaving = new Date(this.exitRequest.leavingDate);
+      const today = new Date(); today.setHours(23, 59, 59, 999);
+      if (leaving > today) {
+        this.toast.error('Invalid Date', 'Leaving date cannot be in the future.');
+        return;
+      }
+      if (this.studentDetails?.joiningDate && leaving < new Date(this.studentDetails.joiningDate)) {
+        this.toast.error('Invalid Date', 'Leaving date cannot be before the student\'s joining date.');
+        return;
+      }
+    }
+
+    // Issue #12: Block exit if pending dues are unacknowledged
+    if (this.pendingDues?.hasPendingDues && !this.acknowledgedDues) {
+      this.toast.error('Pending Dues', 'Student has outstanding fees. Please acknowledge before proceeding with exit.');
       return;
     }
 

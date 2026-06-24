@@ -27,13 +27,13 @@
           <input type="email" formControlName="email" class="rs-input">
           <span class="rs-err" *ngIf="studentForm.controls['email'].invalid && (studentForm.controls['email'].dirty || studentForm.controls['email'].touched)">
             <ng-container *ngIf="studentForm.controls['email'].errors?.['required']">Email is required.</ng-container>
-            <ng-container *ngIf="studentForm.controls['email'].errors?.['email']">Invalid email format.</ng-container>
+            <ng-container *ngIf="studentForm.controls['email'].errors?.['email'] || studentForm.controls['email'].errors?.['invalidEmail']">Invalid email format.</ng-container>
           </span>
         </div>
         <div class="rs-field">
           <label class="rs-label">Phone Number</label>
-          <input type="text" formControlName="phoneNumber" class="rs-input">
-          <span class="rs-err" *ngIf="studentForm.controls['phoneNumber'].invalid && (studentForm.controls['phoneNumber'].dirty || studentForm.controls['phoneNumber'].touched)">Invalid phone number.</span>
+          <input type="text" formControlName="phoneNumber" class="rs-input" placeholder="10-digit mobile number">
+          <span class="rs-err" *ngIf="studentForm.controls['phoneNumber'].invalid && (studentForm.controls['phoneNumber'].dirty || studentForm.controls['phoneNumber'].touched)">Invalid phone number (must be 10 digits).</span>
         </div>
       </div>
     </div>
@@ -44,8 +44,11 @@
       <div class="rs-grid">
         <div class="rs-field">
           <label class="rs-label">Date of Birth <span class="rs-req">*</span></label>
-          <input type="date" formControlName="dob" class="rs-input">
-          <span class="rs-err" *ngIf="studentForm.controls['dob'].invalid && (studentForm.controls['dob'].dirty || studentForm.controls['dob'].touched)">Date of Birth is required.</span>
+          <input type="date" formControlName="dob" class="rs-input" [max]="todayStr">
+          <span class="rs-err" *ngIf="studentForm.controls['dob'].invalid && (studentForm.controls['dob'].dirty || studentForm.controls['dob'].touched)">
+            <ng-container *ngIf="studentForm.controls['dob'].errors?.['required']">Date of Birth is required.</ng-container>
+            <ng-container *ngIf="studentForm.controls['dob'].errors?.['futureDate']">Date of Birth cannot be today or in the future.</ng-container>
+          </span>
         </div>
         <div class="rs-field">
           <label class="rs-label">Gender <span class="rs-req">*</span></label>

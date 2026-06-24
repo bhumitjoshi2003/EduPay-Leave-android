@@ -328,8 +328,9 @@ export class ExamConfigComponent implements OnInit, OnDestroy {
         this.toast.warning('Incomplete', 'Each subject must have a name.');
         return;
       }
-      if (!r.maxMarks || r.maxMarks <= 0) {
-        this.toast.warning('Incomplete', `Please set max marks for "${r.subjectName}".`);
+      // Issue #59: Max marks must be between 1 and 500
+      if (!r.maxMarks || r.maxMarks <= 0 || r.maxMarks > 500) {
+        this.toast.error('Invalid', `Maximum marks for "${r.subjectName}" must be between 1 and 500.`);
         return;
       }
       if (!r.examDate) {

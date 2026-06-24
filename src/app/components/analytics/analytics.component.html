@@ -32,7 +32,14 @@
 
   <p class="an-error" *ngIf="error && !isLoading">{{ error }}</p>
 
-  <ng-container *ngIf="!isLoading && !error">
+  <div *ngIf="analyticsError && !isLoading" class="analytics-empty-state">
+    <p>{{ analyticsError }}</p>
+  </div>
+  <div *ngIf="!analyticsError && !isLoading && !hasData" class="analytics-empty-state">
+    <p>No data to display. Add classes and record fee transactions to see analytics.</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !error && hasData && !analyticsError">
 
     <!-- ── Summary Stats ─────────────────────────────────────────── -->
     <div class="an-stats-grid">

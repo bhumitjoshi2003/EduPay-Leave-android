@@ -61,6 +61,7 @@
         <span>{{ totalElements }} results</span>
       </div>
       <button *ngIf="loggedInUserRole === 'ADMIN'" class="vl-btn-delete-all"
+        [disabled]="allApproved"
         (click)="deleteAllFilteredLeaves()">🗑 Delete Leaves</button>
     </div>
   </div>
@@ -120,8 +121,8 @@
           </span>
           <div class="vl-actions" *ngIf="loggedInUserRole === 'ADMIN' || loggedInUserRole === 'TEACHER'">
             <ng-container *ngIf="leave.status === 'PENDING'">
-              <button class="vl-btn-approve" (click)="updateLeaveStatus(leave, 'APPROVED')" title="Approve">✓</button>
-              <button class="vl-btn-reject"  (click)="updateLeaveStatus(leave, 'REJECTED')" title="Reject">✕</button>
+              <button class="vl-btn-approve" [disabled]="updatingLeaveIds.has(leave.id)" (click)="updateLeaveStatus(leave, 'APPROVED')" title="Approve">✓</button>
+              <button class="vl-btn-reject"  [disabled]="updatingLeaveIds.has(leave.id)" (click)="updateLeaveStatus(leave, 'REJECTED')" title="Reject">✕</button>
             </ng-container>
             <button *ngIf="leave.status !== 'PENDING'"
               class="vl-btn-edit" (click)="editLeaveStatus(leave)" title="Edit status">✎</button>

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { environment } from '../../environments/environment';
@@ -65,17 +66,30 @@ export class PushNotificationService {
 
   async clearToken(): Promise<void> {
     const token = localStorage.getItem(this.tokenKey);
-    if (!token || !Capacitor.isNativePlatform()) return;
+    if (!token) return;
 
-    this.http.delete(`${environment.apiUrl}/users/device-token`, { body: { token }, responseType: 'text' })
-      .subscribe({
-        next: () => {
-          localStorage.removeItem(this.tokenKey);
-          this.logger.log('FCM token cleared');
-        },
-        error: (e) => this.logger.error('FCM token clear failed:', e),
-      });
+    try {
+      await firstValueFrom(
+        this.http.delete(`${environment.apiUrl}/users/device-token`, {
+          body: { token },
+          responseType: 'text',
+          withCredentials: true
+        })
+      );
+      this.logger.log('FCM token cleared');
+    } catch (e) {
+      // Log but don't block logout
+      this.logger.error('[PushNotification] Failed to clear device token:', e);
+    } finally {
+      localStorage.removeItem(this.tokenKey);
+    }
 
-    await PushNotifications.removeAllListeners();
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await PushNotifications.removeAllListeners();
+      } catch (e) {
+        this.logger.error('[PushNotification] removeAllListeners failed:', e);
+      }
+    }
   }
 }

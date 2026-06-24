@@ -276,9 +276,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  logout() {
+  async logout(): Promise<void> {
     localStorage.removeItem(this.welcomeMessageKey);
-    this.pushNotificationService.clearToken();
+    await this.pushNotificationService.clearToken().catch(() => {}); // Don't block logout on push failure
     this.schoolService.invalidateClasses();
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/home']),

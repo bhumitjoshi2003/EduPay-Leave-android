@@ -39,6 +39,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
   loggedInUserClass: string = '';
   filteredLeaves: LeaveApplication[] = [];
   isLoading: boolean = true;
+  updatingLeaveIds: Set<number> = new Set();
 
   classList: string[] = [];
   selectedClass: string = 'all';
@@ -272,6 +273,10 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
     });
   }
 
+  get allApproved(): boolean {
+    return this.filteredLeaves.length > 0 && this.filteredLeaves.every(l => l.status === 'APPROVED');
+  }
+
   editLeaveStatus(leave: LeaveApplication): void {
     const newStatus = leave.status === 'APPROVED' ? 'REJECTED' : 'APPROVED';
     const isApprove = newStatus === 'APPROVED';
@@ -284,17 +289,22 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
       cancelText: 'Cancel',
     }).then((confirmed) => {
       if (!confirmed) return;
+      this.updatingLeaveIds.add(leave.id);
+      this.cdr.markForCheck();
       this.leaveService.updateLeaveStatus(leave.id, newStatus)
         .pipe(takeUntil(this.ngUnsubscribe))
         .subscribe({
           next: (updated) => {
             leave.status = updated.status;
+            this.updatingLeaveIds.delete(leave.id);
             this.cdr.markForCheck();
             this.toast.success('Updated!', `Status changed to ${updated.status}.`);
           },
           error: (error) => {
+            this.updatingLeaveIds.delete(leave.id);
             this.logger.error('Error updating leave status:', error);
             this.toast.error('Error!', error?.error || 'Failed to update leave status.');
+            this.cdr.markForCheck();
           }
         });
     });
@@ -311,11 +321,14 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
       cancelText: 'Cancel',
     }).then((confirmed) => {
       if (!confirmed) return;
+      this.updatingLeaveIds.add(leave.id);
+      this.cdr.markForCheck();
       this.leaveService.updateLeaveStatus(leave.id, status)
         .pipe(takeUntil(this.ngUnsubscribe))
         .subscribe({
           next: (updated) => {
             leave.status = updated.status;
+            this.updatingLeaveIds.delete(leave.id);
             this.cdr.markForCheck();
             if (status === 'APPROVED') {
               this.toast.success('Approved!', `Leave has been approved.`);
@@ -324,8 +337,10 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
             }
           },
           error: (error) => {
+            this.updatingLeaveIds.delete(leave.id);
             this.logger.error('Error updating leave status:', error);
             this.toast.error('Error!', error?.error || 'Failed to update leave status.');
+            this.cdr.markForCheck();
           }
         });
     });

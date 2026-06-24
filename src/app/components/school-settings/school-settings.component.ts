@@ -190,6 +190,17 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       this.toast.warning('Validation', 'Pincode must be exactly 6 digits.');
       return;
     }
+    // Website URL validation
+    if (this.editForm.website?.trim()) {
+      try { new URL(this.editForm.website.trim()); }
+      catch { this.toast.warning('Validation', 'Website must be a valid URL (e.g., https://example.com).'); return; }
+    }
+    // At least one working day
+    const workingDays = (this.editForm.workingDays ?? '').toString().split(',').filter((d: string) => d.trim());
+    if (workingDays.length === 0) {
+      this.toast.warning('Validation', 'Please select at least one working day.');
+      return;
+    }
     this.saving = true;
     this.cdr.markForCheck();
     this.schoolService.updateSettings(this.editForm).pipe(takeUntil(this.destroy$)).subscribe({
@@ -483,12 +494,14 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      this.toast.warning('Invalid File', 'Please select an image file (JPG, PNG, etc.).');
+    const maxSize = 2 * 1024 * 1024;
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      this.toast.error('Invalid File', 'Only PNG, JPG, or WebP images are supported for the school logo.');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      this.toast.warning('File Too Large', 'Logo must be under 10 MB.');
+    if (file.size > maxSize) {
+      this.toast.error('File Too Large', 'School logo must be less than 2MB.');
       return;
     }
 

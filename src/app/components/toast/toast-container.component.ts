@@ -28,11 +28,14 @@ import { Subject, takeUntil } from 'rxjs';
     ]),
   ],
   template: `
-    <div class="toast-wrap">
+    <div class="toast-wrap" role="status" aria-live="polite" aria-atomic="true">
       <div
         *ngFor="let t of toasts; trackBy: trackById"
         class="toast toast-{{ t.type }}"
+        [attr.role]="(t.type === 'error' || t.type === 'warning') ? 'alert' : 'status'"
         [@toastAnim]>
+
+        <span class="sr-only">{{ t.type }}: {{ t.title }}{{ t.message ? ' - ' + t.message : '' }}</span>
 
         <div class="toast-icon-col">
           <span class="material-icons">{{ icon(t.type) }}</span>
@@ -43,7 +46,7 @@ import { Subject, takeUntil } from 'rxjs';
           <p *ngIf="t.message" class="toast-msg">{{ t.message }}</p>
         </div>
 
-        <button class="toast-close" (click)="dismiss(t.id)" aria-label="Close">
+        <button class="toast-close" (click)="dismiss(t.id)" aria-label="Dismiss notification">
           <span class="material-icons">close</span>
         </button>
 
@@ -123,6 +126,18 @@ import { Subject, takeUntil } from 'rxjs';
     }
     .toast-close:hover { color: #374151; }
     .toast-close .material-icons { font-size: 17px; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
 
     .toast-progress {
       position: absolute;

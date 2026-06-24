@@ -1,4 +1,4 @@
-<div class="cd-root">
+<div class="cd-root" aria-describedby="confirm-dialog-message">
   <!-- Icon -->
   <div class="cd-icon-wrap">
     <span class="material-icons cd-icon" [ngClass]="iconClass">{{ iconName }}</span>
@@ -8,7 +8,7 @@
   <h2 class="cd-title">{{ data.title }}</h2>
 
   <!-- Body: HTML or plain text -->
-  <div class="cd-body">
+  <div class="cd-body" id="confirm-dialog-message">
     <div *ngIf="sanitizedHtml; else plainMsg" [innerHTML]="sanitizedHtml"></div>
     <ng-template #plainMsg>
       <p *ngIf="data.message" class="cd-message">{{ data.message }}</p>
@@ -26,6 +26,7 @@
   <div class="cd-actions" [class.single]="!data.cancelText">
     <button
       *ngIf="data.cancelText"
+      #cancelBtn
       mat-stroked-button
       class="cd-btn-cancel"
       (click)="cancel()">

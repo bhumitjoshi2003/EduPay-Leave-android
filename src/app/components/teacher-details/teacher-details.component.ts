@@ -205,6 +205,12 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     const file = input.files[0];
     input.value = '';
 
+    // Issue #58: File size check
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.error('File Too Large', 'Profile photo must be less than 5MB.');
+      return;
+    }
+
     this.photoUploading = true;
     this.cdr.markForCheck();
 

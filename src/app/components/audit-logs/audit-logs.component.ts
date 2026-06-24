@@ -3,6 +3,8 @@ import { AuditLog, AuditFilters, AuditService } from '../../services/audit.servi
 import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthStateService } from '../../auth/auth-state.service';
 
 @Component({
   selector: 'app-audit-logs',
@@ -67,7 +69,12 @@ export class AuditLogsComponent implements OnInit, OnDestroy {
 
   isLoading = false;
 
-  constructor(private auditService: AuditService, private cdr: ChangeDetectorRef) { }
+  constructor(
+    private auditService: AuditService,
+    private cdr: ChangeDetectorRef,
+    private authState: AuthStateService,
+    private router: Router,
+  ) { }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -75,6 +82,11 @@ export class AuditLogsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    const role = this.authState.getUser()?.role;
+    if (role !== 'ADMIN') {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
     this.loadLogs();
   }
 

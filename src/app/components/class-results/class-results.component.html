@@ -21,7 +21,7 @@
         <option *ngFor="let s of sessions; trackBy: trackByIndex" [value]="s">{{ s }}</option>
       </select>
     </div>
-    <div class="cr-filter-group" *ngIf="role === 'ADMIN'">
+    <div class="cr-filter-group" *ngIf="showClassDropdown">
       <label>Class</label>
       <select [(ngModel)]="selectedClass" (ngModelChange)="loadExams()">
         <option *ngFor="let c of classOptions; trackBy: trackByIndex" [value]="c">Class {{ c }}</option>

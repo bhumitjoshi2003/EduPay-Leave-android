@@ -257,6 +257,7 @@
   transition: box-shadow 0.15s;
 }
 
+.sa-card-clickable { cursor: pointer; }
 .sa-card-late   { border-left-color: #fbbf24; }
 .sa-card-absent { border-left-color: #f87171; background: #fff5f5; }
 .sa-card-leave  { border-left-color: #818cf8; }
@@ -472,3 +473,23 @@
   text-align: center;
 }
 .sa-dialog-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.sa-field-hint {
+  display: block;
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  font-weight: 500;
+}
+.sa-optional {
+  font-weight: 400;
+  color: #94a3b8;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.sa-dialog-field select:disabled,
+.sa-dialog-field input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f1f5f9;
+}

@@ -50,7 +50,9 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
   error: string | null = null;
 
   // ── Calendar state ──────────────────────────────────────────────
-  readonly dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  readonly DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  /** @deprecated Use DAY_LABELS — kept for template compatibility */
+  readonly dayNames = this.DAY_LABELS;
 
   /** Month view: single calendar toggle */
   calendarExpanded = false;
@@ -444,7 +446,9 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
   private buildCalendarCells(year: number, month: number, detail: DailyDetail, holidays: Map<string, string> = new Map()): CalendarCell[][] {
     const schoolDaySet = new Set(detail.schoolDays);
     const absentDaySet = new Set(detail.absentDays);
-    const firstDow = new Date(year, month - 1, 1).getDay(); // 0=Sun
+
+    // Monday-first: map getDay() (0=Sun,1=Mon,...,6=Sat) → (0=Mon,...,6=Sun)
+    const firstDow = (new Date(year, month - 1, 1).getDay() + 6) % 7;
     const daysInMonth = new Date(year, month, 0).getDate();
 
     const cells: CalendarCell[] = [];
@@ -463,8 +467,8 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
       let holidayName: string | undefined;
 
       if (cellDate > today) {
-        // Future date — show nothing
-        status = 'closed';
+        // Future date — not yet reachable
+        status = 'future';
       } else if (schoolDaySet.has(dateStr)) {
         // Attendance was marked — P/A wins (class was working even if it's a school holiday)
         status = absentDaySet.has(dateStr) ? 'absent' : 'present';
@@ -473,7 +477,8 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
         status = 'holiday';
         holidayName = holidays.get(dateStr);
       } else {
-        status = 'closed';
+        // Past school day with no attendance data yet
+        status = 'unmarked';
       }
       cells.push({ date: dateStr, day: d, status, holidayName });
     }

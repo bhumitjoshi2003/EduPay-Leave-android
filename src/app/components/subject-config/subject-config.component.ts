@@ -98,6 +98,11 @@ export class SubjectConfigComponent implements OnInit, OnDestroy {
       this.toast.error('Validation', 'Group name is required for optional subjects.');
       return;
     }
+    // Issue #60: Duplicate subject validation
+    if (this.classSubjects.some(s => s.subjectName.toLowerCase() === name.toLowerCase())) {
+      this.toast.error('Duplicate Subject', 'This subject already exists for the selected class.');
+      return;
+    }
     this.service.addClassSubject(
       this.selectedClass, name,
       this.newSubjectOptional,

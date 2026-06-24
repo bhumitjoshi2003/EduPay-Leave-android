@@ -166,7 +166,24 @@ export class NoticeComponent implements OnInit, OnDestroy {
   // ── Admin: post notice ───────────────────────────────────────────────
 
   postNotice(): void {
-    if (!this.form.title.trim() || !this.form.body.trim() || !this.form.targetAudience) {
+    const title = this.form.title?.trim() ?? '';
+    const body = this.form.body?.trim() ?? '';
+
+    if (!title || title.length > 200) {
+      this.toast.warning('Validation', 'Notice title must be between 1 and 200 characters.');
+      return;
+    }
+    if (!body || body.length > 5000) {
+      this.toast.warning('Validation', 'Notice message must be between 1 and 5,000 characters.');
+      return;
+    }
+    const htmlPattern = /<[^>]*>/g;
+    if (htmlPattern.test(title) || htmlPattern.test(body)) {
+      this.toast.warning('Invalid Format', 'HTML tags are not allowed in notices. Please use plain text.');
+      return;
+    }
+
+    if (!this.form.targetAudience) {
       this.toast.warning('Incomplete', 'Please fill in all required fields.');
       return;
     }

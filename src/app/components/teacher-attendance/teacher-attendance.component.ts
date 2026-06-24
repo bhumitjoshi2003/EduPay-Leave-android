@@ -19,6 +19,7 @@ import { Teacher } from '../../interfaces/teacher';
 import { Subject, takeUntil, switchMap, of, firstValueFrom } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { SchoolHolidayService } from '../../services/school-holiday.service';
+import { Router } from '@angular/router';
 
 interface Student {
   studentId: string;
@@ -52,6 +53,8 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   disableDeleteButton: boolean = false;
   loggedInUserRole: string = '';
   hasStudents: boolean = false;
+  isAttendanceAlreadyMarked: boolean = false;
+  isSaving: boolean = false;
 
   classList: string[] = [];
   managedClasses: SchoolClass[] = [];
@@ -69,7 +72,8 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     private toast: ToastService,
     private schoolService: SchoolService,
     private sectionService: SectionService,
-    private holidayService: SchoolHolidayService
+    private holidayService: SchoolHolidayService,
+    private router: Router
   ) { }
 
   ngOnDestroy(): void {
@@ -78,6 +82,12 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const role = this.authStateService.getUserRole?.() ?? this.authStateService.getUser?.()?.role;
+    if (!['ADMIN', 'TEACHER'].includes(role ?? '')) {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
     this.attendanceDate = this.getTodayDateWithoutTime();
     this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
       next: classes => {
@@ -250,6 +260,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
 
         if (source === 'attendance') {
           this.disableDeleteButton = false;
+          this.isAttendanceAlreadyMarked = attendance.length > 0;
           const attendanceMap = new Map<string, AttendanceData>();
           attendance.forEach(a => attendanceMap.set(a.studentId, a));
           this.students.forEach(student => {
@@ -260,6 +271,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
           });
         } else {
           this.disableDeleteButton = true;
+          this.isAttendanceAlreadyMarked = false;
           this.absentStudents = leaves;
           this.students.forEach(student => {
             student.absent = leaves.includes(student.studentId);
@@ -300,6 +312,16 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   }
 
   async saveAttendance(): Promise<void> {
+    if (this.isAttendanceAlreadyMarked) {
+      const replaceConfirmed = await this.toast.confirm({
+        title: 'Attendance Already Marked',
+        message: 'Attendance is already saved for this date. Do you want to replace it?',
+        confirmText: 'Yes, Replace',
+        cancelText: 'Cancel',
+      });
+      if (!replaceConfirmed) return;
+    }
+
     const confirmed = await this.toast.confirm({
       title: 'Save Attendance',
       message: `You are about to save attendance for ${this.students.length} students. Are you sure?`,
@@ -320,22 +342,26 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
         status: student.status,
       }));
 
-    attendanceData.push({
-      studentId: 'X',
-      chargePaid: true,
-      date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
-      className: this.selectedClass,
-      status: 'ABSENT',
-    });
+    this.isSaving = true;
+    this.cdr.markForCheck();
 
     this.attendanceService.saveAttendance(attendanceData).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
+        this.isSaving = false;
         this.toast.success('Attendance Saved!', 'Attendance data saved successfully.');
+        // Check if there are approved leaves for this date that weren't pre-filled
+        // (i.e. attendance already existed before leave approval)
+        if (this.absentStudents.length > 0 && this.isAttendanceAlreadyMarked) {
+          this.toast.info('Check Leaves', 'Some students may have approved leaves for this date. Review attendance if needed.');
+        }
         this.applyAttendanceAndLeavesToStudents();
+        this.cdr.markForCheck();
       },
       error: (error) => {
+        this.isSaving = false;
         this.logger.error('Error saving attendance:', error);
         this.toast.error('Error!', error.error || 'Failed to save attendance. Please try again.');
+        this.cdr.markForCheck();
       },
     });
   }

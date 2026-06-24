@@ -54,6 +54,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
   managedClasses: SchoolClass[] = [];
   sections: Section[] = [];
   selectedSectionId: number | null = null;
+  private sectionMemory: Map<string, number | null> = new Map();
 
   constructor(
     private examService: ExamConfigService,
@@ -123,8 +124,29 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  setMode(m: 'subject' | 'student'): void {
+  private hasUnsavedMarks(): boolean {
+    // Issue #67: Check if any marks have been entered that differ from saved state
+    const hasA = Object.entries(this.marksInputA).some(([id, val]) => {
+      return val !== null && val !== undefined && val !== (this.originalMarksA[id] ?? null);
+    });
+    const hasB = Object.entries(this.marksInputB).some(([id, val]) => {
+      return val !== null && val !== undefined && val !== (this.originalMarksB[+id] ?? null);
+    });
+    return hasA || hasB;
+  }
+
+  async setMode(m: 'subject' | 'student'): Promise<void> {
     if (this.mode === m) return;
+    // Issue #67: Warn before discarding unsaved marks on mode switch
+    if (this.hasUnsavedMarks()) {
+      const discard = await this.toast.confirm({
+        title: 'Unsaved Marks',
+        message: 'You have unsaved marks. Switching mode will discard them. Continue?',
+        confirmText: 'Discard',
+        cancelText: 'Stay',
+      });
+      if (!discard) return;
+    }
     this.mode = m;
     this.resetSubjectSelection();
     this.resetStudentSelection();
@@ -135,7 +157,9 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
   }
 
   onClassChange(): void {
-    this.selectedSectionId = null;
+    // Issue #86: Remember section per class
+    this.sectionMemory.set(this.selectedClass, this.selectedSectionId);
+    this.selectedSectionId = this.sectionMemory.get(this.selectedClass) ?? null;
     this.sections = [];
     this.loadSectionsForClass(this.selectedClass);
     this.loadExams();
@@ -152,6 +176,8 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
 
   onSectionSelect(sectionId: number | null): void {
     this.selectedSectionId = sectionId;
+    // Issue #86: Persist section selection per class
+    this.sectionMemory.set(this.selectedClass, sectionId);
     if (this.mode === 'subject' && this.selectedSubjectEntryId) {
       this.onSubjectChange();
     } else if (this.mode === 'student' && this.selectedExamId) {
@@ -251,11 +277,24 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
   async saveMarksA(): Promise<void> {
     if (!this.selectedSubjectEntryId) return;
 
+    // Issue #11, #28: Validate marks range before saving
+    const maxMarks = this.getSelectedSubject()?.maxMarks ?? Infinity;
+    const invalidEntries = Object.entries(this.marksInputA)
+      .filter(([, val]) => val !== null && val !== undefined && val !== '')
+      // FIX Issue #33: Use !== null/undefined instead of truthy to preserve 0 marks
+      .filter(([, val]) => +val! < 0 || +val! > maxMarks);
+    if (invalidEntries.length > 0) {
+      this.toast.error('Invalid Marks', `${invalidEntries.length} entries have invalid marks. Marks must be between 0 and ${maxMarks}.`);
+      return;
+    }
+
     // Only send entries where the mark has actually changed from the loaded value
+    // FIX Issue #33: Use !== null && !== undefined instead of truthy check to preserve 0 marks
     const entries: MarkEntryRequest[] = this.subjectStudents
       .filter(s => {
         const current = this.marksInputA[s.studentId];
         const original = this.originalMarksA[s.studentId];
+        // Include if value is not null/undefined AND has changed (including changed TO 0)
         return current !== null && current !== undefined && current !== original;
       })
       .map(s => ({
@@ -301,11 +340,26 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
   async saveMarksB(): Promise<void> {
     if (!this.selectedStudentId) return;
 
+    // Issue #11, #28: Validate marks range before saving — check per-subject maxMarks
+    const invalidSubjectEntries = this.studentSubjects.filter(s => {
+      const val = this.marksInputB[s.examSubjectEntryId];
+      if (val === null || val === undefined) return false;
+      const subjectEntry = this.examSubjects.find(e => e.id === s.examSubjectEntryId);
+      const max = subjectEntry?.maxMarks ?? Infinity;
+      return +val < 0 || +val > max;
+    });
+    if (invalidSubjectEntries.length > 0) {
+      this.toast.error('Invalid Marks', `${invalidSubjectEntries.length} entries have invalid marks. Check that marks are between 0 and the subject maximum.`);
+      return;
+    }
+
     // Only send subjects where the mark has actually changed from the loaded value
+    // FIX Issue #33: Use !== null && !== undefined instead of truthy check to preserve 0 marks
     const entries: MarkEntryRequest[] = this.studentSubjects
       .filter(s => {
         const current = this.marksInputB[s.examSubjectEntryId];
         const original = this.originalMarksB[s.examSubjectEntryId];
+        // Include if value is not null/undefined AND has changed (including changed TO 0)
         return current !== null && current !== undefined && current !== original;
       })
       .map(s => ({

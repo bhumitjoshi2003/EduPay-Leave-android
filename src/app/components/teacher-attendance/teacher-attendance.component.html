@@ -43,10 +43,11 @@
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
       </mat-form-field>
+      <span class="attendance-marked-badge" *ngIf="isAttendanceAlreadyMarked">&#10003; Already Marked</span>
       <div class="ta-action-btns">
         <button class="ta-btn ta-btn-save"
-          [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate) || !hasStudents"
-          (click)="saveAttendance()">✓ Save</button>
+          [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate) || !hasStudents || isSaving"
+          (click)="saveAttendance()">{{ isSaving ? 'Saving…' : '✓ Save' }}</button>
         <button class="ta-btn ta-btn-delete"
           [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate) || disableDeleteButton || !hasStudents"
           (click)="deleteAttendance()">✕ Delete</button>

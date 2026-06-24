@@ -38,7 +38,10 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   isCheckingIn = false;
   isCheckingOut = false;
   gpsError: string | null = null;
-  skeletonDays = Array(35);
+
+  /** 5 weeks × 7 days = 35 cells for calendar skeleton */
+  readonly CALENDAR_SKELETON_COUNT = 35;
+  skeletonDays = Array(this.CALENDAR_SKELETON_COUNT);
 
   readonly monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -150,6 +153,10 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   }
 
   async checkIn(): Promise<void> {
+    if (this.hasCheckedIn) {
+      this.toast.warning('Already Checked In', 'You have already checked in today.');
+      return;
+    }
     this.isCheckingIn = true;
     this.gpsError = null;
     this.cdr.markForCheck();
@@ -178,13 +185,21 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
         });
     } catch (err: any) {
       this.isCheckingIn = false;
-      this.gpsError = err?.message || 'Could not get your location.';
-      this.toast.error('GPS Error', this.gpsError!);
+      this.gpsError = this.getGpsErrorMessage(err);
+      this.toast.error('Location Error', this.gpsError);
       this.cdr.markForCheck();
     }
   }
 
   async checkOut(): Promise<void> {
+    if (!this.hasCheckedIn) {
+      this.toast.error('Not Checked In', 'You must check in before checking out.');
+      return;
+    }
+    if (this.hasCheckedOut) {
+      this.toast.warning('Already Checked Out', 'You have already checked out today.');
+      return;
+    }
     this.isCheckingOut = true;
     this.gpsError = null;
     this.cdr.markForCheck();
@@ -209,8 +224,8 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
         });
     } catch (err: any) {
       this.isCheckingOut = false;
-      this.gpsError = err?.message || 'Could not get your location.';
-      this.toast.error('GPS Error', this.gpsError!);
+      this.gpsError = this.getGpsErrorMessage(err);
+      this.toast.error('Location Error', this.gpsError);
       this.cdr.markForCheck();
     }
   }
@@ -218,13 +233,22 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   private async getPosition(): Promise<{ latitude: number; longitude: number }> {
     const cap = (window as any).Capacitor;
     if (cap?.isNativePlatform?.()) {
-      const { Geolocation } = await import('@capacitor/geolocation');
-      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
-      return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      try {
+        const { Geolocation } = await import('@capacitor/geolocation');
+        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
+        return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      } catch (e) {
+        // Fallback to browser geolocation
+        return this.getBrowserPosition();
+      }
     }
+    return this.getBrowserPosition();
+  }
+
+  private getBrowserPosition(): Promise<{ latitude: number; longitude: number }> {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        reject(new Error('Geolocation not supported'));
+        reject(new Error('Geolocation not supported on this device.'));
         return;
       }
       navigator.geolocation.getCurrentPosition(
@@ -235,13 +259,11 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getGpsErrorMessage(err: GeolocationPositionError): string {
-    switch (err.code) {
-      case err.PERMISSION_DENIED: return 'Location permission denied. Please enable GPS.';
-      case err.POSITION_UNAVAILABLE: return 'Location unavailable. Please try again.';
-      case err.TIMEOUT: return 'Location request timed out. Please try again.';
-      default: return 'Could not get your location.';
-    }
+  private getGpsErrorMessage(err: GeolocationPositionError | any): string {
+    if (err?.code === 1) return 'Location permission denied. Please enable location access in your device settings.';
+    if (err?.code === 2) return 'Location unavailable. Please check your GPS/network connection.';
+    if (err?.code === 3) return 'Location request timed out. Please try again.';
+    return 'Could not retrieve location. Please try again.';
   }
 
   goToPreviousMonth(): void {

@@ -17,6 +17,7 @@ import { AttendanceService } from '../../services/attendance.service';
 import { SchoolHolidayService } from '../../services/school-holiday.service';
 import { SchoolHoliday } from '../../interfaces/school-holiday';
 import { forkJoin, Subject, takeUntil, debounceTime, fromEvent } from 'rxjs';
+import { ToastService } from '../../services/toast.service';
 
 interface DayCell {
   date: Date | null;
@@ -83,7 +84,8 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
     private attendanceService: AttendanceService,
     private holidayService: SchoolHolidayService,
     @Inject(PLATFORM_ID) private platformId: Object,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private toast: ToastService
   ) {
     // Initialize eventForm here with all controls, including imageUrl
     this.eventForm = this.fb.group({
@@ -678,6 +680,29 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
     if (status === 'A') return 'cell-absent';
     if (status === 'H') return 'cell-holiday';
     return '';
+  }
+
+  async deleteCurrentEvent(): Promise<void> {
+    if (!this.selectedEvent?.id) return;
+    const confirmed = await this.toast.confirm({
+      title: 'Delete Event?',
+      message: `Delete "${this.selectedEvent.title}"? This cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true,
+    });
+    if (!confirmed) return;
+    this.eventService.deleteEvent(this.selectedEvent.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toast.success('Deleted', 'Event has been removed.');
+          this.selectedEvent = null;
+          this.closeSidebar();
+          this.loadEvents();
+        },
+        error: () => this.toast.error('Error', 'Failed to delete event.')
+      });
   }
 
   isMissingAttendance(date: Date | null): boolean {
