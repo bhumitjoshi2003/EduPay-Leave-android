@@ -280,7 +280,7 @@ export class MarkEntryComponent implements OnInit, OnDestroy {
     // Issue #11, #28: Validate marks range before saving
     const maxMarks = this.getSelectedSubject()?.maxMarks ?? Infinity;
     const invalidEntries = Object.entries(this.marksInputA)
-      .filter(([, val]) => val !== null && val !== undefined && val !== '')
+      .filter(([, val]) => val !== null && val !== undefined)
       // FIX Issue #33: Use !== null/undefined instead of truthy to preserve 0 marks
       .filter(([, val]) => +val! < 0 || +val! > maxMarks);
     if (invalidEntries.length > 0) {
