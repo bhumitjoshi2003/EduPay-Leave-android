@@ -8,16 +8,6 @@
 
   <ng-container *ngIf="!isLoading">
 
-    <!-- ── Refresh Row ──────────────────────────────────────────────── -->
-    <div class="ad-refresh-row">
-      <span class="ad-last-updated" *ngIf="lastRefreshedAt">
-        Updated {{ lastRefreshedAt | date:'shortTime' }}
-      </span>
-      <button class="ad-refresh-btn" (click)="refreshDashboard()" [disabled]="isRefreshing">
-        {{ isRefreshing ? 'Refreshing...' : '↻ Refresh' }}
-      </button>
-    </div>
-
     <!-- ── Hero ─────────────────────────────────────────────────────── -->
     <div class="ad-hero">
       <div class="ad-hero-left">

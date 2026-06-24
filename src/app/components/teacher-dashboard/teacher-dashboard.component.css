@@ -439,3 +439,24 @@
   width: 15px;
   height: 15px;
 }
+
+/* ── Clickable stat card link ─────────────────────────────────────── */
+.td-action-link {
+  text-decoration: none;
+  display: block;
+}
+.td-card-clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.td-card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.td-action-hint {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.3px;
+  margin-top: 4px;
+}

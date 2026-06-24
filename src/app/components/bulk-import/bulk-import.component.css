@@ -488,3 +488,15 @@
     padding: 8px 12px;
   }
 }
+
+/* ── Import help text ─────────────────────────────────────────────── */
+.import-help {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.82rem;
+  color: #15803d;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}

@@ -29,8 +29,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   adminName = '';
   isLoading = true;
   today = new Date();
-  lastRefreshedAt: Date | null = null;
-  isRefreshing: boolean = false;
 
   stats: DashboardStats | null = null;
   recentLeaves: LeaveApplication[] = [];
@@ -73,25 +71,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.recentLeaves = pending.slice(0, 5);
         this.entitlement = entitlement as SchoolEntitlementSummary;
         this.isLoading = false;
-        this.isRefreshing = false;
-        this.lastRefreshedAt = new Date();
         this.cdr.markForCheck();
       },
       error: (e: any) => {
         this.logger.error('Admin dashboard load error:', e);
         this.isLoading = false;
-        this.isRefreshing = false;
-        this.lastRefreshedAt = new Date();
         this.cdr.markForCheck();
         this.toast.error('Error', 'Failed to load dashboard data.');
       }
     });
-  }
-
-  refreshDashboard(): void {
-    if (this.isRefreshing) return;
-    this.isRefreshing = true;
-    this.loadDashboardData();
   }
 
   ngOnDestroy(): void {

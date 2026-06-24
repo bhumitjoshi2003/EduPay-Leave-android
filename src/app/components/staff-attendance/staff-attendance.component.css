@@ -493,3 +493,28 @@
   cursor: not-allowed;
   background: #f1f5f9;
 }
+
+/* ── Monthly grouped records ─────────────────────────────────────── */
+.sa-date-group { margin-bottom: 14px; }
+.sa-date-group:last-child { margin-bottom: 0; }
+.sa-date-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+.sa-date-label-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.2px;
+}
+.sa-date-count {
+  font-size: 0.62rem;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 1px 7px;
+  border-radius: 10px;
+}

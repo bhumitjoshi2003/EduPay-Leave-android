@@ -958,3 +958,21 @@
         border-radius: 14px !important;
     }
 }
+
+/* ── Delete event button ─────────────────────────────────────────── */
+.ec-btn-delete {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+.ec-btn-delete:hover {
+  background: #fca5a5;
+  border-color: #f87171;
+}

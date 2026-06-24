@@ -362,3 +362,22 @@
   .tt-modal-actions { flex-wrap: wrap; }
   .tt-modal-right-actions { width: 100%; justify-content: flex-end; }
 }
+
+/* ── Section heading in modal ────────────────────────────────────── */
+.tt-section-heading {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: -4px 0 12px;
+}
+/* ── Conflict warning ─────────────────────────────────────────────── */
+.tt-conflict-warn {
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
