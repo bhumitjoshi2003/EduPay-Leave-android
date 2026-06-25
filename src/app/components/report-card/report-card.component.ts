@@ -166,10 +166,14 @@ export class ReportCardComponent implements OnInit, OnDestroy {
   get primaryColor(): string { return this.branding.primaryColor ?? '#1565c0'; }
 
   get headerStyle(): string {
-    return `background: linear-gradient(135deg, ${this.darken(this.primaryColor, 0.55)} 0%, ${this.primaryColor} 100%)`;
+    // White document header with a thick colored top stripe — no gradient.
+    return `border-top: 4px solid ${this.primaryColor}`;
   }
 
-  get rcLabelStyle(): string { return `background: ${this.primaryColor}`; }
+  get rcLabelStyle(): string {
+    // Bordered box with primary color text and border — not a solid fill.
+    return `color: ${this.primaryColor}; border: 2px solid ${this.primaryColor}`;
+  }
 
   get sectionBarStyle(): string {
     return `background: ${this.primaryColor}; border-color: ${this.primaryColor}`;

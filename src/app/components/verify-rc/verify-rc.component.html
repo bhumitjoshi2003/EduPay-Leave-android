@@ -1,0 +1,74 @@
+<div class="vrc-page">
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="vrc-card vrc-loading">
+    <div class="vrc-spinner"></div>
+    <p class="vrc-loading-text">Verifying report card…</p>
+  </div>
+
+  <!-- Result -->
+  <div *ngIf="!loading && result" class="vrc-card">
+
+    <!-- Header -->
+    <div class="vrc-header">
+      <img src="assets/logo.png" alt="Edunexify" class="vrc-logo" onerror="this.style.display='none'" />
+      <span class="vrc-brand">Edunexify</span>
+    </div>
+
+    <!-- VALID -->
+    <ng-container *ngIf="result.valid">
+      <div class="vrc-badge vrc-badge--valid">
+        <svg class="vrc-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        VERIFIED
+      </div>
+      <h1 class="vrc-title">Report Card Authenticated</h1>
+      <p class="vrc-subtitle">
+        This report card was officially published by the school and is authentic.
+      </p>
+
+      <table class="vrc-details-table">
+        <tr>
+          <td class="vrc-dt-label">School</td>
+          <td class="vrc-dt-value">{{ result.schoolName }}</td>
+        </tr>
+        <tr>
+          <td class="vrc-dt-label">Class</td>
+          <td class="vrc-dt-value">{{ result.className }}</td>
+        </tr>
+        <tr>
+          <td class="vrc-dt-label">Session</td>
+          <td class="vrc-dt-value">{{ result.session }}</td>
+        </tr>
+        <tr>
+          <td class="vrc-dt-label">Published On</td>
+          <td class="vrc-dt-value">{{ formattedDate }}</td>
+        </tr>
+        <tr *ngIf="result.publishedBy">
+          <td class="vrc-dt-label">Published By</td>
+          <td class="vrc-dt-value">{{ result.publishedBy }}</td>
+        </tr>
+      </table>
+    </ng-container>
+
+    <!-- INVALID -->
+    <ng-container *ngIf="!result.valid">
+      <div class="vrc-badge vrc-badge--invalid">
+        <svg class="vrc-x-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        UNVERIFIED
+      </div>
+      <h1 class="vrc-title">Could Not Verify</h1>
+      <p class="vrc-error-msg">{{ result.message }}</p>
+    </ng-container>
+
+    <p class="vrc-footer">
+      Verification powered by <strong>Edunexify</strong> — School Management Platform
+    </p>
+  </div>
+</div>
