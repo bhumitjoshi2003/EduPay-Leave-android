@@ -1,0 +1,180 @@
+/* ── Page ─────────────────────────────────────────────────────────── */
+.re-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 0 0 40px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.re-hero {
+  position: relative;
+  background: linear-gradient(135deg, #1a2f5e 0%, #7c3aed 60%, #a78bfa 100%);
+  border-radius: 20px;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff;
+  margin-bottom: 20px;
+}
+.re-blob { position: absolute; border-radius: 50%; opacity: 0.1; pointer-events: none; }
+.re-blob-1 { width: 150px; height: 150px; background: #fff; top: -45px; right: 80px; }
+.re-blob-2 { width: 100px; height: 100px; background: #ddd6fe; bottom: -25px; left: 38%; }
+.re-hero-left { display: flex; align-items: center; gap: 16px; position: relative; z-index: 1; }
+.re-hero-icon {
+  background: rgba(255,255,255,0.15); border-radius: 14px;
+  width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: #fff;
+}
+.re-hero-title { font-size: 1.25rem; font-weight: 800; margin: 0 0 2px; color: #fff; }
+.re-hero-sub   { font-size: 0.76rem; color: rgba(255,255,255,0.82); margin: 0; }
+
+/* ── Filters ─────────────────────────────────────────────────────── */
+.re-filters {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  margin-bottom: 14px;
+  border: 1.5px solid #ede9fe;
+}
+.re-filter-field { display: flex; flex-direction: column; gap: 5px; min-width: 140px; flex: 1; }
+.re-filter-field label { font-size: 0.78rem; font-weight: 700; color: #555; }
+.re-select {
+  padding: 8px 10px; border: 1.5px solid #d0d5dd; border-radius: 8px;
+  font-size: 0.88rem; font-family: inherit; outline: none; background: #fff;
+  transition: border 0.15s; color: #1a1a2e;
+}
+.re-select:focus { border-color: #7c3aed; }
+
+.re-btn-load {
+  background: #7c3aed; color: #fff; border: none; border-radius: 10px;
+  padding: 9px 22px; font-weight: 700; font-size: 0.9rem;
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+  transition: opacity 0.15s; align-self: flex-end;
+}
+.re-btn-load:hover:not(:disabled) { opacity: 0.88; }
+.re-btn-load:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Section badges ──────────────────────────────────────────────── */
+.re-section-info {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.re-badge {
+  font-size: 0.74rem; font-weight: 700; padding: 3px 12px;
+  border-radius: 20px; border: 1.5px solid transparent;
+}
+.re-badge-on  { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+.re-badge-off { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; }
+
+/* ── Empty ───────────────────────────────────────────────────────── */
+.re-empty {
+  text-align: center; padding: 48px 20px;
+  color: #888; font-size: 0.9rem; background: #fff;
+  border-radius: 14px; border: 1.5px dashed #d0d5dd;
+}
+.re-empty strong { color: #333; }
+
+/* ── Save bar ────────────────────────────────────────────────────── */
+.re-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 10px 0;
+}
+.re-save-bar-bottom { padding-top: 14px; }
+.re-dirty-count { font-size: 0.82rem; color: #7c3aed; font-weight: 700; }
+.re-btn-save {
+  background: #7c3aed; color: #fff; border: none; border-radius: 10px;
+  padding: 9px 24px; font-weight: 700; font-size: 0.9rem;
+  cursor: pointer; font-family: inherit; transition: opacity 0.15s;
+}
+.re-btn-save:hover:not(:disabled) { opacity: 0.88; }
+.re-btn-save:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Table ───────────────────────────────────────────────────────── */
+.re-table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  background: #fff;
+  border: 1.5px solid #ede9fe;
+}
+
+.re-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.re-table th {
+  background: #7c3aed;
+  color: #fff;
+  padding: 11px 12px;
+  font-weight: 700;
+  border-bottom: 2px solid #6d28d9;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.re-th-name   { min-width: 160px; }
+.re-th-remark { min-width: 220px; }
+.re-th-grade  { min-width: 90px; text-align: center; }
+.re-th-status { width: 30px; }
+
+.re-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ede9fe;
+  vertical-align: top;
+}
+
+.re-table tbody tr:hover td { background: #faf5ff; }
+.re-row-dirty td { background: #fdf8ff !important; border-left: 3px solid #a78bfa; }
+
+/* Student name cell */
+.re-td-name { vertical-align: middle; }
+.re-student-name { display: block; font-weight: 700; color: #1a1a2e; font-size: 0.88rem; }
+.re-student-id   { display: block; font-size: 0.72rem; color: #999; margin-top: 2px; }
+
+/* Remark cell */
+.re-textarea {
+  width: 100%; min-width: 180px; max-width: 280px;
+  padding: 7px 9px; border: 1.5px solid #e0d9f9; border-radius: 6px;
+  font-size: 0.84rem; font-family: inherit; resize: vertical;
+  outline: none; transition: border 0.15s; box-sizing: border-box;
+  color: #1a1a2e;
+}
+.re-textarea:focus { border-color: #7c3aed; }
+
+/* Grade select cell */
+.re-td-grade { text-align: center; vertical-align: middle; }
+.re-grade-select {
+  padding: 6px 4px; border: 1.5px solid #e0d9f9; border-radius: 6px;
+  font-size: 0.85rem; font-family: inherit; text-align: center;
+  outline: none; background: #faf5ff; cursor: pointer;
+  transition: border 0.15s;
+}
+.re-grade-select:focus { border-color: #7c3aed; }
+
+/* Status dot */
+.re-td-status { text-align: center; vertical-align: middle; }
+.re-dot-dirty, .re-dot-saved {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+}
+.re-dot-dirty { background: #f59e0b; }
+.re-dot-saved { background: #10b981; }
+
+/* ── Mobile ──────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .re-filters { flex-direction: column; }
+  .re-filter-field { min-width: 0; }
+  .re-btn-load { width: 100%; }
+}

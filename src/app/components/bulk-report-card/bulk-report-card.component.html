@@ -1,0 +1,202 @@
+<div class="brc-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="brc-hero">
+    <div class="brc-hero-left">
+      <div class="brc-hero-icon">
+        <mat-icon>picture_as_pdf</mat-icon>
+      </div>
+      <div>
+        <h1 class="brc-hero-title">Bulk Report Cards</h1>
+        <p class="brc-hero-sub">Download PDFs, publish & email to students</p>
+      </div>
+    </div>
+    <button class="brc-btn-back" (click)="goBack()">&#8592; Back</button>
+    <div class="brc-blob brc-blob-1"></div>
+    <div class="brc-blob brc-blob-2"></div>
+  </div>
+
+  <!-- ── Selection Card ────────────────────────────────────────────── -->
+  <div class="brc-card">
+
+    <h2 class="brc-card-title">Select Options</h2>
+    <p class="brc-card-sub">
+      Choose the class, session, and template to manage report cards for all active students.
+    </p>
+
+    <!-- Mobile warning -->
+    <div class="brc-native-warn" *ngIf="isNative">
+      <mat-icon>info_outline</mat-icon>
+      <span>Bulk PDF download requires the web version. You can still publish and email report cards from here.</span>
+    </div>
+
+    <div class="brc-form">
+
+      <!-- Class -->
+      <div class="brc-field">
+        <label class="brc-label">Class</label>
+        <div class="brc-select-wrap">
+          <select class="brc-select" [(ngModel)]="selectedClass"
+                  (ngModelChange)="onSelectionChange()"
+                  [disabled]="loadingClasses">
+            <option value="">{{ loadingClasses ? 'Loading…' : '— Select class —' }}</option>
+            <option *ngFor="let cls of classes" [value]="cls">{{ cls }}</option>
+          </select>
+          <mat-icon class="brc-select-icon">expand_more</mat-icon>
+        </div>
+      </div>
+
+      <!-- Session -->
+      <div class="brc-field">
+        <label class="brc-label">Academic Session</label>
+        <div class="brc-select-wrap">
+          <select class="brc-select" [(ngModel)]="selectedSession"
+                  (ngModelChange)="onSelectionChange()">
+            <option *ngFor="let s of sessions" [value]="s">{{ s }}</option>
+          </select>
+          <mat-icon class="brc-select-icon">expand_more</mat-icon>
+        </div>
+      </div>
+
+      <!-- Template -->
+      <div class="brc-field brc-field--full">
+        <label class="brc-label">Report Card Template</label>
+        <div class="brc-select-wrap">
+          <select class="brc-select" [(ngModel)]="selectedTemplateId"
+                  (ngModelChange)="onSelectionChange()"
+                  [disabled]="loadingTemplates">
+            <option [ngValue]="null">{{ loadingTemplates ? 'Loading…' : '— Select template —' }}</option>
+            <option *ngFor="let t of templates" [ngValue]="t.id">
+              {{ t.name }}{{ t.isDefault ? ' (Default)' : '' }}
+            </option>
+          </select>
+          <mat-icon class="brc-select-icon">expand_more</mat-icon>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Summary chips -->
+    <div class="brc-summary" *ngIf="selectedClass && selectedTemplateId && selectedSession">
+      <div class="brc-summary-chip">
+        <mat-icon>class</mat-icon>
+        <span>{{ selectedClass }}</span>
+      </div>
+      <div class="brc-summary-chip">
+        <mat-icon>calendar_today</mat-icon>
+        <span>{{ selectedSession }}</span>
+      </div>
+      <div class="brc-summary-chip">
+        <mat-icon>description</mat-icon>
+        <span>{{ selectedTemplateName }}</span>
+      </div>
+    </div>
+
+    <!-- Download button -->
+    <button
+      class="brc-btn-download"
+      [class.brc-btn--loading]="downloading"
+      [disabled]="!canDownload"
+      (click)="downloadAll()">
+      <mat-icon *ngIf="!downloading">download</mat-icon>
+      <mat-icon *ngIf="downloading" class="brc-spin">autorenew</mat-icon>
+      <span>{{ downloading ? 'Generating PDFs…' : 'Download All PDFs (ZIP)' }}</span>
+    </button>
+
+    <!-- Info -->
+    <div class="brc-info-row" *ngIf="!isNative">
+      <mat-icon>info_outline</mat-icon>
+      <span>Only <strong>active</strong> students are included. Students with missing data are skipped automatically.</span>
+    </div>
+
+  </div>
+
+  <!-- ── Publication Card (admin + teacher, when selections made) ───── -->
+  <div class="brc-card brc-pub-card"
+       *ngIf="selectedClass && selectedTemplateId && selectedSession">
+
+    <h2 class="brc-card-title">Publication & Access</h2>
+    <p class="brc-card-sub">
+      Control whether students can view their report cards online.
+    </p>
+
+    <!-- Status row -->
+    <div class="brc-pub-status-row">
+      <div *ngIf="loadingPubStatus" class="brc-pub-checking">
+        <mat-icon class="brc-spin">autorenew</mat-icon>
+        <span>Checking status…</span>
+      </div>
+
+      <ng-container *ngIf="!loadingPubStatus && publication !== null">
+
+        <!-- Published badge -->
+        <div class="brc-pub-badge" [class.brc-pub-badge--on]="publication.published"
+                                    [class.brc-pub-badge--off]="!publication.published">
+          <mat-icon>{{ publication.published ? 'lock_open' : 'lock' }}</mat-icon>
+          <span>{{ publication.published ? 'Published' : 'Not Published' }}</span>
+        </div>
+
+        <ng-container *ngIf="publication.published">
+          <div class="brc-pub-meta">
+            <span *ngIf="publication.publishedBy">
+              <mat-icon>person</mat-icon> {{ publication.publishedBy }}
+            </span>
+            <span *ngIf="publication.publishedAt">
+              <mat-icon>schedule</mat-icon> {{ publication.publishedAt | date:'d MMM y, h:mm a' }}
+            </span>
+          </div>
+        </ng-container>
+
+      </ng-container>
+    </div>
+
+    <!-- Admin actions -->
+    <div class="brc-pub-actions" *ngIf="isAdmin && !loadingPubStatus">
+
+      <!-- Publish / Unpublish -->
+      <button
+        class="brc-btn-publish"
+        [class.brc-btn-publish--active]="publication?.published"
+        [disabled]="publishing || !selectedClass"
+        (click)="togglePublish()">
+        <mat-icon *ngIf="!publishing">{{ publication?.published ? 'visibility_off' : 'visibility' }}</mat-icon>
+        <mat-icon *ngIf="publishing" class="brc-spin">autorenew</mat-icon>
+        <span>
+          {{ publishing ? 'Processing…' : (publication?.published ? 'Unpublish' : 'Publish for Students') }}
+        </span>
+      </button>
+
+      <!-- Email blast (only when published) -->
+      <button
+        class="brc-btn-email"
+        *ngIf="publication?.published"
+        [disabled]="sendingEmails || isNative"
+        (click)="sendEmailBlast()">
+        <mat-icon *ngIf="!sendingEmails">email</mat-icon>
+        <mat-icon *ngIf="sendingEmails" class="brc-spin">autorenew</mat-icon>
+        <span>{{ sendingEmails ? 'Sending…' : 'Email PDFs to Students' }}</span>
+        <span *ngIf="publication?.emailCount && publication!.emailCount! > 0"
+              class="brc-email-badge">{{ publication?.emailCount }} sent</span>
+      </button>
+
+    </div>
+
+    <!-- Email sent info -->
+    <div class="brc-pub-email-info"
+         *ngIf="!loadingPubStatus && publication?.published && publication?.emailSentAt">
+      <mat-icon>mark_email_read</mat-icon>
+      <span>
+        Last emailed: <strong>{{ publication?.emailSentAt | date:'d MMM y, h:mm a' }}</strong>
+        &nbsp;·&nbsp; {{ publication?.emailCount }} email(s) sent
+      </span>
+    </div>
+
+    <!-- Mobile email warning -->
+    <div class="brc-native-warn" *ngIf="isAdmin && isNative && publication?.published">
+      <mat-icon>info_outline</mat-icon>
+      <span>Email distribution requires the web version.</span>
+    </div>
+
+  </div>
+
+</div>

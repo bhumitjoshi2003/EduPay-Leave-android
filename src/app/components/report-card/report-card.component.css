@@ -12,8 +12,7 @@
   position: relative;
   background: linear-gradient(135deg, #0f4c81 0%, #1565c0 55%, #1e88e5 100%);
   border-radius: 20px;
-  padding: 20px;
-  margin: 0 0 16px;
+  padding: 22px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -21,6 +20,7 @@
   overflow: hidden;
   color: #fff;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 .rc-blob {
   position: absolute;
@@ -30,12 +30,12 @@
 }
 .rc-blob-1 { width: 130px; height: 130px; background: #fff; top: -35px; right: 100px; }
 .rc-blob-2 { width: 80px; height: 80px; background: #bbdefb; bottom: -20px; left: 40%; }
-.rc-hero-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.rc-hero-left { display: flex; align-items: center; gap: 16px; position: relative; z-index: 1; }
 .rc-hero-icon {
   font-size: 1.6rem;
   background: rgba(255,255,255,0.16);
   border-radius: 14px;
-  width: 48px; height: 48px;
+  width: 52px; height: 52px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -43,7 +43,7 @@
 .rc-hero-sub   { font-size: 0.76rem; color: rgba(255,255,255,0.82); margin: 0; }
 .rc-hero-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   position: relative;
   z-index: 1;
   flex-wrap: wrap;
@@ -51,7 +51,13 @@
 
 /* ── Toolbar ─────────────────────────────────────────────────────── */
 .rc-toolbar {
-  display: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 860px;
+  margin: 0 auto 20px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .rc-btn-back {
@@ -59,10 +65,10 @@
   border: 1.5px solid rgba(255,255,255,0.35);
   color: #fff;
   border-radius: 8px;
-  padding: 7px 14px;
+  padding: 8px 18px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-family: inherit;
   transition: background 0.15s;
 }
@@ -73,14 +79,29 @@
   color: #1565c0;
   border: none;
   border-radius: 8px;
-  padding: 7px 14px;
+  padding: 8px 18px;
   font-weight: 700;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-family: inherit;
   transition: opacity 0.15s;
 }
 .rc-btn-print:hover { opacity: 0.88; }
+
+.rc-btn-pdf {
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+.rc-btn-pdf:hover:not(:disabled) { opacity: 0.88; }
+.rc-btn-pdf:disabled { opacity: 0.55; cursor: default; }
 
 /* ── Loading / Empty ─────────────────────────────────────────────── */
 .rc-loading, .rc-empty {
@@ -103,16 +124,22 @@
 
 /* ── School Header ───────────────────────────────────────────────── */
 .rc-school-header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  border-radius: 10px 10px 0 0;
   margin-bottom: 24px;
 }
 
 .rc-header-img {
-  width: 100%;
-  max-width: 780px;
-  height: auto;
+  height: 38px;
+  width: auto;
   display: block;
-  margin: 0 auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.92;
 }
 
 /* ── Card Title row ──────────────────────────────────────────────── */
@@ -350,6 +377,152 @@
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   NEW TEMPLATE-BASED MODE STYLES
+   ══════════════════════════════════════════════════════════════════ */
+
+/* School Header (template mode) */
+.rc-school-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  border-radius: 10px 10px 0 0;
+  margin-bottom: 0;
+  flex-wrap: wrap;
+}
+.rc-school-logo { height: 52px; width: auto; border-radius: 6px; background: #fff; padding: 2px; }
+.rc-school-info { flex: 1; color: #fff; }
+.rc-school-name { margin: 0 0 4px; font-size: 1.1rem; font-weight: 800; color: #fff; }
+.rc-school-detail { margin: 1px 0; font-size: 0.78rem; color: rgba(255,255,255,0.78); }
+.rc-report-label-block { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.rc-report-label { font-size: 1rem; font-weight: 900; color: #fff; letter-spacing: 2px; text-transform: uppercase; }
+
+/* Generic section wrapper */
+.rc-section { padding: 20px 0; border-bottom: 1px solid #e8f0f5; }
+.rc-section:last-of-type { border-bottom: none; }
+.rc-section-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #1f6f8b;
+  background: #e8f4f8;
+  border-left: 4px solid #4fbdbd;
+  padding: 6px 12px;
+  margin: 0 0 14px;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Student info grid (template mode) */
+.rc-student-info {
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+  border: 1px solid #d0eaf0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+.rc-student-photo-block { display: flex; align-items: center; padding: 12px 16px; }
+.rc-student-photo { width: 70px; height: 90px; object-fit: cover; border-radius: 6px; border: 2px solid #d0eaf0; }
+.rc-student-fields { display: flex; flex-wrap: wrap; flex: 1; }
+
+/* Marks table scroll container */
+.rc-table-scroll { overflow-x: auto; }
+.rc-th-wt { font-weight: 400; opacity: 0.85; font-size: 0.72rem; }
+
+/* Grade chips (small variant inside table cells) */
+.rc-grade-chip-sm {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  margin-left: 4px;
+}
+.rc-cell-absent td, .rc-cell-absent { background: #fafafa; color: #ccc; }
+
+/* Assessment summary */
+.rc-assessment-summary {}
+.rc-summary-score {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.rc-summary-pct { font-size: 2rem; font-weight: 900; color: #1f6f8b; }
+.rc-summary-grade {
+  font-size: 1.2rem;
+  font-weight: 800;
+  padding: 4px 16px;
+  border-radius: 20px;
+}
+.rc-summary-rank { font-size: 0.88rem; font-weight: 700; color: #666; }
+.rc-breakdown-list { display: flex; flex-direction: column; gap: 4px; }
+.rc-breakdown-row {
+  display: flex; gap: 12px; align-items: center;
+  padding: 6px 10px; background: #f8fdfd; border-radius: 4px;
+  border-left: 3px solid #4fbdbd; font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+.rc-bd-name { font-weight: 700; color: #1f6f8b; min-width: 120px; }
+.rc-bd-detail { color: #555; }
+
+/* Attendance */
+.rc-attendance-grid { display: flex; gap: 0; border: 1px solid #d0eaf0; border-radius: 8px; overflow: hidden; }
+.rc-att-block {
+  flex: 1; text-align: center; padding: 16px 12px;
+  border-right: 1px solid #d0eaf0;
+}
+.rc-att-block:last-child { border-right: none; }
+.rc-att-value { display: block; font-size: 1.8rem; font-weight: 900; color: #1f6f8b; }
+.rc-att-label { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+                letter-spacing: 0.5px; color: #4fbdbd; margin-top: 4px; }
+
+/* Co-Scholastic */
+.rc-co-table { font-size: 0.88rem; }
+.rc-grade-box { display: inline-block; width: 20px; height: 20px; border: 1.5px solid #ccc; border-radius: 3px; }
+.rc-remark-line { letter-spacing: 2px; color: #bbb; }
+
+/* Remarks sections */
+.rc-remarks-section {}
+.rc-remark-field {
+  font-size: 0.82rem; color: #bbb; letter-spacing: 3px;
+  padding: 10px 0; border-bottom: 1px solid #ddd; margin-bottom: 24px;
+}
+.rc-remark-sign { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.rc-sign-line { display: inline-block; width: 200px; height: 1px; background: #333; }
+.rc-sign-label { font-size: 0.78rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Promotion status */
+/* Remarks filled text */
+.rc-remark-text {
+  font-size: 0.92rem; color: #222; padding: 10px 14px;
+  background: #f8fdfd; border: 1px solid #d0eaf0; border-radius: 6px;
+  margin-bottom: 20px; line-height: 1.6; font-style: italic;
+}
+
+/* Co-scholastic grade chip */
+.rc-grade-co {
+  background: #ede9fe; color: #4338ca; font-size: 0.85rem; font-weight: 800;
+}
+
+.rc-promotion-section { text-align: center; }
+.rc-promotion-badge {
+  display: inline-block;
+  font-size: 1.5rem;
+  font-weight: 900;
+  padding: 12px 48px;
+  border-radius: 40px;
+  letter-spacing: 4px;
+  margin-top: 8px;
+}
+.rc-promo-pass { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+.rc-promo-fail { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .rc-page { padding: 0 0 32px; }
@@ -384,4 +557,56 @@
 
   .rc-signatures { gap: 16px; flex-wrap: wrap; justify-content: center; }
   .rc-sign-line  { width: 130px; }
+}
+
+/* ── Phase 5: CGPA + Grade Points ───────────────────────────────── */
+.rc-summary-cgpa {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e0f2fe;
+  color: #075985;
+  border: 1px solid #bae6fd;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.rc-summary-cgpa strong {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.rc-gp-cell {
+  color: #075985;
+  font-weight: 700;
+  background: #f0f9ff;
+}
+
+/* ── Not-published / locked state ────────────────────────────────── */
+.rc-locked {
+  max-width: 520px;
+  margin: 48px auto;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 48px 40px;
+  text-align: center;
+}
+.rc-locked-icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+  filter: grayscale(0.2);
+}
+.rc-locked-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 12px;
+}
+.rc-locked-msg {
+  font-size: 0.92rem;
+  color: #64748b;
+  line-height: 1.7;
+  margin: 0;
 }

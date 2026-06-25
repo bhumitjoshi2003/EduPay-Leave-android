@@ -1,0 +1,218 @@
+<div class="co-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────────── -->
+  <div class="co-hero">
+    <div class="co-hero-left">
+      <div class="co-hero-icon"><mat-icon>bar_chart</mat-icon></div>
+      <div>
+        <h1 class="co-hero-title">Class Performance Overview</h1>
+        <p class="co-hero-sub">Grade distribution, rankings, and pass/fail at a glance</p>
+      </div>
+    </div>
+    <button class="co-btn-back" (click)="goBack()">&#8592; Back</button>
+    <div class="co-blob co-blob-1"></div>
+    <div class="co-blob co-blob-2"></div>
+  </div>
+
+  <!-- ── Filter card ────────────────────────────────────────────────────── -->
+  <div class="co-card">
+    <div class="co-filter-row">
+
+      <!-- Class -->
+      <div class="co-field">
+        <label class="co-label">Class</label>
+        <div class="co-sel-wrap">
+          <select class="co-select" [(ngModel)]="selectedClass" [disabled]="loadingClasses">
+            <option value="">{{ loadingClasses ? 'Loading…' : '— Select class —' }}</option>
+            <option *ngFor="let c of classes" [value]="c">{{ c }}</option>
+          </select>
+          <mat-icon class="co-sel-icon">expand_more</mat-icon>
+        </div>
+      </div>
+
+      <!-- Session -->
+      <div class="co-field">
+        <label class="co-label">Session</label>
+        <div class="co-sel-wrap">
+          <select class="co-select" [(ngModel)]="selectedSession">
+            <option *ngFor="let s of sessions" [value]="s">{{ s }}</option>
+          </select>
+          <mat-icon class="co-sel-icon">expand_more</mat-icon>
+        </div>
+      </div>
+
+      <!-- Template -->
+      <div class="co-field">
+        <label class="co-label">Template</label>
+        <div class="co-sel-wrap">
+          <select class="co-select" [(ngModel)]="selectedTemplateId" [disabled]="loadingTemplates">
+            <option [ngValue]="null">{{ loadingTemplates ? 'Loading…' : '— Select template —' }}</option>
+            <option *ngFor="let t of templates" [ngValue]="t.id">
+              {{ t.name }}{{ t.isDefault ? ' ✓' : '' }}
+            </option>
+          </select>
+          <mat-icon class="co-sel-icon">expand_more</mat-icon>
+        </div>
+      </div>
+
+      <!-- Load button -->
+      <button class="co-btn-load" [disabled]="!canLoad || loading" (click)="load()">
+        <mat-icon *ngIf="!loading">search</mat-icon>
+        <mat-icon *ngIf="loading" class="co-spin">autorenew</mat-icon>
+        {{ loading ? 'Loading…' : 'Load Overview' }}
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ── Results ─────────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="overview">
+
+    <!-- ── Stat cards ──────────────────────────────────────────────────── -->
+    <div class="co-stats-row">
+
+      <div class="co-stat-card co-stat--total">
+        <div class="co-stat-value">{{ overview.totalStudents }}</div>
+        <div class="co-stat-label">Total Students</div>
+      </div>
+
+      <div class="co-stat-card co-stat--pass">
+        <div class="co-stat-value">{{ overview.passCount }}</div>
+        <div class="co-stat-label">Passed &nbsp;<span class="co-stat-pct">({{ passRate }}%)</span></div>
+      </div>
+
+      <div class="co-stat-card co-stat--fail">
+        <div class="co-stat-value">{{ overview.failCount }}</div>
+        <div class="co-stat-label">Need Improvement</div>
+      </div>
+
+      <div class="co-stat-card co-stat--avg">
+        <div class="co-stat-value">{{ overview.classAverage | number:'1.1-1' }}%</div>
+        <div class="co-stat-label">Class Average</div>
+      </div>
+
+    </div>
+
+    <!-- ── Grade distribution ──────────────────────────────────────────── -->
+    <div class="co-card co-grade-dist" *ngIf="gradeEntries.length > 0">
+      <h3 class="co-section-title">
+        <mat-icon>donut_large</mat-icon>
+        Grade Distribution
+      </h3>
+      <div class="co-grade-pills">
+        <div class="co-grade-pill"
+             *ngFor="let g of gradeEntries; trackBy: trackByGrade"
+             [style.background]="gradeBg(g.grade)"
+             [style.color]="gradeColor(g.grade)">
+          <span class="co-grade-pill-label">{{ g.grade }}</span>
+          <span class="co-grade-pill-count">{{ g.count }}</span>
+        </div>
+      </div>
+      <!-- Visual bar per grade -->
+      <div class="co-grade-bars">
+        <div class="co-grade-bar-row"
+             *ngFor="let g of gradeEntries; trackBy: trackByGrade">
+          <span class="co-grade-bar-label" [style.color]="gradeColor(g.grade)">{{ g.grade }}</span>
+          <div class="co-grade-bar-track">
+            <div class="co-grade-bar-fill"
+                 [style.width.%]="overview.totalStudents > 0 ? (g.count / overview.totalStudents * 100) : 0"
+                 [style.background]="gradeColor(g.grade)">
+            </div>
+          </div>
+          <span class="co-grade-bar-count">{{ g.count }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── No data message ────────────────────────────────────────────── -->
+    <div class="co-card co-empty" *ngIf="overview.totalStudents === 0 || gradeEntries.length === 0">
+      <mat-icon>info_outline</mat-icon>
+      <p>No results found for <strong>{{ overview.className }}</strong> — <strong>{{ overview.session }}</strong>.
+        Marks may not have been computed yet.</p>
+    </div>
+
+    <!-- ── Students table ─────────────────────────────────────────────── -->
+    <div class="co-card co-table-card" *ngIf="overview.totalStudents > 0">
+      <h3 class="co-section-title">
+        <mat-icon>people</mat-icon>
+        Student Rankings — {{ overview.className }}
+        <span class="co-section-sub">{{ overview.session }}</span>
+      </h3>
+
+      <div class="co-table-wrap">
+        <table class="co-table">
+          <thead>
+            <tr>
+              <th class="co-th co-th-sort" (click)="setSort('rank')">
+                Rank <mat-icon class="co-sort-icon">{{ sortIcon('rank') }}</mat-icon>
+              </th>
+              <th class="co-th co-th-sort" (click)="setSort('name')">
+                Student <mat-icon class="co-sort-icon">{{ sortIcon('name') }}</mat-icon>
+              </th>
+              <th class="co-th co-th-sort co-th-num" (click)="setSort('percentage')">
+                Score % <mat-icon class="co-sort-icon">{{ sortIcon('percentage') }}</mat-icon>
+              </th>
+              <th class="co-th co-th-sort co-th-num" (click)="setSort('grade')">
+                Grade <mat-icon class="co-sort-icon">{{ sortIcon('grade') }}</mat-icon>
+              </th>
+              <th class="co-th co-th-num">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of sortedStudents; trackBy: trackByStudentId"
+                [class]="rowClass(s)">
+
+              <!-- Rank -->
+              <td class="co-td co-td-rank">
+                <span *ngIf="s.rank === 1" class="co-medal co-medal--1">🥇</span>
+                <span *ngIf="s.rank === 2" class="co-medal co-medal--2">🥈</span>
+                <span *ngIf="s.rank === 3" class="co-medal co-medal--3">🥉</span>
+                <span *ngIf="s.rank > 3">{{ s.rank }}</span>
+                <span *ngIf="s.rank === 0" class="co-no-result">—</span>
+              </td>
+
+              <!-- Name -->
+              <td class="co-td co-td-name">{{ s.studentName }}</td>
+
+              <!-- Percentage bar -->
+              <td class="co-td co-td-num">
+                <div class="co-pct-wrap" *ngIf="s.rank > 0; else noPct">
+                  <div class="co-pct-bar"
+                       [style.width.%]="s.percentage"
+                       [class.co-pct-bar--pass]="s.passed"
+                       [class.co-pct-bar--fail]="!s.passed">
+                  </div>
+                  <span class="co-pct-label">{{ s.percentage | number:'1.1-1' }}%</span>
+                </div>
+                <ng-template #noPct><span class="co-no-result">No data</span></ng-template>
+              </td>
+
+              <!-- Grade chip -->
+              <td class="co-td co-td-num">
+                <span *ngIf="s.grade !== '—'" class="co-grade-chip"
+                      [style.background]="gradeBg(s.grade)"
+                      [style.color]="gradeColor(s.grade)">
+                  {{ s.grade }}
+                </span>
+                <span *ngIf="s.grade === '—'" class="co-no-result">—</span>
+              </td>
+
+              <!-- Status -->
+              <td class="co-td co-td-num">
+                <span *ngIf="s.rank > 0" class="co-status-badge"
+                      [class.co-status--pass]="s.passed"
+                      [class.co-status--fail]="!s.passed">
+                  {{ s.passed ? 'Pass' : 'Fail' }}
+                </span>
+                <span *ngIf="s.rank === 0" class="co-no-result">—</span>
+              </td>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

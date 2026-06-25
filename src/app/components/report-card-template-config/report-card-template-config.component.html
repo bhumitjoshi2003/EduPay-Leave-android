@@ -1,0 +1,269 @@
+<div class="rct-page">
+
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <div class="rct-hero">
+    <div class="rct-hero-left">
+      <div class="rct-hero-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3"/>
+          <path d="M3 9h18M9 21V9"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="rct-hero-title">Report Card Templates</h1>
+        <p class="rct-hero-sub">Configure sections and layout for student report cards</p>
+      </div>
+    </div>
+    <button class="rct-btn-add" (click)="openCreate()" [disabled]="showForm">
+      + New Template
+    </button>
+    <div class="rct-blob rct-blob-1"></div>
+    <div class="rct-blob rct-blob-2"></div>
+  </div>
+
+  <!-- ── Create / Edit Form ────────────────────────────────────────── -->
+  <div *ngIf="showForm" class="rct-form-panel">
+    <h2 class="rct-form-title">{{ editingId ? 'Edit Template' : 'New Template' }}</h2>
+
+    <div class="rct-form-grid">
+      <!-- Name -->
+      <div class="rct-field rct-field-full">
+        <label>Template Name <span class="rct-req">*</span></label>
+        <input [(ngModel)]="form.name" placeholder="e.g. Annual Report Card 2024-25"
+               class="rct-input" maxlength="150" />
+      </div>
+
+      <!-- Description -->
+      <div class="rct-field rct-field-full">
+        <label>Description</label>
+        <input [(ngModel)]="form.description" placeholder="Optional description"
+               class="rct-input" maxlength="500" />
+      </div>
+
+      <!-- Session (for filtering groups) -->
+      <div class="rct-field">
+        <label>Session (for group list)</label>
+        <select [(ngModel)]="selectedSession" class="rct-select" (ngModelChange)="loadGroups()">
+          <option *ngFor="let s of sessions" [value]="s.label">{{ s.label }}</option>
+        </select>
+      </div>
+
+      <!-- Assessment Group -->
+      <div class="rct-field">
+        <label>Assessment Group <span class="rct-req">*</span></label>
+        <select [(ngModel)]="form.assessmentGroupId" class="rct-select">
+          <option [value]="0" disabled>Select group…</option>
+          <option *ngFor="let g of assessmentGroups" [value]="g.id">{{ g.name }}</option>
+        </select>
+      </div>
+
+      <!-- Grading Override -->
+      <div class="rct-field">
+        <label>Grading System</label>
+        <select [(ngModel)]="form.gradingOverride" class="rct-select">
+          <option *ngFor="let opt of gradingOptions" [value]="opt">{{ gradingLabels[opt] }}</option>
+        </select>
+      </div>
+
+      <!-- Default flag -->
+      <div class="rct-field rct-field-check">
+        <label class="rct-checkbox-label">
+          <input type="checkbox" [(ngModel)]="form.isDefault" class="rct-checkbox" />
+          Set as default template
+        </label>
+        <small class="rct-hint">Default template is pre-selected when generating report cards.</small>
+      </div>
+    </div>
+
+    <div class="rct-form-actions">
+      <button class="rct-btn-cancel" (click)="cancelForm()">Cancel</button>
+      <button class="rct-btn-save" (click)="saveTemplate()" [disabled]="saving">
+        {{ saving ? 'Saving…' : (editingId ? 'Update Template' : 'Create Template') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Loading ──────────────────────────────────────────────────── -->
+  <div *ngIf="loading" class="rct-empty">Loading templates…</div>
+
+  <!-- ── Empty state ──────────────────────────────────────────────── -->
+  <div *ngIf="!loading && templates.length === 0 && !showForm" class="rct-empty">
+    <div class="rct-empty-icon">📄</div>
+    <p>No report card templates yet.</p>
+    <button class="rct-btn-add" (click)="openCreate()">+ Create First Template</button>
+  </div>
+
+  <!-- ── Template Cards ────────────────────────────────────────────── -->
+  <div *ngIf="!loading && templates.length > 0" class="rct-list">
+    <div *ngFor="let t of templates; trackBy: trackById" class="rct-card">
+
+      <div class="rct-card-header">
+        <div class="rct-card-title-row">
+          <h3 class="rct-card-name">{{ t.name }}</h3>
+          <span *ngIf="t.isDefault" class="rct-badge-default">Default</span>
+        </div>
+        <p *ngIf="t.description" class="rct-card-desc">{{ t.description }}</p>
+        <div class="rct-card-meta">
+          <span class="rct-meta-item">Group: <strong>{{ t.assessmentGroupName }}</strong></span>
+          <span class="rct-meta-item" *ngIf="t.gradingOverride">Grading: <strong>{{ t.gradingOverride }}</strong></span>
+          <span class="rct-meta-item">Sections: <strong>{{ t.sections.length }}</strong></span>
+          <span class="rct-meta-item rct-meta-enabled">
+            Enabled: <strong>{{ countEnabled(t) }}</strong>
+          </span>
+        </div>
+      </div>
+
+      <!-- Section chips preview -->
+      <div class="rct-section-chips">
+        <span *ngFor="let s of t.sections"
+              class="rct-chip"
+              [class.rct-chip-disabled]="!s.enabled"
+              [title]="s.sectionType">
+          {{ sectionLabel(s.sectionType) }}
+        </span>
+      </div>
+
+      <!-- Branding swatch -->
+      <div class="rct-branding-swatch" *ngIf="t.brandingJson"
+           [attr.style]="brandingPreviewStyle(parseBrandingJson(t.brandingJson))"
+           title="Custom branding applied"></div>
+
+      <div class="rct-card-actions">
+        <button class="rct-btn-sections" (click)="openSectionEditor(t)">
+          ⚙ Sections
+        </button>
+        <button class="rct-btn-branding" (click)="openBrandingEditor(t)">
+          🎨 Branding
+        </button>
+        <button class="rct-btn-edit" (click)="openEdit(t)">Edit</button>
+        <button class="rct-btn-delete" (click)="deleteTemplate(t)" [disabled]="t.isDefault">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Branding Editor Modal ────────────────────────────────────── -->
+  <div *ngIf="editingBrandingFor" class="rct-overlay">
+    <div class="rct-modal rct-modal--branding">
+      <div class="rct-modal-header">
+        <h2 class="rct-modal-title">🎨 Branding — {{ editingBrandingFor.name }}</h2>
+        <button class="rct-modal-close" (click)="closeBrandingEditor()">✕</button>
+      </div>
+
+      <div class="rct-branding-grid">
+
+        <!-- Primary colour -->
+        <div class="rct-brand-field">
+          <label class="rct-brand-label">Primary Colour</label>
+          <div class="rct-color-row">
+            <input type="color" [(ngModel)]="brandingForm.primaryColor" class="rct-color-swatch" />
+            <input type="text" [(ngModel)]="brandingForm.primaryColor"
+                   class="rct-color-text" placeholder="#1565c0" maxlength="7" />
+          </div>
+          <small class="rct-brand-hint">Used for header bars, table headers, and accent cells.</small>
+        </div>
+
+        <!-- CGPA -->
+        <div class="rct-brand-field">
+          <label class="rct-brand-label">CBSE Features</label>
+          <label class="rct-toggle-row">
+            <input type="checkbox" [(ngModel)]="brandingForm.showCgpa" class="rct-checkbox" />
+            <span>Show CGPA in Assessment Summary</span>
+          </label>
+          <label class="rct-toggle-row">
+            <input type="checkbox" [(ngModel)]="brandingForm.showGradePoints" class="rct-checkbox" />
+            <span>Show Grade Points (GP) column in Marks Table</span>
+          </label>
+        </div>
+
+        <!-- Watermark -->
+        <div class="rct-brand-field">
+          <label class="rct-brand-label">Watermark</label>
+          <label class="rct-toggle-row">
+            <input type="checkbox" [(ngModel)]="brandingForm.showWatermark" class="rct-checkbox" />
+            <span>Show diagonal watermark on PDF</span>
+          </label>
+          <input *ngIf="brandingForm.showWatermark"
+                 type="text" [(ngModel)]="brandingForm.watermarkText"
+                 class="rct-input rct-input-sm"
+                 placeholder="Watermark text (blank = school name)" maxlength="30" />
+        </div>
+
+        <!-- Footer text -->
+        <div class="rct-brand-field rct-brand-field--full">
+          <label class="rct-brand-label">Signatures Footer Text</label>
+          <input type="text" [(ngModel)]="brandingForm.footerText"
+                 class="rct-input"
+                 placeholder="e.g. This is a computer-generated report card." maxlength="200" />
+          <small class="rct-brand-hint">Shown above the signature lines. Leave blank for default layout.</small>
+        </div>
+
+      </div>
+
+      <!-- Live preview bar -->
+      <div class="rct-brand-preview">
+        <div class="rct-brand-preview-bar"
+             [attr.style]="brandingPreviewStyle(brandingForm)">
+          <span>REPORT CARD PREVIEW</span>
+        </div>
+        <div class="rct-brand-preview-tags">
+          <span class="rct-tag" *ngIf="brandingForm.showCgpa">CGPA</span>
+          <span class="rct-tag" *ngIf="brandingForm.showGradePoints">Grade Points</span>
+          <span class="rct-tag" *ngIf="brandingForm.showWatermark">Watermark</span>
+          <span class="rct-tag" *ngIf="brandingForm.footerText">Custom Footer</span>
+        </div>
+      </div>
+
+      <div class="rct-modal-actions">
+        <button class="rct-btn-cancel" (click)="closeBrandingEditor()">Cancel</button>
+        <button class="rct-btn-save" (click)="saveBranding()" [disabled]="savingBranding">
+          {{ savingBranding ? 'Saving…' : 'Save Branding' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section Editor Modal ──────────────────────────────────────── -->
+  <div *ngIf="editingSectionsFor" class="rct-overlay">
+    <div class="rct-modal">
+      <div class="rct-modal-header">
+        <h2 class="rct-modal-title">Sections — {{ editingSectionsFor.name }}</h2>
+        <button class="rct-modal-close" (click)="closeSectionEditor()">✕</button>
+      </div>
+      <p class="rct-modal-hint">Toggle sections on/off and drag to reorder. Use arrows to change display order.</p>
+
+      <div class="rct-section-list">
+        <div *ngFor="let row of sectionRows; let i = index; trackBy: trackByType"
+             class="rct-section-row"
+             [class.rct-section-disabled]="!row.enabled">
+
+          <div class="rct-section-order-btns">
+            <button class="rct-order-btn" (click)="moveSectionUp(i)" [disabled]="i === 0">▲</button>
+            <button class="rct-order-btn" (click)="moveSectionDown(i)" [disabled]="i === sectionRows.length - 1">▼</button>
+          </div>
+
+          <label class="rct-section-toggle">
+            <input type="checkbox" [(ngModel)]="row.enabled" class="rct-checkbox" />
+          </label>
+
+          <div class="rct-section-info">
+            <span class="rct-section-name">{{ row.label }}</span>
+            <span class="rct-section-desc">{{ row.description }}</span>
+          </div>
+
+          <span class="rct-section-badge">{{ row.sectionType }}</span>
+        </div>
+      </div>
+
+      <div class="rct-modal-actions">
+        <button class="rct-btn-cancel" (click)="closeSectionEditor()">Cancel</button>
+        <button class="rct-btn-save" (click)="saveSections()" [disabled]="savingSections">
+          {{ savingSections ? 'Saving…' : 'Save Sections' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

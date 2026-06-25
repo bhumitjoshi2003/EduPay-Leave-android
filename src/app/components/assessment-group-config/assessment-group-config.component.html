@@ -1,0 +1,269 @@
+<div class="ag-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="ag-hero">
+    <div class="ag-blob ag-blob-1"></div>
+    <div class="ag-blob ag-blob-2"></div>
+    <div class="ag-hero-left">
+      <button class="ag-back-btn" (click)="goBack()" title="Back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <div class="ag-hero-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="ag-hero-title">Assessment Groups</h1>
+        <p class="ag-hero-sub">Configure exam groupings &amp; weightage for flexible report cards</p>
+      </div>
+    </div>
+    <button class="ag-new-btn" (click)="openForm(null)">+ New Group</button>
+  </div>
+
+  <!-- ── Filters ───────────────────────────────────────────────────── -->
+  <div class="ag-card ag-filters-card">
+    <div class="ag-filter-row">
+      <div class="ag-filter-field">
+        <label class="ag-filter-label">Session</label>
+        <select class="ag-select" [(ngModel)]="selectedSession" (change)="onFilterChange()">
+          <option value="">Select session</option>
+          <option *ngFor="let s of sessions" [value]="s.label">{{ s.label }}</option>
+        </select>
+      </div>
+      <div class="ag-filter-field">
+        <label class="ag-filter-label">Class</label>
+        <select class="ag-select" [(ngModel)]="selectedClass" (change)="onFilterChange()">
+          <option value="">Select class</option>
+          <option *ngFor="let c of classes" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────────────── -->
+  <div class="ag-loading" *ngIf="loading">
+    <div class="ag-spinner"></div>
+    <span>Loading groups…</span>
+  </div>
+
+  <!-- ── Empty ─────────────────────────────────────────────────────── -->
+  <div class="ag-empty" *ngIf="!loading && selectedSession && selectedClass && groups.length === 0">
+    <div class="ag-empty-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+    </div>
+    <p class="ag-empty-title">No assessment groups yet</p>
+    <p class="ag-empty-sub">Create your first group to define exam weightage for this class.</p>
+    <button class="ag-empty-btn" (click)="openForm(null)">+ Create First Group</button>
+  </div>
+
+  <!-- ── No filter selected ────────────────────────────────────────── -->
+  <div class="ag-empty" *ngIf="!loading && (!selectedSession || !selectedClass)">
+    <div class="ag-empty-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      </svg>
+    </div>
+    <p class="ag-empty-title">Select session &amp; class</p>
+    <p class="ag-empty-sub">Choose a session and class above to view or create assessment groups.</p>
+  </div>
+
+  <!-- ── Groups list ───────────────────────────────────────────────── -->
+  <div class="ag-groups-list" *ngIf="!loading && groups.length > 0">
+    <div class="ag-group-card" *ngFor="let group of groups">
+      <div class="ag-group-header">
+        <div class="ag-group-header-left">
+          <span class="ag-type-badge" [class.ag-type-exam]="group.groupType === 'EXAM_BASED'"
+                [class.ag-type-group]="group.groupType === 'GROUP_BASED'">
+            {{ group.groupType === 'EXAM_BASED' ? 'Exam Based' : 'Group Based' }}
+          </span>
+          <span class="ag-group-name">{{ group.name }}</span>
+          <span class="ag-group-display" *ngIf="group.displayName">({{ group.displayName }})</span>
+        </div>
+        <div class="ag-group-actions">
+          <button class="ag-btn-edit" (click)="openForm(group)" title="Edit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Edit
+          </button>
+          <button class="ag-btn-delete" (click)="confirmDelete(group)" title="Delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6"/><path d="M14 11v6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- EXAM_BASED mappings -->
+      <div class="ag-mappings" *ngIf="group.groupType === 'EXAM_BASED' && group.examMappings">
+        <div class="ag-mapping-row" *ngFor="let m of group.examMappings">
+          <span class="ag-mapping-exam">{{ m.examName }}</span>
+          <div class="ag-weight-bar-wrap">
+            <div class="ag-weight-bar" [style.width.%]="m.weightage * 100"></div>
+          </div>
+          <span class="ag-mapping-pct">{{ (m.weightage * 100) | number:'1.0-0' }}%</span>
+        </div>
+        <div class="ag-weight-total" [class.ag-weight-ok]="getExamWeightTotal(group) === 100"
+             [class.ag-weight-err]="getExamWeightTotal(group) !== 100">
+          Total: {{ getExamWeightTotal(group) | number:'1.0-0' }}%
+        </div>
+      </div>
+
+      <!-- GROUP_BASED compositions -->
+      <div class="ag-mappings" *ngIf="group.groupType === 'GROUP_BASED' && group.compositions">
+        <div class="ag-mapping-row" *ngFor="let c of group.compositions">
+          <span class="ag-mapping-exam">{{ c.childGroupName }}</span>
+          <div class="ag-weight-bar-wrap">
+            <div class="ag-weight-bar ag-weight-bar--group" [style.width.%]="c.weightage * 100"></div>
+          </div>
+          <span class="ag-mapping-pct">{{ (c.weightage * 100) | number:'1.0-0' }}%</span>
+        </div>
+        <div class="ag-weight-total" [class.ag-weight-ok]="getGroupWeightTotal(group) === 100"
+             [class.ag-weight-err]="getGroupWeightTotal(group) !== 100">
+          Total: {{ getGroupWeightTotal(group) | number:'1.0-0' }}%
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Create / Edit Form Panel ──────────────────────────────────── -->
+  <div class="ag-form-overlay" *ngIf="showForm" (click)="closeForm()"></div>
+  <div class="ag-form-panel" *ngIf="showForm">
+    <div class="ag-form-header">
+      <span class="ag-form-title">{{ editingGroup ? 'Edit Group' : 'New Assessment Group' }}</span>
+      <button class="ag-form-close" (click)="closeForm()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ag-form-body">
+      <!-- Group name -->
+      <div class="ag-field">
+        <label class="ag-label">Group Name <span class="ag-required">*</span></label>
+        <input class="ag-input" [(ngModel)]="form.name" placeholder="e.g. Term 1, Annual"/>
+        <span class="ag-hint">Shown on report cards</span>
+      </div>
+
+      <!-- Display name (optional) -->
+      <div class="ag-field">
+        <label class="ag-label">Display Name <span class="ag-optional">(optional)</span></label>
+        <input class="ag-input" [(ngModel)]="form.displayName" placeholder="e.g. First Term"/>
+      </div>
+
+      <!-- Group type — locked on edit -->
+      <div class="ag-field" *ngIf="!editingGroup">
+        <label class="ag-label">Group Type <span class="ag-required">*</span></label>
+        <div class="ag-type-pills">
+          <button class="ag-type-pill" [class.ag-type-pill--active]="form.groupType === 'EXAM_BASED'"
+                  (click)="form.groupType = 'EXAM_BASED'; form.compositions = []">
+            Exam Based
+          </button>
+          <button class="ag-type-pill" [class.ag-type-pill--active]="form.groupType === 'GROUP_BASED'"
+                  (click)="form.groupType = 'GROUP_BASED'; form.examMappings = []">
+            Group Based
+          </button>
+        </div>
+        <span class="ag-hint" *ngIf="form.groupType === 'EXAM_BASED'">
+          Contains individual exams with weightage (e.g. Term 1 = UT1 20% + Half Yearly 80%)
+        </span>
+        <span class="ag-hint" *ngIf="form.groupType === 'GROUP_BASED'">
+          Contains other groups with weightage (e.g. Annual = Term 1 50% + Term 2 50%)
+        </span>
+      </div>
+
+      <!-- EXAM_BASED: exam mappings -->
+      <div class="ag-section" *ngIf="form.groupType === 'EXAM_BASED'">
+        <div class="ag-section-title">Exam Weightage</div>
+
+        <div class="ag-mapping-form-row" *ngFor="let m of form.examMappings; let i = index">
+          <select class="ag-select ag-mapping-select" [(ngModel)]="m.examConfigId">
+            <option [value]="0" disabled>Select exam</option>
+            <option *ngFor="let e of availableExams" [value]="e.id">{{ e.examName }}</option>
+          </select>
+          <input class="ag-input ag-weight-input" type="number" min="1" max="100"
+                 [(ngModel)]="m.weightageDisplay"
+                 (ngModelChange)="m.weightage = $event / 100"
+                 placeholder="%" />
+          <span class="ag-pct-label">%</span>
+          <button class="ag-remove-btn" (click)="removeExamMapping(i)" title="Remove">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <button class="ag-add-btn" (click)="addExamMapping()">+ Add Exam</button>
+
+        <div class="ag-weight-summary" [class.ag-weight-summary--ok]="examWeightSumOk"
+             [class.ag-weight-summary--err]="!examWeightSumOk">
+          Total weightage: {{ examWeightSum | number:'1.0-1' }}%
+          <span *ngIf="!examWeightSumOk"> — must equal 100%</span>
+          <span *ngIf="examWeightSumOk"> ✓</span>
+        </div>
+      </div>
+
+      <!-- GROUP_BASED: group compositions -->
+      <div class="ag-section" *ngIf="form.groupType === 'GROUP_BASED'">
+        <div class="ag-section-title">Group Weightage</div>
+
+        <div class="ag-mapping-form-row" *ngFor="let c of form.compositions; let i = index">
+          <select class="ag-select ag-mapping-select" [(ngModel)]="c.childGroupId">
+            <option [value]="0" disabled>Select group</option>
+            <option *ngFor="let g of groups" [value]="g.id">{{ g.name }}</option>
+          </select>
+          <input class="ag-input ag-weight-input" type="number" min="1" max="100"
+                 [(ngModel)]="c.weightageDisplay"
+                 (ngModelChange)="c.weightage = $event / 100"
+                 placeholder="%" />
+          <span class="ag-pct-label">%</span>
+          <button class="ag-remove-btn" (click)="removeComposition(i)" title="Remove">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <button class="ag-add-btn" (click)="addComposition()">+ Add Group</button>
+
+        <div class="ag-weight-summary" [class.ag-weight-summary--ok]="groupWeightSumOk"
+             [class.ag-weight-summary--err]="!groupWeightSumOk">
+          Total weightage: {{ groupWeightSum | number:'1.0-1' }}%
+          <span *ngIf="!groupWeightSumOk"> — must equal 100%</span>
+          <span *ngIf="groupWeightSumOk"> ✓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form actions -->
+    <div class="ag-form-footer">
+      <button class="ag-btn-cancel" (click)="closeForm()">Cancel</button>
+      <button class="ag-btn-save" (click)="saveGroup()" [disabled]="saving || !formValid">
+        <span *ngIf="!saving">{{ editingGroup ? 'Update Group' : 'Create Group' }}</span>
+        <span *ngIf="saving" class="ag-saving-text">
+          <span class="ag-spinner-sm"></span> Saving…
+        </span>
+      </button>
+    </div>
+  </div>
+
+</div>
