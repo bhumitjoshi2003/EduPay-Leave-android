@@ -46,7 +46,7 @@
   border: 1.5px solid #ede9fe;
 }
 .re-filter-field { display: flex; flex-direction: column; gap: 5px; min-width: 140px; flex: 1; }
-.re-filter-field label { font-size: 0.78rem; font-weight: 700; color: #555; }
+.re-filter-label { font-size: 0.76rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; }
 .re-select {
   padding: 8px 10px; border: 1.5px solid #d0d5dd; border-radius: 8px;
   font-size: 0.88rem; font-family: inherit; outline: none; background: #fff;
@@ -55,24 +55,34 @@
 .re-select:focus { border-color: #7c3aed; }
 
 .re-btn-load {
+  display: flex; align-items: center; gap: 7px;
   background: #7c3aed; color: #fff; border: none; border-radius: 10px;
   padding: 9px 22px; font-weight: 700; font-size: 0.9rem;
   cursor: pointer; font-family: inherit; white-space: nowrap;
-  transition: opacity 0.15s; align-self: flex-end;
+  transition: opacity 0.15s; align-self: flex-end; min-height: 44px;
 }
 .re-btn-load:hover:not(:disabled) { opacity: 0.88; }
 .re-btn-load:disabled { opacity: 0.5; cursor: not-allowed; }
+.re-btn-spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+  border-radius: 50%; animation: re-spin 0.75s linear infinite; flex-shrink: 0;
+}
+@keyframes re-spin { to { transform: rotate(360deg); } }
 
 /* ── Section badges ──────────────────────────────────────────────── */
 .re-section-info {
   display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
 }
 .re-badge {
-  font-size: 0.74rem; font-weight: 700; padding: 3px 12px;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.74rem; font-weight: 700; padding: 4px 12px;
   border-radius: 20px; border: 1.5px solid transparent;
 }
 .re-badge-on  { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
 .re-badge-off { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; }
+.re-badge-icon { width: 10px; height: 10px; flex-shrink: 0; }
+.re-badge-count { font-weight: 400; opacity: 0.8; }
 
 /* ── Empty ───────────────────────────────────────────────────────── */
 .re-empty {

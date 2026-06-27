@@ -320,6 +320,11 @@ export const routes: Routes = [
         loadComponent: () => import('./components/report-card/report-card.component').then(m => m.ReportCardComponent),
         canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN'], featureKey: 'REPORT_CARD' }
       },
+      {
+        path: 'report-card-gallery',
+        loadComponent: () => import('./components/report-card-demo/report-card-demo.component').then(m => m.ReportCardDemoComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER'] }
+      },
 
       // ── Student Dashboard ────────────────────────────────────────────
       {

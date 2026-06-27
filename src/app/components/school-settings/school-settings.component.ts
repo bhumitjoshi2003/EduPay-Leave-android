@@ -4,10 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { SchoolService, SchoolSettings, SchoolEntitlementSummary, PlanDetail, SubscriptionHistoryItem, SchoolFeature } from '../../services/school.service';
-import { TenantService } from '../../services/tenant.service';
 import { AuthStateService } from '../../auth/auth-state.service';
-import { ToastService } from '../../services/toast.service';
+import { TenantService } from '../../services/tenant.service';
 import { LoggerService } from '../../services/logger.service';
+import { ToastService } from '../../services/toast.service';
 import { NotificationChannelService } from '../../services/notification-channel.service';
 import { NotificationChannel } from '../../interfaces/notification-channel';
 import { AcademicSessionService } from '../../services/academic-session.service';
@@ -30,7 +30,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   saving = false;
   savingRazorpay = false;
 
-  // Edit mode for general settings
   isEditing = false;
   editForm: Partial<SchoolSettings> = {};
 
@@ -82,6 +81,11 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   logoFile: File | null = null;
   uploadingLogo = false;
 
+  // Report card header image upload
+  headerImagePreviewUrl: string | null = null;
+  headerImageFile: File | null = null;
+  uploadingHeaderImage = false;
+
   readonly boardTypes = ['CBSE', 'ICSE', 'STATE', 'IB', 'IGCSE', 'OTHER'];
   readonly gradingSystems = [
     { value: 'CBSE', label: 'CBSE (A1/A2/B1…)' },
@@ -101,17 +105,16 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     private authStateService: AuthStateService,
     public tenantService: TenantService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService,
     private logger: LoggerService,
+    private toast: ToastService,
+    private route: ActivatedRoute,
     private notificationChannelService: NotificationChannelService,
-    private academicSessionService: AcademicSessionService,
-    private route: ActivatedRoute
+    private academicSessionService: AcademicSessionService
   ) {}
 
   ngOnInit(): void {
     const user = this.authStateService.getUser();
     this.role = user?.role ?? '';
-
     const tab = this.route.snapshot.queryParamMap.get('tab');
     if (tab === 'subscription' || tab === 'features' || tab === 'razorpay' || tab === 'channels' || tab === 'staff-attendance') {
       this.activeTab = tab;
@@ -152,7 +155,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     if (!this.settings) return;
     this.editForm = {
       name: this.settings.name,
-      slug: this.settings.slug,
       address: this.settings.address,
       city: this.settings.city,
       state: this.settings.state,
@@ -161,8 +163,11 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       email: this.settings.email,
       website: this.settings.website,
       boardType: this.settings.boardType,
+      affiliationNumber: this.settings.affiliationNumber ?? '',
+      schoolCode: this.settings.schoolCode ?? '',
       academicYearStartMonth: this.settings.academicYearStartMonth ?? 4,
       workingDays: this.settings.workingDays ?? 'MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY',
+      periodsPerDay: this.settings.periodsPerDay ?? 8,
       gradingSystem: this.settings.gradingSystem ?? 'CBSE',
     };
     this.isEditing = true;
@@ -175,7 +180,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
 
   saveSettings(): void {
     if (!this.editForm.name?.trim()) {
-      this.toast.error('Validation', 'School name is required.');
+      this.toast.warning('Validation', 'School name is required.');
       return;
     }
     if (this.editForm.phone && !/^\d{10}$/.test(this.editForm.phone.trim())) {
@@ -190,15 +195,12 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       this.toast.warning('Validation', 'Pincode must be exactly 6 digits.');
       return;
     }
-    // Website URL validation
-    if (this.editForm.website?.trim()) {
-      try { new URL(this.editForm.website.trim()); }
-      catch { this.toast.warning('Validation', 'Website must be a valid URL (e.g., https://example.com).'); return; }
+    if (this.editForm.website && !/^https?:\/\/.+/.test(this.editForm.website.trim())) {
+      this.toast.warning('Validation', 'Website URL must start with http:// or https://.');
+      return;
     }
-    // At least one working day
-    const workingDays = (this.editForm.workingDays ?? '').toString().split(',').filter((d: string) => d.trim());
-    if (workingDays.length === 0) {
-      this.toast.warning('Validation', 'Please select at least one working day.');
+    if (!this.editForm.workingDays || this.editForm.workingDays.trim() === '') {
+      this.toast.warning('Validation', 'At least one working day must be selected.');
       return;
     }
     this.saving = true;
@@ -245,15 +247,18 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     if (idx >= 0) {
       days.splice(idx, 1);
     } else {
+      // Insert in canonical order
+      const order = this.allDayOptions;
+      const insertAt = order.findIndex(d => !days.includes(d) ? false : d === day || order.indexOf(d) > order.indexOf(day));
       days.push(day.toUpperCase());
-      days.sort((a, b) => this.allDayOptions.indexOf(a) - this.allDayOptions.indexOf(b));
+      days.sort((a, b) => order.indexOf(a) - order.indexOf(b));
     }
     this.editForm.workingDays = days.join(',');
   }
 
   saveRazorpayKeys(): void {
     if (!this.razorpayKeyId.trim() || !this.razorpayKeySecret.trim()) {
-      this.toast.error('Validation', 'Both Razorpay Key ID and Key Secret are required.');
+      this.toast.warning('Validation', 'Both Razorpay Key ID and Key Secret are required.');
       return;
     }
     this.savingRazorpay = true;
@@ -274,14 +279,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
-  }
-
-  onTabChange(tab: 'general' | 'razorpay' | 'features' | 'subscription' | 'channels'): void {
-    this.activeTab = tab;
-    if (tab === 'subscription') {
-      this.loadEntitlement();
-      this.loadAvailablePlans();
-    }
   }
 
   loadFeatures(): void {
@@ -323,6 +320,67 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  loadEntitlement(force = false): void {
+    if (!force && (this.entitlement || this.entitlementLoading)) return;
+    this.entitlementLoading = true;
+    this.cdr.markForCheck();
+    this.schoolService.getEntitlement().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (e) => {
+        this.entitlement = e;
+        this.entitlementLoading = false;
+        this.cdr.markForCheck();
+        this.loadSubscriptionHistory(force);
+      },
+      error: (err) => {
+        this.logger.error('Failed to load entitlement', err);
+        this.toast.error('Error', 'Failed to load subscription data.');
+        this.entitlementLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  loadSubscriptionHistory(force = false): void {
+    if (!force && (this.subscriptionHistory.length || this.historyLoading)) return;
+    this.historyLoading = true;
+    this.cdr.markForCheck();
+    this.schoolService.getSubscriptionHistory().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (history) => {
+        this.subscriptionHistory = history;
+        this.historyLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.historyLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  eventTypeLabel(eventType: string): string {
+    const labels: Record<string, string> = {
+      TRIAL_STARTED:   'Trial Started',
+      PLAN_ASSIGNED:   'Plan Assigned',
+      PLAN_UPDATED:    'Plan Updated',
+      PAYMENT_SUCCESS: 'Payment Successful',
+      STATUS_CHANGED:  'Status Changed',
+    };
+    return labels[eventType] ?? eventType;
+  }
+
+  usagePct(current: number, max: number | null): number {
+    if (!max || max <= 0) return 0;
+    return Math.min(100, Math.round((current / max) * 100));
+  }
+
+  usageBarColor(pct: number, softPct: number | null, hardPct: number | null): string {
+    const soft = softPct ?? 90;
+    const hard = hardPct ?? 105;
+    if (pct >= hard) return '#dc2626';
+    if (pct >= soft) return '#d97706';
+    return '#059669';
   }
 
   loadAvailablePlans(): void {
@@ -419,92 +477,17 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  featuresByCategory(): { category: string; features: SchoolFeature[] }[] {
-    const map = new Map<string, SchoolFeature[]>();
-    for (const f of this.schoolFeatures) {
-      if (!map.has(f.category)) map.set(f.category, []);
-      map.get(f.category)!.push(f);
-    }
-    return Array.from(map.entries()).map(([category, features]) => ({ category, features }));
-  }
-
-  loadEntitlement(force = false): void {
-    if (!force && (this.entitlement || this.entitlementLoading)) return;
-    this.entitlementLoading = true;
-    this.cdr.markForCheck();
-    this.schoolService.getEntitlement().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (e) => {
-        this.entitlement = e;
-        this.entitlementLoading = false;
-        this.cdr.markForCheck();
-        this.loadSubscriptionHistory(force);
-      },
-      error: (err: any) => {
-        this.logger.error('Failed to load entitlement', err);
-        this.toast.error('Error', 'Failed to load subscription data.');
-        this.entitlementLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  loadSubscriptionHistory(force = false): void {
-    if (!force && (this.subscriptionHistory.length || this.historyLoading)) return;
-    this.historyLoading = true;
-    this.cdr.markForCheck();
-    this.schoolService.getSubscriptionHistory().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (history) => {
-        this.subscriptionHistory = history;
-        this.historyLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.historyLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  eventTypeLabel(eventType: string): string {
-    const labels: Record<string, string> = {
-      TRIAL_STARTED:   'Trial Started',
-      PLAN_ASSIGNED:   'Plan Assigned',
-      PLAN_UPDATED:    'Plan Updated',
-      PAYMENT_SUCCESS: 'Payment Successful',
-      STATUS_CHANGED:  'Status Changed',
-    };
-    return labels[eventType] ?? eventType;
-  }
-
-  usagePct(current: number, max: number | null): number {
-    if (!max || max <= 0) return 0;
-    return Math.min(100, Math.round((current / max) * 100));
-  }
-
-  usageBarColor(pct: number, softPct: number | null, hardPct: number | null): string {
-    const soft = softPct ?? 90;
-    const hard = hardPct ?? 105;
-    if (pct >= hard) return '#dc2626';
-    if (pct >= soft) return '#d97706';
-    return '#059669';
-  }
-
   onLogoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-
-    const maxSize = 2 * 1024 * 1024;
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      this.toast.error('Invalid File', 'Only PNG, JPG, or WebP images are supported for the school logo.');
+    if (!file.type.startsWith('image/')) {
+      this.toast.warning('Invalid File', 'Please select an image file (JPG, PNG, etc.).');
       return;
     }
-    if (file.size > maxSize) {
-      this.toast.error('File Too Large', 'School logo must be less than 2MB.');
+    if (file.size > 10 * 1024 * 1024) {
+      this.toast.warning('File Too Large', 'Logo must be under 10 MB.');
       return;
     }
-
     this.logoFile = file;
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -524,22 +507,14 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     if (!this.logoFile) return;
     this.uploadingLogo = true;
     this.cdr.markForCheck();
-
     this.schoolService.uploadLogo(this.logoFile).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         if (this.settings) this.settings.logoUrl = res.logoUrl;
         this.logoFile = null;
         this.logoPreviewUrl = null;
         this.uploadingLogo = false;
-        this.toast.success('Logo Updated', 'School logo has been uploaded successfully.');
+        this.toast.success('Logo Updated', 'School logo uploaded successfully.');
         this.cdr.markForCheck();
-        // Refresh TenantService cache so the branded login screen shows the new logo
-        const slug = this.tenantService.slug;
-        if (slug) {
-          this.tenantService.lookupSchool(slug).then(info => {
-            if (info) this.tenantService.setSchool(slug, info);
-          });
-        }
       },
       error: (e) => {
         this.logger.error('Failed to upload school logo', e);
@@ -550,9 +525,86 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  getInitials(name?: string | null): string {
-    if (!name) return '?';
-    return name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
+  onHeaderImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const maxSize = 10 * 1024 * 1024;
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      this.toast.error('Invalid File', 'Only PNG, JPG, or WebP images are supported.');
+      return;
+    }
+    if (file.size > maxSize) {
+      this.toast.error('File Too Large', 'Header image must be under 10 MB.');
+      return;
+    }
+    this.headerImageFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.headerImagePreviewUrl = e.target?.result as string;
+      this.cdr.markForCheck();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  cancelHeaderImageUpload(): void {
+    this.headerImageFile = null;
+    this.headerImagePreviewUrl = null;
+    this.cdr.markForCheck();
+  }
+
+  uploadHeaderImage(): void {
+    if (!this.headerImageFile) return;
+    this.uploadingHeaderImage = true;
+    this.cdr.markForCheck();
+    this.schoolService.uploadReportCardHeader(this.headerImageFile).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res) => {
+        if (this.settings) this.settings.reportCardHeaderImageUrl = res.headerImageUrl;
+        this.headerImageFile = null;
+        this.headerImagePreviewUrl = null;
+        this.uploadingHeaderImage = false;
+        this.toast.success('Header Updated', 'Report card header image uploaded successfully.');
+        this.cdr.markForCheck();
+      },
+      error: (e) => {
+        this.logger.error('Failed to upload report card header', e);
+        this.toast.error('Upload Failed', e?.error?.message || 'Could not upload header image. Please try again.');
+        this.uploadingHeaderImage = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  removeHeaderImage(): void {
+    this.toast.confirm({
+      title: 'Remove Header Image',
+      message: 'This will revert to the auto-generated header on all report cards. Continue?',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      danger: true
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.schoolService.removeReportCardHeader().pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          if (this.settings) this.settings.reportCardHeaderImageUrl = null;
+          this.toast.success('Removed', 'Report card header image removed.');
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.toast.error('Error', 'Failed to remove header image.');
+        }
+      });
+    });
+  }
+
+  featuresByCategory(): { category: string; features: SchoolFeature[] }[] {
+    const map = new Map<string, SchoolFeature[]>();
+    for (const f of this.schoolFeatures) {
+      if (!map.has(f.category)) map.set(f.category, []);
+      map.get(f.category)!.push(f);
+    }
+    return Array.from(map.entries()).map(([category, features]) => ({ category, features }));
   }
 
   get isAdmin(): boolean {
@@ -562,10 +614,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   get schoolInitials(): string {
     const name = this.settings?.name ?? '';
     return name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase() || '?';
-  }
-
-  get isSuperAdmin(): boolean {
-    return this.role === 'SUPER_ADMIN';
   }
 
   // ── Notification Channels ──────────────────────────────────────────

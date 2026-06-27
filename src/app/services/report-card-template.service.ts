@@ -46,13 +46,13 @@ export interface ReportCardTemplate {
 // ── Branding ──────────────────────────────────────────────────────────────────
 
 export interface BrandingConfig {
-  primaryColor?: string;   // hex e.g. "#1565c0"
-  accentColor?: string;
+  schoolMotto?: string;        // shown in header
+  examTerm?: string;           // e.g., "Half-Yearly" → shown as "Half-Yearly Examination"
+  showCgpa?: boolean;          // default true
+  showGradePoints?: boolean;
   showWatermark?: boolean;
+  watermarkType?: 'TEXT' | 'LOGO';
   watermarkText?: string;
-  footerText?: string;
-  showCgpa?: boolean;       // default true (CBSE)
-  showGradePoints?: boolean; // show GP column in marks table
 }
 
 // ── Publishing ────────────────────────────────────────────────────────────────
@@ -244,6 +244,7 @@ export interface ReportCardData {
   overallGrade?: string;
   cgpa?: number | null;
   className: string;
+  sectionName?: string;
   rollNumber?: string;
   session: string;
   fatherName?: string;
@@ -256,6 +257,10 @@ export interface ReportCardData {
   schoolPhone?: string;
   schoolEmail?: string;
   affiliationNumber?: string;
+  schoolCode?: string;
+  schoolCity?: string;
+  boardType?: string;
+  reportCardHeaderImageUrl?: string;
   template: ReportCardTemplate;
   gradingSystem: string;
   weightedResult: WeightedGroupResult;

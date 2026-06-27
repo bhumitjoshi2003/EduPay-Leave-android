@@ -154,6 +154,20 @@
                 <span class="ss-info-row-value">{{ settings.boardType || '—' }}</span>
               </div>
             </div>
+            <div class="ss-info-row" *ngIf="settings.affiliationNumber">
+              <div class="ss-info-row-icon">🔢</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">Affiliation Number</span>
+                <span class="ss-info-row-value">{{ settings.affiliationNumber }}</span>
+              </div>
+            </div>
+            <div class="ss-info-row" *ngIf="settings.schoolCode">
+              <div class="ss-info-row-icon">🏷️</div>
+              <div class="ss-info-row-body">
+                <span class="ss-info-row-label">School Code</span>
+                <span class="ss-info-row-value">{{ settings.schoolCode }}</span>
+              </div>
+            </div>
           </div>
 
           <div class="ss-info-section">
@@ -316,6 +330,18 @@
                   <option value="">— Select —</option>
                   <option *ngFor="let b of boardTypes" [value]="b">{{ b }}</option>
                 </select>
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">Affiliation Number</label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.affiliationNumber"
+                       name="ssAffiliationNumber"
+                       placeholder="e.g. 2730012 (CBSE school no.)">
+              </div>
+              <div class="ss-form-group">
+                <label class="ss-label">School Code</label>
+                <input class="ss-input" type="text" [(ngModel)]="editForm.schoolCode"
+                       name="ssSchoolCode"
+                       placeholder="e.g. 41207">
               </div>
             </div>
           </div>

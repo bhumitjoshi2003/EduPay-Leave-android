@@ -228,6 +228,23 @@ export class BulkReportCardComponent implements OnInit, OnDestroy {
     return this.templates.find(t => t.id === this.selectedTemplateId)?.name ?? '';
   }
 
+  get selectedTemplateColor(): string {
+    const t = this.templates.find(t => t.id === this.selectedTemplateId);
+    if (!t?.brandingJson) return '#1565c0';
+    try {
+      const b = JSON.parse(t.brandingJson);
+      return b.primaryColor ?? '#1565c0';
+    } catch { return '#1565c0'; }
+  }
+
+  previewSample(): void {
+    const color = this.selectedTemplateColor;
+    const name = this.selectedTemplateName;
+    this.router.navigate(['/dashboard/report-card'], {
+      queryParams: { demo: 'true', color, styleName: name }
+    });
+  }
+
   downloadAll(): void {
     if (!this.canDownload) return;
 

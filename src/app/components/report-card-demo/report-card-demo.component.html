@@ -1,0 +1,118 @@
+<div class="rcd-page">
+
+  <!-- Hero -->
+  <div class="rcd-hero">
+    <div class="rcd-hero-blob rcd-hero-blob-1"></div>
+    <div class="rcd-hero-blob rcd-hero-blob-2"></div>
+    <div class="rcd-hero-left">
+      <button class="rcd-back-btn" (click)="goBack()" aria-label="Go back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <div class="rcd-hero-icon" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="rcd-hero-title">Report Card Gallery</h1>
+        <p class="rcd-hero-sub">Preview how your students' report cards will look before printing</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intro strip -->
+  <div class="rcd-intro">
+    <div class="rcd-intro-icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+    <span>Click <strong>View Sample</strong> on any style to instantly see a complete, print-ready report card with realistic student data — no setup required.</span>
+  </div>
+
+  <!-- Gallery grid -->
+  <div class="rcd-gallery" role="list">
+    <div class="rcd-style-card" *ngFor="let style of styles; trackBy: trackByName" role="listitem">
+
+      <!-- Color accent bar -->
+      <div class="rcd-card-accent" [style.background]="style.color"></div>
+
+      <!-- Card body -->
+      <div class="rcd-card-body">
+
+        <!-- Header row -->
+        <div class="rcd-card-header">
+          <div class="rcd-swatch" [style.background]="style.color" [attr.aria-label]="style.name + ' colour'"></div>
+          <div>
+            <h2 class="rcd-style-name">{{ style.name }}</h2>
+            <p class="rcd-style-tagline">{{ style.tagline }}</p>
+          </div>
+        </div>
+
+        <!-- A4 preview skeleton -->
+        <div class="rcd-preview-wrap">
+          <div class="rcd-a4-doc" [style.--doc-color]="style.color" [style.--doc-accent]="style.accentColor">
+            <!-- Colored header stripe -->
+            <div class="rcd-doc-stripe"></div>
+            <!-- School name placeholder -->
+            <div class="rcd-doc-school-row">
+              <div class="rcd-doc-logo-box"></div>
+              <div class="rcd-doc-school-lines">
+                <div class="rcd-doc-line rcd-doc-line--title"></div>
+                <div class="rcd-doc-line rcd-doc-line--sub"></div>
+                <div class="rcd-doc-line rcd-doc-line--sub rcd-doc-line--short"></div>
+              </div>
+              <div class="rcd-doc-rc-box"></div>
+            </div>
+            <!-- Student info block -->
+            <div class="rcd-doc-info-block">
+              <div class="rcd-doc-info-row" *ngFor="let _ of [1,2,3]"></div>
+            </div>
+            <!-- Section blocks -->
+            <ng-container *ngFor="let section of style.sections; let i = index">
+              <div class="rcd-doc-section-bar"></div>
+              <div class="rcd-doc-section-body" [class.rcd-doc-section-body--tall]="i === 0 || i === 1"></div>
+            </ng-container>
+            <!-- Signatures -->
+            <div class="rcd-doc-sig-row">
+              <div class="rcd-doc-sig"></div>
+              <div class="rcd-doc-sig"></div>
+              <div class="rcd-doc-sig"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Best for label -->
+        <div class="rcd-best-for">
+          <span class="rcd-best-for-label">Best for:</span>
+          <span class="rcd-best-for-text">{{ style.bestFor }}</span>
+        </div>
+
+        <!-- CTA button -->
+        <button class="rcd-view-btn" (click)="viewSample(style)"
+                [attr.aria-label]="'View sample report card for ' + style.name">
+          View Sample Report Card
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom hint -->
+  <p class="rcd-bottom-hint">
+    To use a style, go to <strong>Report Card Templates</strong> &rarr; select a style &rarr; customise and save.
+  </p>
+
+</div>

@@ -329,6 +329,43 @@
 }
 .brc-pub-email-info mat-icon { font-size: 1rem; flex-shrink: 0; }
 
+/* ── No templates warning ─────────────────────────────────────────── */
+.brc-no-templates {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fff7ed;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.83rem;
+  color: #92400e;
+  margin-bottom: 16px;
+}
+.brc-no-templates mat-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; color: #d97706; }
+
+/* ── Preview sample button ────────────────────────────────────────── */
+.brc-btn-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 11px 20px;
+  margin-bottom: 10px;
+  background: #fff;
+  color: #1565c0;
+  border: 1.5px solid #1565c0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+.brc-btn-preview:hover {
+  background: #e3edf9;
+}
+
 /* ── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .brc-form { grid-template-columns: 1fr; }

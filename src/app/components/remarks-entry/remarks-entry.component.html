@@ -22,42 +22,61 @@
   <!-- ── Filters ───────────────────────────────────────────────────── -->
   <div class="re-filters">
     <div class="re-filter-field">
-      <label>Session</label>
-      <select [(ngModel)]="selectedSession" class="re-select">
+      <label class="re-filter-label" for="re-session">Academic Session</label>
+      <select id="re-session" [(ngModel)]="selectedSession" class="re-select">
         <option *ngFor="let s of sessions" [value]="s.label">{{ s.label }}</option>
       </select>
     </div>
     <div class="re-filter-field">
-      <label>Class</label>
-      <select [(ngModel)]="selectedClass" class="re-select">
+      <label class="re-filter-label" for="re-class">Class</label>
+      <select id="re-class" [(ngModel)]="selectedClass" class="re-select">
         <option value="" disabled>Select class…</option>
         <option *ngFor="let c of classes" [value]="c">{{ c }}</option>
       </select>
     </div>
     <div class="re-filter-field">
-      <label>Template</label>
-      <select [(ngModel)]="selectedTemplateId" class="re-select" (ngModelChange)="onTemplateChange()">
+      <label class="re-filter-label" for="re-template">Report Card Template</label>
+      <select id="re-template" [(ngModel)]="selectedTemplateId" class="re-select" (ngModelChange)="onTemplateChange()">
         <option [value]="null" disabled>Select template…</option>
         <option *ngFor="let t of templates" [value]="t.id">
-          {{ t.name }}{{ t.isDefault ? ' (default)' : '' }}
+          {{ t.name }}{{ t.isDefault ? ' (Default)' : '' }}
         </option>
       </select>
     </div>
-    <button class="re-btn-load" (click)="loadStudents()" [disabled]="!canLoad || loading">
+    <button class="re-btn-load" (click)="loadStudents()" [disabled]="!canLoad || loading"
+            [attr.aria-busy]="loading">
+      <span *ngIf="loading" class="re-btn-spinner" aria-hidden="true"></span>
       {{ loading ? 'Loading…' : 'Load Students' }}
     </button>
   </div>
 
   <!-- ── Section badges ────────────────────────────────────────────── -->
-  <div *ngIf="selectedTemplateId" class="re-section-info">
-    <span class="re-badge" [class.re-badge-on]="teacherRemarksEnabled" [class.re-badge-off]="!teacherRemarksEnabled">
-      Teacher Remarks {{ teacherRemarksEnabled ? '✓' : '✗' }}
+  <div *ngIf="selectedTemplateId" class="re-section-info" role="status" aria-label="Template sections enabled">
+    <span class="re-badge" [class.re-badge-on]="teacherRemarksEnabled" [class.re-badge-off]="!teacherRemarksEnabled"
+          [attr.aria-label]="'Teacher Remarks: ' + (teacherRemarksEnabled ? 'enabled' : 'disabled')">
+      Teacher Remarks
+      <svg *ngIf="teacherRemarksEnabled" class="re-badge-icon" viewBox="0 0 12 12" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="1.5 6 4.5 9 10.5 3"/>
+      </svg>
     </span>
-    <span class="re-badge" [class.re-badge-on]="principalRemarksEnabled && role === 'ADMIN'" [class.re-badge-off]="!principalRemarksEnabled || role !== 'ADMIN'">
-      Principal Remarks {{ (principalRemarksEnabled && role === 'ADMIN') ? '✓' : '✗' }}
+    <span class="re-badge" [class.re-badge-on]="principalRemarksEnabled && role === 'ADMIN'"
+          [class.re-badge-off]="!principalRemarksEnabled || role !== 'ADMIN'"
+          [attr.aria-label]="'Principal Remarks: ' + ((principalRemarksEnabled && role === 'ADMIN') ? 'enabled' : 'disabled')">
+      Principal Remarks
+      <svg *ngIf="principalRemarksEnabled && role === 'ADMIN'" class="re-badge-icon" viewBox="0 0 12 12"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="1.5 6 4.5 9 10.5 3"/>
+      </svg>
     </span>
-    <span class="re-badge" [class.re-badge-on]="coScholasticEnabled" [class.re-badge-off]="!coScholasticEnabled">
-      Co-Scholastic ({{ activities.length }} activities) {{ coScholasticEnabled ? '✓' : '✗' }}
+    <span class="re-badge" [class.re-badge-on]="coScholasticEnabled" [class.re-badge-off]="!coScholasticEnabled"
+          [attr.aria-label]="'Activities and Values: ' + (coScholasticEnabled ? 'enabled' : 'disabled')">
+      Activities &amp; Values
+      <span *ngIf="coScholasticEnabled" class="re-badge-count">({{ activities.length }})</span>
+      <svg *ngIf="coScholasticEnabled" class="re-badge-icon" viewBox="0 0 12 12" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="1.5 6 4.5 9 10.5 3"/>
+      </svg>
     </span>
   </div>
 
@@ -73,11 +92,12 @@
   <ng-container *ngIf="!loading && loaded && students.length > 0">
 
     <!-- Save bar -->
-    <div class="re-save-bar">
-      <span class="re-dirty-count" *ngIf="dirtyCount > 0">
+    <div class="re-save-bar" role="status" aria-live="polite">
+      <span class="re-dirty-count" *ngIf="dirtyCount > 0" [attr.aria-label]="dirtyCount + ' unsaved change(s)'">
         {{ dirtyCount }} unsaved change{{ dirtyCount > 1 ? 's' : '' }}
       </span>
-      <button class="re-btn-save" (click)="saveAll()" [disabled]="saving || dirtyCount === 0">
+      <button class="re-btn-save" (click)="saveAll()" [disabled]="saving || dirtyCount === 0"
+              [attr.aria-busy]="saving">
         {{ saving ? 'Saving…' : 'Save All Changes' }}
       </button>
     </div>

@@ -44,13 +44,14 @@
 .vrc-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
+  gap: 10px;
+  padding: 10px 24px;
   border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   margin-bottom: 20px;
+  border: 2px solid currentColor;
 }
 .vrc-badge--valid {
   background: #dcfce7;
@@ -62,8 +63,8 @@
 }
 .vrc-check-icon,
 .vrc-x-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 /* ── Typography ──────────────────────────────────────────────────────────── */
@@ -111,6 +112,30 @@
 .vrc-details-table tr:last-child .vrc-dt-label,
 .vrc-details-table tr:last-child .vrc-dt-value {
   border-bottom: none;
+}
+
+/* ── Trust strip ─────────────────────────────────────────────────────────── */
+.vrc-trust-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+/* ── Error hint ──────────────────────────────────────────────────────────── */
+.vrc-error-hint {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin: 0 0 24px;
+  line-height: 1.6;
 }
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */

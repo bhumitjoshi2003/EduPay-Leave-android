@@ -254,6 +254,35 @@
 
 .ss-logo-hint { font-size: .74rem; color: #94a3b8; margin: 0; }
 
+/* ── Report card header image display ───────────────────────────────── */
+.ss-header-img-display {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  min-height: 70px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ss-header-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+  object-fit: contain;
+  object-position: center;
+}
+.ss-header-placeholder {
+  font-size: .78rem;
+  color: #94a3b8;
+  padding: 12px 16px;
+  text-align: center;
+}
+
 /* ── Info rows (view mode) ──────────────────────────────────────────── */
 .ss-info-section { margin-bottom: 4px; }
 

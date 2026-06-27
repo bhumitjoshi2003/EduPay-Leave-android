@@ -9,7 +9,7 @@
         <p class="co-hero-sub">Grade distribution, rankings, and pass/fail at a glance</p>
       </div>
     </div>
-    <button class="co-btn-back" (click)="goBack()">&#8592; Back</button>
+    <button class="co-btn-back" (click)="goBack()" aria-label="Go back">&#8592; Back</button>
     <div class="co-blob co-blob-1"></div>
     <div class="co-blob co-blob-2"></div>
   </div>
@@ -48,7 +48,7 @@
           <select class="co-select" [(ngModel)]="selectedTemplateId" [disabled]="loadingTemplates">
             <option [ngValue]="null">{{ loadingTemplates ? 'Loading…' : '— Select template —' }}</option>
             <option *ngFor="let t of templates" [ngValue]="t.id">
-              {{ t.name }}{{ t.isDefault ? ' ✓' : '' }}
+              {{ t.name }}{{ t.isDefault ? ' (Default)' : '' }}
             </option>
           </select>
           <mat-icon class="co-sel-icon">expand_more</mat-icon>
@@ -56,9 +56,10 @@
       </div>
 
       <!-- Load button -->
-      <button class="co-btn-load" [disabled]="!canLoad || loading" (click)="load()">
-        <mat-icon *ngIf="!loading">search</mat-icon>
-        <mat-icon *ngIf="loading" class="co-spin">autorenew</mat-icon>
+      <button class="co-btn-load" [disabled]="!canLoad || loading" (click)="load()"
+              [attr.aria-busy]="loading" aria-label="Load class overview">
+        <mat-icon *ngIf="!loading" aria-hidden="true">search</mat-icon>
+        <mat-icon *ngIf="loading" class="co-spin" aria-hidden="true">autorenew</mat-icon>
         {{ loading ? 'Loading…' : 'Load Overview' }}
       </button>
 

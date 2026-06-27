@@ -12,6 +12,45 @@ export interface SchoolClass {
   streamEligible: boolean;
 }
 
+export interface SchoolSettings {
+  id: number;
+  name: string;
+  slug: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  logoUrl: string | null;
+  themeColor: string | null;
+  contactPersonName: string | null;
+  boardType: string | null;
+  plan: string | null;
+  maxStudents: number | null;
+  expiryDate: string | null;
+  active: boolean;
+  razorpayConfigured: boolean;
+  adminUserId?: string;
+  // Academic calendar settings
+  academicYearStartMonth: number;   // 1=Jan, 4=Apr (default), 7=Jul, etc.
+  workingDays: string;              // comma-separated, e.g. "MONDAY,TUESDAY,...,SATURDAY"
+  periodsPerDay: number;            // number of periods per school day
+  gradingSystem: string;            // CBSE | PERCENTAGE | LETTER
+  affiliationNumber?: string | null; // e.g. CBSE school no., ICSE index no.
+  schoolCode?: string | null;        // e.g. CBSE school code for report card header
+  reportCardHeaderImageUrl?: string | null; // custom header banner image for report cards
+  // Staff attendance / GPS check-in settings
+  schoolLatitude?: number;
+  schoolLongitude?: number;
+  geofenceRadius?: number;          // meters, default 200
+  schoolStartTime?: string;         // "HH:mm"
+  lateThresholdMinutes?: number;    // minutes after start time, default 5
+  checkinWindowStart?: string;      // "HH:mm"
+  checkinWindowEnd?: string;        // "HH:mm"
+}
+
 export interface FeatureCatalogItem {
   featureKey: string;
   displayName: string;
@@ -89,6 +128,20 @@ export interface SubscriptionHistoryItem {
   occurredAt: string;
 }
 
+export interface SubscriptionHealthItem {
+  schoolId: number;
+  schoolName: string;
+  isActive: boolean;
+  subscriptionStatus: string | null;
+  planName: string | null;
+  planTier: string | null;
+  trialEndsAt: string | null;
+  expiresAt: string | null;
+  graceEndsAt: string | null;
+  maxStudents: number | null;
+  lastRebuiltAt: string | null;
+}
+
 export interface GlobalSubscriptionConfig {
   gracePeriodDays: number;
   defaultTrialDays: number;
@@ -124,15 +177,6 @@ export interface SchoolFeature {
   isAlwaysOn: boolean;
 }
 
-export interface SuperAdminDashboard {
-  totalSchools: number;
-  activeSchools: number;
-  totalStudents: number;
-  totalTeachers: number;
-  revenueThisMonth: number;
-  [key: string]: unknown;
-}
-
 export interface RazorpayOrder {
   id: string;
   amount: number;
@@ -165,41 +209,12 @@ export interface OnboardSchoolRequest {
   adminPassword: string;
 }
 
-export interface SchoolSettings {
-  id: number;
-  name: string;
-  slug: string;
-  address: string | null;
-  city: string | null;
-  state: string | null;
-  pincode: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  logoUrl: string | null;
-  themeColor: string | null;
-  contactPersonName: string | null;
-  boardType: string | null;
-  plan: string | null;
-  maxStudents: number | null;
-  expiryDate: string | null;
-  active: boolean;
-  razorpayConfigured: boolean;
-  adminUserId?: string;
-  createdAt?: string;
-  onboardedBy?: string;
-  // Academic calendar settings
-  academicYearStartMonth: number;   // 1=Jan, 4=Apr (default), 7=Jul, etc.
-  workingDays: string;              // comma-separated, e.g. "MONDAY,TUESDAY,...,SATURDAY"
-  gradingSystem: string;            // CBSE | PERCENTAGE | LETTER
-  // Staff attendance / GPS check-in settings
-  schoolLatitude?: number;
-  schoolLongitude?: number;
-  geofenceRadius?: number;          // meters, default 200
-  schoolStartTime?: string;         // "HH:mm"
-  lateThresholdMinutes?: number;    // minutes after start time, default 5
-  checkinWindowStart?: string;      // "HH:mm"
-  checkinWindowEnd?: string;        // "HH:mm"
+export interface SuperAdminStats {
+  totalSchools: number;
+  activeSchools: number;
+  totalStudents: number;
+  totalTeachers: number;
+  revenueThisMonth: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -207,7 +222,7 @@ export class SchoolService {
   private baseUrl = `${environment.apiUrl}/school`;
   private superAdminUrl = `${environment.apiUrl}/super-admin`;
 
-  // Cache the class list so multiple components don't fire duplicate requests
+  // Cache the class list — resets on error so next subscriber gets a fresh request
   private classes$: Observable<string[]> | null = null;
 
   constructor(private http: HttpClient) {}
@@ -216,8 +231,6 @@ export class SchoolService {
     if (!this.classes$) {
       this.classes$ = this.http.get<string[]>(`${this.baseUrl}/classes`).pipe(
         catchError(err => {
-          // Reset so the next subscriber triggers a fresh HTTP request instead of
-          // replaying the cached error (shareReplay(1) would otherwise replay it forever)
           this.classes$ = null;
           return throwError(() => err);
         }),
@@ -227,12 +240,9 @@ export class SchoolService {
     return this.classes$;
   }
 
-  /** Call this when class list may have changed (e.g. after adding/deleting a class). */
   invalidateClasses(): void {
     this.classes$ = null;
   }
-
-  // ── Class management (ADMIN only) ────────────────────────────────────────
 
   getManagedClasses(): Observable<SchoolClass[]> {
     return this.http.get<SchoolClass[]>(`${this.baseUrl}/classes/manage`);
@@ -268,14 +278,24 @@ export class SchoolService {
     return this.http.post<{ logoUrl: string }>(`${this.baseUrl}/logo`, form);
   }
 
+  uploadReportCardHeader(file: File): Observable<{ headerImageUrl: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<{ headerImageUrl: string }>(`${this.baseUrl}/report-card-header`, form);
+  }
+
+  removeReportCardHeader(): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/report-card-header`);
+  }
+
   updateRazorpayKeys(keyId: string, keySecret: string): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/razorpay`, { keyId, keySecret });
   }
 
-  // ── SUPER_ADMIN ──────────────────────────────────────────────────────────
+  // ── SUPER_ADMIN ──────────────────────────────────────────────────────────────
 
-  getDashboard(): Observable<SuperAdminDashboard> {
-    return this.http.get<SuperAdminDashboard>(`${this.superAdminUrl}/dashboard`);
+  getDashboard(): Observable<SuperAdminStats> {
+    return this.http.get<SuperAdminStats>(`${this.superAdminUrl}/dashboard`);
   }
 
   listAllSchools(): Observable<SchoolSettings[]> {
@@ -286,6 +306,10 @@ export class SchoolService {
     return this.http.post<SchoolSettings>(`${this.superAdminUrl}/schools`, data);
   }
 
+  updateSchoolAll(schoolId: number, data: Partial<SchoolSettings> & { newAdminPassword?: string }): Observable<SchoolSettings> {
+    return this.http.put<SchoolSettings>(`${this.superAdminUrl}/schools/${schoolId}`, data);
+  }
+
   updateSubscription(schoolId: number, data: { plan?: string; maxStudents?: number; expiryDate?: string; active?: boolean }): Observable<SchoolSettings> {
     let params = new HttpParams();
     if (data.plan !== undefined) params = params.set('plan', data.plan);
@@ -293,10 +317,6 @@ export class SchoolService {
     if (data.expiryDate !== undefined) params = params.set('expiryDate', data.expiryDate);
     if (data.active !== undefined) params = params.set('active', String(data.active));
     return this.http.patch<SchoolSettings>(`${this.superAdminUrl}/schools/${schoolId}/subscription`, null, { params });
-  }
-
-  updateSchoolAll(schoolId: number, data: Partial<SchoolSettings> & { newAdminPassword?: string }): Observable<SchoolSettings> {
-    return this.http.put<SchoolSettings>(`${this.superAdminUrl}/schools/${schoolId}`, data);
   }
 
   resetAdminPassword(schoolId: number, newPassword: string): Observable<void> {
@@ -323,6 +343,15 @@ export class SchoolService {
 
   refreshEntitlement(schoolId: number): Observable<void> {
     return this.http.post<void>(`${this.superAdminUrl}/schools/${schoolId}/subscription/refresh`, {});
+  }
+
+  getSuperAdminSchoolFeatures(schoolId: number): Observable<SchoolFeature[]> {
+    return this.http.get<SchoolFeature[]>(`${this.superAdminUrl}/schools/${schoolId}/features`);
+  }
+
+  setSuperAdminFeatureOverride(schoolId: number, featureKey: string, overrideState: string): Observable<void> {
+    return this.http.put<void>(`${this.superAdminUrl}/schools/${schoolId}/features/${featureKey}/override`,
+      { overrideState });
   }
 
   getEntitlement(): Observable<SchoolEntitlementSummary> {
@@ -355,15 +384,8 @@ export class SchoolService {
     return this.http.get<SubscriptionHistoryItem[]>(`${this.baseUrl}/subscription/history`);
   }
 
-  // ── Per-school feature overrides (SUPER_ADMIN) ────────────────────────────
-
-  getSuperAdminSchoolFeatures(schoolId: number): Observable<SchoolFeature[]> {
-    return this.http.get<SchoolFeature[]>(`${this.superAdminUrl}/schools/${schoolId}/features`);
-  }
-
-  setSuperAdminFeatureOverride(schoolId: number, featureKey: string, overrideState: string): Observable<void> {
-    return this.http.put<void>(`${this.superAdminUrl}/schools/${schoolId}/features/${featureKey}/override`,
-      { overrideState });
+  getSubscriptionHealth(): Observable<SubscriptionHealthItem[]> {
+    return this.http.get<SubscriptionHealthItem[]>(`${this.superAdminUrl}/subscription-health`);
   }
 
   // ── Plan Management (SUPER_ADMIN) ─────────────────────────────────────────

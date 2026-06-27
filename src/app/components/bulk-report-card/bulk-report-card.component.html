@@ -11,7 +11,7 @@
         <p class="brc-hero-sub">Download PDFs, publish & email to students</p>
       </div>
     </div>
-    <button class="brc-btn-back" (click)="goBack()">&#8592; Back</button>
+    <button class="brc-btn-back" (click)="goBack()" aria-label="Go back">&#8592; Back</button>
     <div class="brc-blob brc-blob-1"></div>
     <div class="brc-blob brc-blob-2"></div>
   </div>
@@ -92,20 +92,40 @@
       </div>
     </div>
 
+    <!-- Preview sample button (appears when template is selected) -->
+    <button
+      class="brc-btn-preview"
+      *ngIf="selectedTemplateId && !loadingTemplates"
+      (click)="previewSample()"
+      aria-label="Preview a sample report card to check the layout before downloading">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle;margin-right:5px">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+      Preview Report Card Layout
+    </button>
+
     <!-- Download button -->
     <button
       class="brc-btn-download"
       [class.brc-btn--loading]="downloading"
       [disabled]="!canDownload"
-      (click)="downloadAll()">
-      <mat-icon *ngIf="!downloading">download</mat-icon>
-      <mat-icon *ngIf="downloading" class="brc-spin">autorenew</mat-icon>
+      (click)="downloadAll()"
+      [attr.aria-busy]="downloading"
+      aria-label="Download all report cards as ZIP">
+      <mat-icon *ngIf="!downloading" aria-hidden="true">download</mat-icon>
+      <mat-icon *ngIf="downloading" class="brc-spin" aria-hidden="true">autorenew</mat-icon>
       <span>{{ downloading ? 'Generating PDFs…' : 'Download All PDFs (ZIP)' }}</span>
     </button>
 
+    <!-- No templates warning -->
+    <div class="brc-no-templates" *ngIf="!loadingTemplates && templates.length === 0">
+      <mat-icon aria-hidden="true">warning_amber</mat-icon>
+      <span>No report card templates found. <strong>Go to Report Card Templates</strong> to create one first.</span>
+    </div>
+
     <!-- Info -->
-    <div class="brc-info-row" *ngIf="!isNative">
-      <mat-icon>info_outline</mat-icon>
+    <div class="brc-info-row" *ngIf="!isNative && templates.length > 0">
+      <mat-icon aria-hidden="true">info_outline</mat-icon>
       <span>Only <strong>active</strong> students are included. Students with missing data are skipped automatically.</span>
     </div>
 

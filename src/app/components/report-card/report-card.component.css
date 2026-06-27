@@ -1,23 +1,12 @@
 /* ════════════════════════════════════════════════════════════════════════
-   REPORT CARD — DOCUMENT-FIRST STYLESHEET
-   ────────────────────────────────────────────────────────────────────────
-   Design philosophy:
-   • This is an official school document, NOT a dashboard.
-   • NO border-radius on document elements.
-   • NO box-shadow on the printable card.
-   • NO gradients inside the document.
-   • Typography-driven. Table-based. Print-grade.
-   • The hero/toolbar uses app chrome (gradient, rounded) — that is fine,
-     it is hidden on print with .no-print.
+   REPORT CARD — INDRA ACADEMY STYLE STYLESHEET
 ════════════════════════════════════════════════════════════════════════ */
 
 /* ── Page wrapper ──────────────────────────────────────────────────── */
 .rc-page {
-  min-height: 100vh;
-  background: #d0d0d0;      /* grey "paper tray" feel on screen */
-  padding: 0 0 48px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  box-sizing: border-box;
+  background: #ccc;
+  padding: 32px 0 48px;
+  font-family: 'Times New Roman', Times, serif;
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -71,404 +60,466 @@
 .rc-btn-pdf:hover:not(:disabled) { opacity: 0.88; }
 .rc-btn-pdf:disabled { opacity: 0.5; cursor: default; }
 
+/* ── Demo mode banner ────────────────────────────────────────────────── */
+.rc-demo-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 0 auto 16px;
+  max-width: 900px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.87rem;
+  color: #92400e;
+  flex-wrap: wrap;
+}
+.rc-demo-dismiss {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #d97706;
+  color: #d97706;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.rc-demo-dismiss:hover { background: #fef3c7; }
+
 /* ── Loading / Empty ─────────────────────────────────────────────────── */
-.rc-loading, .rc-empty {
+.rc-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 64px 48px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+.rc-loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e0ecf5;
+  border-top-color: #1565c0;
+  border-radius: 50%;
+  animation: rc-spin 0.75s linear infinite;
+}
+@keyframes rc-spin { to { transform: rotate(360deg); } }
+.rc-empty {
   text-align: center; color: #888; font-style: italic; padding: 48px;
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   THE DOCUMENT CARD
-   Everything inside .rc-card is the printable document area.
+   LOCKED STATE (not published)
 ════════════════════════════════════════════════════════════════════════ */
-.rc-card {
-  max-width: 820px;
-  margin: 0 auto;
-  background: #ffffff;
-  border: 1px solid #999;
-  /* NO border-radius — documents have sharp corners */
-  /* NO box-shadow — documents do not float */
-  box-sizing: border-box;
-  font-family: "Times New Roman", Times, Georgia, serif;
+.rc-locked {
+  max-width: 480px; margin: 48px auto;
+  background: #fff; border: 1px solid #e0e0e0;
+  border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  padding: 44px 36px; text-align: center;
 }
+.rc-locked-icon  { font-size: 3rem; margin-bottom: 14px; }
+.rc-locked-title { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0 0 10px; font-family: 'Segoe UI', sans-serif; }
+.rc-locked-msg   { font-size: 0.9rem; color: #64748b; line-height: 1.7; margin: 0; font-family: 'Segoe UI', sans-serif; }
 
 /* ════════════════════════════════════════════════════════════════════════
-   SCHOOL HEADER
+   THE DOCUMENT CARD (A4 page)
 ════════════════════════════════════════════════════════════════════════ */
-.rc-school-header {
-  /* border-top color comes from [attr.style]="headerStyle" */
-  border-bottom: 1px solid #444;
-  background: #fff;
+.rc-card {
+  width: 210mm;
+  height: 297mm;
+  background: #faf8f2;
+  margin: 0 auto;
+  padding: 13mm 14mm 7mm;
+  border: 2px double #153a32;
+  outline: 1px solid #c29b4b;
+  outline-offset: -5px;
+  box-shadow: 0 4px 32px rgba(0,0,0,.16);
+  position: relative;
+  font-family: 'Times New Roman', Times, serif;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: #52645e;
 }
 
-.rc-header-inner {
-  display: flex;
-  align-items: center;
-  padding: 12px 18px;
-  gap: 14px;
+/* ── Watermark layer ── */
+.rc-watermark-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  opacity: 0.055;
+  pointer-events: none;
+  user-select: none;
+}
+.rc-watermark-img { width: 240px; height: auto; }
+.rc-watermark-text {
+  font-size: 80pt;
+  font-weight: 700;
+  color: #1e3d1e;
+  letter-spacing: 4px;
 }
 
-.rc-header-logo {
-  flex-shrink: 0;
-}
-
-.rc-school-logo {
-  height: 64px;
-  width: auto;
-  object-fit: contain;
-  display: block;
-}
-
-.rc-header-center {
-  flex: 1;
+/* ── Header ── */
+.rc-header {
+  position: relative;
+  z-index: 1;
   text-align: center;
+  min-height: 34mm;
+  padding: 1mm 0 3mm;
+}
+
+.rc-header-logo-wrap { margin-bottom: 4px; }
+.rc-logo-img { height: 20mm; max-width: 34mm; width: auto; object-fit: contain; }
+.rc-monogram {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px; height: 64px;
+  border: 2px solid #1e3d1e;
+  border-radius: 50%;
+  font-size: 22pt;
+  font-weight: 700;
+  color: #1e3d1e;
+  letter-spacing: 2px;
 }
 
 .rc-school-name {
-  font-size: 17pt;
-  font-weight: 700;
-  color: #111;
-  margin: 0 0 3px;
-  font-family: "Times New Roman", Times, serif;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 26pt;
+  font-weight: 500;
+  letter-spacing: 0.39em;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  line-height: 1.2;
+  color: #455f57;
+  margin: 2px 0 4px;
+  line-height: 1.15;
 }
 
-.rc-school-detail {
-  font-size: 8pt;
-  color: #333;
-  margin: 1px 0;
-  font-family: "Times New Roman", Times, serif;
-  line-height: 1.4;
-}
-
-.rc-header-right {
-  flex-shrink: 0;
-}
-
-.rc-report-title-box {
-  /* color and border come from [attr.style]="rcLabelStyle" */
-  padding: 8px 14px;
-  text-align: center;
-}
-
-.rc-report-label {
-  display: block;
-  font-size: 10.5pt;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-family: "Times New Roman", Times, serif;
-  white-space: nowrap;
-}
-
-.rc-session-text {
-  display: block;
-  font-size: 7.5pt;
-  margin-top: 4px;
-  font-family: "Times New Roman", Times, serif;
-  white-space: nowrap;
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   SECTION WRAPPER
-════════════════════════════════════════════════════════════════════════ */
-.rc-section {
-  border-bottom: 1px solid #ccc;
-}
-.rc-section:last-of-type { border-bottom: none; }
-
-.rc-section-title {
-  font-size: 7.5pt;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #fff;
-  padding: 4px 12px;
-  margin: 0;
-  /* background and border come from [attr.style]="sectionBarStyle" */
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   STUDENT INFORMATION TABLE
-════════════════════════════════════════════════════════════════════════ */
-.rc-student-info-section {
-  padding: 0;
-}
-
-.rc-student-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: "Times New Roman", Times, serif;
-  font-size: 8.5pt;
-}
-
-.rc-student-table td {
-  border: 0.5px solid #888;
-  padding: 4px 8px;
-  vertical-align: middle;
-  font-family: "Times New Roman", Times, serif;
-}
-
-.rc-si-label {
-  background: #f2f2f2;
-  font-weight: 700;
-  color: #222;
-  width: 16%;
-  font-size: 7pt;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-}
-
-.rc-si-value {
-  color: #111;
-  font-size: 8.5pt;
-  width: 25%;
-}
-
-.rc-si-photo {
-  text-align: center;
-  vertical-align: top;
-  padding: 6px !important;
-  width: 80px;
-}
-
-.rc-student-photo {
-  width: 66px;
-  height: 84px;
-  object-fit: cover;
-  border: 0.5px solid #888;
-  display: block;
-  margin: 0 auto;
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   SHARED TABLE STYLES (marks, attendance, co-scholastic, summary)
-════════════════════════════════════════════════════════════════════════ */
-.rc-table-scroll { overflow-x: auto; }
-
-.rc-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: "Times New Roman", Times, serif;
-  font-size: 8.5pt;
-}
-
-.rc-table th {
-  /* background and border-color from [attr.style]="thStyle" */
-  color: #fff;
-  padding: 5px 7px;
-  font-weight: 700;
-  font-size: 7.5pt;
-  border: 0.5px solid #555;
-  text-align: center;
-  font-family: "Times New Roman", Times, serif;
-}
-
-.rc-th-subject { text-align: left !important; }
-.rc-th-num { text-align: center; }
-.rc-th-wt {
-  display: block;
-  font-weight: 400;
-  font-size: 6.5pt;
-  opacity: 0.9;
-  margin-top: 1px;
-}
-
-.rc-table td {
-  padding: 4px 7px;
-  border: 0.5px solid #aaa;
-  color: #111;
-  font-size: 8.5pt;
-  font-family: "Times New Roman", Times, serif;
-}
-
-.rc-td-subject  { text-align: left; font-weight: 500; }
-.rc-td-num      { text-align: center; }
-.rc-td-grade    { text-align: center; font-weight: 700; }
-
-.rc-table tbody tr:nth-child(even) td { background: #f9f9f9; }
-
-/* Table footer (totals row) */
-.rc-tfoot-row td {
-  background: #eeeeee !important;
-  font-weight: 700;
-  border: 0.5px solid #666;
-  color: #111;
-  font-size: 8pt;
-}
-.rc-tfoot-label { text-align: left; text-transform: uppercase; font-size: 7.5pt; letter-spacing: 0.4px; }
-
-/* ── Grade colors — text only, NO backgrounds, NO rounded chips ────── */
-.grade-a    { color: #145a14; }
-.grade-b    { color: #0b4f5e; }
-.grade-c    { color: #7a5c00; }
-.grade-fail { color: #8b0000; }
-.grade-absent { color: #999; font-style: italic; }
-
-.rc-absent-text { color: #999; font-style: italic; }
-.rc-gp-cell { font-weight: 700; }
-
-/* ════════════════════════════════════════════════════════════════════════
-   ASSESSMENT SUMMARY (compact single-row table)
-════════════════════════════════════════════════════════════════════════ */
-.rc-assessment-summary { padding: 0; }
-
-.rc-summary-table td { border: 0.5px solid #aaa; padding: 5px 10px; }
-
-/* ════════════════════════════════════════════════════════════════════════
-   ATTENDANCE
-════════════════════════════════════════════════════════════════════════ */
-.rc-attendance-section { padding: 0; }
-
-/* ════════════════════════════════════════════════════════════════════════
-   CO-SCHOLASTIC
-════════════════════════════════════════════════════════════════════════ */
-.rc-co-scholastic { padding: 0; }
-
-.rc-co-table { font-size: 8.5pt; }
-
-.rc-grade-box {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 0.5px solid #666;
-  vertical-align: middle;
-}
-
-.rc-remark-line { color: #555; }
-
-/* ════════════════════════════════════════════════════════════════════════
-   REMARKS SECTIONS
-════════════════════════════════════════════════════════════════════════ */
-.rc-remarks-section { padding: 0; }
-
-.rc-remark-body {
-  padding: 8px 14px 12px;
-}
-
-.rc-remark-text {
-  font-size: 8.5pt;
-  color: #222;
-  padding: 6px 0;
-  line-height: 1.7;
+.rc-motto {
   font-style: italic;
-  margin-bottom: 20px;
-  border-bottom: 0.5px solid #ccc;
-  min-height: 28px;
-  font-family: "Times New Roman", Times, serif;
-}
-
-.rc-remark-field {
-  height: 30px;
-  border-bottom: 0.5px solid #444;
-  margin-bottom: 20px;
-}
-
-.rc-remark-sign {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   RESULT / PROMOTION STATUS
-════════════════════════════════════════════════════════════════════════ */
-.rc-promotion-section { padding: 0; }
-
-.rc-result-body {
-  padding: 8px 14px 10px;
-}
-
-.rc-result-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font-family: "Times New Roman", Times, serif;
-}
-
-.rc-result-label {
   font-size: 9pt;
-  font-weight: 700;
-  color: #333;
-  text-transform: uppercase;
+  color: #a78234;
+  margin: 2px 0 5px;
   letter-spacing: 0.5px;
 }
 
-.rc-result-value {
+.rc-affiliation {
+  font-size: 7.3pt;
+  color: #7f8b86;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* ── Gold separator ── */
+.rc-gold-rule {
+  border: none;
+  border-top: 1.5px solid #c29b4b;
+  margin: 6px 0 10px;
+}
+
+/* ── Report Card title section ── */
+.rc-title-section {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 0 0 8px;
+}
+.rc-title-rule {
+  border-top: 1px solid #c29b4b;
+  height: 0;
+  margin: 0;
+}
+.rc-title-label {
+  font-family: 'Times New Roman', Times, serif;
   font-size: 13pt;
-  font-weight: 900;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  font-family: "Times New Roman", Times, serif;
+  letter-spacing: 0.5em;
+  font-weight: 500;
+  color: #52645e;
+  padding: 6px 0 6px;
+  line-height: 1;
+}
+.rc-title-session {
+  font-style: italic;
+  font-size: 8.3pt;
+  color: #737f79;
+  margin-top: 5px;
 }
 
-.rc-result-pass { color: #145a14; }
-.rc-result-fail { color: #8b0000; }
-
-/* ════════════════════════════════════════════════════════════════════════
-   SIGNATURES
-════════════════════════════════════════════════════════════════════════ */
-.rc-signatures {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: 14px 18px 12px;
-  border-top: 0.5px solid #444;
-  gap: 10px;
-  flex-wrap: wrap;
+/* ── Sections ── */
+.rc-section {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 7px;
 }
 
-.rc-sign-col {
-  flex: 1;
-  min-width: 100px;
+/* ── Section titles (centered, small-caps style) ── */
+.rc-sec-title {
+  font-family: 'Times New Roman', Times, serif;
   text-align: center;
-}
-
-.rc-sign-space {
-  height: 36px;    /* room for actual ink signature */
-}
-
-.rc-sign-line-drawn {
-  height: 1px;
-  background: #333;
-  margin: 0 auto;
-  width: 90%;
-  max-width: 130px;
-}
-
-.rc-sign-label {
-  display: block;
-  font-size: 7pt;
-  font-weight: 700;
-  color: #333;
+  font-size: 8.1pt;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  color: #52645e;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 4px;
-  text-align: center;
-  font-family: "Times New Roman", Times, serif;
+  margin: 8px 0 6px;
 }
 
-.rc-seal-box {
-  width: 76px;
-  height: 76px;
-  border: 1px solid #666;
+/* ── Student info ── */
+.rc-student-layout {
+  display: grid;
+  grid-template-columns: 1fr 23mm;
+  gap: 8mm;
+  align-items: flex-start;
+}
+.rc-student-fields {
+  display: grid;
+  grid-template-rows: repeat(3, 9mm);
+  height: 27mm;
+}
+
+.rc-info-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr 1.2fr;
+  border-bottom: 0.5px solid #d5c9b8;
+  box-sizing: border-box;
+  height: 9mm;
+  min-height: 0;
+  padding: 0 0 1.7mm;
+  align-items: end;
+  font-size: 8.7pt;
+}
+.rc-lbl { font-style: italic; color: #78857f; }
+.rc-val {
+  font-weight: 600;
+  color: #52645e;
+  padding-left: 4px;
+}
+
+.rc-photo-col { text-align: center; }
+.rc-student-photo {
+  width: 21mm; height: 27mm;
+  object-fit: cover;
+  border: none;
+}
+.rc-photo-placeholder {
+  width: 21mm; height: 27mm;
+  border: none;
+  background: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-}
-
-.rc-seal-inner {
   font-size: 7pt;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  color: #888;
   text-align: center;
   line-height: 1.4;
-  font-family: "Times New Roman", Times, serif;
+}
+.rc-photo-label {
+  font-size: 7pt;
+  color: #888;
+  letter-spacing: 1px;
+  margin-top: 3px;
+}
+
+/* ── Marks table ── */
+.rc-marks-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8.8pt;
+}
+.rc-th {
+  font-family: 'Times New Roman', Times, serif;
+  background: #eee9df;
+  color: #52645e;
+  padding: 5px 7px;
+  font-size: 7.2pt;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-top: 0.7px solid #c29b4b;
+  border-bottom: 0.7px solid #c29b4b;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.rc-th-subject { text-align: left; }
+.rc-th-exam { text-align: center; }
+.rc-th-grade { text-align: right; }
+.rc-th-weight { font-size: 6.5pt; font-weight: 400; letter-spacing: 0; }
+
+.rc-td-subject { padding: 4.2px 7px; border-bottom: 0.5px solid #d5c9b8; text-align: left; }
+.rc-td-center { padding: 4.2px 7px; border-bottom: 0.5px solid #d5c9b8; text-align: center; }
+.rc-td-subject,
+.rc-td-center,
+.rc-td-grade { color: #52645e; }
+.rc-td-center { font-weight: 600; }
+.rc-td-grade { padding: 4.2px 7px; border-bottom: 0.5px solid #d5c9b8; text-align: right; font-weight: 600; }
+
+.rc-tr-even td { background: #f5f0e8; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+.rc-tfoot-row td {
+  border-top: 0.8px solid #c29b4b;
+  border-bottom: none;
+  padding: 5px 7px;
+  font-size: 8.8pt;
+  font-weight: 600;
+}
+.rc-tfoot-row .rc-td-grade { text-align: right; }
+
+/* Grade coloring */
+.grade-a { color: #1e3d1e; }
+.grade-b { color: #4a5e1e; }
+.grade-c { color: #7a5a00; }
+.grade-fail { color: #b91c1c; }
+
+/* Grade legend */
+.rc-grade-legend {
+  display: none;
+  font-size: 6.35pt;
+  color: #6f7b75;
+  text-align: center;
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+.rc-two-col {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12mm;
+  align-items: start;
+}
+
+.rc-simple-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 0.5px solid #d5c9b8;
+  padding: 4px 0;
+  font-size: 8.6pt;
+}
+.rc-val-r { color: #52645e; font-weight: 600; }
+
+/* ── Assessment Summary ── */
+.rc-kpi-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  padding: 5px 0 2px;
+}
+.rc-kpi { text-align: center; }
+.rc-kpi-val {
+  display: block;
+  font-size: 20pt;
+  font-weight: 600;
+  color: #214238;
+  line-height: 1.1;
+}
+.rc-kpi-lbl {
+  display: block;
+  font-style: italic;
+  font-size: 7.2pt;
+  color: #78857f;
+  margin-top: 3px;
+}
+
+/* ── Remarks ── */
+.rc-remarks { margin-top: 7px; }
+.rc-remark-line {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: baseline;
+  gap: 5mm;
+  padding: 3px 0;
+  border-bottom: none;
+  font-size: 8.5pt;
+}
+.rc-remark-lbl {
+  font-size: 7pt;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: #78857f;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.rc-remark-txt { font-style: italic; color: #52645e; }
+
+/* ── Result badge + Signatures ── */
+.rc-sig-badge-row {
+  position: absolute;
+  left: 14mm;
+  right: 14mm;
+  bottom: 23mm;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin: 0;
+  padding-top: 0;
+}
+.rc-sig-col {
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 12mm;
+}
+.rc-sig-line {
+  border-top: 1px solid #6f7b75;
+  width: 36mm;
+  margin: 0 auto 2px;
+}
+.rc-sig-label {
+  font-size: 7pt;
+  line-height: 1.15;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #52645e;
+}
+
+.rc-badge-center { flex: 1; text-align: center; }
+
+/* ── Footer ── */
+.rc-footer-section {
+  position: absolute;
+  left: 14mm;
+  right: 14mm;
+  bottom: 2mm;
+  text-align: center;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.rc-footer-seal {
+  font-size: 6.7pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #888;
+}
+.rc-footer-brand {
+  font-size: 6.3pt;
+  color: #a78234;
+  margin-top: 2px;
+}
+
+.rc-dense .rc-school-name { font-size: 23pt; letter-spacing: 0.34em; }
+.rc-dense .rc-header { min-height: 31mm; }
+.rc-dense .rc-logo-img { height: 18mm; }
+.rc-dense .rc-info-row,
+.rc-dense .rc-simple-row,
+.rc-dense .rc-marks-table { font-size: 8pt; }
+.rc-dense .rc-td-subject,
+.rc-dense .rc-td-center,
+.rc-dense .rc-td-grade { padding-top: 3.1px; padding-bottom: 3.1px; }
+.rc-dense .rc-kpi-val { font-size: 17pt; }
+.rc-dense .rc-sig-line { margin-top: 15mm; }
+.rc-dense .rc-circle-badge { width: 25mm; height: 25mm; }
+.rc-dense .rc-badge-grade { font-size: 16pt; }
+
+.rc-dense.rc-card { padding-top: 11mm; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -547,23 +598,56 @@
 .rc-info-value {
   font-size: 9pt;
   font-weight: 700;
-  color: #111;
+  color: #52645e;
   font-family: "Times New Roman", Times, serif;
 }
 
-.rc-exam-section { }
+.rc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 8.5pt;
+}
 
-.rc-exam-heading {
+.rc-table th {
   color: #fff;
-  font-size: 8pt;
+  padding: 5px 7px;
   font-weight: 700;
-  margin: 0;
-  padding: 5px 12px;
+  font-size: 7.5pt;
+  border: 0.5px solid #555;
+  text-align: center;
+  font-family: "Times New Roman", Times, serif;
   background: #1f6f8b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.rc-th-subject { text-align: left !important; }
+.rc-th-num { text-align: center; }
+
+.rc-table td {
+  padding: 4px 7px;
+  border: 0.5px solid #aaa;
+  color: #52645e;
+  font-size: 8.5pt;
   font-family: "Times New Roman", Times, serif;
 }
+
+.rc-td-subject  { text-align: left; font-weight: 500; }
+.rc-td-num      { text-align: center; }
+.grade-absent { color: #999; font-style: italic; }
+.rc-absent-text { color: #999; font-style: italic; }
+
+.rc-tfoot-row td {
+  background: #eeeeee !important;
+  font-weight: 700;
+  border: 0.5px solid #666;
+  color: #52645e;
+  font-size: 8pt;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.rc-tfoot-label { text-align: left; text-transform: uppercase; font-size: 7.5pt; letter-spacing: 0.4px; }
 
 .rc-tfoot-summary td {
   background: #f8f8f8 !important;
@@ -578,28 +662,66 @@
 .rc-summary-divider { margin: 0 8px; color: #bbb; }
 .rc-row-absent td { color: #999; font-style: italic; }
 
-/* ════════════════════════════════════════════════════════════════════════
-   LOCKED STATE (not published)
-════════════════════════════════════════════════════════════════════════ */
-.rc-locked {
-  max-width: 480px; margin: 48px auto;
-  background: #fff; border: 1px solid #e0e0e0;
-  border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.07);
-  padding: 44px 36px; text-align: center;
+.rc-exam-section { }
+
+.rc-exam-heading {
+  color: #fff;
+  font-size: 8pt;
+  font-weight: 700;
+  margin: 0;
+  padding: 5px 12px;
+  background: #1f6f8b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: "Times New Roman", Times, serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
-.rc-locked-icon  { font-size: 3rem; margin-bottom: 14px; }
-.rc-locked-title { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 0 0 10px; font-family: 'Segoe UI', sans-serif; }
-.rc-locked-msg   { font-size: 0.9rem; color: #64748b; line-height: 1.7; margin: 0; font-family: 'Segoe UI', sans-serif; }
+
+.rc-signatures {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-top: 0.5px solid #444;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rc-sign-col {
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+}
+
+.rc-sign-space {
+  height: 36px;
+}
+
+.rc-sign-line-drawn {
+  height: 1px;
+  background: #333;
+  margin: 0 auto;
+  width: 90%;
+  max-width: 130px;
+}
+
+.rc-sign-label {
+  display: block;
+  font-size: 7pt;
+  font-weight: 700;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+  text-align: center;
+  font-family: "Times New Roman", Times, serif;
+}
 
 /* ════════════════════════════════════════════════════════════════════════
-   PRINT STYLES — A4, border-box, no chrome
+   PRINT STYLES
 ════════════════════════════════════════════════════════════════════════ */
 @media print {
-  @page {
-    size: A4 portrait;
-    margin: 12mm 14mm;
-  }
-
   .no-print { display: none !important; }
 
   body {
@@ -608,82 +730,26 @@
     padding: 0 !important;
   }
 
-  .rc-page {
-    background: #fff !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    min-height: 0 !important;
-  }
-
+  .rc-page { background: white; padding: 0; }
   .rc-card {
-    max-width: 100% !important;
-    width: 100% !important;
-    border: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    width: 100%;
+    min-height: unset;
+    box-shadow: none;
+    border: none;
+    padding: 10mm 12mm;
   }
+  .rc-watermark-layer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rc-marks-table .rc-th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rc-monogram { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rc-circle-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rc-tr-even td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-  .rc-section          { page-break-inside: avoid; }
-  .rc-marks-table-section { page-break-inside: avoid; }
-  .rc-signatures       { page-break-inside: avoid; }
-  .rc-exam-section     { page-break-inside: avoid; }
-
-  /* Force colored backgrounds to print */
-  .rc-table th,
-  .rc-section-title,
-  .rc-exam-heading,
-  .rc-tfoot-row td,
-  .rc-si-label {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* Grade text colors must print */
   .grade-a, .grade-b, .grade-c, .grade-fail,
-  .rc-result-pass, .rc-result-fail {
+  .rc-badge-top, .rc-badge-grade, .rc-badge-mid, .rc-badge-pct,
+  .rc-remark-lbl, .rc-sec-title, .rc-school-name, .rc-motto {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-}
 
-/* ════════════════════════════════════════════════════════════════════════
-   MOBILE (≤ 600px) — screen only
-════════════════════════════════════════════════════════════════════════ */
-@media (max-width: 600px) {
-  .rc-page { padding: 0 0 28px; }
-
-  .rc-card { max-width: 100%; border-left: none; border-right: none; }
-
-  .rc-header-inner {
-    flex-direction: column; text-align: center;
-    align-items: center; gap: 10px; padding: 10px 12px;
-  }
-
-  .rc-school-name { font-size: 12pt; }
-  .rc-header-right { width: 100%; display: flex; justify-content: center; }
-
-  .rc-si-photo { display: none; }
-
-  .rc-student-table,
-  .rc-student-table td { font-size: 7pt; }
-  .rc-si-label { width: auto; }
-
-  .rc-table { font-size: 7pt; }
-  .rc-table th, .rc-table td { padding: 3px 4px; }
-
-  .rc-signatures { flex-direction: column; align-items: center; gap: 16px; }
-  .rc-seal-box   { margin-top: 8px; }
-
-  .rc-student-info { flex-direction: column; }
-  .rc-info-item {
-    border-right: none;
-    border-bottom: 0.5px solid #aaa;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .rc-info-item:last-child { border-bottom: none; }
-  .rc-info-label { margin-bottom: 0; }
-
-  .rc-btn-print { font-size: 0.78rem; }
+  * { box-shadow: none !important; }
 }

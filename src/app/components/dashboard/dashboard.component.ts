@@ -52,6 +52,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showMoreMenu: boolean = false;
   showUpdateBanner = false;
   latestAppVersion = '';
+  sidebarCollapsed = false;
+  mobileSidebarOpen = false;
   private ngUnsubscribe = new Subject<void>();
   private welcomeMessageKey = 'hasShownWelcome';
   private pollingIntervalSubscription: Subscription | undefined;
@@ -324,6 +326,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
       'SUPER_ADMIN': 'chip-superadmin',
     };
     return classes[this.Role] ?? 'chip-student';
+  }
+
+  toggleSidebar(): void {
+    if (window.innerWidth <= 768) {
+      this.mobileSidebarOpen = !this.mobileSidebarOpen;
+    } else {
+      this.sidebarCollapsed = !this.sidebarCollapsed;
+    }
+    this.cdr.markForCheck();
+  }
+
+  closeMobileSidebar(): void {
+    this.mobileSidebarOpen = false;
+    this.cdr.markForCheck();
+  }
+
+  closeSidebarOnMobile(): void {
+    if (window.innerWidth <= 768) {
+      this.mobileSidebarOpen = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  get menuIcon(): string {
+    return this.mobileSidebarOpen ? 'close' : 'menu';
   }
 
   toggleMoreMenu(): void {

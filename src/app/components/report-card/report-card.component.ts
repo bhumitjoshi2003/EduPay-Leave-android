@@ -7,12 +7,16 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { Subject, takeUntil } from 'rxjs';
 import { MarksService, ExamResult } from '../../services/marks.service';
-import { ReportCardTemplateService, ReportCardData, TemplateSection, BrandingConfig } from '../../services/report-card-template.service';
+import {
+  ReportCardTemplateService, ReportCardData, TemplateSection, BrandingConfig,
+  ExamColumn, SubjectRow
+} from '../../services/report-card-template.service';
 import { LoggerService } from '../../services/logger.service';
 import { SchoolService } from '../../services/school.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { Capacitor } from '@capacitor/core';
 import { ToastService } from '../../services/toast.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-report-card',
@@ -27,6 +31,10 @@ export class ReportCardComponent implements OnInit, OnDestroy {
 
   studentId = '';
   session = '';
+
+  // ── Demo mode ─────────────────────────────────────────────────────────
+  demoMode = false;
+  demoStyleName = '';
 
   // ── Legacy exam-based mode ────────────────────────────────────────────
   examId: number | null = null;
@@ -69,18 +77,31 @@ export class ReportCardComponent implements OnInit, OnDestroy {
     this.examId     = examIdStr     ? Number(examIdStr)     : null;
     this.templateId = templateIdStr ? Number(templateIdStr) : null;
 
+    this.demoMode = params.get('demo') === 'true';
+    this.demoStyleName = params.get('styleName') ?? 'CBSE Standard';
+    if (this.demoMode) {
+      this.reportCardData = this.buildSampleData();
+      this.templateId = -1;
+      this.loading = false;
+      this.cdr.markForCheck();
+      this.titleService.setTitle('Sample Report Card — Indra Academy Style');
+      return;
+    }
+
     if (!this.studentId || !this.session) {
       this.router.navigate(['/dashboard']);
       return;
     }
 
     // STUDENT role can only view own report card
-    const role = this.authState.getUserRole();
-    const authUserId = this.authState.getUserId();
-    if (role === 'STUDENT' && this.studentId && this.studentId !== String(authUserId)) {
-      this.toast.error('Access Denied', 'You can only view your own report card.');
-      this.router.navigate(['/dashboard']);
-      return;
+    if (!this.demoMode) {
+      const role = this.authState.getUserRole();
+      const authUserId = this.authState.getUserId();
+      if (role === 'STUDENT' && this.studentId && this.studentId !== String(authUserId)) {
+        this.toast.error('Access Denied', 'You can only view your own report card.');
+        this.router.navigate(['/dashboard']);
+        return;
+      }
     }
 
     if (this.templateId) {
@@ -163,24 +184,77 @@ export class ReportCardComponent implements OnInit, OnDestroy {
     try { return JSON.parse(this.reportCardData.template.brandingJson); } catch { return {}; }
   }
 
-  get primaryColor(): string { return this.branding.primaryColor ?? '#1565c0'; }
-
   get headerStyle(): string {
-    // White document header with a thick colored top stripe — no gradient.
-    return `border-top: 4px solid ${this.primaryColor}`;
+    return '';
   }
 
   get rcLabelStyle(): string {
-    // Bordered box with primary color text and border — not a solid fill.
-    return `color: ${this.primaryColor}; border: 2px solid ${this.primaryColor}`;
+    return '';
   }
 
-  get sectionBarStyle(): string {
-    return `background: ${this.primaryColor}; border-color: ${this.primaryColor}`;
+  // logoSrc — resolves the relative logo path (e.g. /uploads/school-logos/1.png)
+  // to a full URL the same way the login page does via TenantService.getLogoUrl()
+  get logoSrc(): string {
+    const url = this.reportCardData?.schoolLogoUrl;
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    return `${environment.apiUrl}${url}`;
   }
 
-  get thStyle(): string {
-    return `background: ${this.primaryColor}; border-color: ${this.primaryColor}; color: #fff`;
+  // photoSrc — resolves student photo relative path to a full URL
+  get photoSrc(): string {
+    const url = this.reportCardData?.photoUrl;
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    return `${environment.apiUrl}${url}`;
+  }
+
+  // classDisplay — e.g. "10" or "10 – A" when section exists
+  get classDisplay(): string {
+    const cls = this.reportCardData?.className ?? '';
+    const sec = this.reportCardData?.sectionName;
+    return sec ? `${cls} – ${sec}` : cls;
+  }
+
+  // boardLabel — human-readable board type shown in school header
+  get boardLabel(): string {
+    const map: Record<string, string> = {
+      CBSE: 'CBSE Affiliated',
+      ICSE: 'ICSE Affiliated',
+      STATE: 'State Board',
+      OTHER: ''
+    };
+    return map[this.reportCardData?.boardType ?? ''] ?? '';
+  }
+
+  // gradeLegend — rows for the grade scale legend shown below marks table
+  get gradeLegend(): { grade: string; range: string; descriptor: string }[] {
+    const gs = this.reportCardData?.gradingSystem ?? 'CBSE';
+    if (gs === 'CBSE') {
+      return [
+        { grade: 'A1', range: '91–100', descriptor: 'Outstanding' },
+        { grade: 'A2', range: '81–90',  descriptor: 'Excellent' },
+        { grade: 'B1', range: '71–80',  descriptor: 'Very Good' },
+        { grade: 'B2', range: '61–70',  descriptor: 'Good' },
+        { grade: 'C1', range: '51–60',  descriptor: 'Satisfactory' },
+        { grade: 'C2', range: '41–50',  descriptor: 'Average' },
+        { grade: 'D',  range: '33–40',  descriptor: 'Needs Improvement' },
+        { grade: 'E',  range: '0–32',   descriptor: 'Fail' },
+      ];
+    }
+    if (gs === 'LETTER') {
+      return [
+        { grade: 'A+', range: '90–100', descriptor: 'Outstanding' },
+        { grade: 'A',  range: '80–89',  descriptor: 'Excellent' },
+        { grade: 'B+', range: '70–79',  descriptor: 'Very Good' },
+        { grade: 'B',  range: '60–69',  descriptor: 'Good' },
+        { grade: 'C+', range: '50–59',  descriptor: 'Satisfactory' },
+        { grade: 'C',  range: '40–49',  descriptor: 'Average' },
+        { grade: 'D',  range: '33–39',  descriptor: 'Needs Improvement' },
+        { grade: 'F',  range: '0–32',   descriptor: 'Fail' },
+      ];
+    }
+    return []; // PERCENTAGE — no letter grade legend needed
   }
 
   get showCgpa(): boolean {
@@ -191,14 +265,52 @@ export class ReportCardComponent implements OnInit, OnDestroy {
     return this.branding.showGradePoints === true;
   }
 
-  private darken(hex: string, factor: number): string {
-    try {
-      const h = hex.replace('#', '');
-      const r = Math.round(parseInt(h.substring(0, 2), 16) * (1 - factor));
-      const g = Math.round(parseInt(h.substring(2, 4), 16) * (1 - factor));
-      const b = Math.round(parseInt(h.substring(4, 6), 16) * (1 - factor));
-      return `rgb(${r},${g},${b})`;
-    } catch { return '#0f172a'; }
+  get marksRowCount(): number {
+    return this.reportCardData?.weightedResult?.marksTable?.subjectRows?.length ?? 0;
+  }
+
+  get examColumnCount(): number {
+    return this.reportCardData?.weightedResult?.marksTable?.examColumns?.length ?? 0;
+  }
+
+  get coScholasticCount(): number {
+    return this.reportCardData?.coScholasticGrades?.length || this.coScholasticActivities.length || 0;
+  }
+
+  get isDenseReport(): boolean {
+    return this.marksRowCount > 6 || this.examColumnCount > 2 || this.coScholasticCount > 4;
+  }
+
+  get isVeryDenseReport(): boolean {
+    return this.marksRowCount > 9 || this.examColumnCount > 3 || this.coScholasticCount > 6;
+  }
+
+  get schoolInitials(): string {
+    const name = this.reportCardData?.schoolName ?? '';
+    const words = name.trim().split(/\s+/).filter(w => w.length > 0);
+    if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  }
+  get schoolMotto(): string { return this.branding.schoolMotto ?? ''; }
+  get examTerm(): string { return this.branding.examTerm ?? ''; }
+  get examDisplay(): string {
+    const term = this.examTerm.trim();
+    if (!term) return '';
+    return term.toLowerCase().includes('exam') ? term : `${term} Examination`;
+  }
+  get watermarkEnabled(): boolean { return this.branding.showWatermark === true; }
+  get watermarkType(): string { return this.branding.watermarkType ?? 'TEXT'; }
+  get watermarkText(): string { return this.branding.watermarkText ?? (this.reportCardData?.schoolName ?? ''); }
+
+  get affiliationLine(): string {
+    const parts: string[] = [];
+    const aff = this.reportCardData?.affiliationNumber;
+    const code = this.reportCardData?.schoolCode;
+    const city = this.reportCardData?.schoolCity;
+    if (aff) parts.push(`Affiliation No. ${aff}`);
+    if (code) parts.push(`School Code ${code}`);
+    if (city) parts.push(city);
+    return parts.join(' \u00b7 ');
   }
 
   cbseGradePoint(pct: number): number {
@@ -366,6 +478,94 @@ export class ReportCardComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void { this.location.back(); }
+
+  private buildSampleData(): ReportCardData {
+    const sections: TemplateSection[] = [
+      { sectionType: 'SCHOOL_HEADER',      enabled: true, displayOrder: 1 },
+      { sectionType: 'STUDENT_INFO',       enabled: true, displayOrder: 2 },
+      { sectionType: 'MARKS_TABLE',        enabled: true, displayOrder: 3 },
+      { sectionType: 'ASSESSMENT_SUMMARY', enabled: true, displayOrder: 4 },
+      { sectionType: 'ATTENDANCE',         enabled: true, displayOrder: 5 },
+      { sectionType: 'CO_SCHOLASTIC',      enabled: true, displayOrder: 6 },
+      { sectionType: 'TEACHER_REMARKS',    enabled: true, displayOrder: 7 },
+      { sectionType: 'PRINCIPAL_REMARKS',  enabled: true, displayOrder: 8 },
+      { sectionType: 'PROMOTION_STATUS',   enabled: true, displayOrder: 9 },
+      { sectionType: 'SIGNATURES',         enabled: true, displayOrder: 10 },
+    ];
+    const examColumns: ExamColumn[] = [
+      { examId: 1, examName: 'Half-Yearly', maxTotal: 80, weightage: 1.0 },
+    ];
+    const subjectRows: SubjectRow[] = [
+      { subjectName: 'Computer', examMarks: [
+          { obtained: 78, max: 80, percentage: 97.5 },
+        ], weightedPercentage: 97.5 },
+      { subjectName: 'General Knowledge', examMarks: [
+          { obtained: 71, max: 80, percentage: 88.75 },
+        ], weightedPercentage: 88.75 },
+      { subjectName: 'Mathematics', examMarks: [
+          { obtained: 75, max: 80, percentage: 93.75 },
+        ], weightedPercentage: 93.75 },
+    ];
+    return {
+      studentId: 'S102',
+      studentName: 'Himani',
+      rollNumber: 'S102',
+      className: 'II',
+      sectionName: 'A',
+      session: '2026-2027',
+      dateOfBirth: '29 Jun 2015',
+      schoolName: 'Indra Academy',
+      affiliationNumber: '2130456',
+      schoolCode: '41207',
+      schoolCity: 'Lucknow 226001',
+      gradingSystem: 'CBSE',
+      cgpa: 9.7,
+      template: {
+        id: -1,
+        schoolId: 0,
+        name: 'Sample Template',
+        assessmentGroupId: 0,
+        assessmentGroupName: 'Half-Yearly Assessment',
+        isDefault: true,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        sections,
+        brandingJson: JSON.stringify({
+          showCgpa: true,
+          schoolMotto: 'Scientia · Disciplina · Servitium',
+          examTerm: 'Half-Yearly',
+        } as BrandingConfig),
+      },
+      weightedResult: {
+        groupId: 0,
+        groupName: 'Half-Yearly Assessment',
+        groupType: 'EXAM_BASED',
+        weightedPercentage: 93.3,
+        rank: 0,
+        subjectResults: [],
+        marksTable: {
+          examColumns,
+          subjectRows,
+          examTotals: [
+            { obtained: 224, max: 240 },
+          ],
+        },
+      },
+      attendance: {
+        workingDays: 200,
+        presentDays: 188,
+        percentage: 94,
+      },
+      teacherRemarks: 'Himani is a diligent and curious learner who participates wholeheartedly.',
+      principalRemarks: 'A commendable performance. Promoted with distinction.',
+      coScholasticGrades: [
+        { activity: 'Work Education',      grade: 'A' },
+        { activity: 'Art Education',       grade: 'A' },
+        { activity: 'Health & Phys. Edu.', grade: 'A' },
+      ],
+    };
+  }
 
   trackByExamId(index: number, exam: ExamResult): number { return exam.examId; }
   trackByIndex(index: number): number { return index; }

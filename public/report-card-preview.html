@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Report Card Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #d0d0d0;
+    font-family: 'Times New Roman', Times, serif;
+    padding: 32px 0 48px;
+  }
+
+  /* ── Page ── */
+  .rc-card {
+    width: 210mm;
+    min-height: 297mm;
+    background: #fff;
+    margin: 0 auto;
+    box-shadow: 0 4px 32px rgba(0,0,0,.18);
+    padding: 14mm;
+  }
+
+  /* ── Custom Header Image ── */
+  .rc-custom-header-wrap {
+    margin-bottom: 0;
+    line-height: 0;
+  }
+  .rc-custom-header-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 160px;
+    object-fit: contain;
+  }
+  .rc-custom-header-placeholder {
+    background: #f1f5f9;
+    border: 2px dashed #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    color: #64748b;
+    font-size: 13px;
+    font-family: sans-serif;
+    gap: 10px;
+  }
+
+  /* ── DOCUMENT IDENTITY TITLE BAND ── */
+  .rc-doc-title-band {
+    background: #145a14;   /* school primary color */
+    color: #fff;
+    text-align: center;
+    padding: 9px 16px 11px;
+    margin-bottom: 10px;
+    -webkit-print-color-adjust: exact;
+  }
+  .rc-doc-title-label {
+    font-size: 15pt;
+    font-weight: 700;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+  .rc-doc-title-meta {
+    font-size: 8pt;
+    opacity: 0.88;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Section title bars ── */
+  .rc-section-title {
+    background: #145a14;
+    color: #fff;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 5px 10px;
+    margin-bottom: 0;
+    text-transform: uppercase;
+  }
+  .rc-section { margin-bottom: 12px; }
+
+  /* ── Student Info Table ── */
+  .rc-student-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    border: 1px solid #ccc;
+  }
+  .rc-student-table td {
+    border: 1px solid #ccc;
+    padding: 5px 8px;
+  }
+  .rc-si-label {
+    color: #555;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    width: 18%;
+    background: #fafafa;
+  }
+  .rc-si-value { font-weight: 600; color: #111; width: 28%; }
+  .rc-si-photo {
+    width: 70px;
+    text-align: center;
+    vertical-align: middle;
+    background: #f8f8f8;
+  }
+  .rc-student-photo {
+    width: 62px; height: 80px;
+    object-fit: cover;
+    border: 1px solid #ccc;
+  }
+  .rc-photo-placeholder {
+    width: 62px; height: 80px;
+    border: 1.5px dashed #aaa;
+    background: #f0f0f0;
+    display: inline-block;
+  }
+
+  /* ── Marks Table ── */
+  .rc-marks-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+  }
+  .rc-marks-table th {
+    background: #145a14;
+    color: #fff;
+    padding: 6px 8px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 8pt;
+  }
+  .rc-marks-table th:first-child { text-align: left; }
+  .rc-marks-table td {
+    border: 1px solid #ddd;
+    padding: 5px 8px;
+    text-align: center;
+  }
+  .rc-marks-table td:first-child { text-align: left; }
+  .rc-marks-table tr:nth-child(even) td { background: #f8faf8; }
+  .rc-marks-total td { font-weight: 700; background: #f1f5f1 !important; }
+  .rc-grade-a1 { color: #145a14; font-weight: 700; }
+
+  /* ── Grade Legend ── */
+  .rc-grade-legend {
+    font-size: 7pt;
+    color: #555;
+    margin: 6px 0 10px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .rc-legend-title { font-weight: 700; color: #333; }
+  .rc-legend-item { text-align: center; }
+  .rc-legend-grade { font-weight: 700; color: #145a14; }
+
+  /* ── Assessment Summary ── */
+  .rc-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+  }
+  .rc-summary-table th {
+    background: #145a14;
+    color: #fff;
+    padding: 6px 10px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .rc-summary-table td {
+    border: 1px solid #ddd;
+    padding: 7px 10px;
+    text-align: center;
+  }
+  .rc-summary-pct { font-size: 12pt; font-weight: 700; color: #145a14; }
+
+  /* ── Result stamp ── */
+  .rc-result-stamp-wrap { text-align: center; padding: 12px 0 16px; }
+  .rc-result-stamp {
+    display: inline-block;
+    border: 2.5px solid #145a14;
+    padding: 16px 48px;
+    text-align: center;
+  }
+  .rc-result-verdict {
+    display: block;
+    font-size: 20pt;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: #145a14;
+  }
+  .rc-result-meta {
+    display: block;
+    font-size: 9pt;
+    color: #555;
+    margin-top: 4px;
+  }
+
+  /* ── Signatures ── */
+  .rc-signatures {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 24px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+  }
+  .rc-sign-col {
+    text-align: center;
+    font-size: 8pt;
+    color: #555;
+  }
+  .rc-sign-line {
+    border-top: 1px solid #555;
+    width: 100px;
+    margin: 28px auto 4px;
+  }
+
+  /* ── Footer ── */
+  .rc-footer {
+    text-align: center;
+    font-size: 7pt;
+    color: #aaa;
+    margin-top: 24px;
+    font-family: sans-serif;
+  }
+
+  /* ── Label above showing WHAT CHANGED ── */
+  .preview-note {
+    width: 210mm;
+    margin: 0 auto 16px;
+    background: #1e40af;
+    color: #fff;
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .preview-note strong { font-weight: 700; }
+  .change-tag {
+    display: inline-block;
+    background: #fbbf24;
+    color: #1a1a1a;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 99px;
+    margin-left: 6px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<div class="preview-note">
+  <span>&#128196;</span>
+  <div>
+    <strong>Report Card Preview</strong> — sample data from Indra Academy.
+    <span class="change-tag">New</span> Full-width "REPORT CARD" title band now appears below every header, showing session and exam term.
+    <span class="change-tag">New</span> Auto-generated header no longer shows the small right-side box — school info fills full width.
+  </div>
+</div>
+
+<div class="rc-card">
+
+  <!-- ── SCHOOL HEADER (custom image path) ── -->
+  <div class="rc-custom-header-wrap">
+    <img src="IASName2.png" alt="School Header" class="rc-custom-header-img"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+    <div class="rc-custom-header-placeholder" style="display:none;">
+      🏫 &nbsp; Custom header image (IASName2.png) — upload it via School Settings → Report Card Header
+    </div>
+  </div>
+
+  <!-- ── DOCUMENT IDENTITY TITLE BAND ── -->
+  <div class="rc-doc-title-band">
+    <div class="rc-doc-title-label">REPORT CARD</div>
+    <div class="rc-doc-title-meta">
+      Academic Session: 2026-2027 &nbsp;&bull;&nbsp; Half Yearly
+    </div>
+  </div>
+
+  <!-- ── STUDENT INFORMATION ── -->
+  <div class="rc-section">
+    <div class="rc-section-title">Student Information</div>
+    <table class="rc-student-table">
+      <tbody>
+        <tr>
+          <td class="rc-si-label">Name</td>
+          <td class="rc-si-value" colspan="3"><strong>Himani</strong></td>
+          <td class="rc-si-photo" rowspan="4">
+            <div class="rc-photo-placeholder"></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="rc-si-label">Class &amp; Section</td>
+          <td class="rc-si-value">2</td>
+          <td class="rc-si-label">Session</td>
+          <td class="rc-si-value"><strong>2026-2027</strong></td>
+        </tr>
+        <tr>
+          <td class="rc-si-label">Admission No.</td>
+          <td class="rc-si-value"><strong>S102</strong></td>
+          <td class="rc-si-label">Date of Birth</td>
+          <td class="rc-si-value"><strong>29 Jun 2015</strong></td>
+        </tr>
+        <tr>
+          <td class="rc-si-label">Father's Name</td>
+          <td class="rc-si-value">—</td>
+          <td class="rc-si-label">Mother's Name</td>
+          <td class="rc-si-value">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── MARKS TABLE ── -->
+  <div class="rc-section">
+    <div class="rc-section-title">Marks Table</div>
+    <table class="rc-marks-table">
+      <thead>
+        <tr>
+          <th style="width:50%">Subject</th>
+          <th>Half Yearly<br><span style="font-weight:400;font-size:7pt">(100%)</span></th>
+          <th>Grade</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Computer</td>
+          <td>78/80</td>
+          <td class="rc-grade-a1">A1</td>
+        </tr>
+        <tr>
+          <td>GK</td>
+          <td>71/80</td>
+          <td class="rc-grade-a1">A2</td>
+        </tr>
+        <tr>
+          <td>Mathematics</td>
+          <td>75/80</td>
+          <td class="rc-grade-a1">A1</td>
+        </tr>
+        <tr class="rc-marks-total">
+          <td><strong>TOTAL</strong></td>
+          <td><strong>224/240</strong></td>
+          <td class="rc-grade-a1">A1</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="rc-grade-legend">
+      <span class="rc-legend-title">Grading Scale:</span>
+      <span class="rc-legend-item"><span class="rc-legend-grade">A1</span> (91-100) Outstanding</span>
+      <span class="rc-legend-item"><span class="rc-legend-grade">A2</span> (81-90) Excellent</span>
+      <span class="rc-legend-item"><span class="rc-legend-grade">B1</span> (71-80) Very Good</span>
+      <span class="rc-legend-item"><span class="rc-legend-grade">B2</span> (61-70) Good</span>
+      <span class="rc-legend-item"><span class="rc-legend-grade">C1</span> (51-60) Satisfactory</span>
+      <span class="rc-legend-item"><span class="rc-legend-grade">C2</span> (41-50) Average</span>
+      <span class="rc-legend-item"><span class="rc-legend-grade">D</span> (33-40) Needs Impr.</span>
+      <span class="rc-legend-item"><span class="rc-legend-grade">E</span> (0-32) Fail</span>
+    </div>
+  </div>
+
+  <!-- ── ASSESSMENT SUMMARY ── -->
+  <div class="rc-section">
+    <div class="rc-section-title">Assessment Summary</div>
+    <table class="rc-summary-table">
+      <thead>
+        <tr>
+          <th>Overall Percentage</th>
+          <th>Grade</th>
+          <th>Class Rank</th>
+          <th>CGPA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="rc-summary-pct">93.3%</span></td>
+          <td class="rc-grade-a1" style="font-size:11pt">A1</td>
+          <td>—</td>
+          <td style="font-size:11pt;font-weight:700">9.7</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── RESULT ── -->
+  <div class="rc-section">
+    <div class="rc-section-title">Result</div>
+    <div class="rc-result-stamp-wrap">
+      <div class="rc-result-stamp">
+        <span class="rc-result-verdict">PASS</span>
+        <span class="rc-result-meta">93.3% &bull; A1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SIGNATURES ── -->
+  <div class="rc-signatures">
+    <div class="rc-sign-col">
+      <div class="rc-sign-line"></div>
+      Class Teacher's Signature
+    </div>
+    <div class="rc-sign-col">
+      <div class="rc-sign-line"></div>
+      Principal's Signature
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="rc-footer">powered by Edunexify</div>
+
+</div>
+</body>
+</html>
