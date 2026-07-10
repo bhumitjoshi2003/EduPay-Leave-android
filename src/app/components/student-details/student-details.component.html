@@ -23,8 +23,9 @@
 
     <div class="sd-hero-center">
       <div class="sd-photo-ring" [class.uploadable]="canUploadPhoto()" (click)="canUploadPhoto() && triggerPhotoUpload()">
-        <img *ngIf="studentDetails.photoUrl" [src]="getPhotoUrl(studentDetails.photoUrl)" alt="Student photo" class="sd-photo">
-        <div *ngIf="!studentDetails.photoUrl" class="sd-initials">{{ getInitials() }}</div>
+        <img *ngIf="studentDetails.photoUrl && !photoLoadFailed" [src]="getPhotoUrl(studentDetails.photoUrl)" alt=""
+          class="sd-photo" (error)="onPhotoError()">
+        <div *ngIf="!studentDetails.photoUrl || photoLoadFailed" class="sd-initials">{{ getInitials() }}</div>
         <div *ngIf="canUploadPhoto() && !photoUploading" class="sd-photo-overlay">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           <span>Upload</span>
@@ -32,11 +33,13 @@
         <div *ngIf="photoUploading" class="sd-photo-uploading"><span class="sd-spinner"></span></div>
       </div>
       <input type="file" #photoInput accept="image/*" (change)="onPhotoSelected($event)" style="display:none">
-      <h1 class="sd-hero-name">{{ studentDetails.name }}</h1>
-      <div class="sd-hero-chips">
-        <span class="sd-hero-chip">Class {{ studentDetails.className }}<ng-container *ngIf="studentDetails.sectionName"> - {{ studentDetails.sectionName }}</ng-container></span>
-        <span class="sd-hero-chip">{{ studentDetails.studentId }}</span>
-        <span *ngIf="isExitStatus()" class="sd-hero-chip sd-chip-exit">{{ studentDetails.status }}</span>
+      <div class="sd-hero-identity">
+        <h1 class="sd-hero-name">{{ studentDetails.name }}</h1>
+        <div class="sd-hero-chips">
+          <span class="sd-hero-chip">Class {{ studentDetails.className }}<ng-container *ngIf="studentDetails.sectionName"> - {{ studentDetails.sectionName }}</ng-container></span>
+          <span class="sd-hero-chip">{{ studentDetails.studentId }}</span>
+          <span *ngIf="isExitStatus()" class="sd-hero-chip sd-chip-exit">{{ studentDetails.status }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -77,7 +80,7 @@
         <input type="text" class="sd-item-input" *ngIf="isEditing" [(ngModel)]="updatedDetails.phoneNumber"
           (input)="updateFieldValue('phoneNumber', $event)" [class.invalid-field]="validationErrors['phoneNumber']">
       </div>
-      <div class="sd-item sd-item-wide">
+      <div class="sd-item">
         <span class="sd-item-label">Email</span>
         <span class="sd-item-value" *ngIf="!isEditing">{{ studentDetails.email }}</span>
         <input type="email" class="sd-item-input" *ngIf="isEditing" [(ngModel)]="updatedDetails.email"
@@ -92,16 +95,16 @@
   </div>
 
   <!-- ── Family ─────────────────────────────────────────────────── -->
-  <div class="sd-section">
+  <div class="sd-section" *ngIf="isEditing || hasFamilyInfo()">
     <p class="sd-section-title">Family</p>
     <div class="sd-grid">
-      <div class="sd-item sd-item-parent">
+      <div class="sd-item sd-item-parent" *ngIf="isEditing || hasValue(studentDetails.fatherName)">
         <span class="sd-item-label">Father</span>
         <span class="sd-item-value" *ngIf="!isEditing">{{ studentDetails.fatherName }}</span>
         <input type="text" class="sd-item-input" *ngIf="isEditing" [(ngModel)]="updatedDetails.fatherName"
           (input)="updateFieldValue('fatherName', $event)">
       </div>
-      <div class="sd-item sd-item-parent">
+      <div class="sd-item sd-item-parent" *ngIf="isEditing || hasValue(studentDetails.motherName)">
         <span class="sd-item-label">Mother</span>
         <span class="sd-item-value" *ngIf="!isEditing">{{ studentDetails.motherName }}</span>
         <input type="text" class="sd-item-input" *ngIf="isEditing" [(ngModel)]="updatedDetails.motherName"

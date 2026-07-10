@@ -317,6 +317,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return labels[this.Role] ?? this.Role;
   }
 
+  getProfileInitials(): string {
+    const source = (this.Name || this.Role || 'U').trim();
+    const parts = source.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return source.charAt(0).toUpperCase();
+  }
+
   getRoleChipClass(): string {
     const classes: Record<string, string> = {
       'STUDENT': 'chip-student',

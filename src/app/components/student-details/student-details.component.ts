@@ -59,6 +59,7 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
 
   // Photo upload state
   photoUploading = false;
+  photoLoadFailed = false;
   @ViewChild('photoInput') photoInput!: ElementRef<HTMLInputElement>;
 
   // Change-password modal state
@@ -156,6 +157,7 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
       next: (details) => {
         this.studentDetails = details;
         this.updatedDetails = { ...details };
+        this.photoLoadFailed = false;
         if (details.className) this.loadSectionsForClass(details.className);
         this.cdr.markForCheck();
       },
@@ -400,6 +402,19 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     return this.studentDetails?.name?.charAt(0).toUpperCase() ?? '?';
   }
 
+  hasValue(value: unknown): boolean {
+    return value !== null && value !== undefined && String(value).trim().length > 0;
+  }
+
+  hasFamilyInfo(): boolean {
+    return this.hasValue(this.studentDetails?.fatherName) || this.hasValue(this.studentDetails?.motherName);
+  }
+
+  onPhotoError(): void {
+    this.photoLoadFailed = true;
+    this.cdr.markForCheck();
+  }
+
   getPhotoUrl(relativePath: string): string {
     if (relativePath.startsWith('http')) return relativePath;
     return `${environment.apiUrl}${relativePath}`;
@@ -429,6 +444,7 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
         if (this.studentDetails) {
           this.studentDetails = { ...this.studentDetails, photoUrl: res.photoUrl + '?t=' + Date.now() };
         }
+        this.photoLoadFailed = false;
         this.photoUploading = false;
         this.cdr.markForCheck();
         this.toast.success('Photo updated!');

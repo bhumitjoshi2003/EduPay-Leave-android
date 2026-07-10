@@ -404,31 +404,56 @@
       </button>
 
       <mat-menu #profileMenu="matMenu" xPosition="before" class="hdr-profile-menu">
-        <div class="hdr-menu-header" (click)="$event.stopPropagation()">
-          <div class="hdr-menu-avatar">{{ (Name || Role).charAt(0).toUpperCase() }}</div>
-          <div class="hdr-menu-info">
-            <div class="hdr-menu-name">{{ Name || '—' }}</div>
-            <div class="hdr-menu-role">{{ Role }}</div>
-            <div class="hdr-menu-id">ID: {{ Id }}</div>
-            <div class="hdr-menu-class" *ngIf="isTeacher() && ClassTeacher">
-              Class Teacher · {{ ClassTeacher }}
+        <div class="pm-card" (click)="$event.stopPropagation()">
+          <div class="pm-banner">
+            <div class="pm-avatar-circle">{{ getProfileInitials() }}</div>
+          </div>
+
+          <div class="pm-identity">
+            <div class="pm-name">{{ Name || getRoleLabel() }}</div>
+            <div class="pm-role-row">
+              <span class="pm-role-chip" [ngClass]="getRoleChipClass()">{{ getRoleLabel() }}</span>
+              <span class="pm-status">Active</span>
+            </div>
+          </div>
+
+          <div class="pm-info-list">
+            <div class="pm-info-row">
+              <mat-icon>badge</mat-icon>
+              <span>User ID</span>
+              <strong>{{ Id || '—' }}</strong>
+            </div>
+            <div class="pm-info-row" *ngIf="!isSuperAdmin() && tenantService.school?.name">
+              <mat-icon>apartment</mat-icon>
+              <span>School</span>
+              <strong>{{ tenantService.school!.name }}</strong>
+            </div>
+            <div class="pm-info-row" *ngIf="isStudent() && Class">
+              <mat-icon>school</mat-icon>
+              <span>Class</span>
+              <strong>{{ Class }}</strong>
+            </div>
+            <div class="pm-info-row" *ngIf="isTeacher() && ClassTeacher">
+              <mat-icon>co_present</mat-icon>
+              <span>Class Teacher</span>
+              <strong>{{ ClassTeacher }}</strong>
             </div>
           </div>
         </div>
 
-        <div class="hdr-menu-divider"></div>
-
-        <button mat-menu-item class="hdr-menu-item"
+        <div class="pm-actions">
+          <button mat-menu-item class="pm-action"
           *ngIf="isStudent() || isTeacher() || isAdmin()"
           (click)="navigateToMyProfile()">
-          <mat-icon>person_outline</mat-icon>
-          <span>My Profile</span>
-        </button>
+            <mat-icon>account_circle</mat-icon>
+            <span>View profile</span>
+          </button>
 
-        <button mat-menu-item class="hdr-menu-item hdr-menu-logout" (click)="logout()">
-          <mat-icon>logout</mat-icon>
-          <span>Sign Out</span>
-        </button>
+          <button mat-menu-item class="pm-action pm-logout" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Sign out</span>
+          </button>
+        </div>
       </mat-menu>
     </header>
 
