@@ -95,7 +95,7 @@ export class TransportDriverAssignmentsComponent implements OnInit, OnDestroy {
       .subscribe(({ assignments, drivers, buses, routes }) => {
         this.assignments = assignments as DriverAssignmentResponse[];
         this.drivers = (drivers as DriverResponse[]).filter(d => d.isActive);
-        this.buses = (buses as BusResponse[]).filter(b => b.active);
+        this.buses = buses as BusResponse[];
         this.routes = routes as RouteResponse[];
         this.loading = false;
         this.cdr.markForCheck();
