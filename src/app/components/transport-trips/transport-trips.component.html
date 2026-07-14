@@ -1,0 +1,112 @@
+<div class="tt-page">
+  <div class="tt-header">
+    <h1 class="tt-title">🗺️ Trips</h1>
+    <div class="tt-tabs">
+      <button class="tt-tab" [class.tt-tab--active]="activeTab === 'active'" (click)="switchTab('active')">Active</button>
+      <button class="tt-tab" [class.tt-tab--active]="activeTab === 'history'" (click)="switchTab('history')">History</button>
+    </div>
+  </div>
+
+  <!-- History filters -->
+  <div class="tt-filters" *ngIf="activeTab === 'history'">
+    <div class="tt-field">
+      <label>From</label>
+      <input type="date" [(ngModel)]="fromDate" class="tt-input" />
+    </div>
+    <div class="tt-field">
+      <label>To</label>
+      <input type="date" [(ngModel)]="toDate" class="tt-input" />
+    </div>
+    <button class="tt-btn" (click)="loadHistory()">Apply</button>
+  </div>
+
+  <div class="tt-loading" *ngIf="loading"><div class="tt-spinner"></div><span>Loading…</span></div>
+
+  <ng-container *ngIf="!loading">
+    <ng-container *ngIf="activeTab === 'active'">
+      <div class="tt-empty" *ngIf="activeTrips.length === 0">
+        <span>🚌</span><p>No active trips right now.</p>
+      </div>
+      <div class="tt-list" *ngIf="activeTrips.length > 0">
+        <div class="tt-card" *ngFor="let trip of activeTrips">
+          <div class="tt-card-top">
+            <div>
+              <h3 class="tt-bus-name">{{ trip.busDisplayName }}</h3>
+              <p class="tt-bus-sub">{{ trip.busNumber }} · {{ trip.driverName }}</p>
+            </div>
+            <span class="tt-badge" [ngClass]="statusClass(trip.status)">{{ trip.status }}</span>
+          </div>
+          <div class="tt-card-meta">
+            <span><mat-icon>map</mat-icon>{{ trip.routeName }}</span>
+            <span><mat-icon>schedule</mat-icon>{{ trip.tripType }}</span>
+            <span><mat-icon>today</mat-icon>{{ trip.tripDate }}</span>
+          </div>
+          <div class="tt-card-actions">
+            <button class="tt-btn tt-btn--outline" (click)="openDetail(trip)">View Passengers</button>
+            <button class="tt-btn tt-btn--danger" (click)="openCancel(trip.id)">Cancel Trip</button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="activeTab === 'history'">
+      <div class="tt-empty" *ngIf="historyTrips.length === 0">
+        <span>📋</span><p>No trips found for selected dates.</p>
+      </div>
+      <div class="tt-list" *ngIf="historyTrips.length > 0">
+        <div class="tt-card" *ngFor="let trip of historyTrips">
+          <div class="tt-card-top">
+            <div>
+              <h3 class="tt-bus-name">{{ trip.busDisplayName }}</h3>
+              <p class="tt-bus-sub">{{ trip.busNumber }} · {{ trip.driverName }}</p>
+            </div>
+            <span class="tt-badge" [ngClass]="statusClass(trip.status)">{{ trip.status }}</span>
+          </div>
+          <div class="tt-card-meta">
+            <span><mat-icon>map</mat-icon>{{ trip.routeName }}</span>
+            <span><mat-icon>schedule</mat-icon>{{ trip.tripType }}</span>
+            <span><mat-icon>today</mat-icon>{{ trip.tripDate }}</span>
+          </div>
+          <button class="tt-btn tt-btn--outline" (click)="openDetail(trip)">View Passengers</button>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+
+  <!-- Cancel Modal -->
+  <div class="tt-modal-overlay" *ngIf="showCancelModal" (click)="showCancelModal = false">
+    <div class="tt-modal" (click)="$event.stopPropagation()">
+      <h2>Cancel Trip</h2>
+      <p>Please provide a reason for cancelling this trip.</p>
+      <textarea [(ngModel)]="cancelReason" rows="3" class="tt-textarea" placeholder="Reason for cancellation…"></textarea>
+      <div class="tt-modal-actions">
+        <button class="tt-btn" (click)="showCancelModal = false">Close</button>
+        <button class="tt-btn tt-btn--danger" (click)="confirmCancel()" [disabled]="cancelling">
+          {{ cancelling ? 'Cancelling…' : 'Confirm Cancel' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="tt-modal-overlay" *ngIf="showDetailModal" (click)="showDetailModal = false">
+    <div class="tt-modal tt-modal--wide" (click)="$event.stopPropagation()">
+      <div class="tt-modal-header">
+        <h2>{{ detailTrip?.busDisplayName }} — Passengers</h2>
+        <button class="tt-modal-close" (click)="showDetailModal = false"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="tt-loading" *ngIf="loadingPassengers"><div class="tt-spinner"></div></div>
+      <div class="tt-passenger-list" *ngIf="!loadingPassengers">
+        <div class="tt-passenger-empty" *ngIf="passengers.length === 0">No passenger data yet.</div>
+        <div class="tt-passenger-row" *ngFor="let p of passengers">
+          <div>
+            <strong>{{ p.studentName }}</strong>
+            <span class="tt-stop">📍 {{ p.stopName }}</span>
+          </div>
+          <span class="tt-ps" [ngClass]="passengerStatusClass(p.status)">{{ p.status }}</span>
+          <span class="tt-wrong-bus" *ngIf="p.wrongBusFlag">⚠️ Wrong Bus</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

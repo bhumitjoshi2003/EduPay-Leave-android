@@ -13,6 +13,8 @@ import { SchoolService, SchoolClass } from '../../services/school.service';
 import { SectionService } from '../../services/section.service';
 import { Section } from '../../interfaces/section';
 import { StudentExitRequest, PendingDuesInfo } from '../../interfaces/student';
+import { TransportService, StudentTransportHistoryResponse } from '../../services/transport.service';
+import { MatIconModule } from '@angular/material/icon';
 
 interface StudentDetails {
   studentId?: string;
@@ -40,7 +42,7 @@ interface StudentDetails {
 @Component({
   selector: 'app-student-details',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule],
   templateUrl: './student-details.component.html',
   styleUrl: './student-details.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -83,6 +85,17 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
   managedClasses: SchoolClass[] = [];
   sections: Section[] = [];
 
+  // Transport history state
+  transportHistory: StudentTransportHistoryResponse[] = [];
+  transportHistoryLoading = false;
+  transportFromDate: string = (() => {
+    const d = new Date();
+    d.setDate(1);
+    return d.toISOString().split('T')[0];
+  })();
+  transportToDate: string = new Date().toISOString().split('T')[0];
+  showTransportSection = false;
+
   // Exit modal state
   showExitModal = false;
   exitLoading = false;
@@ -119,7 +132,8 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private schoolService: SchoolService,
-    private sectionService: SectionService
+    private sectionService: SectionService,
+    private transportService: TransportService
   ) { }
 
   ngOnInit(): void {
@@ -586,6 +600,55 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
         }
       });
     });
+  }
+
+  loadTransportHistory(): void {
+    if (!this.studentId) return;
+    this.transportHistoryLoading = true;
+    this.transportService
+      .getStudentTransportHistory(this.studentId, this.transportFromDate, this.transportToDate)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (data) => {
+          this.transportHistory = data;
+          this.transportHistoryLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.transportHistory = [];
+          this.transportHistoryLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  toggleTransportSection(): void {
+    this.showTransportSection = !this.showTransportSection;
+    if (this.showTransportSection && this.transportHistory.length === 0) {
+      this.loadTransportHistory();
+    }
+  }
+
+  getTransportStatusClass(status: string | undefined): string {
+    if (!status) return 'td-hist-status--expected';
+    switch (status) {
+      case 'BOARDED': return 'td-hist-status--boarded';
+      case 'DROPPED': return 'td-hist-status--dropped';
+      case 'ABSENT_DRIVER_MARKED': return 'td-hist-status--absent';
+      case 'PRE_MARKED_ABSENT': return 'td-hist-status--pre-absent';
+      default: return 'td-hist-status--expected';
+    }
+  }
+
+  getTransportStatusLabel(status: string | undefined): string {
+    if (!status) return 'No Record';
+    switch (status) {
+      case 'BOARDED': return 'Boarded';
+      case 'DROPPED': return 'Dropped';
+      case 'ABSENT_DRIVER_MARKED': return 'Absent';
+      case 'PRE_MARKED_ABSENT': return 'Pre-marked Absent';
+      default: return status;
+    }
   }
 
   goBack(): void {

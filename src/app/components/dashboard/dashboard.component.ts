@@ -19,7 +19,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { WelcomeDialogComponent } from '../welcome-dialog/welcome-dialog.component';
 import { Subject, takeUntil, interval, Subscription } from 'rxjs';
 import { NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter, debounceTime } from 'rxjs/operators';
 import { Capacitor } from '@capacitor/core';
 import { AppUpdate, AppUpdateAvailability } from '@capawesome/capacitor-app-update';
 
@@ -82,6 +82,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Re-fetch on every navigation (catches mark-all-read from notice board)
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
+      debounceTime(500),
       takeUntil(this.ngUnsubscribe)
     ).subscribe(() => this.fetchUnreadCount());
     // Also poll every 60 seconds as a background fallback
@@ -216,6 +217,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.router.navigate(['/dashboard/admin-dashboard']);
     } else if (this.Role === 'SUPER_ADMIN') {
       this.router.navigate(['/dashboard/super-admin-dashboard']);
+    } else if (this.Role === 'DRIVER') {
+      this.router.navigate(['/dashboard/coming-soon']);
     }
   }
 
@@ -290,11 +293,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   fetchUnreadCount(): void {
     if (this.Role === 'SUPER_ADMIN') return;
+    if (!this.authStateService.isLoggedIn()) return;
     this.notificationService.getUnreadNotificationCount()
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe({
         next: (count) => { this.unreadNotificationCount = count; this.cdr.markForCheck(); },
-        error: (e) => this.logger.error('Error fetching unread count:', e),
+        error: (e) => {
+          if (e?.status === 401 || e?.status === 403) return; // silently ignore auth errors — interceptor handles redirect
+          this.logger.error('Error fetching unread count:', e);
+        },
       });
   }
 

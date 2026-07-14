@@ -1,0 +1,119 @@
+<div class="trt-page">
+  <div class="trt-header">
+    <h1 class="trt-title">🗺️ Routes & Stops</h1>
+    <button class="trt-btn" (click)="openAddRoute()"><mat-icon>add</mat-icon>Add Route</button>
+  </div>
+
+  <div class="trt-loading" *ngIf="loadingRoutes"><div class="trt-spinner"></div><span>Loading routes…</span></div>
+
+  <div class="trt-layout" *ngIf="!loadingRoutes">
+    <!-- Route List -->
+    <div class="trt-route-panel">
+      <h2 class="trt-panel-title">Routes <span class="trt-count">{{ routes.length }}</span></h2>
+      <div class="trt-empty" *ngIf="routes.length === 0">
+        <span>🗺️</span><p>No routes yet. Add one to get started.</p>
+      </div>
+      <div class="trt-route-list">
+        <div class="trt-route-item" *ngFor="let r of routes"
+          [class.trt-route-item--selected]="selectedRoute?.id === r.id"
+          (click)="selectRoute(r)">
+          <div class="trt-route-item-body">
+            <span class="trt-route-name">{{ r.routeName }}</span>
+            <span class="trt-route-type">{{ routeTypeLabel(r.routeType) }}</span>
+          </div>
+          <div class="trt-route-item-actions" (click)="$event.stopPropagation()">
+            <button class="trt-icon-btn" (click)="openEditRoute(r)" title="Edit"><mat-icon>edit</mat-icon></button>
+            <button class="trt-icon-btn trt-icon-btn--danger" (click)="deleteRoute(r)" title="Delete"><mat-icon>delete</mat-icon></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stops Panel -->
+    <div class="trt-stops-panel">
+      <div class="trt-stops-placeholder" *ngIf="!selectedRoute">
+        <mat-icon>touch_app</mat-icon>
+        <p>Select a route to manage its stops</p>
+      </div>
+
+      <ng-container *ngIf="selectedRoute">
+        <div class="trt-stops-header">
+          <div>
+            <h2 class="trt-panel-title">{{ selectedRoute.routeName }} — Stops</h2>
+            <span class="trt-route-type">{{ routeTypeLabel(selectedRoute.routeType) }}</span>
+          </div>
+          <button class="trt-btn" (click)="openAddStop()"><mat-icon>add_location</mat-icon>Add Stop</button>
+        </div>
+
+        <div class="trt-loading" *ngIf="loadingStops"><div class="trt-spinner"></div></div>
+
+        <div class="trt-empty" *ngIf="!loadingStops && stops.length === 0">
+          <span>📍</span><p>No stops added yet. Add the first stop.</p>
+        </div>
+
+        <div class="trt-stops-list" *ngIf="!loadingStops && stops.length > 0">
+          <div class="trt-stop-card" *ngFor="let s of stops; let i = index">
+            <div class="trt-stop-seq">{{ s.sequence }}</div>
+            <div class="trt-stop-body">
+              <span class="trt-stop-name">{{ s.stopName }}</span>
+              <span class="trt-stop-coords">{{ s.latitude | number:'1.4-6' }}, {{ s.longitude | number:'1.4-6' }}</span>
+              <span class="trt-stop-fence">📡 {{ s.geofenceRadius || 200 }}m radius</span>
+            </div>
+            <div class="trt-stop-actions">
+              <button class="trt-icon-btn" (click)="moveStop(i, 'up')" [disabled]="i === 0" title="Move up"><mat-icon>arrow_upward</mat-icon></button>
+              <button class="trt-icon-btn" (click)="moveStop(i, 'down')" [disabled]="i === stops.length - 1" title="Move down"><mat-icon>arrow_downward</mat-icon></button>
+              <button class="trt-icon-btn" (click)="openEditStop(s)" title="Edit"><mat-icon>edit</mat-icon></button>
+              <button class="trt-icon-btn trt-icon-btn--danger" (click)="deleteStop(s)" title="Delete"><mat-icon>delete</mat-icon></button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Route Form Modal -->
+  <div class="trt-modal-overlay" *ngIf="showRouteForm" (click)="showRouteForm = false">
+    <div class="trt-modal" (click)="$event.stopPropagation()">
+      <div class="trt-modal-header">
+        <h2>{{ editingRouteId ? 'Edit Route' : 'Add Route' }}</h2>
+        <button class="trt-close" (click)="showRouteForm = false"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="trt-modal-body">
+        <div class="trt-field"><label>Route Name *</label><input [(ngModel)]="routeForm.routeName" class="trt-input" placeholder="e.g. North Route" /></div>
+        <div class="trt-field">
+          <label>Route Type *</label>
+          <select [(ngModel)]="routeForm.routeType" class="trt-input">
+            <option value="MORNING">🌅 Morning</option>
+            <option value="AFTERNOON">🌇 Afternoon</option>
+            <option value="CUSTOM">🔄 Custom</option>
+          </select>
+        </div>
+      </div>
+      <div class="trt-modal-footer">
+        <button class="trt-btn trt-btn--ghost" (click)="showRouteForm = false">Cancel</button>
+        <button class="trt-btn" (click)="saveRoute()" [disabled]="savingRoute">{{ savingRoute ? 'Saving…' : 'Save Route' }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stop Form Modal -->
+  <div class="trt-modal-overlay" *ngIf="showStopForm" (click)="showStopForm = false">
+    <div class="trt-modal" (click)="$event.stopPropagation()">
+      <div class="trt-modal-header">
+        <h2>{{ editingStopId ? 'Edit Stop' : 'Add Stop' }}</h2>
+        <button class="trt-close" (click)="showStopForm = false"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="trt-modal-body">
+        <div class="trt-field"><label>Stop Name *</label><input [(ngModel)]="stopForm.stopName" class="trt-input" placeholder="e.g. MG Road" /></div>
+        <div class="trt-field"><label>Sequence *</label><input [(ngModel)]="stopForm.sequence" type="number" class="trt-input" min="1" /></div>
+        <div class="trt-field"><label>Latitude *</label><input [(ngModel)]="stopForm.latitude" type="number" step="0.000001" class="trt-input" placeholder="e.g. 12.971598" /></div>
+        <div class="trt-field"><label>Longitude *</label><input [(ngModel)]="stopForm.longitude" type="number" step="0.000001" class="trt-input" placeholder="e.g. 77.594566" /></div>
+        <div class="trt-field"><label>Geofence Radius (metres)</label><input [(ngModel)]="stopForm.geofenceRadius" type="number" class="trt-input" placeholder="200" /></div>
+      </div>
+      <div class="trt-modal-footer">
+        <button class="trt-btn trt-btn--ghost" (click)="showStopForm = false">Cancel</button>
+        <button class="trt-btn" (click)="saveStop()" [disabled]="savingStop">{{ savingStop ? 'Saving…' : 'Save Stop' }}</button>
+      </div>
+    </div>
+  </div>
+</div>

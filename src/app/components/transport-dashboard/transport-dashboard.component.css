@@ -1,0 +1,63 @@
+.td-page { padding: 0 0 24px; }
+
+.td-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.td-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; margin: 0 0 2px; }
+.td-subtitle { font-size: 0.78rem; color: #64748b; margin: 0; }
+.td-header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+.td-search { display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 12px; }
+.td-search mat-icon { font-size: 18px; color: #94a3b8; }
+.td-search-input { border: none; background: transparent; outline: none; font-size: 0.85rem; color: #0f172a; width: 160px; }
+
+.td-btn-primary { display: flex; align-items: center; gap: 6px; background: #1e40af; color: #fff; border: none; border-radius: 10px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+.td-btn-primary mat-icon { font-size: 16px; }
+
+.td-loading { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 80px 20px; color: #64748b; font-size: 0.9rem; }
+.td-spinner { width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #1e40af; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.td-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.td-stat-card { background: linear-gradient(135deg, var(--c1), var(--c2)); border-radius: 16px; padding: 18px 16px; color: #fff; display: flex; align-items: center; gap: 14px; }
+.td-stat-icon { font-size: 1.8rem; }
+.td-stat-value { font-size: 1.6rem; font-weight: 700; display: block; line-height: 1.1; }
+.td-stat-label { font-size: 0.72rem; opacity: 0.85; display: block; margin-top: 2px; }
+
+.td-quick-actions { display: flex; gap: 10px; margin-bottom: 22px; }
+.td-action-btn { display: flex; align-items: center; gap: 8px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 18px; font-size: 0.85rem; font-weight: 600; color: #334155; cursor: pointer; transition: background 0.15s; }
+.td-action-btn:hover { background: #e2e8f0; }
+.td-action-btn mat-icon { font-size: 18px; color: #1e40af; }
+
+.td-section-title { font-size: 1rem; font-weight: 600; color: #334155; margin: 0 0 14px; }
+
+.td-empty { text-align: center; padding: 48px 20px; color: #64748b; font-size: 0.9rem; }
+.td-empty span { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+.td-link { background: none; border: none; color: #1e40af; cursor: pointer; font-weight: 600; text-decoration: underline; }
+
+.td-bus-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.td-bus-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+.td-bus-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.td-bus-icon { font-size: 1.6rem; }
+.td-bus-info { flex: 1; }
+.td-bus-name { font-size: 0.95rem; font-weight: 700; color: #0f172a; margin: 0 0 2px; }
+.td-bus-number { font-size: 0.75rem; color: #64748b; }
+
+.td-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; background: #e2e8f0; color: #475569; }
+.td-badge--active { background: #dcfce7; color: #15803d; }
+
+.td-bus-meta { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.td-meta-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #475569; }
+.td-meta-row mat-icon { font-size: 14px; color: #94a3b8; }
+
+.td-progress-wrap { margin-bottom: 12px; }
+.td-progress-header { display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-bottom: 6px; }
+.td-progress-bar { height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+.td-progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.td-progress--green { background: #22c55e; }
+.td-progress--amber { background: #f59e0b; }
+.td-progress--red { background: #ef4444; }
+
+.td-bus-counts { display: flex; gap: 12px; }
+.td-count { font-size: 0.75rem; font-weight: 600; }
+.td-count--boarded { color: #15803d; }
+.td-count--absent { color: #dc2626; }

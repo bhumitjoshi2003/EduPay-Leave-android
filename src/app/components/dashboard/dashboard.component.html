@@ -68,6 +68,13 @@
           <mat-icon>list_alt</mat-icon><span>Fee Structure</span>
         </a>
 
+        <div class="nav-section-label">Transport</div>
+
+        <a class="nav-item" routerLink="/dashboard/my-transport" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="My Transport">
+          <mat-icon>directions_bus</mat-icon><span>My Transport</span>
+        </a>
+
         <div class="nav-section-label">Communication</div>
 
         <a class="nav-item" routerLink="/dashboard/notice" routerLinkActive="active"
@@ -312,6 +319,41 @@
         <a class="nav-item" routerLink="/dashboard/holiday-calendar" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Holiday Calendar">
           <mat-icon>beach_access</mat-icon><span>Holiday Calendar</span>
+        </a>
+
+        <div class="nav-section-label">Transport</div>
+
+        <a class="nav-item" routerLink="/dashboard/transport-dashboard" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Fleet Overview">
+          <mat-icon>directions_bus</mat-icon><span>Fleet Overview</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/transport-trips" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Trips">
+          <mat-icon>map</mat-icon><span>Trips</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/transport-buses" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Buses" *ngIf="Role === 'ADMIN'">
+          <mat-icon>airport_shuttle</mat-icon><span>Buses</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/transport-drivers" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Drivers" *ngIf="Role === 'ADMIN'">
+          <mat-icon>person_pin</mat-icon><span>Drivers</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/transport-driver-assignments" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Driver Assignments" *ngIf="Role === 'ADMIN'">
+          <mat-icon>swap_driving_apps</mat-icon><span>Driver Assignments</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/transport-routes" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Routes & Stops" *ngIf="Role === 'ADMIN'">
+          <mat-icon>route</mat-icon><span>Routes & Stops</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/transport-assignments" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Student Assignments" *ngIf="Role === 'ADMIN'">
+          <mat-icon>assignment_ind</mat-icon><span>Student Assignments</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/transport-reports" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Transport Reports">
+          <mat-icon>analytics</mat-icon><span>Transport Reports</span>
         </a>
 
         <div class="nav-section-label">System</div>

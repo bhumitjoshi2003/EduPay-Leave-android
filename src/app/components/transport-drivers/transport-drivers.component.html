@@ -1,0 +1,93 @@
+<div class="tdr-page">
+  <div class="tdr-header">
+    <h1 class="tdr-title">🧑‍✈️ Drivers</h1>
+    <div class="tdr-header-right">
+      <div class="tdr-search">
+        <mat-icon>search</mat-icon>
+        <input [(ngModel)]="search" placeholder="Search drivers…" class="tdr-search-input" />
+      </div>
+      <button class="tdr-btn" (click)="openAdd()"><mat-icon>person_add</mat-icon>Register Driver</button>
+    </div>
+  </div>
+
+  <div class="tdr-loading" *ngIf="loading"><div class="tdr-spinner"></div><span>Loading…</span></div>
+
+  <ng-container *ngIf="!loading">
+    <div class="tdr-empty" *ngIf="filtered.length === 0">
+      <span>🧑‍✈️</span><p>{{ search ? 'No drivers match your search.' : 'No drivers registered yet.' }}</p>
+    </div>
+
+    <div class="tdr-grid" *ngIf="filtered.length > 0">
+      <div class="tdr-card" *ngFor="let d of filtered">
+        <div class="tdr-card-top">
+          <div class="tdr-avatar">{{ d.name.charAt(0).toUpperCase() }}</div>
+          <div class="tdr-info">
+            <h3 class="tdr-name">{{ d.name }}</h3>
+            <span class="tdr-id">ID: {{ d.driverId }}</span>
+          </div>
+          <div class="tdr-badges">
+            <span class="tdr-badge" [class.tdr-badge--active]="d.isActive">{{ d.isActive ? 'Active' : 'Inactive' }}</span>
+            <span class="tdr-badge tdr-badge--device" *ngIf="d.deviceBound">📱 Device Bound</span>
+          </div>
+        </div>
+
+        <div class="tdr-details">
+          <div class="tdr-detail-row"><mat-icon>phone</mat-icon><span>{{ d.phoneNumber }}</span></div>
+          <div class="tdr-detail-row"><mat-icon>email</mat-icon><span>{{ d.email }}</span></div>
+          <div class="tdr-detail-row" *ngIf="d.licenseNumber"><mat-icon>badge</mat-icon><span>{{ d.licenseNumber }}</span></div>
+          <div class="tdr-detail-row" *ngIf="d.gender"><mat-icon>person</mat-icon><span>{{ d.gender }}</span></div>
+        </div>
+
+        <div class="tdr-actions">
+          <button class="tdr-action-btn" (click)="openEdit(d)"><mat-icon>edit</mat-icon>Edit</button>
+          <button class="tdr-action-btn tdr-action-btn--warn" *ngIf="d.deviceBound" (click)="unbindDevice(d)"
+            [disabled]="unbinding === d.driverId">
+            <mat-icon>phonelink_erase</mat-icon>{{ unbinding === d.driverId ? 'Unbinding…' : 'Unbind Device' }}
+          </button>
+          <button class="tdr-action-btn tdr-action-btn--danger" (click)="deactivate(d)">
+            <mat-icon>person_off</mat-icon>Deactivate
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Form Panel -->
+  <div class="tdr-overlay" *ngIf="showForm" (click)="showForm = false">
+    <div class="tdr-panel" (click)="$event.stopPropagation()">
+      <div class="tdr-panel-header">
+        <h2>{{ editingId ? 'Edit Driver' : 'Register Driver' }}</h2>
+        <button class="tdr-close" (click)="showForm = false"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="tdr-panel-body">
+        <div class="tdr-field">
+          <label>Driver ID (Login ID) *</label>
+          <input [(ngModel)]="form.driverId" class="tdr-input" placeholder="e.g. DRV001" [disabled]="!!editingId" />
+          <small *ngIf="!editingId">This will be the driver's login username</small>
+        </div>
+        <div class="tdr-field"><label>Full Name *</label><input [(ngModel)]="form.name" class="tdr-input" placeholder="e.g. Ravi Kumar" /></div>
+        <div class="tdr-field"><label>Email *</label><input [(ngModel)]="form.email" type="email" class="tdr-input" placeholder="driver@school.com" /></div>
+        <div class="tdr-field"><label>Phone Number *</label><input [(ngModel)]="form.phoneNumber" class="tdr-input" placeholder="+91 9876543210" /></div>
+        <div class="tdr-field"><label>Date of Birth</label><input [(ngModel)]="form.dob" type="date" class="tdr-input" /></div>
+        <div class="tdr-field">
+          <label>Gender</label>
+          <select [(ngModel)]="form.gender" class="tdr-input">
+            <option value="">Select gender</option>
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+        <div class="tdr-field"><label>License Number</label><input [(ngModel)]="form.licenseNumber" class="tdr-input" placeholder="DL-0420110012345" /></div>
+        <div class="tdr-field">
+          <label>Password {{ editingId ? '(leave blank to keep current)' : '*' }}</label>
+          <input [(ngModel)]="form.password" type="password" class="tdr-input" placeholder="Min 8 characters" />
+        </div>
+      </div>
+      <div class="tdr-panel-footer">
+        <button class="tdr-btn tdr-btn--ghost" (click)="showForm = false">Cancel</button>
+        <button class="tdr-btn" (click)="save()" [disabled]="saving">{{ saving ? 'Saving…' : (editingId ? 'Update Driver' : 'Register Driver') }}</button>
+      </div>
+    </div>
+  </div>
+</div>

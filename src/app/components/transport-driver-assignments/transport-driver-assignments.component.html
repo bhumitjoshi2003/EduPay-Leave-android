@@ -1,0 +1,347 @@
+<div class="tda-page">
+
+  <!-- ── Header ───────────────────────────────────────────────────────── -->
+  <div class="tda-header">
+    <div class="tda-header-left">
+      <h1 class="tda-title">Driver Assignments</h1>
+      <p class="tda-subtitle">Assign a default bus and routes to each driver</p>
+    </div>
+    <div class="tda-header-right">
+      <!-- Search (only in assignments tab) -->
+      <div class="tda-search" *ngIf="activeTab === 'assignments'">
+        <mat-icon>search</mat-icon>
+        <input class="tda-search-input" placeholder="Search driver or bus…"
+               [(ngModel)]="searchQuery" />
+      </div>
+      <!-- Refresh -->
+      <button class="tda-btn tda-btn--ghost" (click)="loadAll()" [disabled]="loading" title="Refresh" *ngIf="activeTab === 'assignments'">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <!-- Add Assignment -->
+      <button class="tda-btn" (click)="openPanel()" *ngIf="activeTab === 'assignments'">
+        <mat-icon>add</mat-icon> Assign Driver
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Tab Switcher ──────────────────────────────────────────────────── -->
+  <div class="tda-tabs">
+    <button class="tda-tab" [class.tda-tab--active]="activeTab === 'assignments'" (click)="activeTab = 'assignments'">
+      <mat-icon>people</mat-icon> Default Assignments
+    </button>
+    <button class="tda-tab" [class.tda-tab--active]="activeTab === 'overrides'" (click)="activeTab = 'overrides'">
+      <mat-icon>event_busy</mat-icon> Daily Overrides
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- DEFAULT ASSIGNMENTS TAB                                             -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="activeTab === 'assignments'">
+
+    <!-- ── Loading ──────────────────────────────────────────────────────── -->
+    <div class="tda-loading" *ngIf="loading">
+      <div class="tda-spinner"></div>
+      <span>Loading assignments…</span>
+    </div>
+
+    <!-- ── Empty ────────────────────────────────────────────────────────── -->
+    <div class="tda-empty" *ngIf="!loading && filteredAssignments.length === 0">
+      <span>🚌</span>
+      <p *ngIf="assignments.length === 0">No driver assignments yet.<br>Click <strong>Assign Driver</strong> to create one.</p>
+      <p *ngIf="assignments.length > 0">No results match your search.</p>
+    </div>
+
+    <!-- ── Assignment Cards ──────────────────────────────────────────────── -->
+    <div class="tda-grid" *ngIf="!loading && filteredAssignments.length > 0">
+      <div class="tda-card" *ngFor="let a of filteredAssignments">
+        <!-- Card header: driver avatar + name + edit button -->
+        <div class="tda-card-header">
+          <div class="tda-avatar">{{ initials(a.driverName) }}</div>
+          <div class="tda-driver-info">
+            <span class="tda-driver-name">{{ a.driverName }}</span>
+            <span class="tda-driver-id">{{ a.driverId }}</span>
+          </div>
+          <button class="tda-icon-btn" (click)="editAssignment(a)" title="Edit assignment">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
+
+        <!-- Bus row -->
+        <div class="tda-card-row">
+          <mat-icon class="tda-row-icon">airport_shuttle</mat-icon>
+          <div class="tda-row-body">
+            <span class="tda-row-label">Bus</span>
+            <span class="tda-row-value">{{ a.busDisplayName }}</span>
+            <span class="tda-row-sub">{{ a.busNumber }}</span>
+          </div>
+        </div>
+
+        <!-- Morning route row -->
+        <div class="tda-card-row" [class.tda-row--muted]="!a.morningRouteName">
+          <mat-icon class="tda-row-icon tda-icon--morning">wb_sunny</mat-icon>
+          <div class="tda-row-body">
+            <span class="tda-row-label">Morning Route</span>
+            <span class="tda-row-value">{{ a.morningRouteName ?? '—' }}</span>
+          </div>
+        </div>
+
+        <!-- Afternoon route row -->
+        <div class="tda-card-row" [class.tda-row--muted]="!a.afternoonRouteName">
+          <mat-icon class="tda-row-icon tda-icon--afternoon">nights_stay</mat-icon>
+          <div class="tda-row-body">
+            <span class="tda-row-label">Afternoon Route</span>
+            <span class="tda-row-value">{{ a.afternoonRouteName ?? '—' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- DAILY OVERRIDES TAB                                                 -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="activeTab === 'overrides'">
+
+    <!-- Overrides header -->
+    <div class="tda-overrides-bar">
+      <div class="tda-date-field">
+        <mat-icon>calendar_today</mat-icon>
+        <input type="date" class="tda-date-input" [(ngModel)]="overrideDate" (change)="loadOverrides()" />
+      </div>
+      <button class="tda-btn" (click)="openOverridePanel()">
+        <mat-icon>add</mat-icon> Add Override
+      </button>
+    </div>
+
+    <!-- Overrides loading -->
+    <div class="tda-loading" *ngIf="overridesLoading">
+      <div class="tda-spinner"></div><span>Loading overrides…</span>
+    </div>
+
+    <!-- Overrides empty -->
+    <div class="tda-empty" *ngIf="!overridesLoading && overrides.length === 0">
+      <span>📅</span>
+      <p>No overrides for {{ overrideDate | date:'d MMM yyyy' }}.<br>All drivers are on their default assignments.</p>
+    </div>
+
+    <!-- Override cards -->
+    <div class="tda-override-list" *ngIf="!overridesLoading && overrides.length > 0">
+      <div class="tda-override-card" *ngFor="let o of overrides" [class.tda-override-card--cancelled]="o.isCancelled">
+        <div class="tda-override-top">
+          <!-- Trip type badge -->
+          <span class="tda-trip-badge" [class.tda-trip-badge--morning]="o.tripType === 'MORNING'" [class.tda-trip-badge--afternoon]="o.tripType === 'AFTERNOON'">
+            {{ o.tripType }}
+          </span>
+          <!-- Cancelled badge -->
+          <span class="tda-cancelled-badge" *ngIf="o.isCancelled">CANCELLED</span>
+        </div>
+
+        <div class="tda-override-body">
+          <!-- Bus -->
+          <div class="tda-ov-row">
+            <mat-icon>airport_shuttle</mat-icon>
+            <span>{{ o.busDisplayName }}</span>
+          </div>
+          <!-- Route -->
+          <div class="tda-ov-row">
+            <mat-icon>route</mat-icon>
+            <span>{{ o.routeName }}</span>
+          </div>
+          <!-- Original driver -->
+          <div class="tda-ov-row" *ngIf="o.originalDriverName">
+            <mat-icon>person_off</mat-icon>
+            <span class="tda-text--muted">{{ o.originalDriverName }} (original)</span>
+          </div>
+          <!-- Substitute driver -->
+          <div class="tda-ov-row" *ngIf="o.substituteDriverName">
+            <mat-icon>person_add</mat-icon>
+            <span>{{ o.substituteDriverName }} (substitute)</span>
+          </div>
+          <!-- Cancel reason -->
+          <div class="tda-ov-row" *ngIf="o.cancelReason">
+            <mat-icon>info</mat-icon>
+            <span class="tda-text--muted">{{ o.cancelReason }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>
+
+<!-- ── Slide-over Overlay (assignments panel) ─────────────────────────── -->
+<div class="tda-overlay" *ngIf="panelOpen" (click)="closePanel()"></div>
+
+<!-- ── Assign Panel ──────────────────────────────────────────────────── -->
+<div class="tda-panel" *ngIf="panelOpen">
+  <!-- Panel header -->
+  <div class="tda-panel-header">
+    <h2>Assign Driver to Bus</h2>
+    <button class="tda-close" (click)="closePanel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Panel body -->
+  <div class="tda-panel-body">
+    <!-- Info box -->
+    <div class="tda-info-box">
+      <mat-icon>info</mat-icon>
+      <p>Select a driver and assign them a default bus, morning route, and afternoon route. The driver app will use this to start trips automatically.</p>
+    </div>
+
+    <!-- Driver -->
+    <div class="tda-field">
+      <label for="da-driver">Driver *</label>
+      <select id="da-driver" class="tda-input" [(ngModel)]="form.driverId">
+        <option value="">— Select Driver —</option>
+        <option *ngFor="let d of drivers" [value]="d.driverId">
+          {{ d.name }} ({{ d.driverId }})
+        </option>
+      </select>
+    </div>
+
+    <!-- Bus -->
+    <div class="tda-field">
+      <label for="da-bus">Bus *</label>
+      <select id="da-bus" class="tda-input" [(ngModel)]="form.busId">
+        <option [value]="0">— Select Bus —</option>
+        <option *ngFor="let b of buses" [value]="b.id">
+          {{ b.displayName }} — {{ b.busNumber }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Morning Route -->
+    <div class="tda-field">
+      <label for="da-morning">Morning Route</label>
+      <select id="da-morning" class="tda-input" [(ngModel)]="form.morningRouteId">
+        <option [value]="null">— None —</option>
+        <option *ngFor="let r of morningRoutes" [value]="r.id">
+          {{ r.routeName }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Afternoon Route -->
+    <div class="tda-field">
+      <label for="da-afternoon">Afternoon Route</label>
+      <select id="da-afternoon" class="tda-input" [(ngModel)]="form.afternoonRouteId">
+        <option [value]="null">— None —</option>
+        <option *ngFor="let r of afternoonRoutes" [value]="r.id">
+          {{ r.routeName }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Panel footer -->
+  <div class="tda-panel-footer">
+    <button class="tda-btn tda-btn--ghost" (click)="closePanel()" [disabled]="saving">Cancel</button>
+    <button class="tda-btn" (click)="save()" [disabled]="!isFormValid() || saving">
+      <div class="tda-spinner-sm" *ngIf="saving"></div>
+      <mat-icon *ngIf="!saving">save</mat-icon>
+      {{ saving ? 'Saving…' : 'Save Assignment' }}
+    </button>
+  </div>
+</div>
+
+<!-- ── Slide-over Overlay (override panel) ───────────────────────────── -->
+<div class="tda-overlay" *ngIf="overridePanelOpen" (click)="closeOverridePanel()"></div>
+
+<!-- ── Override Panel ────────────────────────────────────────────────── -->
+<div class="tda-panel" *ngIf="overridePanelOpen">
+  <div class="tda-panel-header">
+    <h2>Add Daily Override</h2>
+    <button class="tda-close" (click)="closeOverridePanel()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div class="tda-panel-body">
+    <!-- Info box -->
+    <div class="tda-info-box">
+      <mat-icon>info</mat-icon>
+      <p>Set a substitute driver or cancel a trip for a specific date. This overrides the default assignment for that day only.</p>
+    </div>
+
+    <!-- Override Type toggle -->
+    <div class="tda-field">
+      <label>Override Type</label>
+      <div class="tda-toggle-row">
+        <label class="tda-toggle-option" [class.tda-toggle-option--active]="!overrideForm.isCancelled">
+          <input type="radio" [value]="false" [(ngModel)]="overrideForm.isCancelled" /> Substitute Driver
+        </label>
+        <label class="tda-toggle-option" [class.tda-toggle-option--active]="overrideForm.isCancelled">
+          <input type="radio" [value]="true" [(ngModel)]="overrideForm.isCancelled" /> Cancel Trip
+        </label>
+      </div>
+    </div>
+
+    <!-- Date -->
+    <div class="tda-field">
+      <label>Override Date</label>
+      <input type="date" class="tda-input" [(ngModel)]="overrideForm.overrideDate" />
+    </div>
+
+    <!-- Bus -->
+    <div class="tda-field">
+      <label>Bus *</label>
+      <select class="tda-input" [(ngModel)]="overrideForm.busId">
+        <option [value]="0">— Select Bus —</option>
+        <option *ngFor="let b of buses" [value]="b.id">{{ b.displayName }} — {{ b.busNumber }}</option>
+      </select>
+    </div>
+
+    <!-- Route -->
+    <div class="tda-field">
+      <label>Route *</label>
+      <select class="tda-input" [(ngModel)]="overrideForm.routeId">
+        <option [value]="0">— Select Route —</option>
+        <option *ngFor="let r of routes" [value]="r.id">{{ r.routeName }} ({{ r.routeType }})</option>
+      </select>
+    </div>
+
+    <!-- Trip type -->
+    <div class="tda-field">
+      <label>Trip Type *</label>
+      <select class="tda-input" [(ngModel)]="overrideForm.tripType">
+        <option value="MORNING">Morning</option>
+        <option value="AFTERNOON">Afternoon</option>
+        <option value="CUSTOM">Custom</option>
+      </select>
+    </div>
+
+    <!-- Original driver (when substituting) -->
+    <div class="tda-field" *ngIf="!overrideForm.isCancelled">
+      <label>Original Driver</label>
+      <select class="tda-input" [(ngModel)]="overrideForm.originalDriverId">
+        <option value="">— None / Unknown —</option>
+        <option *ngFor="let d of drivers" [value]="d.driverId">{{ d.name }} ({{ d.driverId }})</option>
+      </select>
+    </div>
+
+    <!-- Substitute driver (required when not cancelling) -->
+    <div class="tda-field" *ngIf="!overrideForm.isCancelled">
+      <label>Substitute Driver *</label>
+      <select class="tda-input" [(ngModel)]="overrideForm.substituteDriverId">
+        <option value="">— Select Substitute —</option>
+        <option *ngFor="let d of drivers" [value]="d.driverId">{{ d.name }} ({{ d.driverId }})</option>
+      </select>
+    </div>
+
+    <!-- Cancel reason (required when cancelling) -->
+    <div class="tda-field" *ngIf="overrideForm.isCancelled">
+      <label>Cancellation Reason *</label>
+      <input type="text" class="tda-input" placeholder="e.g. Vehicle maintenance" [(ngModel)]="overrideForm.cancelReason" />
+    </div>
+  </div>
+  <div class="tda-panel-footer">
+    <button class="tda-btn tda-btn--ghost" (click)="closeOverridePanel()" [disabled]="savingOverride">Cancel</button>
+    <button class="tda-btn" [class.tda-btn--danger]="overrideForm.isCancelled" (click)="saveOverride()" [disabled]="!isOverrideFormValid() || savingOverride">
+      <div class="tda-spinner-sm" *ngIf="savingOverride"></div>
+      <mat-icon *ngIf="!savingOverride">{{ overrideForm.isCancelled ? 'block' : 'swap_horiz' }}</mat-icon>
+      {{ savingOverride ? 'Saving…' : (overrideForm.isCancelled ? 'Cancel Trip' : 'Set Substitute') }}
+    </button>
+  </div>
+</div>

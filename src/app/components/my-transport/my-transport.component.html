@@ -1,0 +1,265 @@
+<div class="mt-page">
+
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
+  <div class="mt-header">
+    <div class="mt-header-text">
+      <h1 class="mt-title">My Transport</h1>
+      <p class="mt-subtitle">Academic Year {{ academicYear }}</p>
+    </div>
+    <button class="mt-btn mt-btn--ghost" (click)="refreshLive()" [disabled]="liveLoading || !assignment" title="Refresh live status">
+      <mat-icon [class.mt-spinning]="liveLoading">refresh</mat-icon>
+      <span>Refresh</span>
+    </button>
+  </div>
+
+  <!-- ── Loading skeleton ───────────────────────────────────────────── -->
+  <div class="mt-skeleton" *ngIf="loading">
+    <div class="mt-skeleton-card"></div>
+    <div class="mt-skeleton-card mt-skeleton-card--short"></div>
+    <div class="mt-skeleton-card"></div>
+  </div>
+
+  <!-- ── No assignment ──────────────────────────────────────────────── -->
+  <div class="mt-no-assignment" *ngIf="!loading && !assignment">
+    <div class="mt-no-icon">🚌</div>
+    <h3 class="mt-no-title">No Bus Assigned</h3>
+    <p class="mt-no-desc">
+      You haven't been assigned to a bus for {{ academicYear }}.<br />
+      Please contact your school administrator.
+    </p>
+  </div>
+
+  <!-- ── Main content (only when assigned) ─────────────────────────── -->
+  <ng-container *ngIf="!loading && assignment">
+
+    <!-- ── Bus card ──────────────────────────────────────────────────── -->
+    <div class="mt-bus-card">
+      <div class="mt-bus-icon-wrap">
+        <span class="mt-bus-emoji">🚌</span>
+      </div>
+      <div class="mt-bus-info">
+        <h2 class="mt-bus-name">{{ assignment.busDisplayName }}</h2>
+        <span class="mt-bus-number">{{ assignment.busNumber }}</span>
+      </div>
+      <div class="mt-bus-active-chip" *ngIf="assignment.isActive">Active</div>
+    </div>
+
+    <!-- ── Assignment details grid ───────────────────────────────────── -->
+    <div class="mt-details-grid">
+      <div class="mt-detail-card">
+        <mat-icon class="mt-detail-icon mt-detail-icon--stop">place</mat-icon>
+        <div class="mt-detail-body">
+          <span class="mt-detail-label">My Stop</span>
+          <span class="mt-detail-value">{{ assignment.stopName }}</span>
+        </div>
+      </div>
+      <div class="mt-detail-card">
+        <mat-icon class="mt-detail-icon mt-detail-icon--route">route</mat-icon>
+        <div class="mt-detail-body">
+          <span class="mt-detail-label">Route</span>
+          <span class="mt-detail-value">{{ assignment.routeName }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Live Status section ───────────────────────────────────────── -->
+    <div class="mt-section">
+      <div class="mt-section-header">
+        <h2 class="mt-section-title">Live Status</h2>
+        <div class="mt-live-dot"
+             [class.mt-live-dot--active]="liveStatus && liveStatus.tripStatus === 'IN_PROGRESS'">
+        </div>
+      </div>
+
+      <!-- Live loading indicator -->
+      <div class="mt-live-loading" *ngIf="liveLoading && !liveStatus">
+        <div class="mt-live-spinner"></div>
+        <span>Fetching live data…</span>
+      </div>
+
+      <!-- Bus not on active trip -->
+      <div class="mt-bus-inactive" *ngIf="!liveLoading && busNotActive && !liveStatus">
+        <mat-icon>directions_bus</mat-icon>
+        <p>Bus is not on an active trip right now</p>
+        <span class="mt-inactive-hint">Live data will appear when the trip starts</span>
+      </div>
+
+      <!-- Live status card -->
+      <div class="mt-live-card" *ngIf="!liveLoading && liveStatus">
+
+        <!-- Status badge row -->
+        <div class="mt-live-top">
+          <span class="mt-badge" [ngClass]="getTripStatusClass(liveStatus.tripStatus)">
+            {{ getTripStatusLabel(liveStatus.tripStatus) }}
+          </span>
+          <span class="mt-last-updated">
+            Updated {{ getMinutesAgo(liveStatus.lastUpdated) }} min ago
+          </span>
+        </div>
+
+        <!-- Driver info -->
+        <div class="mt-live-row">
+          <mat-icon class="mt-live-icon">person</mat-icon>
+          <div class="mt-live-row-body">
+            <span class="mt-live-label">Driver</span>
+            <span class="mt-live-value">{{ liveStatus.driverName }}</span>
+          </div>
+          <a class="mt-call-btn" [href]="'tel:' + liveStatus.driverPhone" *ngIf="liveStatus.driverPhone">
+            <mat-icon>call</mat-icon>
+          </a>
+        </div>
+
+        <!-- Speed -->
+        <div class="mt-live-row">
+          <mat-icon class="mt-live-icon">speed</mat-icon>
+          <div class="mt-live-row-body">
+            <span class="mt-live-label">Speed</span>
+            <span class="mt-live-value">{{ liveStatus.speed | number:'1.0-0' }} km/h</span>
+          </div>
+        </div>
+
+        <!-- Next stop -->
+        <div class="mt-live-row" *ngIf="liveStatus.nextStopName">
+          <mat-icon class="mt-live-icon">place</mat-icon>
+          <div class="mt-live-row-body">
+            <span class="mt-live-label">Next Stop</span>
+            <span class="mt-live-value">{{ liveStatus.nextStopName }}</span>
+          </div>
+        </div>
+
+        <!-- ETA to student's stop -->
+        <div class="mt-eta-banner" *ngIf="liveStatus.etaMinutes != null">
+          <mat-icon>schedule</mat-icon>
+          <div>
+            <span class="mt-eta-label">ETA to your stop</span>
+            <span class="mt-eta-value">{{ liveStatus.etaMinutes }} min</span>
+          </div>
+        </div>
+
+        <!-- Mock flag -->
+        <div class="mt-mock-warn" *ngIf="liveStatus.flaggedAsMock">
+          <mat-icon>warning</mat-icon>
+          <span>Simulated location data</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Pre-Mark Absence section ──────────────────────────────────── -->
+    <div class="mt-section">
+      <h2 class="mt-section-title">Pre-Mark Absence</h2>
+      <p class="mt-absence-hint">
+        Notify the driver before the trip starts that you won't be boarding today.
+      </p>
+
+      <div class="mt-date-chip">
+        <mat-icon>today</mat-icon>
+        <span>{{ today | date:'EEEE, d MMMM yyyy' }}</span>
+      </div>
+
+      <!-- Morning trip -->
+      <div class="mt-absence-row">
+        <div class="mt-trip-label mt-trip-label--morning">
+          <mat-icon>wb_sunny</mat-icon>
+          <span>Morning Trip</span>
+        </div>
+
+        <!-- Already marked — show cancel -->
+        <ng-container *ngIf="morningAbsenceId">
+          <button
+            class="mt-btn mt-btn--danger-ghost"
+            (click)="cancelAbsence('MORNING')"
+            [disabled]="cancellingAbsence === 'MORNING'">
+            <mat-icon>close</mat-icon>
+            <span>{{ cancellingAbsence === 'MORNING' ? 'Cancelling…' : 'Cancel Absence' }}</span>
+          </button>
+        </ng-container>
+
+        <!-- Not yet marked -->
+        <ng-container *ngIf="!morningAbsenceId">
+          <button
+            class="mt-btn mt-btn--warning"
+            (click)="showMorningConfirm = true"
+            *ngIf="!showMorningConfirm">
+            <mat-icon>notifications_off</mat-icon>
+            <span>Mark Absent</span>
+          </button>
+
+          <div class="mt-confirm-panel" *ngIf="showMorningConfirm">
+            <input
+              class="mt-input"
+              type="text"
+              placeholder="Reason (optional)"
+              [(ngModel)]="morningReason"
+              maxlength="200" />
+            <div class="mt-confirm-actions">
+              <button
+                class="mt-btn mt-btn--warning"
+                (click)="markAbsent('MORNING')"
+                [disabled]="markingAbsence === 'MORNING'">
+                {{ markingAbsence === 'MORNING' ? 'Marking…' : 'Confirm' }}
+              </button>
+              <button
+                class="mt-btn mt-btn--ghost"
+                (click)="showMorningConfirm = false; morningReason = ''">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Afternoon trip -->
+      <div class="mt-absence-row mt-absence-row--last">
+        <div class="mt-trip-label mt-trip-label--afternoon">
+          <mat-icon>wb_cloudy</mat-icon>
+          <span>Afternoon Trip</span>
+        </div>
+
+        <!-- Already marked — show cancel -->
+        <ng-container *ngIf="afternoonAbsenceId">
+          <button
+            class="mt-btn mt-btn--danger-ghost"
+            (click)="cancelAbsence('AFTERNOON')"
+            [disabled]="cancellingAbsence === 'AFTERNOON'">
+            <mat-icon>close</mat-icon>
+            <span>{{ cancellingAbsence === 'AFTERNOON' ? 'Cancelling…' : 'Cancel Absence' }}</span>
+          </button>
+        </ng-container>
+
+        <!-- Not yet marked -->
+        <ng-container *ngIf="!afternoonAbsenceId">
+          <button
+            class="mt-btn mt-btn--warning mt-btn--indigo"
+            (click)="showAfternoonConfirm = true"
+            *ngIf="!showAfternoonConfirm">
+            <mat-icon>notifications_off</mat-icon>
+            <span>Mark Absent</span>
+          </button>
+
+          <div class="mt-confirm-panel" *ngIf="showAfternoonConfirm">
+            <input
+              class="mt-input"
+              type="text"
+              placeholder="Reason (optional)"
+              [(ngModel)]="afternoonReason"
+              maxlength="200" />
+            <div class="mt-confirm-actions">
+              <button
+                class="mt-btn mt-btn--warning mt-btn--indigo"
+                (click)="markAbsent('AFTERNOON')"
+                [disabled]="markingAbsence === 'AFTERNOON'">
+                {{ markingAbsence === 'AFTERNOON' ? 'Marking…' : 'Confirm' }}
+              </button>
+              <button
+                class="mt-btn mt-btn--ghost"
+                (click)="showAfternoonConfirm = false; afternoonReason = ''">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+    </div>
+  </ng-container>
+</div>

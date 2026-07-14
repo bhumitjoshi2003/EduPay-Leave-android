@@ -1,0 +1,114 @@
+<div class="ta-page">
+  <div class="ta-header">
+    <div class="ta-header-left">
+      <h1 class="ta-title">👩‍🎓 Student Bus Assignments</h1>
+      <div class="ta-year-selector">
+        <mat-icon>calendar_today</mat-icon>
+        <input [(ngModel)]="academicYear" class="ta-year-input" placeholder="2024-25" (change)="loadAll()" />
+      </div>
+    </div>
+    <div class="ta-header-right">
+      <div class="ta-search">
+        <mat-icon>search</mat-icon>
+        <input [(ngModel)]="search" placeholder="Search students…" class="ta-search-input" />
+      </div>
+      <button class="ta-btn" (click)="openAdd()"><mat-icon>person_add</mat-icon>Assign Student</button>
+    </div>
+  </div>
+
+  <div class="ta-loading" *ngIf="loading"><div class="ta-spinner"></div><span>Loading…</span></div>
+
+  <ng-container *ngIf="!loading">
+    <div class="ta-summary">
+      <span>{{ filtered.length }} assignment{{ filtered.length !== 1 ? 's' : '' }} for {{ academicYear }}</span>
+    </div>
+
+    <div class="ta-empty" *ngIf="filtered.length === 0">
+      <span>👩‍🎓</span>
+      <p>{{ search ? 'No assignments match your search.' : 'No students assigned to buses yet for ' + academicYear + '.' }}</p>
+    </div>
+
+    <div class="ta-table" *ngIf="filtered.length > 0">
+      <div class="ta-table-head">
+        <span>Student</span>
+        <span>Bus</span>
+        <span>Route</span>
+        <span>Stop</span>
+        <span></span>
+      </div>
+      <div class="ta-table-row" *ngFor="let a of filtered">
+        <div class="ta-student-cell">
+          <div class="ta-avatar">{{ (a.studentName || a.studentId).charAt(0).toUpperCase() }}</div>
+          <div>
+            <div class="ta-student-name">{{ a.studentName || '—' }}</div>
+            <div class="ta-student-id">{{ a.studentId }}</div>
+          </div>
+        </div>
+        <span class="ta-cell">
+          <mat-icon>directions_bus</mat-icon>{{ a.busDisplayName }}
+        </span>
+        <span class="ta-cell">
+          <mat-icon>map</mat-icon>{{ a.routeName }}
+        </span>
+        <span class="ta-cell">
+          <mat-icon>place</mat-icon>{{ a.stopName }}
+        </span>
+        <span class="ta-cell ta-cell--action">
+          <button class="ta-remove-btn" (click)="remove(a)" title="Remove assignment">
+            <mat-icon>person_remove</mat-icon>
+          </button>
+        </span>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Assign Form Panel -->
+  <div class="ta-overlay" *ngIf="showForm" (click)="showForm = false">
+    <div class="ta-panel" (click)="$event.stopPropagation()">
+      <div class="ta-panel-header">
+        <h2>Assign Student to Bus</h2>
+        <button class="ta-close" (click)="showForm = false"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="ta-panel-body">
+        <div class="ta-info-box">
+          <mat-icon>info</mat-icon>
+          <p>Enter the student's User ID, then select which bus, route, and stop they board from.</p>
+        </div>
+        <div class="ta-field">
+          <label>Student ID *</label>
+          <input [(ngModel)]="form.studentId" class="ta-input" placeholder="e.g. STU2024001" />
+        </div>
+        <div class="ta-field">
+          <label>Bus *</label>
+          <select [(ngModel)]="form.busId" class="ta-input">
+            <option [ngValue]="0">Select a bus</option>
+            <option *ngFor="let b of buses" [ngValue]="b.id">{{ b.displayName }} ({{ b.busNumber }})</option>
+          </select>
+        </div>
+        <div class="ta-field">
+          <label>Route *</label>
+          <select [(ngModel)]="form.routeId" class="ta-input" (change)="onRouteChange()">
+            <option [ngValue]="0">Select a route</option>
+            <option *ngFor="let r of routes" [ngValue]="r.id">{{ r.routeName }} ({{ r.routeType }})</option>
+          </select>
+        </div>
+        <div class="ta-field">
+          <label>Pickup Stop *</label>
+          <div class="ta-loading-inline" *ngIf="loadingStops"><div class="ta-spinner-sm"></div><span>Loading stops…</span></div>
+          <select *ngIf="!loadingStops" [(ngModel)]="form.stopId" class="ta-input" [disabled]="!form.routeId">
+            <option [ngValue]="0">{{ form.routeId ? 'Select a stop' : 'Select a route first' }}</option>
+            <option *ngFor="let s of stopsForRoute" [ngValue]="s.id">{{ s.sequence }}. {{ s.stopName }}</option>
+          </select>
+        </div>
+        <div class="ta-field">
+          <label>Academic Year *</label>
+          <input [(ngModel)]="form.academicYear" class="ta-input" placeholder="2024-25" />
+        </div>
+      </div>
+      <div class="ta-panel-footer">
+        <button class="ta-btn ta-btn--ghost" (click)="showForm = false">Cancel</button>
+        <button class="ta-btn" (click)="save()" [disabled]="saving">{{ saving ? 'Assigning…' : 'Assign Student' }}</button>
+      </div>
+    </div>
+  </div>
+</div>

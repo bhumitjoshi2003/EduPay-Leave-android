@@ -177,6 +177,66 @@
     </div>
   </div>
 
+  <!-- ── Transport History Section (ADMIN only) ────────────────── -->
+  <div class="td-transport-section" *ngIf="getUserRole() === 'ADMIN'">
+    <button class="td-section-toggle" (click)="toggleTransportSection()">
+      <mat-icon>directions_bus</mat-icon>
+      <span>Transport History</span>
+      <mat-icon class="td-toggle-icon" [class.td-toggle-icon--open]="showTransportSection">expand_more</mat-icon>
+    </button>
+
+    <div class="td-transport-body" *ngIf="showTransportSection">
+      <!-- Date range controls -->
+      <div class="td-transport-controls">
+        <div class="td-date-field">
+          <label>From</label>
+          <input type="date" class="td-date-input" [(ngModel)]="transportFromDate" />
+        </div>
+        <div class="td-date-field">
+          <label>To</label>
+          <input type="date" class="td-date-input" [(ngModel)]="transportToDate" />
+        </div>
+        <button class="td-filter-btn" (click)="loadTransportHistory()">
+          <mat-icon>search</mat-icon> Filter
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="td-transport-loading" *ngIf="transportHistoryLoading">
+        <div class="td-transport-spinner"></div>
+        <span>Loading history…</span>
+      </div>
+
+      <!-- Empty -->
+      <div class="td-transport-empty" *ngIf="!transportHistoryLoading && transportHistory.length === 0">
+        <mat-icon>directions_bus</mat-icon>
+        <p>No transport history for this period.</p>
+      </div>
+
+      <!-- History list -->
+      <div class="td-transport-list" *ngIf="!transportHistoryLoading && transportHistory.length > 0">
+        <div class="td-transport-row" *ngFor="let h of transportHistory">
+          <div class="td-transport-date">
+            <span class="td-t-day">{{ h.tripDate | date:'d' }}</span>
+            <span class="td-t-month">{{ h.tripDate | date:'MMM' }}</span>
+          </div>
+          <div class="td-transport-info">
+            <span class="td-t-bus">{{ h.busDisplayName }}</span>
+            <span class="td-t-meta">
+              <mat-icon>route</mat-icon>{{ h.routeName }} · {{ h.tripType | titlecase }}
+            </span>
+            <span class="td-t-stop" *ngIf="h.stopName">
+              <mat-icon>place</mat-icon>{{ h.stopName }}
+            </span>
+          </div>
+          <span class="td-hist-status" [ngClass]="getTransportStatusClass(h.boardingStatus)">
+            {{ getTransportStatusLabel(h.boardingStatus) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Quick Actions ──────────────────────────────────────────── -->
   <div class="sd-section" *ngIf="getUserRole() !== 'STUDENT'">
     <p class="sd-section-title">Quick Actions</p>

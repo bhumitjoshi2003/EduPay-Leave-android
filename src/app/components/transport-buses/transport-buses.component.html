@@ -1,0 +1,67 @@
+<div class="tb-page">
+  <div class="tb-header">
+    <h1 class="tb-title">🚌 Buses</h1>
+    <div class="tb-header-right">
+      <div class="tb-search">
+        <mat-icon>search</mat-icon>
+        <input [(ngModel)]="search" placeholder="Search buses…" class="tb-search-input" />
+      </div>
+      <button class="tb-btn" (click)="openAdd()"><mat-icon>add</mat-icon>Add Bus</button>
+    </div>
+  </div>
+
+  <div class="tb-loading" *ngIf="loading"><div class="tb-spinner"></div><span>Loading…</span></div>
+
+  <ng-container *ngIf="!loading">
+    <div class="tb-empty" *ngIf="filtered.length === 0">
+      <span>🚌</span><p>{{ search ? 'No buses match your search.' : 'No buses registered yet.' }}</p>
+    </div>
+    <div class="tb-grid" *ngIf="filtered.length > 0">
+      <div class="tb-card" *ngFor="let bus of filtered">
+        <div class="tb-card-top">
+          <div class="tb-bus-icon">🚌</div>
+          <div class="tb-bus-info">
+            <h3>{{ bus.displayName }}</h3>
+            <span>{{ bus.busNumber }}</span>
+          </div>
+          <div class="tb-card-actions">
+            <button class="tb-icon-btn" (click)="openEdit(bus)" title="Edit"><mat-icon>edit</mat-icon></button>
+            <button class="tb-icon-btn tb-icon-btn--danger" (click)="deleteBus(bus)" title="Delete"><mat-icon>delete</mat-icon></button>
+          </div>
+        </div>
+        <div class="tb-card-details">
+          <span [class.tb-occupancy--warn]="(assignedCounts.get(bus.id) ?? 0) >= bus.capacity"
+                [class.tb-occupancy--ok]="(assignedCounts.get(bus.id) ?? 0) > 0 && (assignedCounts.get(bus.id) ?? 0) < bus.capacity">
+            <mat-icon>people</mat-icon>
+            {{ assignedCounts.get(bus.id) ?? 0 }} / {{ bus.capacity }} students
+          </span>
+          <span *ngIf="bus.make">🏭 {{ bus.make }} {{ bus.model }}</span>
+          <span *ngIf="bus.registrationNumber">🔖 {{ bus.registrationNumber }}</span>
+          <span class="tb-status" [class.tb-status--active]="bus.active">{{ bus.active ? 'Active' : 'Inactive' }}</span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Form Slide-over -->
+  <div class="tb-overlay" *ngIf="showForm" (click)="showForm = false">
+    <div class="tb-form-panel" (click)="$event.stopPropagation()">
+      <div class="tb-form-header">
+        <h2>{{ editingId ? 'Edit Bus' : 'Add Bus' }}</h2>
+        <button class="tb-modal-close" (click)="showForm = false"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="tb-form-body">
+        <div class="tb-field"><label>Bus Number *</label><input [(ngModel)]="form.busNumber" class="tb-input" placeholder="e.g. KA01AB1234" /></div>
+        <div class="tb-field"><label>Display Name *</label><input [(ngModel)]="form.displayName" class="tb-input" placeholder="e.g. Bus A" /></div>
+        <div class="tb-field"><label>Capacity</label><input [(ngModel)]="form.capacity" type="number" class="tb-input" /></div>
+        <div class="tb-field"><label>Make</label><input [(ngModel)]="form.make" class="tb-input" placeholder="e.g. TATA" /></div>
+        <div class="tb-field"><label>Model</label><input [(ngModel)]="form.model" class="tb-input" placeholder="e.g. Starbus" /></div>
+        <div class="tb-field"><label>Registration Number</label><input [(ngModel)]="form.registrationNumber" class="tb-input" /></div>
+      </div>
+      <div class="tb-form-footer">
+        <button class="tb-btn tb-btn--ghost" (click)="showForm = false">Cancel</button>
+        <button class="tb-btn" (click)="save()" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+      </div>
+    </div>
+  </div>
+</div>

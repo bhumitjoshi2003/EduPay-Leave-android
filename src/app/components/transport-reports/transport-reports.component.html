@@ -1,0 +1,71 @@
+<div class="tr-page">
+  <div class="tr-header">
+    <h1 class="tr-title">📊 Reports</h1>
+    <div class="tr-tabs">
+      <button class="tr-tab" [class.tr-tab--active]="activeTab === 'daily'" (click)="switchTab('daily')">Daily Report</button>
+      <button class="tr-tab" [class.tr-tab--active]="activeTab === 'wrong-bus'" (click)="switchTab('wrong-bus')">Wrong Bus Alerts</button>
+    </div>
+  </div>
+
+  <!-- Daily Report -->
+  <ng-container *ngIf="activeTab === 'daily'">
+    <div class="tr-filters">
+      <div class="tr-field"><label>Date</label><input type="date" [(ngModel)]="dailyDate" class="tr-input" /></div>
+      <button class="tr-btn" (click)="loadDaily()">Load</button>
+    </div>
+    <div class="tr-loading" *ngIf="loading"><div class="tr-spinner"></div></div>
+    <ng-container *ngIf="!loading && dailyReport">
+      <div class="tr-summary-grid">
+        <div class="tr-sum-card" style="--c:#1d4ed8">
+          <span class="tr-sum-val">{{ dailyReport.totalTrips }}</span><span class="tr-sum-lbl">Total Trips</span>
+        </div>
+        <div class="tr-sum-card" style="--c:#059669">
+          <span class="tr-sum-val">{{ dailyReport.totalBoardings }}</span><span class="tr-sum-lbl">Boardings</span>
+        </div>
+        <div class="tr-sum-card" style="--c:#0f766e">
+          <span class="tr-sum-val">{{ dailyReport.totalDropOffs }}</span><span class="tr-sum-lbl">Drop-offs</span>
+        </div>
+        <div class="tr-sum-card" style="--c:#dc2626">
+          <span class="tr-sum-val">{{ dailyReport.totalAbsences }}</span><span class="tr-sum-lbl">Absences</span>
+        </div>
+      </div>
+      <h2 class="tr-section-title">Per Bus Breakdown</h2>
+      <div class="tr-bus-table">
+        <div class="tr-table-head">
+          <span>Bus</span><span>Trips</span><span>Boarded</span><span>Dropped</span><span>Absent</span><span>%</span>
+        </div>
+        <div class="tr-table-row" *ngFor="let b of dailyReport.busStats">
+          <span class="tr-bus-col">{{ b.busDisplayName }}</span>
+          <span>{{ b.tripCount }}</span>
+          <span class="tr-green">{{ b.boardedCount }}</span>
+          <span class="tr-blue">{{ b.droppedCount }}</span>
+          <span class="tr-red">{{ b.absentCount }}</span>
+          <span>{{ boardingPct(b.boardedCount, b.expectedCount) }}%</span>
+        </div>
+      </div>
+    </ng-container>
+    <div class="tr-empty" *ngIf="!loading && !dailyReport"><span>📋</span><p>No report available for this date.</p></div>
+  </ng-container>
+
+  <!-- Wrong Bus Alerts -->
+  <ng-container *ngIf="activeTab === 'wrong-bus'">
+    <div class="tr-filters">
+      <div class="tr-field"><label>From</label><input type="date" [(ngModel)]="wrongBusFrom" class="tr-input" /></div>
+      <div class="tr-field"><label>To</label><input type="date" [(ngModel)]="wrongBusTo" class="tr-input" /></div>
+      <button class="tr-btn" (click)="loadWrongBus()">Load</button>
+    </div>
+    <div class="tr-loading" *ngIf="loading"><div class="tr-spinner"></div></div>
+    <div class="tr-empty" *ngIf="!loading && wrongBusAlerts.length === 0"><span>✅</span><p>No wrong bus alerts found.</p></div>
+    <div class="tr-alert-list" *ngIf="!loading && wrongBusAlerts.length > 0">
+      <div class="tr-alert-card" *ngFor="let a of wrongBusAlerts">
+        <div class="tr-alert-icon">⚠️</div>
+        <div class="tr-alert-body">
+          <strong>{{ a.studentName }}</strong>
+          <span>Boarded: <b>{{ a.busDisplayName }}</b></span>
+          <span *ngIf="a.assignedBusDisplayName">Assigned: <b>{{ a.assignedBusDisplayName }}</b></span>
+          <span class="tr-alert-time">{{ a.eventTime | date:'d MMM, h:mm a' }}</span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

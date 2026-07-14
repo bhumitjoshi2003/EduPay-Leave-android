@@ -326,6 +326,13 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER'] }
       },
 
+      // ── Student Transport ────────────────────────────────────────────
+      {
+        path: 'my-transport',
+        loadComponent: () => import('./components/my-transport/my-transport.component').then(m => m.MyTransportComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT'] }
+      },
+
       // ── Student Dashboard ────────────────────────────────────────────
       {
         path: 'student-dashboard',
@@ -377,6 +384,52 @@ export const routes: Routes = [
         loadComponent: () => import('./components/payment/payment.component').then(m => m.PaymentComponent),
         canActivate: [authGuard],
         data: { roles: ['STUDENT', 'ADMIN'] }
+      },
+
+      // ── Transport (Bus Tracking) ───────────────────────────────────────
+      {
+        path: 'transport-dashboard',
+        loadComponent: () => import('./components/transport-dashboard/transport-dashboard.component').then(m => m.TransportDashboardComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }
+      },
+      {
+        path: 'transport-trips',
+        loadComponent: () => import('./components/transport-trips/transport-trips.component').then(m => m.TransportTripsComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }
+      },
+      {
+        path: 'transport-buses',
+        loadComponent: () => import('./components/transport-buses/transport-buses.component').then(m => m.TransportBusesComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'transport-drivers',
+        loadComponent: () => import('./components/transport-drivers/transport-drivers.component').then(m => m.TransportDriversComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'transport-routes',
+        loadComponent: () => import('./components/transport-routes/transport-routes.component').then(m => m.TransportRoutesComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }
+      },
+      {
+        path: 'transport-assignments',
+        loadComponent: () => import('./components/transport-assignments/transport-assignments.component').then(m => m.TransportAssignmentsComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }
+      },
+      {
+        path: 'transport-driver-assignments',
+        loadComponent: () => import('./components/transport-driver-assignments/transport-driver-assignments.component').then(m => m.TransportDriverAssignmentsComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'transport-reports',
+        loadComponent: () => import('./components/transport-reports/transport-reports.component').then(m => m.TransportReportsComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }
+      },
+      {
+        path: 'coming-soon',
+        loadComponent: () => import('./components/coming-soon/coming-soon.component').then(m => m.ComingSoonComponent),
       },
     ],
   },

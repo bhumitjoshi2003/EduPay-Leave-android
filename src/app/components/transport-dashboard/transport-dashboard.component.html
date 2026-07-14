@@ -1,0 +1,124 @@
+<div class="td-page">
+  <!-- Header -->
+  <div class="td-header">
+    <div class="td-header-left">
+      <h1 class="td-title">🚌 Fleet Overview</h1>
+      <p class="td-subtitle">Last updated: {{ lastUpdated | date:'HH:mm:ss' }}</p>
+    </div>
+    <div class="td-header-actions">
+      <div class="td-search">
+        <mat-icon>search</mat-icon>
+        <input [(ngModel)]="searchQuery" placeholder="Search buses…" class="td-search-input" />
+      </div>
+      <button class="td-btn-primary" (click)="load()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="td-loading" *ngIf="loading">
+    <div class="td-spinner"></div>
+    <span>Loading fleet data…</span>
+  </div>
+
+  <ng-container *ngIf="!loading && fleet">
+    <!-- Stat Cards -->
+    <div class="td-stats-grid">
+      <div class="td-stat-card" style="--c1:#1d4ed8;--c2:#3b82f6">
+        <div class="td-stat-icon">🚌</div>
+        <div class="td-stat-body">
+          <span class="td-stat-value">{{ fleet.totalActiveBuses }}</span>
+          <span class="td-stat-label">Active Buses</span>
+        </div>
+      </div>
+      <div class="td-stat-card" style="--c1:#059669;--c2:#34d399">
+        <div class="td-stat-icon">👨‍🎓</div>
+        <div class="td-stat-body">
+          <span class="td-stat-value">{{ fleet.totalStudentsOnRoad }}</span>
+          <span class="td-stat-label">Students on Road</span>
+        </div>
+      </div>
+      <div class="td-stat-card" style="--c1:#0f766e;--c2:#14b8a6">
+        <div class="td-stat-icon">✅</div>
+        <div class="td-stat-body">
+          <span class="td-stat-value">{{ fleet.boardedCount }}</span>
+          <span class="td-stat-label">Boarded</span>
+        </div>
+      </div>
+      <div class="td-stat-card" [style]="fleet.wrongBusAlerts > 0 ? '--c1:#dc2626;--c2:#f87171' : '--c1:#059669;--c2:#34d399'">
+        <div class="td-stat-icon">⚠️</div>
+        <div class="td-stat-body">
+          <span class="td-stat-value">{{ fleet.wrongBusAlerts }}</span>
+          <span class="td-stat-label">Wrong Bus Alerts</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="td-quick-actions">
+      <button class="td-action-btn" (click)="viewOnMap()">
+        <mat-icon>map</mat-icon><span>Live Map</span>
+      </button>
+      <button class="td-action-btn" (click)="viewTrips()">
+        <mat-icon>directions_bus</mat-icon><span>Active Trips</span>
+      </button>
+    </div>
+
+    <!-- Bus Grid -->
+    <h2 class="td-section-title">Active Buses ({{ filteredBuses.length }})</h2>
+
+    <div class="td-empty" *ngIf="filteredBuses.length === 0">
+      <span>🚌</span>
+      <p>{{ searchQuery ? 'No buses match your search.' : 'No active trips at this time.' }}</p>
+    </div>
+
+    <div class="td-bus-grid" *ngIf="filteredBuses.length > 0">
+      <div class="td-bus-card" *ngFor="let bus of filteredBuses">
+        <div class="td-bus-header">
+          <div class="td-bus-icon">🚌</div>
+          <div class="td-bus-info">
+            <h3 class="td-bus-name">{{ bus.busDisplayName }}</h3>
+            <span class="td-bus-number">{{ bus.busNumber }}</span>
+          </div>
+          <span class="td-badge" [class.td-badge--active]="bus.status === 'ACTIVE'">{{ bus.status }}</span>
+        </div>
+        <div class="td-bus-meta">
+          <div class="td-meta-row"><mat-icon>person</mat-icon><span>{{ bus.driverName }}</span></div>
+          <div class="td-meta-row"><mat-icon>map</mat-icon><span>{{ bus.routeName }}</span></div>
+          <div class="td-meta-row" *ngIf="bus.nextStopName">
+            <mat-icon>place</mat-icon><span>Next: <strong>{{ bus.nextStopName }}</strong></span>
+          </div>
+          <div class="td-meta-row" *ngIf="bus.speed !== undefined">
+            <mat-icon>speed</mat-icon><span>{{ bus.speed | number:'1.0-0' }} km/h</span>
+          </div>
+        </div>
+        <div class="td-progress-wrap">
+          <div class="td-progress-header">
+            <span>Boarding Progress</span>
+            <span>{{ bus.boardedCount || 0 }}/{{ bus.expectedCount || 0 }} ({{ boardingPct(bus) }}%)</span>
+          </div>
+          <div class="td-progress-bar">
+            <div class="td-progress-fill"
+              [class.td-progress--green]="boardingPct(bus) >= 80"
+              [class.td-progress--amber]="boardingPct(bus) >= 50 && boardingPct(bus) < 80"
+              [class.td-progress--red]="boardingPct(bus) < 50"
+              [style.width.%]="boardingPct(bus)">
+            </div>
+          </div>
+        </div>
+        <div class="td-bus-counts">
+          <span class="td-count td-count--boarded">✅ {{ bus.boardedCount || 0 }} boarded</span>
+          <span class="td-count td-count--absent">❌ {{ bus.absentCount || 0 }} absent</span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Empty fleet -->
+  <div class="td-empty" *ngIf="!loading && !fleet">
+    <span>⚠️</span>
+    <p>Could not load fleet data. <button class="td-link" (click)="load()">Retry</button></p>
+  </div>
+</div>

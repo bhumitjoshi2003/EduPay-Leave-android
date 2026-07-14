@@ -1,0 +1,619 @@
+:host { display: block; }
+
+/* ── Page shell ─────────────────────────────────────────────────── */
+.mt-page {
+  padding: 0 0 32px;
+  font-family: 'Segoe UI', sans-serif;
+  max-width: 720px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.mt-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  border-radius: 16px;
+  padding: 20px 24px;
+  color: #fff;
+}
+
+.mt-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  letter-spacing: -0.3px;
+}
+
+.mt-subtitle {
+  font-size: 0.8rem;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+.mt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+
+.mt-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.mt-btn mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.mt-btn--ghost {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.mt-btn--ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.mt-btn--warning {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.mt-btn--warning:hover:not(:disabled) {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.mt-btn--indigo {
+  background: #6366f1;
+}
+
+.mt-btn--indigo:hover:not(:disabled) {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+.mt-btn--danger-ghost {
+  background: transparent;
+  color: #dc2626;
+  border: 1.5px solid #dc2626;
+}
+
+.mt-btn--danger-ghost:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+/* ── Spinning refresh icon ───────────────────────────────────────── */
+@keyframes mt-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.mt-spinning {
+  animation: mt-spin 0.8s linear infinite;
+}
+
+/* ── Skeleton loader ─────────────────────────────────────────────── */
+@keyframes mt-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.mt-skeleton { display: flex; flex-direction: column; gap: 16px; }
+
+.mt-skeleton-card {
+  height: 88px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 800px 100%;
+  animation: mt-shimmer 1.4s infinite;
+}
+
+.mt-skeleton-card--short { height: 56px; }
+
+/* ── No assignment empty state ───────────────────────────────────── */
+.mt-no-assignment {
+  text-align: center;
+  padding: 56px 24px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1.5px dashed #cbd5e1;
+}
+
+.mt-no-icon { font-size: 3.5rem; line-height: 1; margin-bottom: 12px; }
+
+.mt-no-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px;
+}
+
+.mt-no-desc {
+  font-size: 0.87rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ── Bus card ────────────────────────────────────────────────────── */
+.mt-bus-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e2e8f0;
+}
+
+.mt-bus-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mt-bus-emoji { font-size: 1.8rem; line-height: 1; }
+
+.mt-bus-info { flex: 1; min-width: 0; }
+
+.mt-bus-name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mt-bus-number {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.mt-bus-active-chip {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* ── Details grid ────────────────────────────────────────────────── */
+.mt-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 480px) {
+  .mt-details-grid { grid-template-columns: 1fr; }
+}
+
+.mt-detail-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.mt-detail-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.mt-detail-icon--stop { color: #ef4444; }
+.mt-detail-icon--route { color: #1e40af; }
+
+.mt-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mt-detail-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mt-detail-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+/* ── Sections ────────────────────────────────────────────────────── */
+.mt-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.mt-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.mt-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 16px;
+  padding-left: 10px;
+  border-left: 3px solid #1e40af;
+  line-height: 1.2;
+}
+
+.mt-section-header .mt-section-title { margin-bottom: 0; }
+
+/* ── Live dot ─────────────────────────────────────────────────────── */
+@keyframes mt-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.4); opacity: 0.5; }
+}
+
+.mt-live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #94a3b8;
+  flex-shrink: 0;
+}
+
+.mt-live-dot--active {
+  background: #22c55e;
+  animation: mt-pulse 1.8s ease-in-out infinite;
+}
+
+/* ── Live loading ────────────────────────────────────────────────── */
+.mt-live-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 0.85rem;
+  padding: 12px 0;
+}
+
+.mt-live-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #1e40af;
+  border-radius: 50%;
+  animation: mt-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Bus inactive ────────────────────────────────────────────────── */
+.mt-bus-inactive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 16px;
+  text-align: center;
+  color: #64748b;
+}
+
+.mt-bus-inactive mat-icon {
+  font-size: 2.5rem;
+  width: 40px;
+  height: 40px;
+  color: #94a3b8;
+}
+
+.mt-bus-inactive p {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 0;
+}
+
+.mt-inactive-hint {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+/* ── Live card ───────────────────────────────────────────────────── */
+.mt-live-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mt-live-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Status badges */
+.mt-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mt-badge--active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.mt-badge--done {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.mt-badge--idle {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.mt-last-updated {
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
+/* Live rows */
+.mt-live-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.mt-live-row:last-of-type { border-bottom: none; }
+
+.mt-live-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.mt-live-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.mt-live-label {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mt-live-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.mt-call-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #15803d;
+  text-decoration: none;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.mt-call-btn:hover { background: #bbf7d0; }
+
+.mt-call-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* ETA banner */
+.mt-eta-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  border: 1px solid #bfdbfe;
+}
+
+.mt-eta-banner mat-icon {
+  color: #1e40af;
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.mt-eta-label {
+  display: block;
+  font-size: 0.72rem;
+  color: #1e40af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mt-eta-value {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  line-height: 1.1;
+}
+
+/* Mock warning */
+.mt-mock-warn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef9c3;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: #854d0e;
+}
+
+.mt-mock-warn mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Absence section ─────────────────────────────────────────────── */
+.mt-absence-hint {
+  font-size: 0.83rem;
+  color: #64748b;
+  margin: -8px 0 16px;
+  line-height: 1.5;
+}
+
+.mt-date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  color: #475569;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.mt-date-chip mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #64748b;
+}
+
+/* Absence rows */
+.mt-absence-row {
+  padding: 16px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.mt-absence-row--last { border-bottom: none; padding-bottom: 0; }
+
+.mt-trip-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.mt-trip-label mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.mt-trip-label--morning mat-icon { color: #f59e0b; }
+.mt-trip-label--afternoon mat-icon { color: #6366f1; }
+
+/* Confirm panel */
+.mt-confirm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mt-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 0.87rem;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.mt-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: #fff;
+}
+
+.mt-confirm-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
