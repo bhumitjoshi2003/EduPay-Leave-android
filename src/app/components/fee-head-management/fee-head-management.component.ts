@@ -80,7 +80,7 @@ export class FeeHeadManagementComponent implements OnInit, OnDestroy {
   openAdd(): void {
     this.editingId = null;
     this.form = this.emptyForm();
-    this.selectedMonths = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+    this.selectedMonths = this.defaultMonthsForFrequency(this.form.frequency);
     this.showForm = true;
     this.cdr.markForCheck();
   }
@@ -161,6 +161,22 @@ export class FeeHeadManagementComponent implements OnInit, OnDestroy {
       return months.map(m => this.allMonths[m - 1]?.label).filter(Boolean).join(', ');
     } catch {
       return '';
+    }
+  }
+
+  onFrequencyChange(): void {
+    this.selectedMonths = this.defaultMonthsForFrequency(this.form.frequency);
+    this.cdr.markForCheck();
+  }
+
+  private defaultMonthsForFrequency(frequency: FeeHead['frequency']): Set<number> {
+    switch (frequency) {
+      case 'MONTHLY': return new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+      case 'QUARTERLY': return new Set([4,7,10,1]); // Apr, Jul, Oct, Jan
+      case 'SEMI_ANNUAL': return new Set([4,10]);   // Apr, Oct
+      case 'ANNUAL': return new Set([4]);            // Apr (first month of academic year)
+      case 'ONE_TIME': return new Set([4]);
+      default: return new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
     }
   }
 

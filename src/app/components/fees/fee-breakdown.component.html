@@ -31,25 +31,9 @@
       <span>Amount</span>
     </div>
 
-    <div class="fee-table__row">
-      <span>Tuition Fee</span>
-      <span>₹{{ details.tuitionFee }}</span>
-    </div>
-    <div class="fee-table__row" *ngIf="details.annualCharges">
-      <span>Annual Charges</span>
-      <span>₹{{ details.annualCharges }}</span>
-    </div>
-    <div class="fee-table__row" *ngIf="details.labCharges">
-      <span>Lab Charges</span>
-      <span>₹{{ details.labCharges }}</span>
-    </div>
-    <div class="fee-table__row" *ngIf="details.ecaProject">
-      <span>E.C.A / Project</span>
-      <span>₹{{ details.ecaProject }}</span>
-    </div>
-    <div class="fee-table__row" *ngIf="details.examinationFee">
-      <span>Examination Fee</span>
-      <span>₹{{ details.examinationFee }}</span>
+    <div class="fee-table__row" *ngFor="let item of details.feeLineItems">
+      <span>{{ item.name }}</span>
+      <span>₹{{ item.amount }}</span>
     </div>
     <div class="fee-table__row" *ngIf="details.busFee">
       <span>Bus Fee</span>

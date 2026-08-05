@@ -33,7 +33,7 @@
         </div>
         <div class="fhm-field">
           <label class="fhm-label">Frequency</label>
-          <select class="fhm-select" [(ngModel)]="form.frequency">
+          <select class="fhm-select" [(ngModel)]="form.frequency" (ngModelChange)="onFrequencyChange()">
             <option *ngFor="let opt of frequencyOptions" [value]="opt.value">{{ opt.label }}</option>
           </select>
         </div>
