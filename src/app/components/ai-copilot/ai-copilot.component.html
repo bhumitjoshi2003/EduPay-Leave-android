@@ -1,0 +1,144 @@
+<!-- ══ Mobile backdrop ══════════════════════════════════════════════════════ -->
+<div class="cp-backdrop" [class.cp-backdrop-open]="isOpen" (click)="close()"></div>
+
+<!-- ══ Chat Panel ═══════════════════════════════════════════════════════════ -->
+<div class="cp-panel" [class.cp-panel-open]="isOpen"
+     role="dialog" aria-modal="true" aria-label="Edunexify Copilot">
+
+  <!-- ─── Header ─────────────────────────────────────────────────────────── -->
+  <div class="cp-header">
+    <div class="cp-header-left">
+      <div class="cp-header-icon">
+        <img src="EdunexifyLogo.png" alt="Edunexify" class="cp-header-logo" />
+      </div>
+      <div class="cp-header-text">
+        <div class="cp-header-title">Edunexify Copilot</div>
+        <div class="cp-header-status">
+          <span class="cp-status-dot"></span>
+          <span>Ready to help</span>
+        </div>
+      </div>
+    </div>
+    <div class="cp-header-right">
+      <button class="cp-hdr-btn"
+              (click)="clearChat()"
+              [disabled]="messages.length === 0"
+              title="Clear conversation">
+        <mat-icon>delete_sweep</mat-icon>
+      </button>
+      <button class="cp-hdr-btn" (click)="close()" title="Close">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Messages ───────────────────────────────────────────────────────── -->
+  <div class="cp-messages" #messagesEl>
+
+    <!-- Welcome / empty state -->
+    <div class="cp-welcome" *ngIf="messages.length === 0 && !isLoading">
+      <div class="cp-welcome-icon">
+        <mat-icon>auto_awesome</mat-icon>
+      </div>
+      <h3 class="cp-welcome-title">Hello, {{ firstName }}!</h3>
+      <p class="cp-welcome-desc">{{ welcomeDesc }}</p>
+    </div>
+
+    <!-- Message rows -->
+    <div class="cp-row"
+         [class.cp-row-user]="msg.role === 'user'"
+         [class.cp-row-ai]="msg.role === 'assistant'"
+         *ngFor="let msg of messages; trackBy: trackById">
+
+      <!-- AI avatar -->
+      <div class="cp-avatar" *ngIf="msg.role === 'assistant'">
+        <mat-icon>auto_awesome</mat-icon>
+      </div>
+
+      <!-- Bubble + meta -->
+      <div class="cp-bubble-col">
+        <div class="cp-bubble"
+             [class.cp-bubble-user]="msg.role === 'user'"
+             [class.cp-bubble-ai]="msg.role === 'assistant'"
+             [class.cp-bubble-err]="msg.error">
+
+          <div class="cp-bubble-body" [innerHTML]="msg.content | chatMarkdown"></div>
+
+          <!-- Error retry -->
+          <button class="cp-retry-btn" *ngIf="msg.error" (click)="retry()">
+            <mat-icon>refresh</mat-icon>
+            Try again
+          </button>
+        </div>
+        <div class="cp-msg-time" [class.cp-msg-time-user]="msg.role === 'user'">
+          {{ msg.timestamp | date:'h:mm a' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing indicator -->
+    <div class="cp-row cp-row-ai" *ngIf="isLoading">
+      <div class="cp-avatar">
+        <mat-icon>auto_awesome</mat-icon>
+      </div>
+      <div class="cp-bubble cp-bubble-ai cp-bubble-typing">
+        <span class="cp-dot"></span>
+        <span class="cp-dot"></span>
+        <span class="cp-dot"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── Suggested Prompts ──────────────────────────────────────────────── -->
+  <div class="cp-prompts" *ngIf="messages.length === 0 && !isLoading">
+    <p class="cp-prompts-label">Suggested questions</p>
+    <div class="cp-chips">
+      <button class="cp-chip"
+              *ngFor="let p of suggestedPrompts"
+              (click)="sendMessage(p.text)">
+        <span class="cp-chip-icon">{{ p.icon }}</span>
+        <span class="cp-chip-text">{{ p.text }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Input area ─────────────────────────────────────────────────────── -->
+  <div class="cp-footer">
+    <div class="cp-input-row">
+      <textarea
+        class="cp-textarea"
+        [(ngModel)]="inputText"
+        (keydown)="onKeyDown($event)"
+        (input)="onInput($event)"
+        placeholder="Ask me anything…"
+        [disabled]="isLoading"
+        #inputEl
+        rows="1"
+        aria-label="Chat input"
+      ></textarea>
+      <button
+        class="cp-send-btn"
+        (click)="sendMessage()"
+        [disabled]="!inputText.trim() || isLoading"
+        title="Send message">
+        <mat-icon>arrow_upward</mat-icon>
+      </button>
+    </div>
+    <p class="cp-footer-hint">Tap send or press Enter</p>
+  </div>
+
+</div>
+
+<!-- ══ FAB ══════════════════════════════════════════════════════════════════ -->
+<button
+  *ngIf="!isOpen"
+  class="cp-fab"
+  [class.cp-fab-pulse]="showPulse"
+  (click)="toggle()"
+  aria-label="Open Edunexify Copilot"
+  title="Edunexify Copilot">
+
+  <span class="cp-fab-badge" *ngIf="showNewBadge">NEW</span>
+  <mat-icon class="cp-fab-icon">auto_awesome</mat-icon>
+</button>

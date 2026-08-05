@@ -22,6 +22,7 @@ import { NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { Capacitor } from '@capacitor/core';
 import { AppUpdate, AppUpdateAvailability } from '@capawesome/capacitor-app-update';
+import { AiCopilotComponent } from '../ai-copilot/ai-copilot.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -34,7 +35,8 @@ import { AppUpdate, AppUpdateAvailability } from '@capawesome/capacitor-app-upda
     MatIconModule,
     MatDividerModule,
     CommonModule,
-    MatBadgeModule
+    MatBadgeModule,
+    AiCopilotComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
