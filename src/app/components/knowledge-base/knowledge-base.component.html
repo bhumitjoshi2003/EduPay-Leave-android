@@ -1,0 +1,107 @@
+<div class="kb-page">
+
+  <div class="kb-header">
+    <h2>Knowledge Base</h2>
+    <p class="kb-subtitle">
+      Upload school policies and handbooks — the AI Copilot answers questions from these documents, with citations, for Students, Teachers, and Admins.
+    </p>
+  </div>
+
+  <!-- ─── Upload form ─────────────────────────────────────────────────── -->
+  <div class="kb-upload-card">
+    <div
+      class="kb-dropzone"
+      [class.kb-dropzone-active]="dragOver"
+      [class.kb-dropzone-filled]="selectedFile"
+      (click)="onDropZoneClick()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)">
+      <input #fileInput type="file" hidden accept=".pdf,.docx,.txt,.md" (change)="onFileSelected($event)" />
+
+      <ng-container *ngIf="!selectedFile">
+        <mat-icon class="kb-dropzone-icon">upload_file</mat-icon>
+        <p class="kb-dropzone-text">Click to browse or drag a file here</p>
+        <p class="kb-dropzone-hint">PDF, DOCX, TXT, or MD — up to 20 MB</p>
+      </ng-container>
+
+      <div class="kb-selected-file" *ngIf="selectedFile" (click)="$event.stopPropagation()">
+        <mat-icon>description</mat-icon>
+        <span class="kb-selected-file-name">{{ selectedFile.name }}</span>
+        <button class="kb-remove-file-btn" type="button" (click)="clearSelectedFile()" title="Remove file">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="kb-form-row">
+      <div class="kb-form-field">
+        <label for="kb-title">Title</label>
+        <input id="kb-title" type="text" [(ngModel)]="title" placeholder="e.g. Leave Policy 2026" maxlength="200" />
+      </div>
+      <div class="kb-form-field kb-form-field-narrow">
+        <label for="kb-category">Category</label>
+        <select id="kb-category" [(ngModel)]="category">
+          <option *ngFor="let c of categories" [value]="c">{{ categoryLabel(c) }}</option>
+        </select>
+      </div>
+      <button class="kb-upload-btn" [disabled]="uploading || !selectedFile" (click)="upload()">
+        <mat-icon>{{ uploading ? 'hourglass_top' : 'add' }}</mat-icon>
+        {{ uploading ? 'Uploading…' : 'Upload' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Document list ───────────────────────────────────────────────── -->
+  <div class="kb-list-card">
+    <div class="kb-list-header">
+      <h3>Uploaded Documents</h3>
+      <button class="kb-refresh-btn" (click)="refreshStatus()" [disabled]="loading" title="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+
+    <div class="kb-empty" *ngIf="!loading && documents.length === 0">
+      No documents uploaded yet.
+    </div>
+
+    <div class="kb-loading" *ngIf="loading">Loading…</div>
+
+    <table class="kb-table" *ngIf="!loading && documents.length > 0">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Uploaded</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let doc of documents; trackBy: trackById">
+          <td>
+            <div class="kb-doc-title">{{ doc.title }}</div>
+            <div class="kb-doc-filename">{{ doc.originalFilename }}</div>
+          </td>
+          <td><span class="kb-category-chip">{{ categoryLabel(doc.category) }}</span></td>
+          <td>
+            <span class="kb-status-chip" [class]="'kb-status-' + doc.status.toLowerCase()">
+              {{ statusLabel(doc.status) }}
+            </span>
+            <div class="kb-error-msg" *ngIf="doc.status === 'FAILED' && doc.errorMessage">{{ doc.errorMessage }}</div>
+          </td>
+          <td>{{ doc.createdAt | date:'d MMM y, h:mm a' }}</td>
+          <td class="kb-actions">
+            <button class="kb-icon-btn" (click)="download(doc)" title="Download original">
+              <mat-icon>download</mat-icon>
+            </button>
+            <button class="kb-icon-btn kb-icon-btn-danger" (click)="delete(doc)" title="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

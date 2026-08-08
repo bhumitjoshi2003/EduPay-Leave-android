@@ -121,6 +121,11 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
       {
+        path: 'knowledge-base',
+        loadComponent: () => import('./components/knowledge-base/knowledge-base.component').then(m => m.KnowledgeBaseComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
         path: 'class-management',
         loadComponent: () => import('./components/class-management/class-management.component').then(m => m.ClassManagementComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }

@@ -328,6 +328,10 @@
            (click)="closeSidebarOnMobile()" title="School Settings">
           <mat-icon>settings</mat-icon><span>School Settings</span>
         </a>
+        <a class="nav-item" routerLink="/dashboard/knowledge-base" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Knowledge Base">
+          <mat-icon>menu_book</mat-icon><span>Knowledge Base</span>
+        </a>
         <a class="nav-item" *ngIf="hasFeature('AUDIT_LOGS')" routerLink="/dashboard/audit-logs" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Audit Logs">
           <mat-icon>history</mat-icon><span>Audit Logs</span>

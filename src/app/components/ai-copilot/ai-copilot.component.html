@@ -112,18 +112,27 @@
         (keydown)="onKeyDown($event)"
         (input)="onInput($event)"
         placeholder="Ask me anything…"
-        [disabled]="isLoading"
+        [disabled]="isStreaming"
         #inputEl
         rows="1"
         aria-label="Chat input"
       ></textarea>
       <button
-        class="cp-send-btn"
-        (click)="sendMessage()"
-        [disabled]="!inputText.trim() || isLoading"
-        title="Send message">
-        <mat-icon>arrow_upward</mat-icon>
+        *ngIf="isStreaming; else sendBtn"
+        class="cp-send-btn cp-stop-btn"
+        (click)="stopGenerating()"
+        title="Stop generating">
+        <mat-icon>stop</mat-icon>
       </button>
+      <ng-template #sendBtn>
+        <button
+          class="cp-send-btn"
+          (click)="sendMessage()"
+          [disabled]="!inputText.trim()"
+          title="Send message">
+          <mat-icon>arrow_upward</mat-icon>
+        </button>
+      </ng-template>
     </div>
     <p class="cp-footer-hint">Tap send or press Enter</p>
   </div>

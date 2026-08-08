@@ -12,7 +12,8 @@ import {
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { Subject, takeUntil } from 'rxjs';
+import { HttpDownloadProgressEvent, HttpEventType } from '@angular/common/http';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { AiCopilotService } from '../../services/ai-copilot.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ChatMarkdownPipe } from '../../pipes/chat-markdown.pipe';
@@ -37,6 +38,7 @@ export class AiCopilotComponent implements OnInit, OnDestroy, AfterViewChecked {
   private destroy$ = new Subject<void>();
   private shouldScroll = false;
   private lastUserMessage = '';
+  private currentRequest?: Subscription;
 
   @ViewChild('messagesEl') messagesEl!: ElementRef<HTMLElement>;
   @ViewChild('inputEl')    inputEl!:    ElementRef<HTMLTextAreaElement>;
@@ -45,8 +47,16 @@ export class AiCopilotComponent implements OnInit, OnDestroy, AfterViewChecked {
   messages: ChatMessage[] = [];
   inputText    = '';
   isLoading    = false;
+  // True for the whole request lifetime (send → final chunk/error/stop), unlike isLoading
+  // which only covers the gap before the first chunk arrives (drives the typing dots).
+  // Governs the send-vs-stop button swap and blocks starting a second concurrent request.
+  isStreaming  = false;
   showNewBadge = false;
   showPulse    = false;
+
+  // Scopes short-term server-side memory (see edunexify-ai/memory.py). A fresh
+  // conversationId per "New chat" means fresh (empty) memory for that chat.
+  conversationId = crypto.randomUUID();
 
   constructor(
     private aiService: AiCopilotService,
@@ -138,6 +148,7 @@ export class AiCopilotComponent implements OnInit, OnDestroy, AfterViewChecked {
   clearChat(): void {
     this.messages        = [];
     this.lastUserMessage = '';
+    this.conversationId  = crypto.randomUUID();
     this.cdr.markForCheck();
     setTimeout(() => this.inputEl?.nativeElement?.focus(), 50);
   }
@@ -161,7 +172,7 @@ export class AiCopilotComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   sendMessage(text?: string): void {
     const content = (text ?? this.inputText).trim();
-    if (!content || this.isLoading) return;
+    if (!content || this.isStreaming) return;
 
     this.lastUserMessage = content;
     this.inputText       = '';
@@ -175,39 +186,100 @@ export class AiCopilotComponent implements OnInit, OnDestroy, AfterViewChecked {
       { id: `u_${Date.now()}`, role: 'user', content, timestamp: new Date(), error: false },
     ];
     this.isLoading    = true;
+    this.isStreaming  = true;
     this.shouldScroll = true;
     this.cdr.markForCheck();
 
-    this.aiService.send(content).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res) => {
-        this.messages = [
-          ...this.messages,
-          { id: `a_${Date.now()}`, role: 'assistant', content: res.reply, timestamp: new Date(), error: false },
-        ];
+    // Populated on the first chunk that actually arrives, so the typing
+    // indicator stays visible for any gap before generation starts (e.g. while
+    // tool calls are resolving server-side — those never reach the client as
+    // text, see routers/chat.py, so this bubble only appears once real content does).
+    let assistantMsg: ChatMessage | null = null;
+    let receivedSoFar = '';
+
+    this.currentRequest = this.aiService.sendStream(content, this.conversationId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (event) => {
+        if (event.type === HttpEventType.DownloadProgress) {
+          const partialText = (event as HttpDownloadProgressEvent).partialText ?? '';
+          const delta = partialText.slice(receivedSoFar.length);
+          receivedSoFar = partialText;
+          if (!delta) return;
+
+          if (!assistantMsg) {
+            assistantMsg = { id: `a_${Date.now()}`, role: 'assistant', content: '', timestamp: new Date(), error: false };
+            this.messages = [...this.messages, assistantMsg];
+            this.isLoading = false;
+          }
+          assistantMsg.content += delta;
+          this.shouldScroll = true;
+          this.cdr.markForCheck();
+          return;
+        }
+
+        if (event.type === HttpEventType.Response && !assistantMsg) {
+          // Stream completed without ever emitting a DownloadProgress chunk
+          // (can happen for a very short/instant reply) — show the full body now.
+          const finalText = (event.body as string)?.trim();
+          this.messages = [
+            ...this.messages,
+            {
+              id: `a_${Date.now()}`,
+              role: 'assistant',
+              content: finalText || "I wasn't able to complete your request. Please try again.",
+              timestamp: new Date(),
+              error: false,
+            },
+          ];
+          this.isLoading    = false;
+          this.shouldScroll = true;
+          this.cdr.markForCheck();
+        }
+      },
+      error: () => {
+        if (assistantMsg) {
+          // Partial content already showing — keep it, and note the stream broke,
+          // rather than discarding what the user has already read.
+          assistantMsg.content += '\n\n⚠️ Connection lost — response may be incomplete.';
+          assistantMsg.error = true;
+        } else {
+          this.messages = [
+            ...this.messages,
+            {
+              id: `e_${Date.now()}`,
+              role: 'assistant',
+              content: 'Something went wrong. Please check your connection and try again.',
+              timestamp: new Date(),
+              error: true,
+            },
+          ];
+        }
         this.isLoading    = false;
+        this.isStreaming  = false;
         this.shouldScroll = true;
         this.cdr.markForCheck();
       },
-      error: () => {
-        this.messages = [
-          ...this.messages,
-          {
-            id: `e_${Date.now()}`,
-            role: 'assistant',
-            content: 'Something went wrong. Please check your connection and try again.',
-            timestamp: new Date(),
-            error: true,
-          },
-        ];
-        this.isLoading    = false;
-        this.shouldScroll = true;
+      complete: () => {
+        this.isLoading   = false;
+        this.isStreaming = false;
         this.cdr.markForCheck();
       },
     });
   }
 
+  /** User hit the stop button mid-stream. Cancels the underlying XHR — Spring/FastAPI
+   * detect the dropped connection and stop pulling more tokens (see routers/chat.py's
+   * is_disconnected() check). Whatever text already arrived stays in the bubble as-is. */
+  stopGenerating(): void {
+    this.currentRequest?.unsubscribe();
+    this.currentRequest = undefined;
+    this.isLoading    = false;
+    this.isStreaming  = false;
+    this.shouldScroll = true;
+    this.cdr.markForCheck();
+  }
+
   retry(): void {
-    if (!this.lastUserMessage || this.isLoading) return;
+    if (!this.lastUserMessage || this.isStreaming) return;
     this.messages = this.messages.slice(0, -1);
     this.sendMessage(this.lastUserMessage);
   }
