@@ -126,6 +126,17 @@
   text-align: right;
 }
 
+/* "Breakdown unavailable" placeholder — a historical month with no per-fee-head data */
+.fee-table__row--muted {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.fee-table__row--muted span:last-child {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
 /* Penalty rows (late fee, leave charge) */
 .fee-table__row--penalty {
   background: #fff8f0;

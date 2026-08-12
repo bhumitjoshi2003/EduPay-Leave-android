@@ -87,7 +87,7 @@
                   <span class="ph-row-id">#{{ payment.paymentId.length > 18 ? (payment.paymentId | slice:0:18) + '…' : payment.paymentId }}</span>
                 </td>
                 <td class="ph-td-date">{{ payment.paymentDate | date:'d MMM yyyy, h:mm a' }}</td>
-                <td class="ph-td-amount">{{ payment.amountPaid | currency:'INR':'symbol':'1.0-0' }}</td>
+                <td class="ph-td-amount">{{ (payment.amountPaid / 100) | currency:'INR':'symbol':'1.0-0' }}</td>
                 <td>
                   <span class="ph-badge" [class.ph-badge-success]="payment.status === 'success'">
                     {{ payment.status | uppercase }}
@@ -113,7 +113,7 @@
               <span class="ph-m-date">{{ payment.paymentDate | date:'d MMM yyyy, h:mm a' }}</span>
             </div>
             <div class="ph-m-right">
-              <span class="ph-m-amount">{{ payment.amountPaid | currency:'INR':'symbol':'1.0-0' }}</span>
+              <span class="ph-m-amount">{{ (payment.amountPaid / 100) | currency:'INR':'symbol':'1.0-0' }}</span>
               <span class="ph-badge" [class.ph-badge-success]="payment.status === 'success'">{{ payment.status | uppercase }}</span>
             </div>
             <button class="ph-dl-btn"

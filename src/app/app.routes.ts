@@ -278,11 +278,6 @@ export const routes: Routes = [
         loadComponent: () => import('./components/student-fee-overview/student-fee-overview.component').then(m => m.StudentFeeOverviewComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
-      {
-        path: 'payment-record',
-        loadComponent: () => import('./components/payment-record/payment-record.component').then(m => m.PaymentRecordComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
-      },
 
       // ── Exam / Results ────────────────────────────────────────────────
       {

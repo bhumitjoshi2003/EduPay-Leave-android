@@ -75,15 +75,20 @@
         <span class="pt-month-name">{{ month.name }}</span>
 
         <span class="pt-month-amount">
-          <!-- Currency formatted consistently using INR currency pipe -->
-          <ng-container *ngIf="month.paid && !month.manuallyPaid">{{ month.amountPaid | currency:'INR':'symbol':'1.0-0' }}</ng-container>
-          <ng-container *ngIf="month.manuallyPaid">{{ month.manualPaymentReceived | currency:'INR':'symbol':'1.0-0' }}</ng-container>
-          <ng-container *ngIf="!month.paid && !month.manuallyPaid">{{ month.fee + (month.busFee || 0) + month.lateFee | currency:'INR':'symbol':'1.0-0' }}</ng-container>
+          <!-- Always the true ledger-net amount (netAmountPaid), never manualPaymentReceived
+               (which only reflects the manual-sourced portion and would understate a MIXED
+               row or hide a partial refund) — see netAmountPaid's own doc comment. -->
+          <ng-container *ngIf="netAmountPaid(month) > 0">{{ netAmountPaid(month) | currency:'INR':'symbol':'1.0-0' }}</ng-container>
+          <ng-container *ngIf="netAmountPaid(month) === 0 && month.amountUnavailable">Amount unavailable</ng-container>
+          <ng-container *ngIf="netAmountPaid(month) === 0 && !month.amountUnavailable">{{ month.fee + (month.busFee || 0) | currency:'INR':'symbol':'1.0-0' }}</ng-container>
         </span>
 
         <span class="pt-month-chip">
-          <ng-container *ngIf="month.paid && !month.manuallyPaid">Paid</ng-container>
-          <ng-container *ngIf="month.manuallyPaid">Manual</ng-container>
+          <!-- Truthful funding source from the allocation ledger (see paymentProvenanceLabel)
+               rather than the literal "Manual" — a manually-recorded payment shows its real
+               mode (Cash/Cheque/UPI/...), a gateway payment shows "Razorpay", and a row funded
+               by more than one source shows "Mixed" instead of picking one arbitrarily. -->
+          <ng-container *ngIf="month.paid || month.manuallyPaid">{{ paymentProvenanceLabel(month) }}</ng-container>
           <ng-container *ngIf="isLate(month) && !month.paid && !month.manuallyPaid">Overdue</ng-container>
           <ng-container *ngIf="!month.paid && !month.manuallyPaid && !isLate(month) && !month.selected">Due</ng-container>
           <ng-container *ngIf="month.selected && !month.paid && !month.manuallyPaid">Selected</ng-container>
@@ -115,7 +120,11 @@
           <span class="pt-footer-label">Total to Pay</span>
           <span class="pt-footer-amount">{{ totalAmountToPay | currency:'INR':'symbol':'1.0-0' }}</span>
         </div>
-        <div class="pt-admin-controls">
+        <!-- No due month selected yet: an active-looking payment form next to a ₹0 total is
+             confusing, so the controls are replaced with an explicit prompt instead of being
+             rendered (dis)enabled — see markAsManuallyPaid's own guard for the same rule
+             enforced server-side of this component. -->
+        <div class="pt-admin-controls" *ngIf="(selectedMonthsByYear[selectedYear] || []).length > 0; else selectMonthsHint">
           <div class="pt-amount-field">
             <label class="pt-amount-label">Amount Received</label>
             <div class="pt-amount-input-wrap">
@@ -123,8 +132,21 @@
               <input class="pt-amount-input" type="number" [(ngModel)]="manualPaymentAmount" placeholder="0">
             </div>
           </div>
+          <div class="pt-amount-field">
+            <label class="pt-amount-label" for="payment-mode-select">Payment Mode</label>
+            <select id="payment-mode-select" class="pt-payment-mode-select" [(ngModel)]="manualPaymentMode">
+              <option *ngFor="let mode of manualPaymentModes" [value]="mode">{{ mode }}</option>
+            </select>
+          </div>
+          <div class="pt-amount-field">
+            <label class="pt-amount-label">Reference No. (optional)</label>
+            <input class="pt-amount-input" type="text" [(ngModel)]="manualPaymentReference" placeholder="Cheque / UTR number">
+          </div>
           <button class="pt-mark-paid-btn" (click)="markAsManuallyPaid()">✓ Mark as Paid</button>
         </div>
+        <ng-template #selectMonthsHint>
+          <div class="pt-admin-controls-hint">Select one or more due months above to record a payment.</div>
+        </ng-template>
       </div>
     </ng-template>
 

@@ -4,12 +4,19 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PaymentHistoryService } from '../../services/payment-history.service';
 import { PaymentHistoryDetails } from '../../interfaces/payment-response';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil, catchError, of } from 'rxjs';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { jsPDF } from 'jspdf';
 import { ToastService } from '../../services/toast.service';
+import { SchoolService } from '../../services/school.service';
+import { FeesCalculationService } from '../../services/fees-calculation.service';
+
+export interface ReceiptFeeLine {
+  name: string;
+  amount: number;
+}
 
 @Component({
   selector: 'app-payment-details',
@@ -26,6 +33,11 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
   isGeneratingPdf: boolean = false;
   error: string = '';
   months: string[] = [];
+  /** Built from the backend's authoritative per-fee-head payment breakdown — never from the
+   * deprecated fixed buckets (tuitionFee/annualCharges/labCharges/ecaProject/examinationFee)
+   * on PaymentHistoryDetails, which are display-legacy only now. */
+  feeLineItems: ReceiptFeeLine[] = [];
+  breakdownUnavailable: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -33,10 +45,23 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     private paymentHistoryService: PaymentHistoryService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private schoolService: SchoolService,
+    private feesCalc: FeesCalculationService,
   ) {}
 
   ngOnInit(): void {
+    // Settings and payment details load independently — re-run getMonths() from both
+    // completions (it's a no-op if paymentDetails isn't loaded yet) so month names are
+    // correct regardless of which finishes first.
+    this.schoolService.getSettings().pipe(take(1), takeUntil(this.destroy$)).subscribe({
+      next: (settings) => {
+        this.feesCalc.setStartMonth(settings.academicYearStartMonth ?? 4);
+        this.getMonths();
+        this.cdr.markForCheck();
+      },
+      error: (e) => this.logger.error('Failed to load school settings; month names may default to an April-start school.', e),
+    });
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       this.paymentId = params['paymentId'];
       this.fetchPaymentDetails();
@@ -55,8 +80,9 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.paymentDetails = data;
         this.loading = false;
-        this.buildMonths();
+        this.getMonths();
         this.cdr.markForCheck();
+        this.fetchFeeBreakdown();
       },
       error: (err) => {
         this.error = 'Failed to fetch payment details.';
@@ -67,15 +93,55 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  buildMonths(): void {
-    const allMonths = ['April','May','June','July','August','September','October','November','December','January','February','March'];
-    this.months = [];
-    if (this.paymentDetails?.month) {
-      for (let i = 0; i < this.paymentDetails.month.length; i++) {
-        if (this.paymentDetails.month[i] === '1') {
-          this.months.push(allMonths[i]);
+  /** Builds feeLineItems from the backend's authoritative per-fee-head payment breakdown.
+   * Never fabricates a breakdown: falls back to a single trusted-total row when line items
+   * aren't available for every covered month, or to nothing (breakdownUnavailable=true, no
+   * invented rows) when even the total can't be resolved. */
+  private fetchFeeBreakdown(): void {
+    this.paymentHistoryService.getPaymentReceiptBreakdown(this.paymentId)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError((error) => {
+          this.logger.error('Error fetching payment fee breakdown:', error);
+          return of(null);
+        })
+      )
+      .subscribe((breakdown) => {
+        if (breakdown?.lineItemBreakdownAvailable) {
+          const lines: ReceiptFeeLine[] = [];
+          for (const li of breakdown.lineItems) {
+            lines.push({ name: li.feeHeadName, amount: li.grossAmount });
+            if (li.discountAmount) {
+              lines.push({ name: `${li.feeHeadName} Discount`, amount: -li.discountAmount });
+            }
+          }
+          this.feeLineItems = lines;
+          this.breakdownUnavailable = false;
+        } else if (breakdown?.totalSchoolFeeDue != null) {
+          this.feeLineItems = [{ name: 'School Fee (breakdown unavailable)', amount: breakdown.totalSchoolFeeDue }];
+          this.breakdownUnavailable = true;
+        } else {
+          this.feeLineItems = [];
+          this.breakdownUnavailable = true;
+        }
+        this.cdr.markForCheck();
+      });
+  }
+
+  /** monthString bit position i corresponds to academic month i+1 (1 = the school's own
+   * start month) — resolved via FeesCalculationService.getMonthName using the school's real
+   * academicYearStartMonth, never a hardcoded April-first array. */
+  getMonths(): void {
+    if (this.paymentDetails && this.paymentDetails.month) {
+      const monthString = this.paymentDetails.month;
+      this.months = [];
+      for (let i = 0; i < monthString.length; i++) {
+        if (monthString[i] === '1') {
+          this.months.push(this.feesCalc.getMonthName(i + 1));
         }
       }
+    } else {
+      this.months = [];
     }
   }
 
@@ -83,20 +149,30 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     this.router.navigate(['..'], { relativeTo: this.route });
   }
 
+  /** ₹, from the backend's authoritative per-fee-head breakdown (feeLineItems) plus the two
+   * remaining live-computed charges (late fee, platform fee) — never the deprecated fixed
+   * buckets (tuitionFee/busFee/annualCharges/labCharges/ecaProject/examinationFee) on
+   * PaymentHistoryDetails, which no longer reflect the real fee-head composition. */
   feeLines(): { label: string; amount: number }[] {
     if (!this.paymentDetails) return [];
     const d = this.paymentDetails;
-    return [
-      { label: 'Tuition Fee',              amount: d.tuitionFee },
-      { label: 'Bus Fee',                  amount: d.busFee },
-      { label: 'Annual Charges',           amount: d.annualCharges },
-      { label: 'Lab Charges',              amount: d.labCharges },
-      { label: 'ECA / Project',            amount: d.ecaProject },
-      { label: 'Examination Fee',          amount: d.examinationFee },
-      { label: 'Unapplied Leave Charges',  amount: d.additionalCharges },
-      { label: 'Late Fee',                 amount: d.lateFees },
-      { label: 'Platform Fee',             amount: d.platformFee },
-    ].filter(l => l.amount > 0);
+    const lines: { label: string; amount: number }[] = this.feeLineItems.map(li => ({ label: li.name, amount: li.amount }));
+    if (d.additionalCharges > 0) lines.push({ label: 'Unapplied Leave Charges', amount: d.additionalCharges });
+    if (d.lateFees > 0) lines.push({ label: 'Late Fee', amount: d.lateFees });
+    if (d.platformFee > 0) lines.push({ label: 'Platform Fee', amount: d.platformFee });
+    return lines;
+  }
+
+  /** Payment.amount/amountPaid are paise-native on the backend (matching Razorpay's own
+   * convention) — see PaymentHistoryDetails' own doc comment. Every other field on the
+   * receipt (feeLineItems, lateFees, platformFee, additionalCharges) is already a plain
+   * rupee figure and must not be divided again. */
+  totalChargedRupees(): number {
+    return this.paymentDetails ? this.paymentDetails.amount / 100 : 0;
+  }
+
+  amountPaidRupees(): number {
+    return this.paymentDetails ? this.paymentDetails.amountPaid / 100 : 0;
   }
 
   async downloadReceipt(): Promise<void> {
@@ -206,6 +282,13 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     y += 5;
 
     const lines = this.feeLines();
+    if (lines.length === 0 && this.breakdownUnavailable) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9);
+      doc.setTextColor(148, 163, 184);
+      doc.text('Detailed breakdown unavailable', margin + 2, y + 0.5);
+      y += 7;
+    }
     for (let i = 0; i < lines.length; i++) {
       if (i % 2 === 0) {
         doc.setFillColor(248, 250, 252);
@@ -231,7 +314,7 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     doc.setFontSize(9);
     doc.setTextColor(100, 116, 139);
     doc.text('Total Charged', margin + 2, y);
-    doc.text(`Rs. ${d.amount.toFixed(2)}`, W - margin - 2, y, { align: 'right' });
+    doc.text(`Rs. ${this.totalChargedRupees().toFixed(2)}`, W - margin - 2, y, { align: 'right' });
     y += 7;
 
     doc.setFillColor(30, 58, 95);
@@ -240,7 +323,7 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     doc.setFontSize(10);
     doc.setTextColor(255, 255, 255);
     doc.text('Amount Paid', margin + 4, y + 2);
-    doc.text(`Rs. ${d.amountPaid.toFixed(2)}`, W - margin - 4, y + 2, { align: 'right' });
+    doc.text(`Rs. ${this.amountPaidRupees().toFixed(2)}`, W - margin - 4, y + 2, { align: 'right' });
     y += 14;
 
     // ── Transaction Info ────────────────────────────────────────────────
@@ -290,7 +373,8 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
   async shareReceipt(): Promise<void> {
     if (!this.paymentDetails) return;
     const d = this.paymentDetails;
-    const lines = this.feeLines().map(l => `  ${l.label}: ₹${l.amount.toFixed(2)}`).join('\n');
+    const lines = this.feeLines().map(l => `  ${l.label}: ₹${l.amount.toFixed(2)}`).join('\n')
+      || (this.breakdownUnavailable ? '  Detailed breakdown unavailable' : '');
     const text = `🏫 ${d.schoolName || 'School'} — Fee Receipt\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
       `Student : ${d.studentName} (${d.studentId})\n` +
@@ -300,7 +384,7 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
       `${lines}\n` +
       `━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `Total Paid : ₹${d.amountPaid.toFixed(2)}\n` +
+      `Total Paid : ₹${this.amountPaidRupees().toFixed(2)}\n` +
       `Date       : ${new Date(d.paymentDate).toLocaleString('en-IN')}\n` +
       `Payment ID : ${d.paymentId}\n` +
       `Status     : ${d.status.toUpperCase()}`;

@@ -35,9 +35,9 @@
       <span>{{ item.name }}</span>
       <span>₹{{ item.amount }}</span>
     </div>
-    <div class="fee-table__row" *ngIf="details.busFee">
-      <span>Bus Fee</span>
-      <span>₹{{ details.busFee }}</span>
+    <div class="fee-table__row fee-table__row--muted" *ngIf="details.breakdownUnavailable && details.feeLineItems.length === 0">
+      <span>Breakdown unavailable</span>
+      <span>—</span>
     </div>
     <div class="fee-table__row fee-table__row--penalty" *ngIf="details.lateFee">
       <span>Late Fee <span class="penalty-tag">Overdue</span></span>

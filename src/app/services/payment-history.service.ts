@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PaymentHistory } from '../interfaces/payment-history';
 import { PaymentHistoryDetails } from '../interfaces/payment-response';
+import { PaymentLineItemBreakdown } from '../interfaces/payment-line-item-breakdown';
 import { environment } from '../../environments/environment';
 
 export interface PaginatedResponse<T> {
@@ -73,6 +74,13 @@ export class PaymentHistoryService {
 
   getPaymentHistoryDetails(paymentId: string): Observable<PaymentHistoryDetails> {
     return this.http.get<PaymentHistoryDetails>(`${this.baseUrl}/details/${paymentId}`);
+  }
+
+  /** Backend-authoritative per-fee-head breakdown for a payment — the same data the PDF
+   * receipt renders from. Never computed in Angular; see PaymentLineItemBreakdown's javadoc
+   * for the never-fabricate fallback contract. */
+  getPaymentReceiptBreakdown(paymentId: string): Observable<PaymentLineItemBreakdown> {
+    return this.http.get<PaymentLineItemBreakdown>(`${this.baseUrl}/receipt-breakdown/${paymentId}`);
   }
 
   downloadPaymentReceipt(paymentId: string): Observable<Blob> {

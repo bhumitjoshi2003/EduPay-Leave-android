@@ -32,6 +32,9 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   // Grid: feeGrid[className][feeHeadId] = amount in rupees
   feeGrid: { [className: string]: { [feeHeadId: number]: number } } = {};
   originalGrid: { [className: string]: { [feeHeadId: number]: number } } = {};
+  // className values found on fetched fee rules with no matching configured SchoolClass —
+  // surfaced to the admin rather than silently dropped or fabricated as a grid row.
+  orphanFeeRuleClassNames: string[] = [];
 
   isEditing = false;
   isLoading = true;
@@ -122,11 +125,30 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
         this.feeGrid[cls][fh.id!] = 0;
       }
     }
-    // Fill in existing rule amounts (convert paise → rupees)
+    // Fill in existing rule amounts (convert paise → rupees). SchoolClass (this.classes) is
+    // authoritative — a rule for a className with no matching configured class is a data
+    // inconsistency, never a reason to fabricate a new grid row for it.
+    const orphanClassNames = new Set<string>();
     for (const rule of rules) {
       if (this.feeGrid[rule.className]) {
         this.feeGrid[rule.className][rule.feeHeadId] = rule.amount / 100;
+      } else {
+        orphanClassNames.add(rule.className);
       }
+    }
+
+    this.orphanFeeRuleClassNames = Array.from(orphanClassNames);
+    if (this.orphanFeeRuleClassNames.length > 0) {
+      const names = this.orphanFeeRuleClassNames.join(', ');
+      this.logger.error(
+        `Fee Structure: found fee rule(s) for class name(s) [${names}] with no matching ` +
+        `configured SchoolClass. These rules exist in the database but cannot be displayed ` +
+        `or edited until a class with that exact name is created in Class Management.`
+      );
+      this.toast.warning(
+        'Data inconsistency detected',
+        `Fee rules exist for class name(s) not configured in Class Management: ${names}. Please review Class Management.`
+      );
     }
   }
 

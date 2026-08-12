@@ -119,17 +119,21 @@
           <span class="pd-fee-label">{{ line.label }}</span>
           <span class="pd-fee-amount">{{ line.amount | currency:'INR' }}</span>
         </li>
+        <li class="pd-fee-row" *ngIf="breakdownUnavailable && feeLines().length === 0">
+          <span class="pd-fee-label">Fee Breakdown</span>
+          <span class="pd-fee-amount">Detailed breakdown unavailable</span>
+        </li>
       </ul>
 
       <div class="pd-divider"></div>
 
       <div class="pd-total-row">
         <span>Total Charged</span>
-        <span>{{ paymentDetails.amount | currency:'INR' }}</span>
+        <span>{{ totalChargedRupees() | currency:'INR' }}</span>
       </div>
       <div class="pd-paid-row">
         <span>Amount Paid</span>
-        <span>{{ paymentDetails.amountPaid | currency:'INR' }}</span>
+        <span>{{ amountPaidRupees() | currency:'INR' }}</span>
       </div>
     </div>
 

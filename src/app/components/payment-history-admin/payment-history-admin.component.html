@@ -104,7 +104,7 @@
                     <span class="pha-row-name">{{ p.studentName }}</span>
                   </td>
                   <td class="pha-td-sid">{{ p.studentId }}</td>
-                  <td class="pha-td-amount">{{ p.amountPaid | currency:'INR':'symbol':'1.0-0' }}</td>
+                  <td class="pha-td-amount">{{ (p.amountPaid / 100) | currency:'INR':'symbol':'1.0-0' }}</td>
                   <td class="pha-td-date">{{ p.paymentDate | date:'d MMM yyyy' }}</td>
                   <td>
                     <span class="pha-badge"
@@ -141,7 +141,7 @@
                 </span>
               </div>
               <div class="pha-card-mid">
-                <span class="pha-amount">{{ p.amountPaid | currency:'INR':'symbol':'1.0-0' }}</span>
+                <span class="pha-amount">{{ (p.amountPaid / 100) | currency:'INR':'symbol':'1.0-0' }}</span>
               </div>
               <div class="pha-card-bottom">
                 <span class="pha-student-id">{{ p.studentId }}</span>
