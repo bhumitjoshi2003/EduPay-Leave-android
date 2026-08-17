@@ -7,6 +7,10 @@ export const authGuard: CanActivateFn = (_route, state) => {
   const router = inject(Router);
 
   if (authState.isLoggedIn()) {
+    if (authState.mustChangePassword()) {
+      router.navigate(['/change-initial-password']);
+      return false;
+    }
     return true;
   }
 

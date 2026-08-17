@@ -2,6 +2,7 @@ import { provideRouter, Routes } from '@angular/router';
 import { authGuard } from './auth/auth.guard';
 import { roleGuard } from './auth/role.guard';
 import { featureGuard } from './auth/feature.guard';
+import { passwordChangeGuard } from './auth/password-change.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -13,6 +14,11 @@ export const routes: Routes = [
   {
     path: 'reset-password',
     loadComponent: () => import('./components/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
+  },
+  {
+    path: 'change-initial-password',
+    loadComponent: () => import('./components/change-initial-password/change-initial-password.component').then(m => m.ChangeInitialPasswordComponent),
+    canActivate: [passwordChangeGuard]
   },
   {
     path: 'verify-rc',
@@ -254,6 +260,11 @@ export const routes: Routes = [
       {
         path: 'bus-fees',
         loadComponent: () => import('./components/bus-fees/bus-fees.component').then(m => m.BusFeesComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'fee-recalculation',
+        loadComponent: () => import('./components/fee-recalculation/fee-recalculation.component').then(m => m.FeeRecalculationComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
 

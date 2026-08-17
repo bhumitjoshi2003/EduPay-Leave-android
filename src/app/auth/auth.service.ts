@@ -12,9 +12,16 @@ interface ChangePasswordRequest {
 
 interface RegisterRequest {
   userId: string;
-  password: string;
+  // Omitted for STUDENT/TEACHER — the backend derives their initial password
+  // from date of birth and rejects any client-supplied password for those roles.
+  password?: string;
   role: string;
   email: string;
+}
+
+interface ChangeInitialPasswordRequest {
+  newPassword: string;
+  confirmPassword: string;
 }
 
 @Injectable({
@@ -51,6 +58,11 @@ export class AuthService {
 
   changePassword(request: ChangePasswordRequest): Observable<string> {
     return this.http.post(`${this.apiUrl}/change-password`, request, { responseType: 'text', withCredentials: true });
+  }
+
+  /** Completes a mandatory first-login password change for a restricted session. */
+  changeInitialPassword(request: ChangeInitialPasswordRequest): Observable<string> {
+    return this.http.post(`${this.apiUrl}/change-initial-password`, request, { responseType: 'text', withCredentials: true });
   }
 
   requestPasswordReset(userId: string, email: string): Observable<string> {

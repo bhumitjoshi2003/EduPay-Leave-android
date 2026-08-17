@@ -9,7 +9,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../auth/auth.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { EMPTY, Subject, takeUntil } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
 import { SchoolService } from '../../services/school.service';
 import { strictEmailValidator, pastDateValidator, phoneValidator } from '../../validators/shared.validators';
 
@@ -78,16 +78,15 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     if (this.teacherForm.valid) {
+      // The backend derives the initial login password from the teacher's date of
+      // birth (YYYYMMDD) — it is never generated or supplied by the frontend.
       this.teacherService.addTeacher(this.teacherForm.value).pipe(
         switchMap((response: { teacherId: string }) => {
-          const tempPassword = this.generateTempPassword();
           return this.authService.register({
             userId: response.teacherId,
-            password: tempPassword,
             role: 'TEACHER',
             email: this.teacherForm.value.email
           }).pipe(
-            map(() => tempPassword),
             catchError((authError) => {
               this.logger.error('Error registering user in auth service:', authError);
               this.toast.error('Error', 'Teacher record created but account setup failed. Please retry.');
@@ -96,8 +95,9 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
           );
         })
       ).subscribe({
-        next: (tempPassword) => {
-          this.toast.success('Teacher Registered!', `Registration complete. Temporary Password: ${tempPassword} — Share this with the teacher. They should change it on first login.`);
+        next: () => {
+          this.toast.success('Teacher Registered!', 'Registration successful. Initial password: Date of birth in YYYYMMDD format. ' +
+            'Example: 23 May 1990 → 19900523. The user must create a new password during their first login.');
           this.teacherForm.reset();
         },
         error: (error) => {
@@ -112,13 +112,6 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
     } else {
       this.toast.error('Validation Error!', 'Please fill in all the required fields correctly.');
     }
-  }
-
-  private generateTempPassword(): string {
-    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
-    const array = new Uint32Array(10);
-    crypto.getRandomValues(array);
-    return Array.from(array, v => chars[v % chars.length]).join('');
   }
 
   goBack() {

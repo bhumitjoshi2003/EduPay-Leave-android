@@ -22,6 +22,11 @@ export const roleGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
+  if (authState.mustChangePassword()) {
+    router.navigate(['/change-initial-password']);
+    return false;
+  }
+
   const allowedRoles: string[] = route.data['roles'] ?? [];
 
   if (!route.data?.['roles'] || route.data['roles'].length === 0) {

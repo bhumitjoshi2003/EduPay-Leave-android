@@ -43,7 +43,8 @@ export class AuthInterceptor implements HttpInterceptor {
       request.url.includes('/auth/logout') ||
       request.url.includes('/auth/refresh-token') ||
       request.url.includes('/auth/request-password-reset') ||
-      request.url.includes('/auth/reset-password');
+      request.url.includes('/auth/reset-password') ||
+      request.url.includes('/auth/change-initial-password');
 
     // Only attach credentials to our own API — not to third-party URLs (e.g. Razorpay CDN)
     const isOwnApi = request.url.startsWith(environment.apiUrl);
@@ -97,6 +98,11 @@ export class AuthInterceptor implements HttpInterceptor {
               error: () => this.router.navigate(['/home']),
             });
             toast.error('Session Expired', 'Your session is no longer valid. Please log in again.');
+          } else if (body?.passwordChangeRequired === true) {
+            // Restricted first-login session hit a non-allowlisted endpoint (e.g. stale
+            // app state, or a direct API call). The backend is the real gate here —
+            // this just gets the UI back in sync with it.
+            this.router.navigate(['/change-initial-password']);
           } else if (body?.code === 'RESOURCE_LIMIT_EXCEEDED') {
             toast.error('Limit Reached', body.message || 'You have reached your plan limit for this resource.');
           } else if (body?.code === 'FEATURE_NOT_AVAILABLE') {

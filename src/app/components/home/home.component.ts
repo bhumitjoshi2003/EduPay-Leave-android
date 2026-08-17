@@ -60,7 +60,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit() {
     if (this.authStateService.isLoggedIn()) {
       this.authenticated = true;
-      this.router.navigate(['/dashboard']);
+      this.router.navigate([this.authStateService.mustChangePassword() ? '/change-initial-password' : '/dashboard']);
     }
   }
 
@@ -122,6 +122,14 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
 
           this.pushNotificationService.init();
+
+          // First-login (or admin-reset) accounts land on the mandatory password-change
+          // page instead of the dashboard — enforced server-side too (JwtAuthFilter).
+          if (response.mustChangePassword) {
+            localStorage.removeItem('redirectUrl');
+            this.router.navigateByUrl('/change-initial-password');
+            return;
+          }
 
           const redirectUrl = localStorage.getItem('redirectUrl') || '/dashboard';
           localStorage.removeItem('redirectUrl');

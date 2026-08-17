@@ -18,6 +18,10 @@ export interface UserInfo {
   expiresAt: string | null;
   graceEndsAt: string | null;
   permissionKeys: string[] | null;
+  // True when the user must complete /change-initial-password before using any
+  // other route — set on newly-created STUDENT/TEACHER accounts and on admin
+  // password resets. Absent/false for every existing normal session.
+  mustChangePassword?: boolean;
 }
 
 @Injectable({
@@ -64,6 +68,10 @@ export class AuthStateService {
 
   isLoggedIn(): boolean {
     return this.user !== null;
+  }
+
+  mustChangePassword(): boolean {
+    return this.user?.mustChangePassword === true;
   }
 
   /**

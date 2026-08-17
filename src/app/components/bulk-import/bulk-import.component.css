@@ -500,3 +500,9 @@
   margin-bottom: 16px;
   line-height: 1.5;
 }
+
+.import-help--warning {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
