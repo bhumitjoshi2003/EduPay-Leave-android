@@ -15,6 +15,8 @@ import { LoggerService } from '../../services/logger.service';
 import { SchoolService } from '../../services/school.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { ToastService } from '../../services/toast.service';
 import { environment } from '../../../environments/environment';
 
@@ -433,7 +435,9 @@ export class ReportCardComponent implements OnInit, OnDestroy {
 
   print(): void {
     if (Capacitor.isNativePlatform()) {
-      this.toast.info('Not Available', 'Printing is not supported on the mobile app. Please use the web version.');
+      // No native print API — the practical mobile equivalent is sharing the PDF to
+      // whatever print/PDF-viewer app the user has (most support printing from there).
+      this.downloadPdf();
       return;
     }
     if (isPlatformBrowser(this.platformId)) {
@@ -446,27 +450,38 @@ export class ReportCardComponent implements OnInit, OnDestroy {
   downloadPdf(): void {
     if (!this.templateId || !this.studentId || !this.session) return;
 
-    if (Capacitor.isNativePlatform()) {
-      this.toast.info('Not Available', 'PDF download is not available in the app. Use the web version.');
-      return;
-    }
-
     this.downloadingPdf = true;
     this.cdr.markForCheck();
 
     this.rcTemplateService.downloadPdf(this.studentId, this.templateId, this.session)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (blob) => {
+        next: async (blob) => {
           const name = this.reportCardData?.studentName?.replace(/\s+/g, '_') ?? 'Student';
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${name}_${this.session}_ReportCard.pdf`;
-          a.click();
-          URL.revokeObjectURL(url);
-          this.downloadingPdf = false;
-          this.cdr.markForCheck();
+          const fileName = `${name}_${this.session}_ReportCard.pdf`;
+          try {
+            if (Capacitor.isNativePlatform()) {
+              const base64 = await this.blobToBase64(blob);
+              await Filesystem.writeFile({ path: fileName, data: base64, directory: Directory.Cache });
+              const { uri } = await Filesystem.getUri({ path: fileName, directory: Directory.Cache });
+              await Share.share({ title: 'Report Card', files: [uri], dialogTitle: 'Open, print, or share the report card' });
+            } else {
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = fileName;
+              a.click();
+              URL.revokeObjectURL(url);
+            }
+          } catch (e: any) {
+            if (e?.message !== 'Share canceled') {
+              this.logger.error('PDF share failed', e);
+              this.toast.error('Download Failed', 'Could not generate PDF. Please try again.');
+            }
+          } finally {
+            this.downloadingPdf = false;
+            this.cdr.markForCheck();
+          }
         },
         error: (e) => {
           this.logger.error('PDF download failed', e);
@@ -475,6 +490,15 @@ export class ReportCardComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   goBack(): void { this.location.back(); }

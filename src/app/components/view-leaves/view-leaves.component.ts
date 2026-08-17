@@ -16,6 +16,7 @@ import { ToastService } from '../../services/toast.service';
 import { from, concatMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { LeaveApplication, LeaveService, PaginatedResponse } from '../../services/leave.service';
+import { getStoredSelectedClass, setStoredSelectedClass, clearStoredSelectedClass } from '../../utils/class-selection-storage.util';
 
 @Component({
   selector: 'app-view-leaves',
@@ -54,6 +55,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
 
   private studentIdInputSubject = new Subject<string>();
   private ngUnsubscribe = new Subject<void>();
+  private schoolSlug: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -67,10 +69,6 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.schoolService.getClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe(classes => {
-      this.classList = classes;
-      this.cdr.markForCheck();
-    });
     this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe(params => {
       const studentIdFromParams = params['studentId'];
       if (studentIdFromParams) {
@@ -94,10 +92,25 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
     if (user) {
       this.loggedInUserRole = user.role;
       this.loggedInUserId = user.userId;
+      this.schoolSlug = user.schoolSlug;
 
       if (this.loggedInUserRole === 'ADMIN') {
-        this.selectedClass = localStorage.getItem('lastSelectedClass') || 'all';
-        this.fetchLeaves();
+        // Class list must be loaded before a stored selection can be validated against it —
+        // otherwise a stale value from another school/session could slip through.
+        this.schoolService.getClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+          next: classes => {
+            this.classList = classes;
+            this.selectedClass = getStoredSelectedClass(this.schoolSlug, classes, 'all');
+            this.cdr.markForCheck();
+            this.fetchLeaves();
+          },
+          error: err => {
+            this.logger.error('Failed to load classes:', err);
+            this.classList = [];
+            this.selectedClass = 'all';
+            this.fetchLeaves();
+          }
+        });
       } else if (this.loggedInUserRole === 'TEACHER') {
         this.getTeacherClassAndLoadLeaves();
       }
@@ -132,9 +145,9 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
     if (this.loggedInUserRole === 'ADMIN') {
       classFilterToSend = this.selectedClass === 'all' ? undefined : this.selectedClass;
       if (this.selectedClass === 'all') {
-        localStorage.removeItem('lastSelectedClass');
+        clearStoredSelectedClass(this.schoolSlug);
       } else {
-        localStorage.setItem('lastSelectedClass', this.selectedClass);
+        setStoredSelectedClass(this.schoolSlug, this.selectedClass);
       }
     } else if (this.loggedInUserRole === 'TEACHER') {
       classFilterToSend = this.loggedInUserClass;
@@ -211,7 +224,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
     this.currentPage = 0;
 
     if (this.loggedInUserRole === 'ADMIN') {
-      this.selectedClass = localStorage.getItem('lastSelectedClass') || 'all';
+      this.selectedClass = getStoredSelectedClass(this.schoolSlug, this.classList, 'all');
     }
     this.fetchLeaves();
   }

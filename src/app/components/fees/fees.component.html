@@ -75,12 +75,15 @@
         <span class="pt-month-name">{{ month.name }}</span>
 
         <span class="pt-month-amount">
-          <!-- Always the true ledger-net amount (netAmountPaid), never manualPaymentReceived
-               (which only reflects the manual-sourced portion and would understate a MIXED
-               row or hide a partial refund) — see netAmountPaid's own doc comment. -->
-          <ng-container *ngIf="netAmountPaid(month) > 0">{{ netAmountPaid(month) | currency:'INR':'symbol':'1.0-0' }}</ng-container>
-          <ng-container *ngIf="netAmountPaid(month) === 0 && month.amountUnavailable">Amount unavailable</ng-container>
-          <ng-container *ngIf="netAmountPaid(month) === 0 && !month.amountUnavailable">{{ month.fee + (month.busFee || 0) | currency:'INR':'symbol':'1.0-0' }}</ng-container>
+          <!-- A paid/manuallyPaid month shows the true ledger-net amount (netAmountPaid),
+               never manualPaymentReceived (which only reflects the manual-sourced portion and
+               would understate a MIXED row or hide a partial refund) — see netAmountPaid's own
+               doc comment. An UNPAID month — even one with a nonzero amountPaid from a partial/
+               since-refunded payment — must show what's still owed (remainingAmountDue), never
+               the already-paid amount sitting next to a "Due"/"Overdue" chip. -->
+          <ng-container *ngIf="month.paid || month.manuallyPaid">{{ netAmountPaid(month) | currency:'INR':'symbol':'1.0-0' }}</ng-container>
+          <ng-container *ngIf="!month.paid && !month.manuallyPaid && month.amountUnavailable">Amount unavailable</ng-container>
+          <ng-container *ngIf="!month.paid && !month.manuallyPaid && !month.amountUnavailable">{{ remainingAmountDue(month) | currency:'INR':'symbol':'1.0-0' }}</ng-container>
         </span>
 
         <span class="pt-month-chip">

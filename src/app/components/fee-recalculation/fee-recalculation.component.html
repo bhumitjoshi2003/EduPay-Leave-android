@@ -1,0 +1,128 @@
+<div class="fr-page">
+
+  <div class="fr-hero">
+    <div class="fr-hero-icon">🧮</div>
+    <div>
+      <h1 class="fr-hero-title">Recalculate Fees</h1>
+      <p class="fr-hero-sub">Explicit, audited recalculation for a student's unpaid months — never automatic</p>
+    </div>
+  </div>
+
+  <!-- Student / session / months -->
+  <div class="fr-card">
+    <div class="fr-form-row">
+      <div class="fr-field">
+        <label class="fr-label">Student ID</label>
+        <input class="fr-input" [(ngModel)]="studentId" placeholder="e.g. STU1024">
+      </div>
+      <div class="fr-field">
+        <label class="fr-label">Session</label>
+        <input class="fr-input" [(ngModel)]="session" placeholder="e.g. 2025-2026">
+      </div>
+    </div>
+
+    <div class="fr-field">
+      <label class="fr-label">Months to check</label>
+      <div class="fr-month-grid">
+        <label class="fr-month-chip" *ngFor="let m of monthOptions" [class.fr-month-chip--on]="m.selectedForPreview">
+          <input type="checkbox" [(ngModel)]="m.selectedForPreview">
+          {{ m.name }}
+        </label>
+      </div>
+    </div>
+
+    <button class="fr-btn fr-btn-primary" (click)="runPreview()" [disabled]="loadingPreview">
+      {{ loadingPreview ? 'Checking…' : 'Preview Recalculation' }}
+    </button>
+  </div>
+
+  <!-- Preview results -->
+  <div class="fr-card" *ngIf="previewRequested && previewRows.length > 0">
+    <h2 class="fr-card-title">Preview — old → new</h2>
+    <p class="fr-card-sub">Nothing has been changed yet. Review each month, then supply a reason and apply below.</p>
+
+    <div class="fr-table-scroll">
+      <table class="fr-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Month</th>
+            <th>Status</th>
+            <th>Old Total Due</th>
+            <th>New Total Due</th>
+            <th>Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of previewRows" [class.fr-row-ineligible]="!row.ok">
+            <td>
+              <input type="checkbox" *ngIf="row.ok" [checked]="row.includeInApply" (change)="toggleIncludeInApply(row)">
+            </td>
+            <td>{{ row.monthName }}</td>
+            <td>
+              <span class="fr-badge" [class.fr-badge-ok]="row.ok" [class.fr-badge-block]="!row.ok">
+                {{ row.ok ? 'Eligible' : 'Cannot recalculate' }}
+              </span>
+              <div class="fr-reason" *ngIf="!row.ok">{{ row.message }}</div>
+            </td>
+            <td>{{ row.oldTotalDue != null ? (row.oldTotalDue | currency:'INR':'symbol':'1.0-2') : '—' }}</td>
+            <td>{{ row.ok ? (row.newTotalDue | currency:'INR':'symbol':'1.0-2') : '—' }}</td>
+            <td>
+              <span *ngIf="row.ok && row.newTotalDue != null && row.oldTotalDue != null"
+                    class="fr-delta"
+                    [class.fr-delta-up]="row.newTotalDue > row.oldTotalDue"
+                    [class.fr-delta-down]="row.newTotalDue < row.oldTotalDue"
+                    [class.fr-delta-same]="row.newTotalDue === row.oldTotalDue">
+                {{ row.newTotalDue > row.oldTotalDue ? '▲ increase' : (row.newTotalDue < row.oldTotalDue ? '▼ decrease' : 'no change') }}
+                <ng-container *ngIf="row.newTotalDue !== row.oldTotalDue">
+                  ({{ (row.newTotalDue - row.oldTotalDue) | currency:'INR':'symbol':'1.0-2' }})
+                </ng-container>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fr-apply-block" *ngIf="previewRows.length > 0">
+      <label class="fr-label">Reason for recalculation <span class="fr-required">*</span></label>
+      <textarea class="fr-textarea" rows="2" [(ngModel)]="reason"
+                placeholder="e.g. Corrected a mis-keyed tuition rule for Class 6A, session 2025-2026"></textarea>
+
+      <button class="fr-btn fr-btn-danger" (click)="confirmAndApply()" [disabled]="applying || eligibleSelectedCount === 0">
+        {{ applying ? 'Applying…' : 'Apply Recalculation (' + eligibleSelectedCount + ')' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Apply results -->
+  <div class="fr-card" *ngIf="applyResults">
+    <h2 class="fr-card-title">Applied</h2>
+    <div class="fr-table-scroll">
+      <table class="fr-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Result</th>
+            <th>Old Total Due</th>
+            <th>New Total Due</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of applyResults" [class.fr-row-ineligible]="!row.ok">
+            <td>{{ row.monthName }}</td>
+            <td>
+              <span class="fr-badge" [class.fr-badge-ok]="row.ok" [class.fr-badge-block]="!row.ok">
+                {{ row.ok ? 'Recalculated' : 'Rejected' }}
+              </span>
+              <div class="fr-reason" *ngIf="!row.ok">{{ row.message }}</div>
+            </td>
+            <td>{{ row.oldTotalDue != null ? (row.oldTotalDue | currency:'INR':'symbol':'1.0-2') : '—' }}</td>
+            <td>{{ row.ok ? (row.newTotalDue | currency:'INR':'symbol':'1.0-2') : '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

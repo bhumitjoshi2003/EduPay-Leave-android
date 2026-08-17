@@ -424,6 +424,14 @@
         </label>
       </div>
 
+      <!-- Footer text -->
+      <div class="rct-theme-section">
+        <label class="rct-brand-label">Footer Text <span class="rct-optional">(optional)</span></label>
+        <input type="text" [(ngModel)]="brandingForm.footerText"
+               class="rct-input"
+               placeholder="e.g. This is a computer-generated report card." maxlength="200" />
+        <small class="rct-brand-hint">Printed at the bottom of the report card.</small>
+      </div>
 
       <!-- Watermark -->
       <div class="rct-theme-section">

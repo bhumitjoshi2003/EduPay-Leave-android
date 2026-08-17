@@ -8,6 +8,8 @@ import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject, takeUntil } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 import { SchoolService } from '../../services/school.service';
 import {
@@ -248,11 +250,6 @@ export class BulkReportCardComponent implements OnInit, OnDestroy {
   downloadAll(): void {
     if (!this.canDownload) return;
 
-    if (this.isNative) {
-      this.toast.info('Not Available', 'Bulk PDF download is not supported in the app. Please use the web version.');
-      return;
-    }
-
     this.downloading = true;
     this.cdr.markForCheck();
 
@@ -261,18 +258,33 @@ export class BulkReportCardComponent implements OnInit, OnDestroy {
       this.selectedSession,
       this.selectedClass
     ).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (blob) => {
+      next: async (blob) => {
         const className = this.selectedClass.replace(/\s+/g, '_');
         const filename = `${className}_${this.selectedSession}_ReportCards.zip`;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.toast.success('Downloaded', `${filename} saved successfully.`);
-        this.downloading = false;
-        this.cdr.markForCheck();
+        try {
+          if (this.isNative) {
+            const base64 = await this.blobToBase64(blob);
+            await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Cache });
+            const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Cache });
+            await Share.share({ title: 'Report Cards', files: [uri], dialogTitle: 'Save or share the report cards' });
+          } else {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            this.toast.success('Downloaded', `${filename} saved successfully.`);
+          }
+        } catch (e: any) {
+          if (e?.message !== 'Share canceled') {
+            this.logger.error('Bulk PDF share failed', e);
+            this.toast.error('Download Failed', 'Could not generate bulk PDF. Please try again.');
+          }
+        } finally {
+          this.downloading = false;
+          this.cdr.markForCheck();
+        }
       },
       error: (e) => {
         this.logger.error('Bulk PDF download failed', e);
@@ -280,6 +292,15 @@ export class BulkReportCardComponent implements OnInit, OnDestroy {
         this.downloading = false;
         this.cdr.markForCheck();
       }
+    });
+  }
+
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
   }
 

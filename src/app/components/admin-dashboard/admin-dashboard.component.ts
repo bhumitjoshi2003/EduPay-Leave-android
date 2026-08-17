@@ -71,7 +71,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       this.teacherCheckinService.getTodaySummary(),
     ]).pipe(takeUntil(this.destroy$)).subscribe({
       next: ([stats, leavesPage, entitlement, staffAttendance]) => {
-        this.stats = stats as DashboardStats;
+        // DashboardStatsDto.feesCollectedThisMonth is paise on the backend (nets
+        // Payment.amountPaid, itself paise) — convert once here rather than in the template.
+        this.stats = { ...(stats as DashboardStats), feesCollectedThisMonth: (stats as DashboardStats).feesCollectedThisMonth / 100 };
         const pending = (leavesPage as any).content.filter((l: any) => l.status === 'PENDING');
         this.recentLeaves = pending.slice(0, 5);
         this.entitlement = entitlement as SchoolEntitlementSummary;

@@ -50,6 +50,7 @@ export interface BrandingConfig {
   examTerm?: string;           // e.g., "Half-Yearly" → shown as "Half-Yearly Examination"
   showCgpa?: boolean;          // default true
   showGradePoints?: boolean;
+  footerText?: string;
   showWatermark?: boolean;
   watermarkType?: 'TEXT' | 'LOGO';
   watermarkText?: string;

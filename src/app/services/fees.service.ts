@@ -6,6 +6,7 @@ import { StudentFee } from '../interfaces/student-fee';
 import { CheckoutQuote } from '../interfaces/checkout-quote';
 import { MonthFeeBreakdown } from '../interfaces/month-fee-breakdown';
 import { ManualPaymentRequest } from '../interfaces/manual-payment-request';
+import { RecalculationEntry } from '../interfaces/recalculation';
 
 @Injectable({
   providedIn: 'root'
@@ -60,5 +61,16 @@ export class FeesService {
    * this is now the only path that can mark a month manually paid. */
   recordManualPayment(request: ManualPaymentRequest): Observable<{ message: string; paymentId: string }> {
     return this.http.post<{ message: string; paymentId: string }>(`${this.baseUrl}/manual-payment`, request);
+  }
+
+  previewRecalculation(studentId: string, session: string, months: number[]): Observable<RecalculationEntry[]> {
+    return this.http.post<RecalculationEntry[]>(`${this.baseUrl}/recalculate/preview`, { studentId, session, months });
+  }
+
+  /** Admin-only (Phase 5A). Actually recalculates the selected months — requires a non-blank
+   * reason. The backend recomputes independently; it never trusts amounts from a prior
+   * preview call sent back by the frontend. */
+  applyRecalculation(studentId: string, session: string, months: number[], reason: string): Observable<RecalculationEntry[]> {
+    return this.http.post<RecalculationEntry[]>(`${this.baseUrl}/recalculate/apply`, { studentId, session, months, reason });
   }
 }

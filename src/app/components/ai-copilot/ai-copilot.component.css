@@ -1,5 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   Edunexify AI Copilot — Component Styles (Android / Mobile app)
+   Edunexify AI Copilot — Component Styles
+   Design tokens mirror styles.css (:root) exactly.
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ── FAB (Floating Action Button) ──────────────────────────────────────── */
@@ -40,6 +41,7 @@
   width: 22px;
   height: 22px;
   line-height: 22px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
 }
 
 /* "NEW" badge on first appearance */
@@ -74,7 +76,7 @@
 /* ── Mobile backdrop ─────────────────────────────────────────────────────── */
 
 .cp-backdrop {
-  display: block;
+  display: none;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
@@ -90,6 +92,10 @@
   pointer-events: auto;
 }
 
+@media (max-width: 720px) {
+  .cp-backdrop { display: block; }
+}
+
 
 /* ── Chat Panel ──────────────────────────────────────────────────────────── */
 
@@ -99,8 +105,7 @@
   right: 0;
   z-index: 400;
 
-  /* Full-width on mobile by default */
-  width: 100vw;
+  width: 420px;
   height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -118,10 +123,9 @@
   transform: translateX(0);
 }
 
-/* Wider panel on tablet-sized screens */
-@media (min-width: 600px) {
+@media (max-width: 720px) {
   .cp-panel {
-    width: 420px;
+    width: 100vw;
   }
 }
 
@@ -254,6 +258,7 @@
   gap: 14px;
   background: #f7f9fc;
 
+  /* Custom scrollbar */
   scrollbar-width: thin;
   scrollbar-color: #d0dfe8 transparent;
 }
@@ -324,6 +329,7 @@
 .cp-row-user  { justify-content: flex-end; }
 .cp-row-ai    { justify-content: flex-start; }
 
+/* AI avatar */
 .cp-avatar {
   flex-shrink: 0;
   width: 30px;
@@ -334,7 +340,7 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  margin-bottom: 18px;
+  margin-bottom: 18px; /* aligns with bubble top, offset for timestamp */
 }
 
 .cp-avatar mat-icon {
@@ -344,6 +350,7 @@
   line-height: 15px;
 }
 
+/* Bubble column (bubble + timestamp) */
 .cp-bubble-col {
   display: flex;
   flex-direction: column;
@@ -365,12 +372,14 @@
   word-break: break-word;
 }
 
+/* User bubble — dark gradient */
 .cp-bubble-user {
   background: linear-gradient(135deg, #1e3a5f 0%, #1f6f8b 100%);
   color: #fff;
   border-radius: 16px 16px 4px 16px;
 }
 
+/* AI bubble — light card */
 .cp-bubble-ai {
   background: #fff;
   color: #1e293b;
@@ -379,12 +388,14 @@
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
 }
 
+/* Error bubble */
 .cp-bubble-err {
   background: #fff1f2;
   border-color: #fecdd3;
   color: #be123c;
 }
 
+/* Timestamp */
 .cp-msg-time {
   font-size: 0.68rem;
   color: #94a3b8;
@@ -392,6 +403,11 @@
   font-weight: 500;
 }
 
+.cp-msg-time-user {
+  color: #94a3b8;
+}
+
+/* Retry button inside error bubble */
 .cp-retry-btn {
   display: inline-flex;
   align-items: center;
@@ -405,16 +421,128 @@
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.cp-retry-btn:hover { background: #fee2e2; }
+.cp-retry-btn:hover {
+  background: #fee2e2;
+}
 
 .cp-retry-btn mat-icon {
   font-size: 14px;
   width: 14px;
   height: 14px;
   line-height: 14px;
+}
+
+
+/* ── Fee reminder approval card ──────────────────────────────────────────── */
+
+.cp-workflow-card {
+  min-width: 220px;
+}
+
+.cp-workflow-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.cp-workflow-subtitle {
+  margin: 0 0 8px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #1e3a5f;
+}
+
+.cp-workflow-draft {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.cp-workflow-note {
+  margin: 0 0 12px;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #94a3b8;
+}
+
+.cp-workflow-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cp-workflow-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.cp-workflow-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cp-workflow-reject {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+.cp-workflow-reject:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.cp-workflow-approve {
+  background: linear-gradient(135deg, #1e3a5f 0%, #1f6f8b 100%);
+  color: #fff;
+}
+
+.cp-workflow-approve:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.cp-workflow-error {
+  margin: 8px 0 0;
+  font-size: 0.76rem;
+  color: #dc2626;
+}
+
+.cp-workflow-result {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.cp-workflow-result-rejected {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.cp-workflow-result-ok {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.cp-workflow-result-warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.cp-workflow-result-err {
+  background: #fff1f2;
+  color: #be123c;
 }
 
 
@@ -547,8 +675,14 @@
   padding: 4px 0;
 }
 
-.cp-textarea::placeholder { color: #94a3b8; }
-.cp-textarea:disabled     { cursor: not-allowed; color: #94a3b8; }
+.cp-textarea::placeholder {
+  color: #94a3b8;
+}
+
+.cp-textarea:disabled {
+  cursor: not-allowed;
+  color: #94a3b8;
+}
 
 .cp-send-btn {
   flex-shrink: 0;
@@ -566,8 +700,15 @@
   box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3);
 }
 
-.cp-send-btn:hover:not(:disabled)   { opacity: 0.9; transform: scale(1.05); }
-.cp-send-btn:active:not(:disabled)  { transform: scale(0.96); }
+.cp-send-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.cp-send-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
 .cp-send-btn:disabled {
   background: #e2e8f0;
   color: #94a3b8;
@@ -612,12 +753,34 @@
 
 /* ── Markdown content inside bubbles ──────────────────────────────────────── */
 
-.cp-bubble-body ::ng-deep .cp-md-line    { display: block; }
-.cp-bubble-body ::ng-deep .cp-md-spacer  { display: block; height: 0.5em; }
-.cp-bubble-body ::ng-deep .cp-md-list    { margin: 6px 0; padding-left: 18px; }
-.cp-bubble-body ::ng-deep .cp-md-list li { margin-bottom: 3px; line-height: 1.5; }
-.cp-bubble-body ::ng-deep strong         { font-weight: 700; }
-.cp-bubble-user .cp-bubble-body ::ng-deep strong { color: rgba(255,255,255,0.95); }
+/* These selectors target HTML generated by ChatMarkdownPipe */
+.cp-bubble-body ::ng-deep .cp-md-line {
+  display: block;
+}
+
+.cp-bubble-body ::ng-deep .cp-md-spacer {
+  display: block;
+  height: 0.5em;
+}
+
+.cp-bubble-body ::ng-deep .cp-md-list {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+
+.cp-bubble-body ::ng-deep .cp-md-list li {
+  margin-bottom: 3px;
+  line-height: 1.5;
+}
+
+.cp-bubble-body ::ng-deep strong {
+  font-weight: 700;
+}
+
+/* User bubble text overrides */
+.cp-bubble-user .cp-bubble-body ::ng-deep strong {
+  color: rgba(255, 255, 255, 0.95);
+}
 
 
 /* ── Animations ──────────────────────────────────────────────────────────── */
@@ -631,3 +794,20 @@
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* Per-request list on the leave decision card. Unlike the reminder cards (where the backend
+   derives recipients), leave decisions target records named in conversation — so each affected
+   request is listed explicitly for the reviewer to check before confirming. */
+.cp-workflow-list {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #374151;
+  max-height: 190px;
+  overflow-y: auto;
+}
+
+.cp-workflow-list li + li { margin-top: 2px; }
+
+.cp-workflow-muted { color: #6b7280; }

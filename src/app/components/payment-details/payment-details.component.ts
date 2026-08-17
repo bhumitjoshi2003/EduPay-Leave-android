@@ -4,11 +4,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PaymentHistoryService } from '../../services/payment-history.service';
 import { PaymentHistoryDetails } from '../../interfaces/payment-response';
 import { CommonModule } from '@angular/common';
-import { Subject, take, takeUntil, catchError, of } from 'rxjs';
+import { Subject, take, takeUntil, catchError, of, firstValueFrom } from 'rxjs';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
-import { jsPDF } from 'jspdf';
 import { ToastService } from '../../services/toast.service';
 import { SchoolService } from '../../services/school.service';
 import { FeesCalculationService } from '../../services/fees-calculation.service';
@@ -175,29 +174,39 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     return this.paymentDetails ? this.paymentDetails.amountPaid / 100 : 0;
   }
 
+  /** Fetches the backend's own canonical receipt PDF (the same document web downloads —
+   * includes the school logo and payment-mode label, unlike the earlier client-built PDF
+   * here) and hands it to the platform: native share sheet on Android, direct download on
+   * web/PWA. Never re-renders the receipt client-side, so this can never drift from what
+   * the school office considers the official record. */
   async downloadReceipt(): Promise<void> {
     if (!this.paymentDetails || this.isGeneratingPdf) return;
     this.isGeneratingPdf = true;
     this.cdr.markForCheck();
 
     try {
-      const doc = this.buildPdf();
+      const blob = await firstValueFrom(this.paymentHistoryService.downloadPaymentReceipt(this.paymentId));
       const fileName = `receipt-${this.paymentDetails.paymentId}.pdf`;
 
       if (Capacitor.isNativePlatform()) {
         // Android: write to cache dir then share so the native PDF viewer opens it
-        const base64 = doc.output('datauristring').split(',')[1];
+        const base64 = await this.blobToBase64(blob);
         await Filesystem.writeFile({ path: fileName, data: base64, directory: Directory.Cache });
         const { uri } = await Filesystem.getUri({ path: fileName, directory: Directory.Cache });
         await Share.share({ title: 'Fee Receipt', files: [uri], dialogTitle: 'Open or share your receipt' });
       } else {
         // Web: direct download
-        doc.save(fileName);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
       }
     } catch (e: any) {
       if (e?.message !== 'Share canceled') {
-        this.toast.error('Error', 'Could not generate the receipt PDF.');
-        this.logger.error('PDF generation error:', e);
+        this.toast.error('Error', 'Could not download the receipt PDF.');
+        this.logger.error('Receipt download error:', e);
       }
     } finally {
       this.isGeneratingPdf = false;
@@ -205,169 +214,13 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private buildPdf(): jsPDF {
-    const d = this.paymentDetails!;
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const W = doc.internal.pageSize.getWidth();
-    const margin = 18;
-    const col2 = W / 2 + 4;
-    let y = 0;
-
-    // ── Header ─────────────────────────────────────────────────────────
-    doc.setFillColor(30, 58, 95);
-    doc.rect(0, 0, W, 36, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('FEE RECEIPT', W / 2, 14, { align: 'center' });
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(d.schoolName || 'School', W / 2, 22, { align: 'center' });
-    doc.text(new Date(d.paymentDate).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), W / 2, 29, { align: 'center' });
-
-    // Status badge
-    const statusText = d.status.toUpperCase();
-    doc.setFillColor(d.status === 'success' ? 22 : 180, d.status === 'success' ? 101 : 50, d.status === 'success' ? 52 : 50);
-    doc.roundedRect(W - margin - 28, 6, 28, 9, 2, 2, 'F');
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'bold');
-    doc.text(statusText, W - margin - 14, 12, { align: 'center' });
-
-    y = 44;
-
-    // ── Student Info ────────────────────────────────────────────────────
-    doc.setTextColor(30, 58, 95);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('STUDENT DETAILS', margin, y);
-    y += 4;
-    doc.setDrawColor(30, 58, 95);
-    doc.setLineWidth(0.4);
-    doc.line(margin, y, W - margin, y);
-    y += 5;
-
-    const infoRows: [string, string, string, string][] = [
-      ['Student Name', d.studentName, 'Student ID', d.studentId],
-      ['Class',        d.className,   'Session',    d.session],
-      ['Months Paid',  this.months.join(', ') || '—', '', ''],
-    ];
-
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    for (const [l1, v1, l2, v2] of infoRows) {
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(100, 116, 139);
-      doc.text(l1, margin, y);
-      if (l2) doc.text(l2, col2, y);
-      y += 4;
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(26, 26, 46);
-      doc.setFontSize(9);
-      doc.text(v1, margin, y);
-      if (v2) doc.text(v2, col2, y);
-      y += 6;
-    }
-
-    y += 2;
-
-    // ── Fee Breakdown ───────────────────────────────────────────────────
-    doc.setTextColor(30, 58, 95);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('FEE BREAKDOWN', margin, y);
-    y += 4;
-    doc.setDrawColor(30, 58, 95);
-    doc.line(margin, y, W - margin, y);
-    y += 5;
-
-    const lines = this.feeLines();
-    if (lines.length === 0 && this.breakdownUnavailable) {
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(9);
-      doc.setTextColor(148, 163, 184);
-      doc.text('Detailed breakdown unavailable', margin + 2, y + 0.5);
-      y += 7;
-    }
-    for (let i = 0; i < lines.length; i++) {
-      if (i % 2 === 0) {
-        doc.setFillColor(248, 250, 252);
-        doc.rect(margin, y - 3.5, W - margin * 2, 7, 'F');
-      }
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(55, 65, 81);
-      doc.text(lines[i].label, margin + 2, y + 0.5);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(26, 26, 46);
-      doc.text(`Rs. ${lines[i].amount.toFixed(2)}`, W - margin - 2, y + 0.5, { align: 'right' });
-      y += 7;
-    }
-
-    // Totals
-    y += 2;
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, W - margin, y);
-    y += 5;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(100, 116, 139);
-    doc.text('Total Charged', margin + 2, y);
-    doc.text(`Rs. ${this.totalChargedRupees().toFixed(2)}`, W - margin - 2, y, { align: 'right' });
-    y += 7;
-
-    doc.setFillColor(30, 58, 95);
-    doc.roundedRect(margin, y - 4, W - margin * 2, 9, 2, 2, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(255, 255, 255);
-    doc.text('Amount Paid', margin + 4, y + 2);
-    doc.text(`Rs. ${this.amountPaidRupees().toFixed(2)}`, W - margin - 4, y + 2, { align: 'right' });
-    y += 14;
-
-    // ── Transaction Info ────────────────────────────────────────────────
-    doc.setTextColor(30, 58, 95);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TRANSACTION INFO', margin, y);
-    y += 4;
-    doc.setDrawColor(30, 58, 95);
-    doc.setLineWidth(0.4);
-    doc.line(margin, y, W - margin, y);
-    y += 5;
-
-    const txnRows: [string, string][] = [
-      ['Payment ID', d.paymentId],
-      ['Order ID',   d.orderId],
-      ['Date & Time', new Date(d.paymentDate).toLocaleString('en-IN')],
-    ];
-    for (const [label, value] of txnRows) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(100, 116, 139);
-      doc.text(label, margin, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(26, 26, 46);
-      doc.text(value, W - margin - 2, y, { align: 'right' });
-      y += 7;
-    }
-
-    // ── Footer ──────────────────────────────────────────────────────────
-    y += 4;
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, W - margin, y);
-    y += 5;
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(7.5);
-    doc.setTextColor(148, 163, 184);
-    doc.text('This is a computer-generated receipt. No signature required.', W / 2, y, { align: 'center' });
-    y += 4;
-    doc.text('Generated by Edunexify', W / 2, y, { align: 'center' });
-
-    return doc;
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   async shareReceipt(): Promise<void> {

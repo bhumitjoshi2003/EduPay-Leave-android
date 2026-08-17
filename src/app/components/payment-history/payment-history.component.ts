@@ -17,6 +17,8 @@ import { ComingSoonComponent } from '../coming-soon/coming-soon.component';
 import { MODULE_MESSAGES } from '../../config/module-messages.config';
 import { Subject, takeUntil } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
@@ -155,18 +157,30 @@ export class PaymentHistoryComponent implements OnInit, OnDestroy {
   trackByPaymentId(index: number, payment: PaymentHistory): string { return payment.paymentId; }
 
   downloadPaymentReceipt(paymentId: string): void {
-    if (Capacitor.isNativePlatform()) {
-      this.toast.info('Not Available', 'Downloading receipts is not supported on the mobile app. Please use the web version.');
-      return;
-    }
     this.loading = true;
     this.error = '';
     this.paymentHistoryService.downloadPaymentReceipt(paymentId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data: Blob) => {
-        let filename = `receipt_${paymentId}.pdf`;
-        saveAs(data, filename);
-        this.loading = false;
-        this.cdr.markForCheck();
+      next: async (data: Blob) => {
+        const filename = `receipt_${paymentId}.pdf`;
+        try {
+          if (Capacitor.isNativePlatform()) {
+            // Android: write to cache dir then share so the native PDF viewer opens it
+            const base64 = await this.blobToBase64(data);
+            await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Cache });
+            const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Cache });
+            await Share.share({ title: 'Fee Receipt', files: [uri], dialogTitle: 'Open or share your receipt' });
+          } else {
+            saveAs(data, filename);
+          }
+        } catch (e: any) {
+          if (e?.message !== 'Share canceled') {
+            this.error = 'Failed to download payment receipt.';
+            this.logger.error('Error sharing payment receipt:', e);
+          }
+        } finally {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }
       },
       error: (err) => {
         this.error = 'Failed to download payment receipt.';
@@ -174,6 +188,15 @@ export class PaymentHistoryComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.cdr.markForCheck();
       },
+    });
+  }
+
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
   }
 }

@@ -582,4 +582,23 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
   netAmountPaid(month: MonthViewModel): number {
     return month.amountPaid ?? 0;
   }
+
+  /** Remaining principal still owed on an UNPAID month — gross snapshot due (fee + busFee)
+   * minus any net amount already allocated to the row (e.g. a manual payment later found to
+   * fall short of the full amount, or a payment that was subsequently partially refunded but
+   * didn't clear the row back to zero) — never negative. Mirrors, at grid-card granularity,
+   * the same "gross due minus net amountPaid" principle StudentFeesService.computeCheckoutQuote
+   * now applies backend-side; late fee is deliberately excluded here, matching this grid's
+   * existing convention of only surfacing late fee in the breakdown panel once a month is
+   * selected, not in the at-a-glance card figure.
+   * <p>
+   * Fixes a real display bug: the grid previously showed netAmountPaid (what was already
+   * paid) on ANY month with amountPaid > 0, including a still-unpaid month sitting next to a
+   * "Due"/"Overdue" chip — reading as "this is what's owed" when it was actually the opposite.
+   * netAmountPaid remains correct as-is for an actually paid/manuallyPaid month. */
+  remainingAmountDue(month: MonthViewModel): number {
+    const gross = (month.fee ?? 0) + (month.busFee ?? 0);
+    const paid = month.amountPaid ?? 0;
+    return Math.max(0, gross - paid);
+  }
 }

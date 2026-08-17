@@ -198,13 +198,16 @@ export class AnalyticsComponent implements OnInit, OnDestroy {
   }
 
   private buildFeeTrend(data: FeeTrend[]): void {
-    this.rawFeeTrend = data;
+    // FeeTrendDto.amount is paise on the backend (DashboardService.getFeeTrend nets
+    // Payment.amountPaid, itself paise) — convert once here so both the chart and
+    // latestMonthFee below are correct without needing per-usage conversions.
+    this.rawFeeTrend = data.map(d => ({ ...d, amount: d.amount / 100 }));
     this.feeTrendData = {
-      labels: data.map(d => d.month),
+      labels: this.rawFeeTrend.map(d => d.month),
       datasets: [{
-        data: data.map(d => d.amount),
-        backgroundColor: data.map((_, i) =>
-          `rgba(99,102,241,${0.4 + (i / Math.max(data.length - 1, 1)) * 0.55})`),
+        data: this.rawFeeTrend.map(d => d.amount),
+        backgroundColor: this.rawFeeTrend.map((_, i) =>
+          `rgba(99,102,241,${0.4 + (i / Math.max(this.rawFeeTrend.length - 1, 1)) * 0.55})`),
         borderColor: '#6366f1',
         borderWidth: 2,
         borderRadius: 8,

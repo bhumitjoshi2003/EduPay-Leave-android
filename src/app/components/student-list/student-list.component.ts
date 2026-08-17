@@ -12,6 +12,7 @@ import { ToastService } from '../../services/toast.service';
 import { SchoolService, SchoolClass } from '../../services/school.service';
 import { SectionService } from '../../services/section.service';
 import { Section } from '../../interfaces/section';
+import { getStoredSelectedClass, setStoredSelectedClass } from '../../utils/class-selection-storage.util';
 
 interface Student {
   studentId: string;
@@ -45,6 +46,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
   managedClasses: SchoolClass[] = [];
   sections: Section[] = [];
   selectedSectionId: number | null = null;
+  private schoolSlug: string | null = null;
 
   constructor(
     private studentService: StudentService,
@@ -111,6 +113,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
     if (user) {
       this.loggedInUserRole = user.role;
       this.teacherId = user.userId;
+      this.schoolSlug = user.schoolSlug;
 
       if (this.loggedInUserRole === 'ADMIN') {
         forkJoin({
@@ -120,7 +123,10 @@ export class StudentListComponent implements OnInit, OnDestroy {
           next: ({ managedClasses, classList }) => {
             this.managedClasses = managedClasses;
             this.classList = classList;
-            this.selectedClass = localStorage.getItem('lastSelectedClass') || classList[0] || '';
+            // A stored selection only counts if it's actually one of this school's
+            // currently-configured classes — otherwise it's stale (another school,
+            // a deleted class) and must never be used as the current class.
+            this.selectedClass = getStoredSelectedClass(this.schoolSlug, classList, classList[0] || '');
             this.cdr.markForCheck();
             if (this.selectedClass) {
               this.loadSectionsForClass(this.selectedClass, () => this.loadStudents());
@@ -159,7 +165,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
   }
 
   loadStudents(): void {
-    localStorage.setItem('lastSelectedClass', this.selectedClass);
+    setStoredSelectedClass(this.schoolSlug, this.selectedClass);
     // Emitting triggers the switchMap pipeline in ngOnInit, which auto-cancels
     // any in-flight requests from the previous class selection
     this.loadClass$.next(this.selectedClass);

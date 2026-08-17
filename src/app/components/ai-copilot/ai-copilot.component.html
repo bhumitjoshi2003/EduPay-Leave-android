@@ -3,7 +3,7 @@
 
 <!-- ══ Chat Panel ═══════════════════════════════════════════════════════════ -->
 <div class="cp-panel" [class.cp-panel-open]="isOpen"
-     role="dialog" aria-modal="true" aria-label="Edunexify Copilot">
+     role="dialog" aria-modal="true" aria-label="Edunexify AI Copilot">
 
   <!-- ─── Header ─────────────────────────────────────────────────────────── -->
   <div class="cp-header">
@@ -62,7 +62,248 @@
              [class.cp-bubble-ai]="msg.role === 'assistant'"
              [class.cp-bubble-err]="msg.error">
 
-          <div class="cp-bubble-body" [innerHTML]="msg.content | chatMarkdown"></div>
+          <!-- Card kind is mutually exclusive per message — ngSwitch (not two independent
+               *ngIf/else blocks) so exactly one of {fee card, attendance card, text bubble}
+               ever renders for a given message. -->
+          <ng-container [ngSwitch]="msg.kind">
+
+          <!-- Fee reminder approval card -->
+          <div class="cp-workflow-card" *ngSwitchCase="'fee_reminder_approval'">
+            <ng-container *ngIf="msg.workflow as wf">
+            <div class="cp-workflow-title">Fee Reminder Batch</div>
+
+            <ng-container [ngSwitch]="wf.status">
+              <p class="cp-workflow-subtitle" *ngSwitchCase="'no_defaulters'">
+                No students currently have overdue fees for this session. 🎉
+              </p>
+              <ng-container *ngSwitchDefault>
+                <p class="cp-workflow-subtitle">
+                  {{ wf.defaulterCount }} student{{ wf.defaulterCount === 1 ? '' : 's' }} have overdue fees<ng-container *ngIf="wf.totalAmountDue !== null"> &mdash; ₹{{ wf.totalAmountDue | number:'1.0-2' }} total</ng-container>
+                </p>
+                <p class="cp-workflow-draft" [innerHTML]="wf.draftSummary | chatMarkdown"></p>
+                <p class="cp-workflow-note">Emails will be sent using the school's standard fee-reminder template.</p>
+              </ng-container>
+            </ng-container>
+
+            <!-- Awaiting the admin's decision -->
+            <div class="cp-workflow-actions" *ngIf="wf.status === 'pending_approval'">
+              <button class="cp-workflow-btn cp-workflow-reject"
+                      [disabled]="wf.actionState === 'sending'"
+                      (click)="rejectWorkflow(msg)">
+                Reject
+              </button>
+              <button class="cp-workflow-btn cp-workflow-approve"
+                      [disabled]="wf.actionState === 'sending'"
+                      (click)="approveWorkflow(msg)">
+                {{ wf.actionState === 'sending' ? 'Sending…' : 'Approve & Send' }}
+              </button>
+            </div>
+            <p class="cp-workflow-error" *ngIf="wf.actionState === 'error'">{{ wf.actionError }}</p>
+
+            <!-- Terminal states -->
+            <p class="cp-workflow-result cp-workflow-result-rejected" *ngIf="wf.status === 'rejected'">
+              Rejected — no reminders were sent.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-ok" *ngIf="wf.status === 'sent'">
+              ✅ Sent to {{ wf.sendResult?.sentCount }} parent{{ wf.sendResult?.sentCount === 1 ? '' : 's' }}.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-warn" *ngIf="wf.status === 'partially_sent'">
+              ⚠️ Sent to {{ wf.sendResult?.sentCount }}, failed for {{ wf.sendResult?.failedCount }} —
+              please check with support for the failed ones.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-err" *ngIf="wf.status === 'failed'">
+              ❌ Could not send reminders{{ wf.error ? ': ' + wf.error : '.' }}
+            </p>
+            </ng-container>
+          </div>
+
+          <!-- Attendance reminder approval card -->
+          <div class="cp-workflow-card" *ngSwitchCase="'attendance_reminder_approval'">
+            <ng-container *ngIf="msg.attendanceWorkflow as awf">
+            <div class="cp-workflow-title">Attendance Reminder Batch</div>
+
+            <ng-container [ngSwitch]="awf.status">
+              <p class="cp-workflow-subtitle" *ngSwitchCase="'no_low_attendance_students'">
+                No students are currently below the attendance threshold for this session. 🎉
+              </p>
+              <ng-container *ngSwitchDefault>
+                <p class="cp-workflow-subtitle">
+                  {{ awf.studentCount }} student{{ awf.studentCount === 1 ? '' : 's' }} below {{ awf.threshold }}% attendance
+                </p>
+                <p class="cp-workflow-draft" [innerHTML]="awf.draftSummary | chatMarkdown"></p>
+                <p class="cp-workflow-note">Emails will be sent using the school's standard attendance-warning template.</p>
+              </ng-container>
+            </ng-container>
+
+            <!-- Awaiting the admin's decision -->
+            <div class="cp-workflow-actions" *ngIf="awf.status === 'pending_approval'">
+              <button class="cp-workflow-btn cp-workflow-reject"
+                      [disabled]="awf.actionState === 'sending'"
+                      (click)="rejectAttendanceWorkflow(msg)">
+                Reject
+              </button>
+              <button class="cp-workflow-btn cp-workflow-approve"
+                      [disabled]="awf.actionState === 'sending'"
+                      (click)="approveAttendanceWorkflow(msg)">
+                {{ awf.actionState === 'sending' ? 'Sending…' : 'Approve & Send' }}
+              </button>
+            </div>
+            <p class="cp-workflow-error" *ngIf="awf.actionState === 'error'">{{ awf.actionError }}</p>
+
+            <!-- Terminal states -->
+            <p class="cp-workflow-result cp-workflow-result-rejected" *ngIf="awf.status === 'rejected'">
+              Rejected — no reminders were sent.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-ok" *ngIf="awf.status === 'sent'">
+              ✅ Sent to {{ awf.sendResult?.sentCount }} parent{{ awf.sendResult?.sentCount === 1 ? '' : 's' }}.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-warn" *ngIf="awf.status === 'partially_sent'">
+              ⚠️ Sent to {{ awf.sendResult?.sentCount }}, failed for {{ awf.sendResult?.failedCount }} —
+              please check with support for the failed ones.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-err" *ngIf="awf.status === 'failed'">
+              ❌ Could not send reminders{{ awf.error ? ': ' + awf.error : '.' }}
+            </p>
+            </ng-container>
+          </div>
+
+          <!-- Teacher-scoped attendance reminder approval card -->
+          <div class="cp-workflow-card" *ngSwitchCase="'teacher_attendance_reminder_approval'">
+            <ng-container *ngIf="msg.teacherAttendanceWorkflow as twf">
+            <div class="cp-workflow-title">Class Attendance Reminder — {{ twf.className }}</div>
+
+            <ng-container [ngSwitch]="twf.status">
+              <p class="cp-workflow-subtitle" *ngSwitchCase="'no_low_attendance_students'">
+                <ng-container *ngIf="twf.criterion === 'CONSECUTIVE_ABSENCE'; else noneBelowThreshold">
+                  No students in your class have been absent {{ twf.minConsecutiveDays }} or more consecutive school days. 🎉
+                </ng-container>
+                <ng-template #noneBelowThreshold>
+                  No students in your class are currently below the attendance threshold for this session. 🎉
+                </ng-template>
+              </p>
+              <ng-container *ngSwitchDefault>
+                <!-- The criterion is stated explicitly: the same class can produce two completely
+                     different batches on the same day, so the teacher must see which one this is
+                     before approving it. -->
+                <p class="cp-workflow-subtitle">
+                  <ng-container *ngIf="twf.criterion === 'CONSECUTIVE_ABSENCE'; else belowThresholdSubtitle">
+                    {{ twf.studentCount }} student{{ twf.studentCount === 1 ? '' : 's' }} absent
+                    {{ twf.minConsecutiveDays }}+ consecutive school days
+                  </ng-container>
+                  <ng-template #belowThresholdSubtitle>
+                    {{ twf.studentCount }} student{{ twf.studentCount === 1 ? '' : 's' }} below {{ twf.threshold }}% attendance
+                  </ng-template>
+                </p>
+                <p class="cp-workflow-draft" [innerHTML]="twf.draftSummary | chatMarkdown"></p>
+                <p class="cp-workflow-note">Emails will be sent using the school's standard attendance-warning template.</p>
+              </ng-container>
+            </ng-container>
+
+            <!-- Awaiting the teacher's decision -->
+            <div class="cp-workflow-actions" *ngIf="twf.status === 'pending_approval'">
+              <button class="cp-workflow-btn cp-workflow-reject"
+                      [disabled]="twf.actionState === 'sending'"
+                      (click)="rejectTeacherAttendanceWorkflow(msg)">
+                Reject
+              </button>
+              <button class="cp-workflow-btn cp-workflow-approve"
+                      [disabled]="twf.actionState === 'sending'"
+                      (click)="approveTeacherAttendanceWorkflow(msg)">
+                {{ twf.actionState === 'sending' ? 'Sending…' : 'Approve & Send' }}
+              </button>
+            </div>
+            <p class="cp-workflow-error" *ngIf="twf.actionState === 'error'">{{ twf.actionError }}</p>
+
+            <!-- Terminal states -->
+            <p class="cp-workflow-result cp-workflow-result-rejected" *ngIf="twf.status === 'rejected'">
+              Rejected — no reminders were sent.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-ok" *ngIf="twf.status === 'sent'">
+              ✅ Sent to {{ twf.sendResult?.sentCount }} parent{{ twf.sendResult?.sentCount === 1 ? '' : 's' }}.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-warn" *ngIf="twf.status === 'partially_sent'">
+              ⚠️ Sent to {{ twf.sendResult?.sentCount }}, failed for {{ twf.sendResult?.failedCount }} —
+              please check with support for the failed ones.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-err" *ngIf="twf.status === 'failed'">
+              ❌ Could not send reminders{{ twf.error ? ': ' + twf.error : '.' }}
+            </p>
+            </ng-container>
+          </div>
+
+          <!-- Leave approve/reject decision card -->
+          <div class="cp-workflow-card" *ngSwitchCase="'leave_decision_approval'">
+            <ng-container *ngIf="msg.leaveWorkflow as lwf">
+            <div class="cp-workflow-title">
+              {{ lwf.decision === 'APPROVED' ? 'Approve' : 'Reject' }} Leave Requests<ng-container *ngIf="lwf.className"> — {{ lwf.className }}</ng-container>
+            </div>
+
+            <ng-container [ngSwitch]="lwf.status">
+              <p class="cp-workflow-subtitle" *ngSwitchCase="'no_actionable_requests'">
+                None of those leave requests are still awaiting a decision — nothing to change.
+              </p>
+              <ng-container *ngSwitchDefault>
+                <p class="cp-workflow-subtitle">
+                  {{ lwf.actionableCount }} request{{ lwf.actionableCount === 1 ? '' : 's' }} will be
+                  {{ lwf.decision === 'APPROVED' ? 'approved' : 'rejected' }}
+                </p>
+                <p class="cp-workflow-draft" [innerHTML]="lwf.draftSummary | chatMarkdown"></p>
+
+                <!-- Every request is listed individually. Unlike a reminder batch (where the
+                     backend derives the recipients), these were proposed from the conversation,
+                     so the reviewer must be able to see exactly which records are affected. -->
+                <ul class="cp-workflow-list">
+                  <li *ngFor="let lr of lwf.leaveRequests">
+                    <strong>{{ lr.studentName }}</strong> — {{ lr.leaveDate }}
+                    <span class="cp-workflow-muted">({{ lr.reason }})</span>
+                    <em *ngIf="lr.status !== 'PENDING'" class="cp-workflow-muted">
+                      — already {{ lr.status | lowercase }}, will not be changed
+                    </em>
+                  </li>
+                </ul>
+              </ng-container>
+            </ng-container>
+
+            <!-- Awaiting the reviewer's decision -->
+            <div class="cp-workflow-actions" *ngIf="lwf.status === 'pending_approval'">
+              <button class="cp-workflow-btn cp-workflow-reject"
+                      [disabled]="lwf.actionState === 'sending'"
+                      (click)="rejectLeaveWorkflow(msg)">
+                Cancel
+              </button>
+              <button class="cp-workflow-btn cp-workflow-approve"
+                      [disabled]="lwf.actionState === 'sending'"
+                      (click)="approveLeaveWorkflow(msg)">
+                {{ lwf.actionState === 'sending'
+                    ? 'Applying…'
+                    : (lwf.decision === 'APPROVED' ? 'Confirm & Approve' : 'Confirm & Reject') }}
+              </button>
+            </div>
+            <p class="cp-workflow-error" *ngIf="lwf.actionState === 'error'">{{ lwf.actionError }}</p>
+
+            <!-- Terminal states -->
+            <p class="cp-workflow-result cp-workflow-result-rejected" *ngIf="lwf.status === 'rejected'">
+              Cancelled — no leave requests were changed.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-ok" *ngIf="lwf.status === 'applied'">
+              ✅ {{ lwf.applyResult?.appliedCount }} request{{ lwf.applyResult?.appliedCount === 1 ? '' : 's' }}
+              {{ lwf.decision === 'APPROVED' ? 'approved' : 'rejected' }}.<ng-container *ngIf="lwf.applyResult?.skippedCount">
+              {{ lwf.applyResult?.skippedCount }} left unchanged (already decided).</ng-container>
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-warn" *ngIf="lwf.status === 'partially_applied'">
+              ⚠️ {{ lwf.applyResult?.appliedCount }} applied, {{ lwf.applyResult?.failedCount }} failed<ng-container *ngIf="lwf.applyResult?.skippedCount">,
+              {{ lwf.applyResult?.skippedCount }} left unchanged</ng-container>.
+            </p>
+            <p class="cp-workflow-result cp-workflow-result-err" *ngIf="lwf.status === 'failed'">
+              ❌ Could not apply the decision{{ lwf.error ? ': ' + lwf.error : '.' }}
+            </p>
+            </ng-container>
+          </div>
+
+          <!-- Plain text bubble — default case, covers 'text' and the absent/undefined kind -->
+          <div class="cp-bubble-body" *ngSwitchDefault [innerHTML]="msg.content | chatMarkdown"></div>
+
+          </ng-container>
 
           <!-- Error retry -->
           <button class="cp-retry-btn" *ngIf="msg.error" (click)="retry()">
@@ -96,7 +337,7 @@
     <div class="cp-chips">
       <button class="cp-chip"
               *ngFor="let p of suggestedPrompts"
-              (click)="sendMessage(p.text)">
+              (click)="onSuggestedPromptClick(p)">
         <span class="cp-chip-icon">{{ p.icon }}</span>
         <span class="cp-chip-text">{{ p.text }}</span>
       </button>
@@ -134,7 +375,7 @@
         </button>
       </ng-template>
     </div>
-    <p class="cp-footer-hint">Tap send or press Enter</p>
+    <p class="cp-footer-hint">Enter to send · Shift+Enter for new line</p>
   </div>
 
 </div>

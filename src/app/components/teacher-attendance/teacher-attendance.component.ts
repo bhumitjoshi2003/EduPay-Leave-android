@@ -16,10 +16,11 @@ import { AttendanceService } from '../../services/attendance.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { TeacherService } from '../../services/teacher.service';
 import { Teacher } from '../../interfaces/teacher';
-import { Subject, takeUntil, switchMap, of, firstValueFrom } from 'rxjs';
+import { Subject, takeUntil, switchMap, of, firstValueFrom, forkJoin } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { SchoolHolidayService } from '../../services/school-holiday.service';
 import { Router } from '@angular/router';
+import { getStoredSelectedClass, setStoredSelectedClass } from '../../utils/class-selection-storage.util';
 
 interface Student {
   studentId: string;
@@ -60,6 +61,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   managedClasses: SchoolClass[] = [];
   sections: Section[] = [];
   selectedSectionId: number | null = null;
+  private schoolSlug: string | null = null;
 
   constructor(
     private leaveService: LeaveService,
@@ -89,20 +91,6 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     }
 
     this.attendanceDate = this.getTodayDateWithoutTime();
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
-      next: classes => {
-        this.classList = classes;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.logger.error('Failed to load classes:', err);
-        this.toast.error('Error', 'Failed to load class list.');
-      }
-    });
-    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
-      next: classes => { this.managedClasses = classes; },
-      error: (err) => this.logger.error('Failed to load managed classes', err)
-    });
     this.getUserRoleAndLoadData();
   }
 
@@ -118,11 +106,28 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     if (user) {
       this.loggedInUserRole = user.role;
       this.teacherId = user.userId;
+      this.schoolSlug = user.schoolSlug;
 
       if (this.loggedInUserRole === 'ADMIN') {
-        this.selectedClass = localStorage.getItem('lastSelectedClass') || '';
-        if (this.selectedClass) this.loadSectionsForClass(this.selectedClass);
-        this.loadStudentsAndApplyAttendance();
+        // Class list must be loaded before a stored selection can be validated against it —
+        // otherwise a stale value would slip through while classList is still empty.
+        forkJoin({
+          classList: this.schoolService.getClasses(),
+          managedClasses: this.schoolService.getManagedClasses()
+        }).pipe(takeUntil(this.destroy$)).subscribe({
+          next: ({ classList, managedClasses }) => {
+            this.classList = classList;
+            this.managedClasses = managedClasses;
+            this.selectedClass = getStoredSelectedClass(this.schoolSlug, classList, '');
+            this.cdr.markForCheck();
+            if (this.selectedClass) this.loadSectionsForClass(this.selectedClass);
+            this.loadStudentsAndApplyAttendance();
+          },
+          error: (err) => {
+            this.logger.error('Failed to load classes:', err);
+            this.toast.error('Error', 'Failed to load class list.');
+          }
+        });
       } else {
         this.getTeacherClassAndLoadStudents();
       }
@@ -146,7 +151,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     this.selectedClass = selectedClass;
     this.selectedSectionId = null;
     this.sections = [];
-    localStorage.setItem('lastSelectedClass', selectedClass);
+    setStoredSelectedClass(this.schoolSlug, selectedClass);
     this.loadSectionsForClass(selectedClass);
     this.loadStudentsAndApplyAttendance();
   }

@@ -31,11 +31,11 @@
     </select>
     <select class="ss-select ss-bulk-select" [(ngModel)]="bulkStreamId">
       <option [ngValue]="null">— Stream —</option>
-      <option *ngFor="let s of streams; trackById" [ngValue]="s.id">{{ s.streamName }}</option>
+      <option *ngFor="let s of streams; trackBy: trackById" [ngValue]="s.id">{{ s.streamName }}</option>
     </select>
     <select class="ss-select ss-bulk-select" [(ngModel)]="bulkOptionalId">
       <option [ngValue]="null">— Optional (none) —</option>
-      <option *ngFor="let s of allOptionalSubjects; trackById" [ngValue]="s.id">{{ s.subjectName }}</option>
+      <option *ngFor="let s of allOptionalSubjects; trackBy: trackById" [ngValue]="s.id">{{ s.subjectName }}</option>
     </select>
     <button class="ss-bulk-btn" (click)="applyBulkSection()" [disabled]="bulkSaving">
       {{ bulkSaving ? 'Applying…' : 'Apply to section' }}

@@ -344,6 +344,7 @@ export class ReportCardTemplateConfigComponent implements OnInit, OnDestroy {
     return {
       showCgpa:        true,
       showGradePoints: false,
+      footerText:      '',
       schoolMotto:     '',
       examTerm:        '',
       showWatermark:   false,

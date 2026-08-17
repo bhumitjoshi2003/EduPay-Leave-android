@@ -24,12 +24,6 @@
       Choose the class, session, and template to manage report cards for all active students.
     </p>
 
-    <!-- Mobile warning -->
-    <div class="brc-native-warn" *ngIf="isNative">
-      <mat-icon>info_outline</mat-icon>
-      <span>Bulk PDF download requires the web version. You can still publish and email report cards from here.</span>
-    </div>
-
     <div class="brc-form">
 
       <!-- Class -->
@@ -190,7 +184,7 @@
       <button
         class="brc-btn-email"
         *ngIf="publication?.published"
-        [disabled]="sendingEmails || isNative"
+        [disabled]="sendingEmails"
         (click)="sendEmailBlast()">
         <mat-icon *ngIf="!sendingEmails">email</mat-icon>
         <mat-icon *ngIf="sendingEmails" class="brc-spin">autorenew</mat-icon>
@@ -209,12 +203,6 @@
         Last emailed: <strong>{{ publication?.emailSentAt | date:'d MMM y, h:mm a' }}</strong>
         &nbsp;·&nbsp; {{ publication?.emailCount }} email(s) sent
       </span>
-    </div>
-
-    <!-- Mobile email warning -->
-    <div class="brc-native-warn" *ngIf="isAdmin && isNative && publication?.published">
-      <mat-icon>info_outline</mat-icon>
-      <span>Email distribution requires the web version.</span>
     </div>
 
   </div>
