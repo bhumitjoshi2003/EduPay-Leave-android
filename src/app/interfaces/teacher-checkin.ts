@@ -42,3 +42,12 @@ export interface TeacherAttendanceSummary {
   onTimePercentage: number;
   records: TeacherAttendanceRecord[];
 }
+
+export interface TeacherAttendanceTodaySummary {
+  date: string;
+  presentCount: number;
+  lateCount: number;
+  absentCount: number;
+  halfDayCount: number;
+  onLeaveCount: number;
+}

@@ -1,0 +1,54 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { TeacherLeave, TeacherLeaveApplyRequest } from '../interfaces/teacher-leave';
+import { PaginatedResponse } from './payment-history.service';
+import { environment } from '../../environments/environment';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class TeacherLeaveService {
+  private apiUrl = `${environment.apiUrl}/teacher-leaves`;
+
+  constructor(private http: HttpClient) { }
+
+  applyLeave(request: TeacherLeaveApplyRequest): Observable<TeacherLeave> {
+    return this.http.post<TeacherLeave>(`${this.apiUrl}/apply`, request, { withCredentials: true });
+  }
+
+  getMyLeaves(page: number, size: number): Observable<PaginatedResponse<TeacherLeave>> {
+    const params = new HttpParams()
+      .append('page', page.toString())
+      .append('size', size.toString())
+      .append('sort', 'startDate,desc');
+    return this.http.get<PaginatedResponse<TeacherLeave>>(`${this.apiUrl}/my-leaves`, { params, withCredentials: true });
+  }
+
+  getLeaves(
+    page: number,
+    size: number,
+    status?: string,
+    teacherId?: string
+  ): Observable<PaginatedResponse<TeacherLeave>> {
+    let params = new HttpParams()
+      .append('page', page.toString())
+      .append('size', size.toString())
+      .append('sort', 'appliedDate,desc');
+    if (status) {
+      params = params.append('status', status);
+    }
+    if (teacherId) {
+      params = params.append('teacherId', teacherId);
+    }
+    return this.http.get<PaginatedResponse<TeacherLeave>>(this.apiUrl, { params, withCredentials: true });
+  }
+
+  updateStatus(leaveId: number, status: string): Observable<TeacherLeave> {
+    return this.http.patch<TeacherLeave>(`${this.apiUrl}/${leaveId}/status`, { status }, { withCredentials: true });
+  }
+
+  cancelLeave(leaveId: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/${leaveId}`, { withCredentials: true });
+  }
+}

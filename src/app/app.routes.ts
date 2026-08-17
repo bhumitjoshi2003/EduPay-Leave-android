@@ -67,6 +67,16 @@ export const routes: Routes = [
         loadComponent: () => import('./components/teacher-attendance/teacher-attendance.component').then(m => m.TeacherAttendanceComponent),
         canActivate: [roleGuard], data: { roles: ['TEACHER', 'ADMIN'] }
       },
+      {
+        path: 'apply-teacher-leave',
+        loadComponent: () => import('./components/apply-teacher-leave/apply-teacher-leave.component').then(m => m.ApplyTeacherLeaveComponent),
+        canActivate: [roleGuard], data: { roles: ['TEACHER'] }
+      },
+      {
+        path: 'teacher-leave-requests',
+        loadComponent: () => import('./components/teacher-leave-requests/teacher-leave-requests.component').then(m => m.TeacherLeaveRequestsComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+      },
 
       // ── Admin global search ───────────────────────────────────────────
       {

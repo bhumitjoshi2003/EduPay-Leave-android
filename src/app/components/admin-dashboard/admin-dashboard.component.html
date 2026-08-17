@@ -93,6 +93,42 @@
 
     </div>
 
+    <!-- ── Staff Attendance Today ───────────────────────────────────── -->
+    <div class="ad-section" *ngIf="staffAttendance">
+      <h2 class="ad-section-title">
+        Staff Attendance Today
+        <span class="ad-staff-att-date">{{ staffAttendance.date | date:'d MMM' }}</span>
+      </h2>
+
+      <div class="ad-staff-att-grid">
+        <div class="ad-staff-att-pill" style="--pc:#059669">
+          <span class="ad-staff-att-value">{{ staffAttendance.presentCount }}</span>
+          <span class="ad-staff-att-label">Present</span>
+        </div>
+        <div class="ad-staff-att-pill" style="--pc:#d97706">
+          <span class="ad-staff-att-value">{{ staffAttendance.lateCount }}</span>
+          <span class="ad-staff-att-label">Late</span>
+        </div>
+        <div class="ad-staff-att-pill" style="--pc:#dc2626">
+          <span class="ad-staff-att-value">{{ staffAttendance.absentCount }}</span>
+          <span class="ad-staff-att-label">Absent</span>
+        </div>
+        <div class="ad-staff-att-pill" style="--pc:#0369a1">
+          <span class="ad-staff-att-value">{{ staffAttendance.halfDayCount }}</span>
+          <span class="ad-staff-att-label">Half-Day</span>
+        </div>
+        <div class="ad-staff-att-pill" style="--pc:#0f766e">
+          <span class="ad-staff-att-value">{{ staffAttendance.onLeaveCount }}</span>
+          <span class="ad-staff-att-label">On Leave</span>
+        </div>
+      </div>
+
+      <a class="ad-view-all" routerLink="/dashboard/staff-attendance">
+        View full staff attendance
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+
     <!-- ── Plan Usage ────────────────────────────────────────────────── -->
     <div class="ad-plan-section" *ngIf="entitlement">
 

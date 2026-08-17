@@ -1,0 +1,135 @@
+<div class="al-page">
+
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <div class="al-hero">
+    <div class="al-hero-left">
+      <p class="al-hero-sub">Staff Portal</p>
+      <h1 class="al-hero-title">Leave Application</h1>
+    </div>
+    <div class="al-hero-right">
+      <div class="al-date-card">
+        <span class="al-date-day">{{ todayDate | date:'EEEE' }}</span>
+        <span class="al-date-full">{{ todayDate | date:'d MMM yyyy' }}</span>
+      </div>
+    </div>
+    <div class="al-blob al-blob-1"></div>
+    <div class="al-blob al-blob-2"></div>
+  </div>
+
+  <!-- ── Apply Form Card ───────────────────────────────────────────── -->
+  <div class="al-card">
+    <h2 class="al-card-title">
+      <span class="al-card-title-icon">📋</span>
+      New Application
+    </h2>
+
+    <!-- Inline error -->
+    <div class="al-error" *ngIf="errorMessage">
+      <span>⚠️ {{ errorMessage }}</span>
+    </div>
+
+    <form [formGroup]="leaveForm" (ngSubmit)="applyLeave()">
+
+      <!-- Date range -->
+      <div class="al-field-row">
+        <div class="al-field">
+          <label class="al-label">Start Date</label>
+          <div class="al-input-wrap">
+            <span class="al-input-icon">📅</span>
+            <input type="date" formControlName="startDate" class="al-input" />
+          </div>
+        </div>
+        <div class="al-field">
+          <label class="al-label">End Date</label>
+          <div class="al-input-wrap">
+            <span class="al-input-icon">📅</span>
+            <input type="date" formControlName="endDate" class="al-input" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Reason textarea -->
+      <div class="al-field">
+        <label class="al-label">Reason <span class="al-label-hint">(max 200 chars)</span></label>
+        <textarea formControlName="reason" class="al-textarea"
+          rows="3" maxlength="200"
+          placeholder="Describe your reason…"></textarea>
+      </div>
+
+      <button type="submit" class="al-submit-btn">
+        Apply for Leave
+      </button>
+
+    </form>
+  </div>
+
+  <!-- ── Loading ──────────────────────────────────────────────────── -->
+  <div class="al-loading" *ngIf="isLoading">
+    <div class="al-spinner"></div>
+    <p>Loading leaves...</p>
+  </div>
+
+  <!-- ── Applied Leaves ────────────────────────────────────────────── -->
+  <div class="al-card" *ngIf="!isLoading && leaves.length > 0">
+    <h2 class="al-card-title">
+      <span class="al-card-title-icon">📂</span>
+      My Applications
+      <span class="al-total-badge">{{ totalElements }}</span>
+    </h2>
+
+    <div class="al-leave-list">
+      <div class="al-leave-card" *ngFor="let leave of leaves; trackBy: trackByLeaveId">
+
+        <!-- Date badge -->
+        <div class="al-leave-date-badge">
+          <span class="al-leave-day">{{ leave.startDate | date:'d' }}</span>
+          <span class="al-leave-month">{{ leave.startDate | date:'MMM' }}</span>
+        </div>
+
+        <!-- Info -->
+        <div class="al-leave-info">
+          <span class="al-leave-reason">{{ leave.reason || 'No reason provided' }}</span>
+          <span class="al-leave-year">
+            {{ leave.startDate | date:'d MMM' }} – {{ leave.endDate | date:'d MMM yyyy' }}
+            · {{ leave.days }} day{{ leave.days > 1 ? 's' : '' }}
+          </span>
+        </div>
+
+        <!-- Status + cancel -->
+        <div class="al-leave-right">
+          <span class="al-status-chip"
+            [ngClass]="'al-status--' + leave.status.toLowerCase()">
+            {{ leave.status | titlecase }}
+          </span>
+          <button class="al-delete-btn"
+            *ngIf="leave.status === 'PENDING'"
+            [disabled]="cancellingIds.has(leave.id)"
+            (click)="cancelLeave(leave)"
+            title="Cancel">
+            🗑️
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="al-pagination" *ngIf="totalPages > 1">
+      <button class="al-page-btn" (click)="previousPage()" [disabled]="currentPage === 0">
+        ‹ Prev
+      </button>
+      <span class="al-page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
+      <button class="al-page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">
+        Next ›
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Empty state ───────────────────────────────────────────────── -->
+  <div class="al-empty" *ngIf="!isLoading && leaves.length === 0">
+    <span class="al-empty-icon">📭</span>
+    <p>No leave applications yet</p>
+    <span>Applications you submit will appear here</span>
+  </div>
+
+</div>

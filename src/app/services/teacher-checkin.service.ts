@@ -7,6 +7,7 @@ import {
   AdminMarkRequest,
   TeacherAttendanceRecord,
   TeacherAttendanceSummary,
+  TeacherAttendanceTodaySummary,
   SchoolTiming
 } from '../interfaces/teacher-checkin';
 
@@ -45,5 +46,9 @@ export class TeacherCheckinService {
 
   getSchoolTiming(): Observable<SchoolTiming> {
     return this.http.get<SchoolTiming>(`${this.baseUrl}/school-timing`);
+  }
+
+  getTodaySummary(): Observable<TeacherAttendanceTodaySummary> {
+    return this.http.get<TeacherAttendanceTodaySummary>(`${this.baseUrl}/today-summary`);
   }
 }

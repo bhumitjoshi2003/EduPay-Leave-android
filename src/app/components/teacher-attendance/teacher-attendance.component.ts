@@ -342,6 +342,19 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
         status: student.status,
       }));
 
+    // Sentinel row (studentId 'X') marking that attendance WAS taken for this class/date, even
+    // when nobody is absent. The backend's working-days count (and everything derived from it —
+    // attendance percentages, the monthly calendar view) determines "was school open that day"
+    // from the presence of ANY row for that date; without this, an all-present day writes zero
+    // rows and silently vanishes from every downstream calculation instead of counting as 100%.
+    attendanceData.push({
+      studentId: 'X',
+      chargePaid: true,
+      date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
+      className: this.selectedClass,
+      status: 'ABSENT',
+    });
+
     this.isSaving = true;
     this.cdr.markForCheck();
 

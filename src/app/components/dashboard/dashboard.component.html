@@ -96,6 +96,10 @@
            (click)="closeSidebarOnMobile()" title="My Check-in">
           <mat-icon>fingerprint</mat-icon><span>My Check-in</span>
         </a>
+        <a class="nav-item" routerLink="/dashboard/apply-teacher-leave" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="My Leave">
+          <mat-icon>event_note</mat-icon><span>My Leave</span>
+        </a>
 
         <div class="nav-section-label">My Class</div>
 
@@ -220,6 +224,10 @@
         <a class="nav-item" routerLink="/dashboard/staff-attendance" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Staff Attendance">
           <mat-icon>badge</mat-icon><span>Staff Attendance</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/teacher-leave-requests" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Teacher Leave Requests">
+          <mat-icon>event_note</mat-icon><span>Teacher Leave</span>
         </a>
 
         <div class="nav-section-label">Academics</div>

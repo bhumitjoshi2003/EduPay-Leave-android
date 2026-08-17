@@ -245,6 +245,32 @@
   font-weight: 700;
 }
 
+/* ── Staff Attendance Today ─────────────────────────────────────── */
+.ad-staff-att-date {
+  margin-left: auto;
+  text-transform: none;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0;
+}
+.ad-staff-att-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+.ad-staff-att-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 8px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--pc) 10%, #fff);
+  border: 1px solid color-mix(in srgb, var(--pc) 22%, #fff);
+}
+.ad-staff-att-value { font-size: 1.3rem; font-weight: 800; color: var(--pc); line-height: 1; }
+.ad-staff-att-label { font-size: 0.68rem; font-weight: 600; color: #64748b; letter-spacing: 0.2px; }
+
 /* ── Quick Actions ──────────────────────────────────────────────── */
 .ad-actions-grid {
   display: grid;

@@ -1,0 +1,130 @@
+<div class="tl-page">
+
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <div class="tl-hero">
+    <div class="tl-hero-left">
+      <div class="tl-hero-icon">🗓️</div>
+      <div>
+        <h1 class="tl-hero-title">Teacher Leave Requests</h1>
+        <p class="tl-hero-sub">Staff leave applications</p>
+      </div>
+    </div>
+    <div class="tl-hero-stat" *ngIf="totalElements > 0">
+      <span class="tl-hero-num">{{ totalElements }}</span>
+      <span class="tl-hero-lbl">Requests</span>
+    </div>
+    <div class="tl-blob tl-blob-1"></div>
+    <div class="tl-blob tl-blob-2"></div>
+  </div>
+
+  <!-- ── Status Chips ─────────────────────────────────────────────── -->
+  <div class="tl-chips-wrap">
+    <div class="tl-chips">
+      <button class="tl-chip" [class.tl-chip-active]="statusFilter === 'PENDING'"
+        (click)="onStatusSelect('PENDING')">Pending</button>
+      <button class="tl-chip" [class.tl-chip-active]="statusFilter === 'APPROVED'"
+        (click)="onStatusSelect('APPROVED')">Approved</button>
+      <button class="tl-chip" [class.tl-chip-active]="statusFilter === 'REJECTED'"
+        (click)="onStatusSelect('REJECTED')">Rejected</button>
+      <button class="tl-chip" [class.tl-chip-active]="statusFilter === 'all'"
+        (click)="onStatusSelect('all')">All</button>
+    </div>
+  </div>
+
+  <!-- ── Filter Card ──────────────────────────────────────────────── -->
+  <div class="tl-filter-card">
+    <div class="tl-filter-row">
+      <div class="tl-filter-group">
+        <label class="tl-filter-label">Filter by Teacher ID</label>
+        <input class="tl-filter-input" [(ngModel)]="teacherIdFilter" (input)="onTeacherIdInput()"
+          placeholder="Enter teacher ID">
+      </div>
+    </div>
+    <div class="tl-filter-actions">
+      <button class="tl-btn-clear" (click)="clearFilter()">Clear</button>
+      <div class="tl-filter-meta" *ngIf="totalElements > 0">
+        <span>{{ totalElements }} results</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Skeleton ─────────────────────────────────────────────────── -->
+  <div class="tl-section" *ngIf="isLoading">
+    <div class="tl-list">
+      <div class="tl-card" *ngFor="let _ of [1,2,3,4,5]" style="pointer-events:none">
+        <div class="sk-shimmer" style="width:44px;height:58px;border-radius:10px;flex-shrink:0"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:7px;padding:2px 8px">
+          <span class="sk-shimmer" style="width:54%;height:14px"></span>
+          <span class="sk-shimmer" style="width:68%;height:11px"></span>
+          <span class="sk-shimmer" style="width:42%;height:10px"></span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
+          <span class="sk-shimmer" style="width:72px;height:22px;border-radius:12px"></span>
+          <span class="sk-shimmer" style="width:80px;height:30px;border-radius:8px"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Empty State ────────────────────────────────────────────────── -->
+  <div class="tl-empty" *ngIf="!isLoading && leaves.length === 0">
+    <div class="tl-empty-icon">📭</div>
+    <p class="tl-empty-title">No leave requests found</p>
+    <p class="tl-empty-sub">Try clearing the filters or a different status</p>
+  </div>
+
+  <!-- ── Leave Cards ────────────────────────────────────────────────── -->
+  <div class="tl-section" *ngIf="!isLoading && leaves.length > 0">
+    <div class="tl-list">
+      <div class="tl-card" *ngFor="let leave of leaves; trackBy: trackByLeaveId">
+
+        <!-- Date badge -->
+        <div class="tl-date-badge">
+          <span class="tl-date-day">{{ leave.startDate | date:'d' }}</span>
+          <span class="tl-date-month">{{ leave.startDate | date:'MMM' }}</span>
+        </div>
+
+        <!-- Main info -->
+        <div class="tl-card-body">
+          <div class="tl-card-name-row">
+            <span class="tl-card-name">{{ leave.teacherName }}</span>
+            <span class="tl-card-id">{{ leave.teacherId }}</span>
+          </div>
+          <span class="tl-card-reason" *ngIf="leave.reason">{{ leave.reason }}</span>
+          <span class="tl-card-range">
+            {{ leave.startDate | date:'d MMM' }} – {{ leave.endDate | date:'d MMM yyyy' }}
+            · {{ leave.days }} day{{ leave.days > 1 ? 's' : '' }}
+          </span>
+        </div>
+
+        <!-- Right side: status + actions -->
+        <div class="tl-card-right">
+          <span class="tl-status-chip"
+            [class.tl-status-pending]="leave.status === 'PENDING'"
+            [class.tl-status-approved]="leave.status === 'APPROVED'"
+            [class.tl-status-rejected]="leave.status === 'REJECTED'">
+            {{ leave.status }}
+          </span>
+          <div class="tl-actions">
+            <ng-container *ngIf="leave.status === 'PENDING'">
+              <button class="tl-btn-approve" [disabled]="updatingIds.has(leave.id)" (click)="updateStatus(leave, 'APPROVED')" title="Approve">✓</button>
+              <button class="tl-btn-reject"  [disabled]="updatingIds.has(leave.id)" (click)="updateStatus(leave, 'REJECTED')" title="Reject">✕</button>
+            </ng-container>
+            <button *ngIf="leave.status !== 'PENDING'"
+              class="tl-btn-edit" [disabled]="updatingIds.has(leave.id)" (click)="editStatus(leave)" title="Reverse decision">✎</button>
+            <button class="tl-btn-del" (click)="cancelLeave(leave)" title="Delete">🗑</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Pagination ──────────────────────────────────────────────────── -->
+  <div class="tl-pagination" *ngIf="!isLoading && totalElements > 0 && totalPages > 1">
+    <button class="tl-page-btn" (click)="prevPage()" [disabled]="currentPage === 0">← Prev</button>
+    <span class="tl-page-info">{{ currentPage + 1 }} / {{ totalPages }}</span>
+    <button class="tl-page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">Next →</button>
+  </div>
+
+</div>
