@@ -15,8 +15,6 @@ import { NotificationService } from '../../services/notification.service';
 import { PushNotificationService } from '../../services/push-notification.service';
 import { SchoolService } from '../../services/school.service';
 import { TenantService } from '../../services/tenant.service';
-import { MatDialog } from '@angular/material/dialog';
-import { WelcomeDialogComponent } from '../welcome-dialog/welcome-dialog.component';
 import { Subject, takeUntil, interval, Subscription } from 'rxjs';
 import { NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -49,7 +47,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   Name: string = '';
   Class: string = '';
   ClassTeacher: string = '';
-  hasShownWelcomeMessage: boolean = false;
   unreadNotificationCount: number = 0;
   showMoreMenu: boolean = false;
   showUpdateBanner = false;
@@ -57,7 +54,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   sidebarCollapsed = false;
   mobileSidebarOpen = false;
   private ngUnsubscribe = new Subject<void>();
-  private welcomeMessageKey = 'hasShownWelcome';
   private pollingIntervalSubscription: Subscription | undefined;
 
   constructor(
@@ -71,13 +67,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private pushNotificationService: PushNotificationService,
     private schoolService: SchoolService,
     public tenantService: TenantService,
-    private dialog: MatDialog,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService
   ) { }
 
   ngOnInit() {
-    this.loadWelcomeMessageState();
     this.getDetails();
     this.handleInitialNavigation();
     this.fetchUnreadCount();
@@ -112,19 +106,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadWelcomeMessageState() {
-    const storedState = localStorage.getItem(this.welcomeMessageKey);
-    if (storedState === 'true') {
-      this.hasShownWelcomeMessage = true;
-    } else {
-      this.hasShownWelcomeMessage = false;
-    }
-  }
-
-  saveWelcomeMessageState() {
-    localStorage.setItem(this.welcomeMessageKey, 'true');
-  }
-
   getDetails() {
     const user = this.authStateService.getUser();
     if (user) {
@@ -140,7 +121,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         next: (student) => {
           this.Name = student.name;
           this.Class = student.className;
-          this.showWelcomeMessageOnce();
+          this.cdr.markForCheck();
         },
         error: (error) => {
           this.logger.error('Error fetching student details:', error);
@@ -151,7 +132,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         next: (teacher) => {
           this.Name = teacher.name;
           this.ClassTeacher = teacher.classTeacher ?? '';
-          this.showWelcomeMessageOnce();
+          this.cdr.markForCheck();
         },
         error: (error) => {
           this.logger.error('Error fetching teacher details:', error);
@@ -161,7 +142,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.adminService.getAdminById(this.Id).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
         next: (admin) => {
           this.Name = admin.name;
-          this.showWelcomeMessageOnce();
+          this.cdr.markForCheck();
         },
         error: (error) => {
           this.logger.error('Error fetching admin details:', error);
@@ -171,29 +152,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.Name = 'Super Admin';
       this.cdr.markForCheck();
     }
-  }
-
-  showWelcomeMessageOnce() {
-    if (!this.hasShownWelcomeMessage) {
-      this.openWelcomeMessage();
-      this.hasShownWelcomeMessage = true;
-      this.saveWelcomeMessageState();
-    }
-  }
-
-  openWelcomeMessage() {
-    const dialogRef = this.dialog.open(WelcomeDialogComponent, {
-      maxWidth: '520px',
-      width: '100%',
-      height: 'auto',
-      disableClose: true,
-      data: { name: this.Name },
-      panelClass: 'custom-dialog-container'
-    });
-
-    setTimeout(() => {
-      dialogRef.close();
-    }, 3000);
   }
 
   handleInitialNavigation(): void {
@@ -281,7 +239,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   async logout(): Promise<void> {
-    localStorage.removeItem(this.welcomeMessageKey);
     await this.pushNotificationService.clearToken().catch(() => {}); // Don't block logout on push failure
     this.schoolService.invalidateClasses();
     this.authService.logout().subscribe({

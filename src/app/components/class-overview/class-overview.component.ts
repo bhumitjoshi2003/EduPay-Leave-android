@@ -4,7 +4,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -54,7 +53,6 @@ export class ClassOverviewComponent implements OnInit, OnDestroy {
     private rcService: ReportCardTemplateService,
     private toast: ToastService,
     private logger: LoggerService,
-    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -200,7 +198,6 @@ export class ClassOverviewComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  goBack(): void { this.router.navigate(['/dashboard']); }
   trackByStudentId(_i: number, s: StudentSummaryDTO): string { return s.studentId; }
   trackByGrade(_i: number, e: { grade: string; count: number }): string { return e.grade; }
 }

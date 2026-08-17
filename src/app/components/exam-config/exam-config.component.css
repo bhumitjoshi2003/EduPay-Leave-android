@@ -525,7 +525,7 @@
 /* ── Mobile (≤ 600px) ────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .ec-card { padding: 14px 10px; }
-  .ec-filters { flex-direction: column; gap: 12px; }
+  .ec-filters { flex-direction: column; align-items: stretch; gap: 12px; }
   .ec-filter-group { width: 100%; }
   .ec-filter-group select { width: 100%; min-width: unset; font-size: 1rem; padding: 10px 12px; box-sizing: border-box; }
   .ec-add-row { flex-direction: column; align-items: stretch; }

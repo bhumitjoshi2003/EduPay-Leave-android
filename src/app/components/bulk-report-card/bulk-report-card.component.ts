@@ -303,6 +303,4 @@ export class BulkReportCardComponent implements OnInit, OnDestroy {
       reader.readAsDataURL(blob);
     });
   }
-
-  goBack(): void { this.router.navigate(['/dashboard']); }
 }

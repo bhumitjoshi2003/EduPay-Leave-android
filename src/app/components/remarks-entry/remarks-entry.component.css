@@ -184,7 +184,7 @@
 
 /* ── Mobile ──────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .re-filters { flex-direction: column; }
+  .re-filters { flex-direction: column; align-items: stretch; }
   .re-filter-field { min-width: 0; }
   .re-btn-load { width: 100%; }
 }
