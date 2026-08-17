@@ -15,6 +15,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Preserve the device safe area when component mobile rules reset topbar padding. */
+@media (max-width: 600px) {
+  .topbar {
+    padding-top: env(safe-area-inset-top, 0px) !important;
+  }
+}
+
 /* ── Edunexify Color Tokens ─────────────────────────────────────── */
 :root {
   --edu-navy:         #0f172a;
