@@ -333,7 +333,7 @@ export const routes: Routes = [
       {
         path: 'report-card-gallery',
         loadComponent: () => import('./components/report-card-demo/report-card-demo.component').then(m => m.ReportCardDemoComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
       },
 
       // ── Student Dashboard ────────────────────────────────────────────

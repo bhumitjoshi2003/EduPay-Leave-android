@@ -107,7 +107,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
 
         if (summary.length > 0) {
           const avg = summary.reduce((s, r) => s + r.attendancePercentage, 0) / summary.length;
-          this.monthlyAttendanceRate = Math.round(avg);
+          this.monthlyAttendanceRate = avg;
         }
 
         this.isLoading = false;

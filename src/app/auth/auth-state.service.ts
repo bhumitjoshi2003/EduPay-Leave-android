@@ -66,10 +66,17 @@ export class AuthStateService {
     return this.user !== null;
   }
 
-  /** UX-only feature check — backend is always authoritative. */
+  /**
+   * UX-only feature check — backend is always authoritative.
+   * Falls back to true when featureKeys is empty (no subscription/entitlement data
+   * loaded yet, or none configured), matching dashboard.component.ts's own hasFeature —
+   * without this, featureGuard (the only caller that gates route *navigation*, not just
+   * nav-link visibility) silently redirects away from a route whose nav link the
+   * dashboard still shows, since the two used to disagree on this exact case.
+   */
   hasFeature(featureKey: string): boolean {
     const keys = this.user?.featureKeys;
-    if (!keys || keys.length === 0) return false;
+    if (!keys || keys.length === 0) return true;
     return keys.includes(featureKey);
   }
 

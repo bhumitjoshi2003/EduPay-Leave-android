@@ -85,7 +85,7 @@
                                        '--c1:#dc2626;--c2:#f87171'">
         <div class="td-stat-icon">📊</div>
         <div class="td-stat-info">
-          <span class="td-stat-value">{{ monthlyAttendanceRate }}%</span>
+          <span class="td-stat-value">{{ monthlyAttendanceRate | number:'1.0-1' }}%</span>
           <span class="td-stat-label">Monthly Attendance</span>
         </div>
         <div class="td-stat-bg">📈</div>
@@ -147,12 +147,6 @@
             </div>
             <span>Class Overview</span>
           </a>
-          <a class="td-action-card" routerLink="/dashboard/report-card-gallery">
-            <div class="td-action-icon" style="background:#e0f2fe;color:#0369a1">
-              <mat-icon>style</mat-icon>
-            </div>
-            <span>RC Gallery</span>
-          </a>
           <a class="td-action-card" routerLink="/dashboard/timetable">
             <div class="td-action-icon" style="background:#e0e7ff;color:#3730a3">
               <mat-icon>schedule</mat-icon>
@@ -209,12 +203,6 @@
               <mat-icon>bar_chart</mat-icon>
             </div>
             <span>Class Overview</span>
-          </a>
-          <a class="td-action-card" routerLink="/dashboard/report-card-gallery">
-            <div class="td-action-icon" style="background:#e0f2fe;color:#0369a1">
-              <mat-icon>style</mat-icon>
-            </div>
-            <span>RC Gallery</span>
           </a>
           <a class="td-action-card" routerLink="/dashboard/event-calendar">
             <div class="td-action-icon" style="background:#f0fdf4;color:#15803d">

@@ -71,8 +71,7 @@
   border-radius: 16px;
   padding: 24px 28px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  max-width: 900px;
-  margin: 0 auto 20px;
+  margin: 0 0 20px;
 }
 
 /* ── Filter row ───────────────────────────────────────────────────────────── */
@@ -146,8 +145,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
-  max-width: 900px;
-  margin: 0 auto 20px;
+  margin: 0 0 20px;
 }
 .co-stat-card {
   border-radius: 14px;

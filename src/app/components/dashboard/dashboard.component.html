@@ -160,10 +160,6 @@
            (click)="closeSidebarOnMobile()" title="Event Calendar">
           <mat-icon>calendar_month</mat-icon><span>Event Calendar</span>
         </a>
-        <a class="nav-item" *ngIf="hasFeature('EVENT_CALENDAR')" routerLink="/dashboard/event-new" routerLinkActive="active"
-           (click)="closeSidebarOnMobile()" title="Create Event">
-          <mat-icon>add_circle_outline</mat-icon><span>Create Event</span>
-        </a>
         <a class="nav-item" routerLink="/dashboard/holiday-calendar" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Holiday Calendar">
           <mat-icon>beach_access</mat-icon><span>Holiday Calendar</span>
