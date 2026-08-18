@@ -71,6 +71,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     lateThresholdMinutes: number;
     checkinWindowStart: string;
     checkinWindowEnd: string;
+    staffAttendanceTrackingStartDate: string;
   }> = {};
   isEditingStaffAttendance = false;
   savingStaffAttendance = false;
@@ -784,6 +785,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       lateThresholdMinutes: this.settings.lateThresholdMinutes ?? 5,
       checkinWindowStart: this.settings.checkinWindowStart ?? '',
       checkinWindowEnd: this.settings.checkinWindowEnd ?? '',
+      staffAttendanceTrackingStartDate: this.settings.staffAttendanceTrackingStartDate ?? '',
     };
     this.isEditingStaffAttendance = true;
   }
@@ -830,6 +832,10 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     }
     if (!f.checkinWindowStart || !f.checkinWindowEnd) {
       this.toast.warning('Validation', 'Check-in window start and end times are required.');
+      return;
+    }
+    if (!f.staffAttendanceTrackingStartDate) {
+      this.toast.warning('Validation', 'Staff attendance tracking start date is required.');
       return;
     }
     this.savingStaffAttendance = true;

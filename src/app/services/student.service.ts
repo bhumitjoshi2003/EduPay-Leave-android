@@ -7,6 +7,7 @@ import { Student, StudentExitRequest, PendingDuesInfo } from '../interfaces/stud
 interface StudentDTO {
   studentId: string;
   name: string;
+  sectionId?: number | null;
 }
 
 export type PromotionAction = 'PROMOTE' | 'DETAIN' | 'PASS_OUT';

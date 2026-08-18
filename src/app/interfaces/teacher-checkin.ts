@@ -40,6 +40,7 @@ export interface TeacherAttendanceSummary {
   halfDayDays: number;
   onLeaveDays: number;
   onTimePercentage: number;
+  trackingStartDate: string | null;
   records: TeacherAttendanceRecord[];
 }
 

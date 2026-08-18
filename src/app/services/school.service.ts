@@ -49,6 +49,7 @@ export interface SchoolSettings {
   lateThresholdMinutes?: number;    // minutes after start time, default 5
   checkinWindowStart?: string;      // "HH:mm"
   checkinWindowEnd?: string;        // "HH:mm"
+  staffAttendanceTrackingStartDate?: string; // "yyyy-MM-dd" rollout boundary
 }
 
 export interface FeatureCatalogItem {

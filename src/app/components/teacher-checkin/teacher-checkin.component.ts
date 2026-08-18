@@ -146,7 +146,9 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
     }
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const status = recordMap.get(dateStr) ?? '';
+      const status = data.trackingStartDate && dateStr < data.trackingStartDate
+        ? 'NOT_TRACKED'
+        : (recordMap.get(dateStr) ?? '');
       days.push({ date: d, status, fullDate: dateStr });
     }
     this.calendarDays = days;
@@ -301,6 +303,7 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
       case 'ABSENT': return 'status-absent';
       case 'ON_LEAVE': return 'status-leave';
       case 'HALF_DAY': return 'status-halfday';
+      case 'NOT_TRACKED': return 'status-not-tracked';
       default: return '';
     }
   }
@@ -312,6 +315,7 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
       case 'ABSENT': return 'Absent';
       case 'ON_LEAVE': return 'On Leave';
       case 'HALF_DAY': return 'Half Day';
+      case 'NOT_TRACKED': return 'Not Tracked';
       default: return status;
     }
   }

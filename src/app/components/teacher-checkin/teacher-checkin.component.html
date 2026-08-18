@@ -79,6 +79,9 @@
   </div>
 
   <!-- ── Monthly Summary Stats ─────────────────────── -->
+  <div class="tc-tracking-note" *ngIf="monthlyData?.trackingStartDate">
+    Attendance tracking started on {{ monthlyData!.trackingStartDate | date:'mediumDate' }}. Earlier dates are not counted as absences.
+  </div>
   <div class="tc-stats-row" *ngIf="monthlyData">
     <div class="tc-stat-card" style="--c1:#059669;--c2:#34d399">
       <div class="tc-stat-icon">✅</div>
@@ -128,6 +131,7 @@
       <div class="tc-legend-item"><span class="tc-legend-dot tc-dot-late"></span> Late</div>
       <div class="tc-legend-item"><span class="tc-legend-dot tc-dot-absent"></span> Absent</div>
       <div class="tc-legend-item"><span class="tc-legend-dot tc-dot-leave"></span> Leave</div>
+      <div class="tc-legend-item"><span class="tc-legend-dot tc-dot-not-tracked"></span> Not Tracked</div>
     </div>
 
     <div class="tc-cal-weekdays">

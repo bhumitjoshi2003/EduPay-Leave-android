@@ -30,9 +30,11 @@ export interface ClassAttendanceSummary {
 export interface DailyDetail {
   schoolDays: string[];
   absentDays: string[];
+  nonWorkingDays?: string[];
+  statuses?: Record<string, string>;
 }
 
-export type CellStatus = 'present' | 'absent' | 'closed' | 'holiday' | 'empty' | 'future' | 'unmarked';
+export type CellStatus = 'present' | 'absent' | 'half-day' | 'late' | 'excused' | 'closed' | 'holiday' | 'empty' | 'future' | 'unmarked';
 
 export interface CalendarCell {
   date: string | null;

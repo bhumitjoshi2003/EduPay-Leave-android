@@ -46,10 +46,10 @@
       <span class="attendance-marked-badge" *ngIf="isAttendanceAlreadyMarked">&#10003; Already Marked</span>
       <div class="ta-action-btns">
         <button class="ta-btn ta-btn-save"
-          [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate) || !hasStudents || isSaving"
+          [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate) || !hasStudents || isSaving"
           (click)="saveAttendance()">{{ isSaving ? 'Saving…' : '✓ Save' }}</button>
         <button class="ta-btn ta-btn-delete"
-          [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate) || disableDeleteButton || !hasStudents"
+          [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate) || disableDeleteButton || !hasStudents"
           (click)="deleteAttendance()">✕ Delete</button>
       </div>
     </div>
@@ -59,8 +59,8 @@
   <div class="ta-warning" *ngIf="!isDateWithinAllowedRange()">
     Attendance can only be modified for dates between {{ getRelativeDate(-3) }} and {{ getRelativeDate(0) }}.
   </div>
-  <div class="ta-warning ta-warning-sunday" *ngIf="isSunday(attendanceDate)">
-    Sunday is a holiday 😄
+  <div class="ta-warning ta-warning-sunday" *ngIf="isNonWorkingDay(attendanceDate)">
+    This is a configured non-working day.
   </div>
 
   <!-- ── Empty ─────────────────────────────────────────────────────── -->
@@ -83,7 +83,7 @@
 
       <select *ngIf="student.absent" class="ta-status-select"
         [(ngModel)]="student.status"
-        [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate)">
+        [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate)">
         <option value="ABSENT">Absent</option>
         <option value="HALF_DAY">Half Day</option>
         <option value="LATE">Late</option>
@@ -91,12 +91,12 @@
       </select>
 
       <button *ngIf="!student.absent" class="ta-mark-btn ta-mark-absent"
-        [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate)"
+        [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate)"
         (click)="markAbsent(student.studentId)">
         Mark Absent
       </button>
       <button *ngIf="student.absent" class="ta-mark-btn ta-mark-present"
-        [disabled]="!isDateWithinAllowedRange() || isSunday(attendanceDate)"
+        [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate)"
         (click)="markPresent(student.studentId)">
         Mark Present
       </button>

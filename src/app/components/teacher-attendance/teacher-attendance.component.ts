@@ -28,6 +28,7 @@ interface Student {
   absent: boolean;
   chargePaid: boolean;
   status: 'ABSENT' | 'HALF_DAY' | 'LATE' | 'EXCUSED';
+  sectionId?: number | null;
 }
 
 @Component({
@@ -56,6 +57,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   hasStudents: boolean = false;
   isAttendanceAlreadyMarked: boolean = false;
   isSaving: boolean = false;
+  private workingDays = new Set(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']);
 
   classList: string[] = [];
   managedClasses: SchoolClass[] = [];
@@ -91,7 +93,13 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     }
 
     this.attendanceDate = this.getTodayDateWithoutTime();
-    this.getUserRoleAndLoadData();
+    this.attendanceService.getCalendarConfig().pipe(takeUntil(this.destroy$)).subscribe({
+      next: config => {
+        this.workingDays = new Set(config.workingDays.split(',').map(d => d.trim().toUpperCase()).filter(Boolean));
+        this.getUserRoleAndLoadData();
+      },
+      error: () => this.getUserRoleAndLoadData()
+    });
   }
 
   getTodayDateWithoutTime(): Date {
@@ -171,7 +179,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   }
 
   loadStudentsAndApplyAttendance(): void {
-    if (this.isSunday(this.attendanceDate)) {
+    if (this.isNonWorkingDay(this.attendanceDate)) {
       this.students = [];
       this.cdr.markForCheck();
       return;
@@ -220,6 +228,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
           absent: false,
           chargePaid: true,
           status: 'ABSENT' as const,
+          sectionId: dto.sectionId,
         }));
         this.hasStudents = this.students.length > 0;
         this.cdr.markForCheck();
@@ -237,7 +246,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     const classAtRequest = this.selectedClass;
     const dateAtRequest = this.attendanceDate;
 
-    this.attendanceService.getAttendanceByDateAndClass(formattedDate, classAtRequest).pipe(
+    this.attendanceService.getAttendanceByDateAndClass(formattedDate, classAtRequest, this.selectedSectionId).pipe(
       takeUntil(this.destroy$),
       catchError(err => {
         // Attendance fetch failed — fall through to leaves as fallback
@@ -345,6 +354,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
         date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
         className: this.selectedClass,
         status: student.status,
+        sectionId: student.sectionId ?? undefined,
       }));
 
     // Sentinel row (studentId 'X') marking that attendance WAS taken for this class/date, even
@@ -358,12 +368,13 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
       date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
       className: this.selectedClass,
       status: 'ABSENT',
+      sectionId: this.selectedSectionId ?? undefined,
     });
 
     this.isSaving = true;
     this.cdr.markForCheck();
 
-    this.attendanceService.saveAttendance(attendanceData).pipe(takeUntil(this.destroy$)).subscribe({
+    this.attendanceService.saveAttendance(attendanceData, this.selectedSectionId).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.isSaving = false;
         this.toast.success('Attendance Saved!', 'Attendance data saved successfully.');
@@ -406,8 +417,10 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   trackByStudentId(index: number, student: Student): string { return student.studentId; }
   trackByClass(index: number, className: string): string { return className; }
 
-  isSunday(date: Date | null): boolean {
-    return date ? new Date(date).getDay() === 0 : false;
+  isNonWorkingDay(date: Date | null): boolean {
+    if (!date) return false;
+    const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+    return !this.workingDays.has(dayNames[new Date(date).getDay()]);
   }
 
   deleteAttendance(): void {
@@ -416,8 +429,8 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.isSunday(this.attendanceDate)) {
-      this.toast.info('Invalid Date', 'Cannot delete attendance for Sundays.');
+    if (this.isNonWorkingDay(this.attendanceDate)) {
+      this.toast.info('Invalid Date', 'Cannot delete attendance for a configured non-working day.');
       return;
     }
 
@@ -430,7 +443,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     }).then((confirmed) => {
       if (confirmed) {
         const formattedDate = formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en');
-        this.attendanceService.deleteAttendanceByDateAndClass(formattedDate, this.selectedClass).pipe(takeUntil(this.destroy$)).subscribe({
+    this.attendanceService.deleteAttendanceByDateAndClass(formattedDate, this.selectedClass, this.selectedSectionId).pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
             this.toast.success('Deleted!', 'Attendance has been deleted.');
             this.loadStudentsAndApplyAttendance(); // refresh the student list

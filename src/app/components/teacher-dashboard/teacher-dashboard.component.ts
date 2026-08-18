@@ -99,7 +99,8 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
         // 'X' is a dummy record that marks the school as open that day.
         // Exclude it from the real absent count.
         this.attendanceTaken = absentToday.some(a => a.studentId === 'X');
-        this.todayAbsent = absentToday.filter(a => a.studentId !== 'X').length;
+        this.todayAbsent = absentToday.filter(a => a.studentId !== 'X'
+          && (!a.status || a.status === 'ABSENT')).length;
 
         const pending = leavesPage.content.filter(l => l.status === 'PENDING');
         this.pendingLeavesCount = pending.length;

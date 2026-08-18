@@ -884,6 +884,10 @@
             <span class="ss-sa-label">Check-in Window</span>
             <span class="ss-sa-value">{{ settings.checkinWindowStart || '—' }} to {{ settings.checkinWindowEnd || '—' }}</span>
           </div>
+          <div class="ss-sa-item">
+            <span class="ss-sa-label">Attendance Tracking From</span>
+            <span class="ss-sa-value">{{ (settings.staffAttendanceTrackingStartDate | date:'mediumDate') || 'Not set' }}</span>
+          </div>
         </div>
       </div>
 
@@ -958,6 +962,16 @@
           </div>
           <div class="ss-sa-radius-hint" *ngIf="staffAttendanceForm.schoolStartTime && staffAttendanceForm.lateThresholdMinutes != null">
             Arrivals after <strong>{{ staffAttendanceForm.lateThresholdMinutes }}</strong> minutes past {{ staffAttendanceForm.schoolStartTime }} will be marked <strong>LATE</strong>.
+          </div>
+          <div class="ss-sa-form-row">
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Attendance Tracking Start Date</label>
+              <input type="date" class="ss-sa-input"
+                     [(ngModel)]="staffAttendanceForm.staffAttendanceTrackingStartDate">
+            </div>
+          </div>
+          <div class="ss-sa-radius-hint">
+            Missing check-ins before this date will not be counted as absences. Use the date your school starts using Edunexify staff attendance.
           </div>
         </div>
 

@@ -13,12 +13,18 @@ export class AttendanceService {
 
   constructor(private http: HttpClient) { }
 
-  saveAttendance(attendanceData: AttendanceData[]): Observable<string> {
-    return this.http.post(this.apiUrl, attendanceData, { responseType: 'text' });
+  getCalendarConfig(): Observable<{ workingDays: string; timezone: string }> {
+    return this.http.get<{ workingDays: string; timezone: string }>(`${this.apiUrl}/calendar-config`);
   }
 
-  getAttendanceByDateAndClass(absentDate: string, className: string): Observable<AttendanceData[]> {
-    return this.http.get<AttendanceData[]>(`${this.apiUrl}/date/${absentDate}/class/${className}`);
+  saveAttendance(attendanceData: AttendanceData[], sectionId?: number | null): Observable<string> {
+    const params = sectionId != null ? new HttpParams().set('sectionId', sectionId) : undefined;
+    return this.http.post(this.apiUrl, attendanceData, { responseType: 'text', params });
+  }
+
+  getAttendanceByDateAndClass(absentDate: string, className: string, sectionId?: number | null): Observable<AttendanceData[]> {
+    const params = sectionId != null ? new HttpParams().set('sectionId', sectionId) : undefined;
+    return this.http.get<AttendanceData[]>(`${this.apiUrl}/date/${absentDate}/class/${className}`, { params });
   }
 
   getAttendanceCounts(studentId: string, year: number, month: number): Observable<{ studentAbsent: number; totalAbsent: number }> {
@@ -29,8 +35,9 @@ export class AttendanceService {
     return this.http.get<number>(`${this.apiUrl}/unapplied-leave-count/${studentId}/session/${session}`);
   }
 
-  deleteAttendanceByDateAndClass(absentDate: string, className: string): Observable<string> {
-    return this.http.delete<string>(`${this.apiUrl}/date/${absentDate}/class/${className}`, { responseType: 'text' as 'json' }
+  deleteAttendanceByDateAndClass(absentDate: string, className: string, sectionId?: number | null): Observable<string> {
+    const params = sectionId != null ? new HttpParams().set('sectionId', sectionId) : undefined;
+    return this.http.delete<string>(`${this.apiUrl}/date/${absentDate}/class/${className}`, { responseType: 'text' as 'json', params }
     );
   }
 
