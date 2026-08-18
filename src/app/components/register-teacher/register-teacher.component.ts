@@ -44,7 +44,8 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
       phoneNumber: ['', phoneValidator()],
       dob: ['', [Validators.required, pastDateValidator()]],
       gender: ['', Validators.required],
-      classTeacher: ['']
+      classTeacher: [''],
+      joiningDate: ['', Validators.required]
     });
   }
 

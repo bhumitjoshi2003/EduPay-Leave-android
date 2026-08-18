@@ -26,7 +26,7 @@ export class TeacherService {
     return this.http.put<Teacher>(`${this.baseUrl}/${teacherId}`, updatedTeacher);
   }
 
-  addTeacher(teacherData: Omit<Teacher, 'teacherId'>): Observable<Teacher> {
+  addTeacher(teacherData: Teacher): Observable<Teacher> {
     return this.http.post<Teacher>(this.baseUrl, teacherData);
   }
 

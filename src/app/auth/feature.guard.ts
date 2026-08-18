@@ -26,6 +26,15 @@ export const featureGuard: CanActivateFn = (route, _state) => {
 
   if (authState.hasFeature(featureKey)) return true;
 
-  router.navigate(['/dashboard']);
-  return false;
+  const role = authState.getUserRole();
+  const fallback = role === 'ADMIN' || role === 'SUB_ADMIN'
+    ? '/dashboard/admin-dashboard'
+    : role === 'TEACHER'
+      ? '/dashboard/teacher-dashboard'
+      : role === 'STUDENT'
+        ? '/dashboard/student-dashboard'
+        : role === 'SUPER_ADMIN'
+          ? '/dashboard/super-admin-dashboard'
+          : '/home';
+  return router.createUrlTree([fallback]);
 };

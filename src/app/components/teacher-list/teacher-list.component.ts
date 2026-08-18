@@ -88,4 +88,8 @@ export class TeacherListComponent implements OnInit, OnDestroy {
   navigateToBulkImport(): void {
     this.router.navigate(['/dashboard/teacher-bulk-import']);
   }
+
+  hasFeature(featureKey: string): boolean {
+    return this.authStateService.hasFeature(featureKey);
+  }
 }

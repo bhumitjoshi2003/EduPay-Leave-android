@@ -60,6 +60,11 @@
           </select>
           <span class="rt-err" *ngIf="teacherForm.controls['gender'].invalid && (teacherForm.controls['gender'].dirty || teacherForm.controls['gender'].touched)">Gender is required.</span>
         </div>
+        <div class="rt-field">
+          <label class="rt-label">Joining Date <span class="rt-req">*</span></label>
+          <input type="date" formControlName="joiningDate" class="rt-input">
+          <span class="rt-err" *ngIf="teacherForm.controls['joiningDate'].invalid && (teacherForm.controls['joiningDate'].dirty || teacherForm.controls['joiningDate'].touched)">Joining date is required.</span>
+        </div>
         <div class="rt-field rt-field-full">
           <label class="rt-label">Class Teacher Of</label>
           <select formControlName="classTeacher" class="rt-input rt-select">

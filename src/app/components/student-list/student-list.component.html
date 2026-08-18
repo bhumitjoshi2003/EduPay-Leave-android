@@ -11,7 +11,7 @@
         </p>
       </div>
     </div>
-    <div class="sl-hero-right" *ngIf="loggedInUserRole === 'ADMIN'">
+    <div class="sl-hero-right" *ngIf="loggedInUserRole === 'ADMIN' && hasFeature('BULK_IMPORT')">
       <button class="sl-import-btn" (click)="navigateToBulkImport()">⬆ Bulk Import</button>
     </div>
     <div class="sl-blob sl-blob-1"></div>

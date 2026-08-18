@@ -209,6 +209,10 @@ export class StudentListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard/student-bulk-import']);
   }
 
+  hasFeature(featureKey: string): boolean {
+    return this.authStateService.hasFeature(featureKey);
+  }
+
   // Issue #30: Status badge color for alumni/left sections
   getExitBadgeClass(status: string): string {
     if (status === 'GRADUATED') return 'badge-success';
