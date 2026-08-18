@@ -33,8 +33,9 @@
   <!-- ── Class Chips (Admin only) ──────────────────────────────────── -->
   <div class="vl-chips-wrap" *ngIf="loggedInUserRole === 'ADMIN'">
     <div class="vl-chips">
+      <span class="vl-class-filter-label">Classes</span>
       <button class="vl-chip" [class.vl-chip-active]="selectedClass === 'all'"
-        (click)="onClassSelect('all')">All</button>
+        (click)="onClassSelect('all')">All Classes</button>
       <button *ngFor="let c of classList; trackBy: trackByClass"
         class="vl-chip" [class.vl-chip-active]="selectedClass === c"
         (click)="onClassSelect(c)">{{ c }}</button>

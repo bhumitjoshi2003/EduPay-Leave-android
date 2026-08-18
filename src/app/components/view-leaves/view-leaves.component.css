@@ -485,7 +485,7 @@
 
 .vl-status-wrap {
   background: #fff;
-  padding: 10px 20px;
+  padding: 8px 20px;
   border-bottom: 1px solid #eef0f5;
 }
 
@@ -523,7 +523,7 @@
 
 .vl-chips-wrap {
   margin: 0;
-  padding: 10px 20px;
+  padding: 7px 20px;
   background: #fff;
   border-bottom: 1px solid #eef0f5;
 }
@@ -532,12 +532,25 @@
   padding: 0;
 }
 
+.vl-class-filter-label {
+  margin-right: 2px;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+}
+
 .vl-filter-card {
   margin: 0;
   padding: 16px 24px;
   border-radius: 0;
   border-bottom: 1px solid #f1f5f9;
   box-shadow: none;
+}
+
+.vl-filter-actions {
+  margin-top: 12px;
 }
 
 .vl-filter-group {
