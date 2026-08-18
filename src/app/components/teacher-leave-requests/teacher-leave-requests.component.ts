@@ -23,6 +23,7 @@ export class TeacherLeaveRequestsComponent implements OnInit, OnDestroy {
 
   statusFilter: string = 'PENDING';
   teacherIdFilter: string = '';
+  dateFilter: string = '';
 
   currentPage: number = 0;
   pageSize: number = 10;
@@ -65,7 +66,9 @@ export class TeacherLeaveRequestsComponent implements OnInit, OnDestroy {
     const status = this.statusFilter === 'all' ? undefined : this.statusFilter;
     const teacherId = this.teacherIdFilter ? this.teacherIdFilter : undefined;
 
-    this.teacherLeaveService.getLeaves(this.currentPage, this.pageSize, status, teacherId)
+    const date = this.dateFilter || undefined;
+
+    this.teacherLeaveService.getLeaves(this.currentPage, this.pageSize, status, teacherId, date)
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe({
         next: (response: PaginatedResponse<TeacherLeave>) => {
@@ -98,9 +101,15 @@ export class TeacherLeaveRequestsComponent implements OnInit, OnDestroy {
     this.teacherIdInputSubject.next(this.teacherIdFilter);
   }
 
+  onDateChange(): void {
+    this.currentPage = 0;
+    this.fetchLeaves();
+  }
+
   clearFilter(): void {
     this.statusFilter = 'PENDING';
     this.teacherIdFilter = '';
+    this.dateFilter = '';
     this.currentPage = 0;
     this.fetchLeaves();
   }

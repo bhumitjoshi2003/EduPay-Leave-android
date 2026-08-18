@@ -39,6 +39,10 @@
         <input class="tl-filter-input" [(ngModel)]="teacherIdFilter" (input)="onTeacherIdInput()"
           placeholder="Enter teacher ID">
       </div>
+      <div class="tl-filter-group">
+        <label class="tl-filter-label">Filter by Date</label>
+        <input type="date" class="tl-filter-input" [(ngModel)]="dateFilter" (change)="onDateChange()">
+      </div>
     </div>
     <div class="tl-filter-actions">
       <button class="tl-btn-clear" (click)="clearFilter()">Clear</button>

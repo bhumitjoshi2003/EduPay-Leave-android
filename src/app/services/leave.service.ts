@@ -44,6 +44,7 @@ export class LeaveService {
     className?: string,
     studentId?: string,
     date?: string,
+    status?: string,
     sortBy?: string,
     sortDir?: string
   ): Observable<PaginatedResponse<LeaveApplication>> {
@@ -59,6 +60,9 @@ export class LeaveService {
     }
     if (date) {
       params = params.append('date', date);
+    }
+    if (status) {
+      params = params.append('status', status);
     }
     if (sortBy) {
       params = params.append('sort', `${sortBy},${sortDir || 'asc'}`);
@@ -96,4 +100,3 @@ export class LeaveService {
     return this.http.get<string[]>(`${this.apiUrl}/date/${date}/class/${selectedClass}`, { withCredentials: true });
   }
 }
-

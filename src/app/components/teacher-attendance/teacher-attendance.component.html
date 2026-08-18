@@ -38,11 +38,19 @@
   <div class="ta-controls">
     <h2 class="ta-class-title">Class {{ selectedClass }}</h2>
     <div class="ta-controls-row">
-      <mat-form-field appearance="outline" class="ta-date-field">
-        <input matInput [matDatepicker]="picker" [(ngModel)]="attendanceDate" (dateChange)="onDateChange($event)" />
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-      </mat-form-field>
+      <div class="ta-date-control">
+        <label class="ta-date-label" for="attendance-date">Attendance Date</label>
+        <div class="ta-date-shell">
+          <span class="ta-date-leading" aria-hidden="true">📅</span>
+          <mat-form-field appearance="outline" class="ta-date-field">
+            <input id="attendance-date" matInput [matDatepicker]="picker" [(ngModel)]="attendanceDate"
+              (dateChange)="onDateChange($event)" aria-label="Attendance date" readonly />
+            <mat-datepicker-toggle matSuffix [for]="picker" aria-label="Open attendance date calendar"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <span class="ta-date-caption">Choose the day whose attendance you want to mark</span>
+      </div>
       <span class="attendance-marked-badge" *ngIf="isAttendanceAlreadyMarked">&#10003; Already Marked</span>
       <div class="ta-action-btns">
         <button class="ta-btn ta-btn-save"

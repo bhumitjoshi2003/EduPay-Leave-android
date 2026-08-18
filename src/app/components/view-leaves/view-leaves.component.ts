@@ -7,11 +7,6 @@ import { TeacherService } from '../../services/teacher.service';
 import { Teacher } from '../../interfaces/teacher';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { SchoolService } from '../../services/school.service';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatIconModule } from '@angular/material/icon';
 import { ToastService } from '../../services/toast.service';
 import { from, concatMap } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
@@ -26,12 +21,7 @@ import { getStoredSelectedClass, setStoredSelectedClass, clearStoredSelectedClas
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatIconModule
+    FormsModule
   ],
 })
 export class ViewLeavesComponent implements OnInit, OnDestroy {
@@ -46,6 +36,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
   selectedClass: string = 'all';
   selectedDate: Date | null = null;
   studentIdFilter: string = '';
+  statusFilter: string = 'PENDING';
 
   currentPage: number = 0;
   pageSize: number = 10;
@@ -162,6 +153,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
       classFilterToSend,
       studentIdToFilter,
       formattedDate,
+      this.statusFilter === 'all' ? undefined : this.statusFilter,
       'leaveDate',
       'desc'
     );
@@ -214,6 +206,12 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
     this.fetchLeaves();
   }
 
+  onStatusSelect(status: string): void {
+    this.statusFilter = status;
+    this.currentPage = 0;
+    this.fetchLeaves();
+  }
+
   onStudentIdInput(): void {
     this.studentIdInputSubject.next(this.studentIdFilter);
   }
@@ -221,6 +219,7 @@ export class ViewLeavesComponent implements OnInit, OnDestroy {
   clearFilter(): void {
     this.selectedDate = null;
     this.studentIdFilter = '';
+    this.statusFilter = 'PENDING';
     this.currentPage = 0;
 
     if (this.loggedInUserRole === 'ADMIN') {

@@ -33,7 +33,8 @@ export class TeacherLeaveService {
     page: number,
     size: number,
     status?: string,
-    teacherId?: string
+    teacherId?: string,
+    date?: string
   ): Observable<PaginatedResponse<TeacherLeave>> {
     let params = new HttpParams()
       .append('page', page.toString())
@@ -44,6 +45,9 @@ export class TeacherLeaveService {
     }
     if (teacherId) {
       params = params.append('teacherId', teacherId);
+    }
+    if (date) {
+      params = params.append('date', date);
     }
     return this.http.get<PaginatedResponse<TeacherLeave>>(this.apiUrl, { params, withCredentials: true });
   }

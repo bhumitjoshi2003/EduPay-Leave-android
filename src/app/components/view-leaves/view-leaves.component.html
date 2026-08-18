@@ -20,6 +20,16 @@
     <div class="vl-blob vl-blob-2"></div>
   </div>
 
+  <!-- ── Status Chips ─────────────────────────────────────────────── -->
+  <div class="vl-status-wrap">
+    <div class="vl-status-filters">
+      <button class="vl-status-filter" [class.vl-status-filter-active]="statusFilter === 'PENDING'" (click)="onStatusSelect('PENDING')">Pending</button>
+      <button class="vl-status-filter" [class.vl-status-filter-active]="statusFilter === 'APPROVED'" (click)="onStatusSelect('APPROVED')">Approved</button>
+      <button class="vl-status-filter" [class.vl-status-filter-active]="statusFilter === 'REJECTED'" (click)="onStatusSelect('REJECTED')">Rejected</button>
+      <button class="vl-status-filter" [class.vl-status-filter-active]="statusFilter === 'all'" (click)="onStatusSelect('all')">All</button>
+    </div>
+  </div>
+
   <!-- ── Class Chips (Admin only) ──────────────────────────────────── -->
   <div class="vl-chips-wrap" *ngIf="loggedInUserRole === 'ADMIN'">
     <div class="vl-chips">
@@ -36,22 +46,12 @@
     <div class="vl-filter-row">
       <div class="vl-filter-group">
         <label class="vl-filter-label">Filter by Date</label>
-        <mat-form-field appearance="outline" class="vl-date-field">
-          <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate"
-            (ngModelChange)="onDateSelect()" placeholder="Pick a date">
-          <mat-datepicker-toggle matSuffix [for]="picker">
-            <mat-icon>calendar_today</mat-icon>
-          </mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
+        <input type="date" class="vl-filter-input" [(ngModel)]="selectedDate" (ngModelChange)="onDateSelect()">
       </div>
 
       <div class="vl-filter-group">
         <label class="vl-filter-label">Filter by Student ID</label>
-        <mat-form-field appearance="outline" class="vl-id-field">
-          <input matInput [(ngModel)]="studentIdFilter" (input)="onStudentIdInput()"
-            placeholder="Enter student ID">
-        </mat-form-field>
+        <input class="vl-filter-input" [(ngModel)]="studentIdFilter" (input)="onStudentIdInput()" placeholder="Enter student ID">
       </div>
     </div>
 
