@@ -77,9 +77,19 @@
 
     <!-- Actions -->
     <div class="rt-actions">
-      <button type="button" class="rt-btn-cancel" (click)="goBack()">Cancel</button>
-      <button type="submit" class="rt-btn-save">Save Teacher</button>
+      <button type="button" class="rt-btn-cancel" (click)="goBack()" [disabled]="isSubmitting">Cancel</button>
+      <button type="submit" class="rt-btn-save" [disabled]="isSubmitting" [attr.aria-busy]="isSubmitting">
+        {{ isSubmitting ? 'Registering Teacher…' : 'Save Teacher' }}
+      </button>
     </div>
 
   </form>
+</div>
+
+<div *ngIf="isSubmitting" class="rt-registering-overlay" role="status" aria-live="assertive" aria-label="Registering teacher. Please wait.">
+  <div class="rt-registering-card">
+    <span class="rt-registering-spinner" aria-hidden="true"></span>
+    <strong>Registering the teacher…</strong>
+    <span>Please wait. Do not close this screen.</span>
+  </div>
 </div>

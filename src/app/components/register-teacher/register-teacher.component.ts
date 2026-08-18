@@ -9,7 +9,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../auth/auth.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { EMPTY, Subject, takeUntil } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { SchoolService } from '../../services/school.service';
 import { strictEmailValidator, pastDateValidator, phoneValidator } from '../../validators/shared.validators';
 
@@ -25,6 +25,7 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   teacherForm: FormGroup;
   classList: string[] = [];
+  isSubmitting = false;
 
   constructor(
     private fb: FormBuilder,
@@ -78,7 +79,11 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    if (this.isSubmitting) return;
+
     if (this.teacherForm.valid) {
+      this.isSubmitting = true;
+      this.cdr.markForCheck();
       // The backend derives the initial login password from the teacher's date of
       // birth (YYYYMMDD) — it is never generated or supplied by the frontend.
       this.teacherService.addTeacher(this.teacherForm.value).pipe(
@@ -94,6 +99,10 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
               return EMPTY;
             })
           );
+        }),
+        finalize(() => {
+          this.isSubmitting = false;
+          this.cdr.markForCheck();
         })
       ).subscribe({
         next: () => {
@@ -116,6 +125,7 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
+    if (this.isSubmitting) return;
     this.teacherForm.reset();
   }
 }

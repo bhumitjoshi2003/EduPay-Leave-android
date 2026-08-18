@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestro
 import { LoggerService } from '../../services/logger.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EMPTY, Subject, forkJoin, takeUntil } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { StudentService } from '../../services/student.service';
 import { Router } from '@angular/router';
 import { ToastService } from '../../services/toast.service';
@@ -28,6 +28,7 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
   classList: string[] = [];
   managedClasses: SchoolClass[] = [];
   sections: Section[] = [];
+  isSubmitting = false;
 
   constructor(
     private fb: FormBuilder,
@@ -114,7 +115,11 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    if (this.isSubmitting) return;
+
     if (this.studentForm.valid) {
+      this.isSubmitting = true;
+      this.cdr.markForCheck();
       // The backend derives the initial login password from the student's date of
       // birth (YYYYMMDD) — it is never generated or supplied by the frontend.
       this.studentService.addStudent(this.studentForm.value).pipe(
@@ -131,6 +136,10 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
               return EMPTY;
             })
           );
+        }),
+        finalize(() => {
+          this.isSubmitting = false;
+          this.cdr.markForCheck();
         })
       ).subscribe({
         next: () => {
@@ -154,8 +163,8 @@ export class RegisterStudentComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
+    if (this.isSubmitting) return;
     this.studentForm.reset();
     this.isBusUser = false;
   }
 }
-

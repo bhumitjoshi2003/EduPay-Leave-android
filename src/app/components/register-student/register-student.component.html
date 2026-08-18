@@ -122,9 +122,19 @@
 
     <!-- Actions -->
     <div class="rs-actions">
-      <button type="button" class="rs-btn-cancel" (click)="goBack()">Cancel</button>
-      <button type="submit" class="rs-btn-save">Save Student</button>
+      <button type="button" class="rs-btn-cancel" (click)="goBack()" [disabled]="isSubmitting">Cancel</button>
+      <button type="submit" class="rs-btn-save" [disabled]="isSubmitting" [attr.aria-busy]="isSubmitting">
+        {{ isSubmitting ? 'Registering Student…' : 'Save Student' }}
+      </button>
     </div>
 
   </form>
+</div>
+
+<div *ngIf="isSubmitting" class="rs-registering-overlay" role="status" aria-live="assertive" aria-label="Registering student. Please wait.">
+  <div class="rs-registering-card">
+    <span class="rs-registering-spinner" aria-hidden="true"></span>
+    <strong>Registering the student…</strong>
+    <span>Please wait. Do not close this screen.</span>
+  </div>
 </div>
