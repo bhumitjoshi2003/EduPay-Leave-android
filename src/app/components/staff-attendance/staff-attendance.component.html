@@ -18,6 +18,7 @@
     <div class="sa-view-toggle">
       <button class="sa-toggle-btn" [class.sa-toggle-active]="viewMode === 'daily'" (click)="switchToDaily()">Daily View</button>
       <button class="sa-toggle-btn" [class.sa-toggle-active]="viewMode === 'monthly'" (click)="switchToMonthly()">Monthly Report</button>
+      <button class="sa-toggle-btn" [class.sa-toggle-active]="viewMode === 'individual'" (click)="switchToIndividual()">Individual Teacher</button>
     </div>
   </div>
 
@@ -217,6 +218,33 @@
       </div>
     </ng-container>
 
+  </ng-container>
+
+  <ng-container *ngIf="viewMode === 'individual'">
+    <div class="sa-controls-card"><div class="sa-report-controls">
+      <div class="sa-date-group sa-control-grow"><label class="sa-date-label">Teacher</label><select class="sa-date-input" [(ngModel)]="selectedTeacherId" (change)="loadIndividualReport()"><option value="">Select a teacher</option><option *ngFor="let teacher of allTeachers" [value]="teacher.teacherId">{{ teacher.name }} ({{ teacher.teacherId }})</option></select></div>
+      <div class="sa-date-group"><label class="sa-date-label">Report Period</label><select class="sa-date-input" [(ngModel)]="individualPeriod" (change)="loadIndividualReport()"><option value="month">Monthly</option><option value="session">Academic Session</option></select></div>
+      <ng-container *ngIf="individualPeriod === 'month'">
+        <div class="sa-date-group"><label class="sa-date-label">Month</label><select class="sa-date-input" [(ngModel)]="individualMonth" (change)="loadIndividualReport()"><option *ngFor="let month of monthNames; let i = index" [value]="i + 1">{{ month }}</option></select></div>
+        <div class="sa-date-group"><label class="sa-date-label">Year</label><input class="sa-date-input sa-year-input" type="number" min="2000" [(ngModel)]="individualYear" (change)="loadIndividualReport()"></div>
+      </ng-container>
+      <div class="sa-date-group" *ngIf="individualPeriod === 'session'"><label class="sa-date-label">Session</label><select class="sa-date-input" [(ngModel)]="selectedSession" (change)="loadIndividualReport()"><option *ngFor="let session of sessionOptions" [value]="session">{{ session }}</option></select></div>
+    </div></div>
+    <div *ngIf="loadingIndividual" class="sa-loading"><div class="sa-spinner"></div><span>Loading teacher report...</span></div>
+    <div *ngIf="!loadingIndividual && !selectedTeacherId" class="sa-empty-card"><div class="sa-empty-icon">👨‍🏫</div><p class="sa-empty-title">Select a teacher</p><p class="sa-empty-sub">Choose a teacher to view monthly or session attendance.</p></div>
+    <ng-container *ngIf="!loadingIndividual && individualReportSummary as report">
+      <div class="sa-stats-row">
+        <div class="sa-stat-card" style="--c1:#6366f1;--c2:#818cf8"><div class="sa-stat-emoji">📅</div><div class="sa-stat-info"><span class="sa-stat-num">{{ report.totalWorkingDays }}</span><span class="sa-stat-label">Working Days</span></div></div>
+        <div class="sa-stat-card" style="--c1:#059669;--c2:#34d399"><div class="sa-stat-emoji">✅</div><div class="sa-stat-info"><span class="sa-stat-num">{{ report.presentDays }}</span><span class="sa-stat-label">Present</span></div></div>
+        <div class="sa-stat-card" style="--c1:#d97706;--c2:#fbbf24"><div class="sa-stat-emoji">⏰</div><div class="sa-stat-info"><span class="sa-stat-num">{{ report.lateDays }}</span><span class="sa-stat-label">Late</span></div></div>
+        <div class="sa-stat-card" style="--c1:#dc2626;--c2:#f87171"><div class="sa-stat-emoji">✕</div><div class="sa-stat-info"><span class="sa-stat-num">{{ report.absentDays }}</span><span class="sa-stat-label">Absent</span></div></div>
+        <div class="sa-stat-card" style="--c1:#7c3aed;--c2:#a78bfa"><div class="sa-stat-emoji">◐</div><div class="sa-stat-info"><span class="sa-stat-num">{{ report.halfDayDays }}</span><span class="sa-stat-label">Half Day</span></div></div>
+        <div class="sa-stat-card" style="--c1:#0891b2;--c2:#22d3ee"><div class="sa-stat-emoji">🏖️</div><div class="sa-stat-info"><span class="sa-stat-num">{{ report.onLeaveDays }}</span><span class="sa-stat-label">On Leave</span></div></div>
+        <div class="sa-stat-card" style="--c1:#0f766e;--c2:#2dd4bf"><div class="sa-stat-emoji">%</div><div class="sa-stat-info"><span class="sa-stat-num">{{ report.attendancePercentage }}%</span><span class="sa-stat-label">Attendance</span></div></div>
+      </div>
+      <div class="sa-section" *ngIf="individualPeriod === 'session' && individualSessionSummary"><h2 class="sa-section-title">Month-by-Month Breakdown — {{ individualSessionSummary.teacherName }}</h2><div class="sa-table-wrap"><table class="sa-report-table"><thead><tr><th>Month</th><th>Working</th><th>Present</th><th>Late</th><th>Half Day</th><th>Leave</th><th>Absent</th><th>Attendance</th><th></th></tr></thead><tbody><tr *ngFor="let item of individualSessionSummary.months"><td>{{ monthNames[item.month - 1] }} {{ item.year }}</td><td>{{ item.summary.totalWorkingDays }}</td><td>{{ item.summary.presentDays }}</td><td>{{ item.summary.lateDays }}</td><td>{{ item.summary.halfDayDays }}</td><td>{{ item.summary.onLeaveDays }}</td><td>{{ item.summary.absentDays }}</td><td>{{ item.summary.attendancePercentage }}%</td><td><button class="sa-view-month-btn" (click)="openSessionMonth(item.month, item.year)">View days</button></td></tr></tbody></table></div></div>
+      <div class="sa-section" *ngIf="individualPeriod === 'month' && individualSummary"><h2 class="sa-section-title">Day-by-Day Records</h2><div *ngIf="individualGroupedRecords.length === 0" class="sa-empty-sub">No settled attendance records for this month.</div><div *ngFor="let group of individualGroupedRecords; trackBy: trackByDate" class="sa-date-group"><div class="sa-date-header"><span class="sa-date-label-text">{{ group.displayDate }}</span></div><div class="sa-teacher-list"><div *ngFor="let record of group.records; trackBy: trackByRecordId" class="sa-teacher-card" [ngClass]="getBorderClass(record.status)"><div class="sa-teacher-info"><span class="sa-teacher-name">{{ record.teacherName }}</span><span class="sa-teacher-meta"><ng-container *ngIf="record.checkInTime">{{ formatTime(record.checkInTime) }}</ng-container><ng-container *ngIf="record.checkOutTime"> → {{ formatTime(record.checkOutTime) }}</ng-container></span></div><span class="sa-badge" [ngClass]="getStatusClass(record.status)">{{ getStatusLabel(record.status) }}</span></div></div></div></div>
+    </ng-container>
   </ng-container>
 
   <!-- ── Admin Mark Dialog ─────────────────────────── -->

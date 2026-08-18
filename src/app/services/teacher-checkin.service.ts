@@ -7,6 +7,7 @@ import {
   AdminMarkRequest,
   TeacherAttendanceRecord,
   TeacherAttendanceSummary,
+  TeacherAttendanceSessionSummary,
   TeacherAttendanceTodaySummary,
   SchoolTiming
 } from '../interfaces/teacher-checkin';
@@ -39,9 +40,15 @@ export class TeacherCheckinService {
     return this.http.get<TeacherAttendanceSummary>(`${this.baseUrl}/my-attendance`, { params });
   }
 
-  getSummary(month: number, year: number): Observable<TeacherAttendanceSummary> {
+  getSummary(month: number, year: number, teacherId?: string): Observable<TeacherAttendanceSummary> {
     const params = new HttpParams().set('month', month).set('year', year);
-    return this.http.get<TeacherAttendanceSummary>(`${this.baseUrl}/summary`, { params });
+    const scopedParams = teacherId ? params.set('teacherId', teacherId) : params;
+    return this.http.get<TeacherAttendanceSummary>(`${this.baseUrl}/summary`, { params: scopedParams });
+  }
+
+  getTeacherSessionSummary(teacherId: string, session: string): Observable<TeacherAttendanceSessionSummary> {
+    const params = new HttpParams().set('teacherId', teacherId).set('session', session);
+    return this.http.get<TeacherAttendanceSessionSummary>(`${this.baseUrl}/summary/session`, { params });
   }
 
   getSchoolTiming(): Observable<SchoolTiming> {

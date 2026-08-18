@@ -3,10 +3,12 @@ import { LoggerService } from '../../services/logger.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, formatDate } from '@angular/common';
 import { TeacherLeaveService } from '../../services/teacher-leave.service';
+import { SchoolHolidayService } from '../../services/school-holiday.service';
+import { SchoolHoliday } from '../../interfaces/school-holiday';
 import { ToastService } from '../../services/toast.service';
 import { TeacherLeave } from '../../interfaces/teacher-leave';
 import { PaginatedResponse } from '../../services/payment-history.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-apply-teacher-leave',
@@ -22,6 +24,10 @@ export class ApplyTeacherLeaveComponent implements OnInit, OnDestroy {
   leaves: TeacherLeave[] = [];
   isLoading: boolean = true;
   cancellingIds: Set<number> = new Set();
+  isSubmitting = false;
+  calendarReady = false;
+  private workingDays = new Set<string>();
+  private holidays: SchoolHoliday[] = [];
 
   currentPage: number = 0;
   pageSize: number = 5;
@@ -34,6 +40,7 @@ export class ApplyTeacherLeaveComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private teacherLeaveService: TeacherLeaveService,
+    private holidayService: SchoolHolidayService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService
@@ -52,6 +59,27 @@ export class ApplyTeacherLeaveComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.today = formatDate(this.todayDate, 'yyyy-MM-dd', 'en');
+    forkJoin({
+      config: this.teacherLeaveService.getCalendarConfig(),
+      holidays: this.holidayService.getHolidays()
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ config, holidays }) => {
+        this.workingDays = new Set(config.workingDays.split(',').map(day => day.trim().toUpperCase()).filter(Boolean));
+        if (this.workingDays.size === 0) {
+          this.errorMessage = 'School working days are not configured. Please contact the administrator.';
+          this.cdr.markForCheck();
+          return;
+        }
+        this.holidays = holidays;
+        this.calendarReady = true;
+        this.cdr.markForCheck();
+      },
+      error: error => {
+        this.logger.error('Error loading school calendar:', error);
+        this.errorMessage = 'Unable to load the school calendar. Leave applications are disabled until it is available.';
+        this.cdr.markForCheck();
+      }
+    });
     this.loadMyLeaves();
   }
 
@@ -100,7 +128,10 @@ export class ApplyTeacherLeaveComponent implements OnInit, OnDestroy {
     } else if (this.leaveForm.get('reason')?.hasError('maxlength')) {
       this.errorMessage = 'Reason cannot be more than 200 characters.';
     } else {
-      this.errorMessage = '';
+      this.errorMessage = this.getCalendarValidationError(
+        this.leaveForm.get('startDate')?.value,
+        this.leaveForm.get('endDate')?.value
+      );
     }
   }
 
@@ -114,26 +145,50 @@ export class ApplyTeacherLeaveComponent implements OnInit, OnDestroy {
     const endDate = this.leaveForm.get('endDate')?.value;
     const reason = this.leaveForm.get('reason')?.value;
 
-    if (new Date(endDate) < new Date(startDate)) {
-      this.errorMessage = 'End date cannot be before start date.';
+    const calendarError = this.getCalendarValidationError(startDate, endDate);
+    if (calendarError) {
+      this.errorMessage = calendarError;
       return;
     }
 
     this.errorMessage = '';
+    this.isSubmitting = true;
 
     this.teacherLeaveService.applyLeave({ startDate, endDate, reason }).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
+        this.isSubmitting = false;
         this.leaveForm.reset();
         this.toast.success('Leave Applied!', 'Your leave application has been submitted.');
         this.currentPage = 0;
         this.loadMyLeaves();
       },
       error: (error) => {
+        this.isSubmitting = false;
         this.logger.error('Error applying leave:', error);
         this.errorMessage = error?.error?.message || 'Failed to apply leave. Please try again.';
         this.toast.error('Error!', this.errorMessage);
       }
     });
+  }
+
+  private getCalendarValidationError(startDate: string, endDate: string): string {
+    if (!startDate || !endDate) return '';
+    if (endDate < startDate) return 'End date cannot be before start date.';
+    if (startDate < this.today) return 'Leave cannot be applied for a past date.';
+
+    let workingDayCount = 0;
+    const cursor = new Date(`${startDate}T00:00:00`);
+    const last = new Date(`${endDate}T00:00:00`);
+    while (cursor <= last) {
+      const date = formatDate(cursor, 'yyyy-MM-dd', 'en');
+      const weekday = formatDate(cursor, 'EEEE', 'en').toUpperCase();
+      const isHoliday = this.holidays.some(holiday => date >= holiday.startDate && date <= holiday.endDate);
+      if (this.workingDays.has(weekday) && !isHoliday) workingDayCount++;
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return workingDayCount === 0
+      ? 'The selected dates contain no working days. Leave cannot be applied on closed days or school holidays.'
+      : '';
   }
 
   cancelLeave(leave: TeacherLeave): void {

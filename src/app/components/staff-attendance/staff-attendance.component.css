@@ -103,6 +103,15 @@
   flex-direction: column;
   gap: 12px;
 }
+.sa-report-controls { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.sa-control-grow { flex: 1 1 260px; }
+.sa-control-grow select { width: 100%; }
+.sa-year-input { width: 100px; }
+.sa-table-wrap { overflow-x: auto; }
+.sa-report-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.sa-report-table th, .sa-report-table td { padding: 11px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+.sa-report-table th { color: #64748b; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.4px; }
+.sa-view-month-btn { border: 1px solid #a7f3d0; background: #ecfdf5; color: #047857; border-radius: 8px; padding: 6px 10px; font-weight: 700; cursor: pointer; }
 
 .sa-date-group { display: flex; flex-direction: column; gap: 5px; }
 .sa-date-label {

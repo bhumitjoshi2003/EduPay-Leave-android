@@ -36,14 +36,15 @@
           <label class="al-label">Start Date</label>
           <div class="al-input-wrap">
             <span class="al-input-icon">📅</span>
-            <input type="date" formControlName="startDate" class="al-input" />
+            <input type="date" formControlName="startDate" class="al-input" [min]="today" (change)="check()" />
           </div>
         </div>
         <div class="al-field">
           <label class="al-label">End Date</label>
           <div class="al-input-wrap">
             <span class="al-input-icon">📅</span>
-            <input type="date" formControlName="endDate" class="al-input" />
+            <input type="date" formControlName="endDate" class="al-input"
+              [min]="leaveForm.get('startDate')?.value || today" (change)="check()" />
           </div>
         </div>
       </div>
@@ -56,8 +57,8 @@
           placeholder="Describe your reason…"></textarea>
       </div>
 
-      <button type="submit" class="al-submit-btn">
-        Apply for Leave
+      <button type="submit" class="al-submit-btn" [disabled]="!calendarReady || isSubmitting">
+        {{ isSubmitting ? 'Applying…' : (calendarReady ? 'Apply for Leave' : 'Loading calendar…') }}
       </button>
 
     </form>

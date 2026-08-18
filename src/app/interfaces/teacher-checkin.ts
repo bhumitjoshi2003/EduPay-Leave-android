@@ -40,8 +40,30 @@ export interface TeacherAttendanceSummary {
   halfDayDays: number;
   onLeaveDays: number;
   onTimePercentage: number;
+  attendancePercentage: number;
   trackingStartDate: string | null;
   records: TeacherAttendanceRecord[];
+}
+
+export interface TeacherAttendanceSessionMonth {
+  month: number;
+  year: number;
+  summary: TeacherAttendanceSummary;
+}
+
+export interface TeacherAttendanceSessionSummary {
+  session: string;
+  teacherId: string;
+  teacherName: string;
+  totalWorkingDays: number;
+  presentDays: number;
+  lateDays: number;
+  absentDays: number;
+  halfDayDays: number;
+  onLeaveDays: number;
+  attendancePercentage: number;
+  onTimePercentage: number;
+  months: TeacherAttendanceSessionMonth[];
 }
 
 export interface TeacherAttendanceTodaySummary {

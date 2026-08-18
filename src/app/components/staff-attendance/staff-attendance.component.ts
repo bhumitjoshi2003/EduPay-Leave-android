@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { TeacherService } from '../../services/teacher.service';
-import { TeacherAttendanceRecord, TeacherAttendanceSummary, SchoolTiming } from '../../interfaces/teacher-checkin';
+import { TeacherAttendanceRecord, TeacherAttendanceSummary, TeacherAttendanceSessionSummary, SchoolTiming } from '../../interfaces/teacher-checkin';
 import { Teacher } from '../../interfaces/teacher';
 import { TenantService } from '../../services/tenant.service';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
+import { SchoolService } from '../../services/school.service';
 
 @Component({
   selector: 'app-staff-attendance',
@@ -27,11 +28,20 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
   isLoading = false;
 
   // Summary view
-  viewMode: 'daily' | 'monthly' = 'daily';
+  viewMode: 'daily' | 'monthly' | 'individual' = 'daily';
   summaryMonth: number;
   summaryYear: number;
   monthlySummary: TeacherAttendanceSummary | null = null;
   loadingSummary = false;
+  individualPeriod: 'month' | 'session' = 'month';
+  selectedTeacherId = '';
+  individualMonth: number;
+  individualYear: number;
+  selectedSession = '';
+  sessionOptions: string[] = [];
+  individualSummary: TeacherAttendanceSummary | null = null;
+  individualSessionSummary: TeacherAttendanceSessionSummary | null = null;
+  loadingIndividual = false;
 
   // Admin mark dialog
   showMarkDialog = false;
@@ -63,18 +73,22 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
     public tenantService: TenantService,
     private logger: LoggerService,
     private toast: ToastService,
+    private schoolService: SchoolService,
     private cdr: ChangeDetectorRef
   ) {
     const now = new Date();
     this.selectedDate = now.toISOString().slice(0, 10);
     this.summaryMonth = now.getMonth() + 1;
     this.summaryYear = now.getFullYear();
+    this.individualMonth = now.getMonth() + 1;
+    this.individualYear = now.getFullYear();
   }
 
   ngOnInit(): void {
     this.loadDailyRecords();
     this.loadTeachers();
     this.loadSchoolTiming();
+    this.loadSessionOptions();
   }
 
   ngOnDestroy(): void {
@@ -162,6 +176,77 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
   switchToDaily(): void {
     this.viewMode = 'daily';
     this.loadDailyRecords();
+  }
+
+  switchToIndividual(): void {
+    this.viewMode = 'individual';
+    if (this.selectedTeacherId) this.loadIndividualReport();
+  }
+
+  loadIndividualReport(): void {
+    if (!this.selectedTeacherId) {
+      this.individualSummary = null;
+      this.individualSessionSummary = null;
+      return;
+    }
+    this.loadingIndividual = true;
+    this.cdr.markForCheck();
+    const request$: Observable<TeacherAttendanceSummary | TeacherAttendanceSessionSummary> = this.individualPeriod === 'month'
+      ? this.checkinService.getSummary(this.individualMonth, this.individualYear, this.selectedTeacherId)
+      : this.checkinService.getTeacherSessionSummary(this.selectedTeacherId, this.selectedSession);
+    request$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (result) => {
+        if (this.individualPeriod === 'month') {
+          this.individualSummary = result as TeacherAttendanceSummary;
+          this.individualSessionSummary = null;
+        } else {
+          this.individualSessionSummary = result as TeacherAttendanceSessionSummary;
+          this.individualSummary = null;
+        }
+        this.loadingIndividual = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.logger.error('Failed to load individual teacher attendance', err);
+        this.toast.error('Error', typeof err?.error === 'string' ? err.error : 'Failed to load teacher attendance report.');
+        this.loadingIndividual = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  openSessionMonth(month: number, year: number): void {
+    this.individualPeriod = 'month';
+    this.individualMonth = month;
+    this.individualYear = year;
+    this.loadIndividualReport();
+  }
+
+  get individualReportSummary(): TeacherAttendanceSummary | TeacherAttendanceSessionSummary | null {
+    return this.individualPeriod === 'month' ? this.individualSummary : this.individualSessionSummary;
+  }
+
+  get individualGroupedRecords(): { date: string; displayDate: string; records: TeacherAttendanceRecord[] }[] {
+    return this.groupRecords(this.individualSummary?.records ?? []);
+  }
+
+  private loadSessionOptions(): void {
+    this.schoolService.getSettings().pipe(takeUntil(this.destroy$)).subscribe({
+      next: settings => {
+        const now = new Date();
+        const startMonth = settings.academicYearStartMonth || 4;
+        const currentStartYear = now.getMonth() + 1 >= startMonth ? now.getFullYear() : now.getFullYear() - 1;
+        this.sessionOptions = Array.from({ length: 6 }, (_, i) => `${currentStartYear - i}-${currentStartYear - i + 1}`);
+        this.selectedSession = this.sessionOptions[0];
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        const year = new Date().getFullYear();
+        this.sessionOptions = Array.from({ length: 6 }, (_, i) => `${year - i}-${year - i + 1}`);
+        this.selectedSession = this.sessionOptions[0];
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   goToPreviousMonth(): void {
@@ -368,9 +453,13 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
   }
 
   get groupedRecords(): { date: string; displayDate: string; records: TeacherAttendanceRecord[] }[] {
-    if (!this.monthlySummary?.records.length) return [];
+    return this.groupRecords(this.monthlySummary?.records ?? []);
+  }
+
+  private groupRecords(source: TeacherAttendanceRecord[]): { date: string; displayDate: string; records: TeacherAttendanceRecord[] }[] {
+    if (!source.length) return [];
     const map = new Map<string, TeacherAttendanceRecord[]>();
-    for (const r of this.monthlySummary.records) {
+    for (const r of source) {
       const list = map.get(r.date) ?? [];
       list.push(r);
       map.set(r.date, list);

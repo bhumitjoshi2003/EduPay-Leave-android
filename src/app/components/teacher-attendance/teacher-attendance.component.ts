@@ -57,7 +57,7 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   hasStudents: boolean = false;
   isAttendanceAlreadyMarked: boolean = false;
   isSaving: boolean = false;
-  private workingDays = new Set(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']);
+  private workingDays = new Set<string>();
 
   classList: string[] = [];
   managedClasses: SchoolClass[] = [];
@@ -96,9 +96,16 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
     this.attendanceService.getCalendarConfig().pipe(takeUntil(this.destroy$)).subscribe({
       next: config => {
         this.workingDays = new Set(config.workingDays.split(',').map(d => d.trim().toUpperCase()).filter(Boolean));
+        if (this.workingDays.size === 0) {
+          this.toast.error('Calendar not configured', 'Ask the administrator to select the school working days in School Settings.');
+          return;
+        }
         this.getUserRoleAndLoadData();
       },
-      error: () => this.getUserRoleAndLoadData()
+      error: error => {
+        this.logger.error('Error loading school calendar:', error);
+        this.toast.error('Unable to load calendar', 'Attendance marking is disabled until the school calendar is available.');
+      }
     });
   }
 

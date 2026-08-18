@@ -17,6 +17,10 @@ export class TeacherLeaveService {
     return this.http.post<TeacherLeave>(`${this.apiUrl}/apply`, request, { withCredentials: true });
   }
 
+  getCalendarConfig(): Observable<{ workingDays: string; timezone: string }> {
+    return this.http.get<{ workingDays: string; timezone: string }>(`${this.apiUrl}/calendar-config`, { withCredentials: true });
+  }
+
   getMyLeaves(page: number, size: number): Observable<PaginatedResponse<TeacherLeave>> {
     const params = new HttpParams()
       .append('page', page.toString())
