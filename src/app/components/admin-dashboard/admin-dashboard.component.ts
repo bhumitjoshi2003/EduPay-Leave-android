@@ -183,4 +183,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (r >= 70) return '--c1:#d97706;--c2:#fbbf24';
     return '--c1:#dc2626;--c2:#f87171';
   }
+
+  hasFeature(featureKey: string): boolean {
+    return this.authState.hasFeature(featureKey);
+  }
 }

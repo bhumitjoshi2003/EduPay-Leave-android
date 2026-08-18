@@ -76,16 +76,20 @@ export class AuthStateService {
 
   /**
    * UX-only feature check — backend is always authoritative.
-   * Falls back to true when featureKeys is empty (no subscription/entitlement data
-   * loaded yet, or none configured), matching dashboard.component.ts's own hasFeature —
-   * without this, featureGuard (the only caller that gates route *navigation*, not just
-   * nav-link visibility) silently redirects away from a route whose nav link the
-   * dashboard still shows, since the two used to disagree on this exact case.
+   * Paid features are denied unless the effective entitlement explicitly grants them.
+   * Core features are included in the effective feature list by the backend.
    */
   hasFeature(featureKey: string): boolean {
     const keys = this.user?.featureKeys;
-    if (!keys || keys.length === 0) return true;
-    return keys.includes(featureKey);
+    return keys?.includes(featureKey) ?? false;
+  }
+
+  /** Keeps navigation/guards in sync immediately after an ADMIN changes a school override. */
+  setFeatureEnabled(featureKey: string, enabled: boolean): void {
+    if (!this.user) return;
+    const keys = new Set(this.user.featureKeys ?? []);
+    enabled ? keys.add(featureKey) : keys.delete(featureKey);
+    this.user = { ...this.user, featureKeys: [...keys] };
   }
 
   /**

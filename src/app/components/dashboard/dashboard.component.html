@@ -48,22 +48,22 @@
            (click)="closeSidebarOnMobile()" title="Timetable">
           <mat-icon>schedule</mat-icon><span>Timetable</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/my-results" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/my-results" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="My Results">
           <mat-icon>grade</mat-icon><span>My Results</span>
         </a>
 
         <div class="nav-section-label">Fees</div>
 
-        <a class="nav-item" routerLink="/dashboard/fees" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/fees" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="My Fees">
           <mat-icon>account_balance_wallet</mat-icon><span>My Fees</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/payment-history" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('PAYMENT_COLLECTION')" routerLink="/dashboard/payment-history" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Payment History">
           <mat-icon>receipt_long</mat-icon><span>Payment History</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/fee-structure" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/fee-structure" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Fee Structure">
           <mat-icon>list_alt</mat-icon><span>Fee Structure</span>
         </a>
@@ -122,11 +122,11 @@
 
         <div class="nav-section-label">Academics</div>
 
-        <a class="nav-item" routerLink="/dashboard/mark-entry" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/mark-entry" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Mark Entry">
           <mat-icon>edit_note</mat-icon><span>Mark Entry</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/class-results" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/class-results" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Class Results">
           <mat-icon>leaderboard</mat-icon><span>Class Results</span>
         </a>
@@ -137,15 +137,15 @@
 
         <div class="nav-section-label">Report Cards</div>
 
-        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/report-card-remarks" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-remarks" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Remarks Entry">
           <mat-icon>rate_review</mat-icon><span>Remarks Entry</span>
         </a>
-        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/bulk-report-cards" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/bulk-report-cards" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Bulk PDFs">
           <mat-icon>picture_as_pdf</mat-icon><span>Bulk PDFs</span>
         </a>
-        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/class-overview" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/class-overview" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Class Overview">
           <mat-icon>bar_chart</mat-icon><span>Class Overview</span>
         </a>
@@ -244,7 +244,7 @@
            (click)="closeSidebarOnMobile()" title="Subjects">
           <mat-icon>menu_book</mat-icon><span>Subjects</span>
         </a>
-        <a class="nav-item" *ngIf="hasFeature('STUDENT_STREAM')" routerLink="/dashboard/student-stream" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/student-stream" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Streams">
           <mat-icon>fork_right</mat-icon><span>Streams</span>
         </a>
@@ -263,34 +263,34 @@
            (click)="closeSidebarOnMobile()" title="Assessment Groups">
           <mat-icon>layers</mat-icon><span>Assessment Groups</span>
         </a>
-        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/report-card-templates" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-templates" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="RC Templates">
           <mat-icon>description</mat-icon><span>RC Templates</span>
         </a>
-        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/report-card-remarks" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-remarks" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Remarks Entry">
           <mat-icon>rate_review</mat-icon><span>Remarks Entry</span>
         </a>
-        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/bulk-report-cards" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/bulk-report-cards" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Bulk PDFs">
           <mat-icon>picture_as_pdf</mat-icon><span>Bulk PDFs</span>
         </a>
-        <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/class-overview" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/class-overview" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Class Overview">
           <mat-icon>bar_chart</mat-icon><span>Class Overview</span>
         </a>
 
         <div class="nav-section-label">Fees</div>
 
-        <a class="nav-item" routerLink="/dashboard/fee-structure" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/fee-structure" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Fee Structure">
           <mat-icon>list_alt</mat-icon><span>Fee Structure</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/bus-fees" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/bus-fees" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Bus Fees">
           <mat-icon>directions_bus</mat-icon><span>Bus Fees</span>
         </a>
-        <a class="nav-item" *ngIf="hasFeature('PAYMENT_HISTORY')" routerLink="/dashboard/payment-history-admin" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('PAYMENT_COLLECTION')" routerLink="/dashboard/payment-history-admin" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Payment History">
           <mat-icon>receipt_long</mat-icon><span>Payment History</span>
         </a>
@@ -332,7 +332,7 @@
            (click)="closeSidebarOnMobile()" title="School Settings">
           <mat-icon>settings</mat-icon><span>School Settings</span>
         </a>
-        <a class="nav-item" routerLink="/dashboard/knowledge-base" routerLinkActive="active"
+        <a class="nav-item" *ngIf="hasFeature('AI_COPILOT')" routerLink="/dashboard/knowledge-base" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Knowledge Base">
           <mat-icon>menu_book</mat-icon><span>Knowledge Base</span>
         </a>
@@ -490,7 +490,7 @@
 
       <router-outlet></router-outlet>
 
-      <app-ai-copilot></app-ai-copilot>
+      <app-ai-copilot *ngIf="hasFeature('AI_COPILOT')"></app-ai-copilot>
 
       <!-- App update banner (Capacitor Android only) -->
       <div class="app-update-banner" *ngIf="showUpdateBanner">

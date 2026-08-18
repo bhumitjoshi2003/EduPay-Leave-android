@@ -77,6 +77,10 @@ export class BulkReportCardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  get hasBulkCommunications(): boolean {
+    return this.authState.hasFeature('BULK_COMMUNICATIONS');
+  }
+
   private buildSessions(): void {
     const now = new Date();
     const year = now.getFullYear();

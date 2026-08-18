@@ -67,6 +67,9 @@ export class NoticeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const user = this.authStateService.getUser();
     this.role = user?.role ?? '';
+    if (!this.hasBulkCommunications) {
+      this.form.deliveryMode = 'IN_APP';
+    }
     this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe(classes => {
       this.classList = classes;
       this.cdr.markForCheck();
@@ -85,6 +88,10 @@ export class NoticeComponent implements OnInit, OnDestroy {
 
   get requiresSubject(): boolean {
     return this.form.deliveryMode === 'EMAIL' || this.form.deliveryMode === 'BOTH';
+  }
+
+  get hasBulkCommunications(): boolean {
+    return this.authStateService.hasFeature('BULK_COMMUNICATIONS');
   }
 
   get unreadCount(): number {

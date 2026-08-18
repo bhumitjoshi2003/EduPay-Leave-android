@@ -150,9 +150,9 @@
           <div class="nb-mode-group">
             <button type="button" class="nb-mode-btn" [class.active]="form.deliveryMode === 'IN_APP'"
               (click)="form.deliveryMode = 'IN_APP'">📲 In-App</button>
-            <button type="button" class="nb-mode-btn" [class.active]="form.deliveryMode === 'EMAIL'"
+            <button *ngIf="hasBulkCommunications" type="button" class="nb-mode-btn" [class.active]="form.deliveryMode === 'EMAIL'"
               (click)="form.deliveryMode = 'EMAIL'">📧 Email</button>
-            <button type="button" class="nb-mode-btn" [class.active]="form.deliveryMode === 'BOTH'"
+            <button *ngIf="hasBulkCommunications" type="button" class="nb-mode-btn" [class.active]="form.deliveryMode === 'BOTH'"
               (click)="form.deliveryMode = 'BOTH'">⚡ Both</button>
           </div>
         </div>

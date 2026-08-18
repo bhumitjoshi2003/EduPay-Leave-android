@@ -309,6 +309,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       next: () => {
         feature.overrideState = newState;
         feature.effectivelyOn = newState !== 'DISABLED';
+        this.authStateService.setFeatureEnabled(feature.featureKey, feature.effectivelyOn);
+        void this.authStateService.loadCurrentUser().finally(() => this.cdr.markForCheck());
         this.savingFeatureKey = null;
         this.toast.success('Saved', `Feature ${newState === 'DISABLED' ? 'disabled' : 'restored'}.`);
         this.cdr.markForCheck();

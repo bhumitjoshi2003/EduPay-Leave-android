@@ -257,13 +257,13 @@
           </div>
           <span>Leaves</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/payment-history-admin">
+        <a class="ad-action-card" *ngIf="hasFeature('PAYMENT_COLLECTION')" routerLink="/dashboard/payment-history-admin">
           <div class="ad-action-icon" style="background:#ede9fe;color:#7c3aed">
             <mat-icon>payments</mat-icon>
           </div>
           <span>Payments</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/fee-reminders">
+        <a class="ad-action-card" *ngIf="hasFeature('FEE_REMINDERS')" routerLink="/dashboard/fee-reminders">
           <div class="ad-action-icon" style="background:#fee2e2;color:#dc2626">
             <mat-icon>notifications_active</mat-icon>
           </div>
@@ -281,7 +281,7 @@
           </div>
           <span>Notice Board</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/analytics">
+        <a class="ad-action-card" *ngIf="hasFeature('ANALYTICS')" routerLink="/dashboard/analytics">
           <div class="ad-action-icon" style="background:#fdf4ff;color:#a21caf">
             <mat-icon>bar_chart</mat-icon>
           </div>
@@ -293,7 +293,7 @@
           </div>
           <span>Attendance</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/fee-structure">
+        <a class="ad-action-card" *ngIf="hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/fee-structure">
           <div class="ad-action-icon" style="background:#f0fdf4;color:#15803d">
             <mat-icon>receipt_long</mat-icon>
           </div>
@@ -305,7 +305,7 @@
           </div>
           <span>Events</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/audit-logs">
+        <a class="ad-action-card" *ngIf="hasFeature('AUDIT_LOGS')" routerLink="/dashboard/audit-logs">
           <div class="ad-action-icon" style="background:#f1f5f9;color:#475569">
             <mat-icon>history</mat-icon>
           </div>
@@ -317,37 +317,37 @@
           </div>
           <span>Promotion</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/assessment-groups">
+        <a class="ad-action-card" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/assessment-groups">
           <div class="ad-action-icon" style="background:#ede9fe;color:#4338ca">
             <mat-icon>bar_chart</mat-icon>
           </div>
           <span>Assessment Groups</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/report-card-templates">
+        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-templates">
           <div class="ad-action-icon" style="background:#e0f2fe;color:#0369a1">
             <mat-icon>description</mat-icon>
           </div>
           <span>RC Templates</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/report-card-remarks">
+        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-remarks">
           <div class="ad-action-icon" style="background:#f5f3ff;color:#7c3aed">
             <mat-icon>rate_review</mat-icon>
           </div>
           <span>Remarks Entry</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/bulk-report-cards">
+        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/bulk-report-cards">
           <div class="ad-action-icon" style="background:#fdf2f8;color:#be185d">
             <mat-icon>picture_as_pdf</mat-icon>
           </div>
           <span>Bulk PDFs</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/class-overview">
+        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/class-overview">
           <div class="ad-action-icon" style="background:#ecfeff;color:#0891b2">
             <mat-icon>bar_chart</mat-icon>
           </div>
           <span>Class Overview</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/report-card-gallery">
+        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-gallery">
           <div class="ad-action-icon" style="background:#e0f2fe;color:#0369a1">
             <mat-icon>style</mat-icon>
           </div>

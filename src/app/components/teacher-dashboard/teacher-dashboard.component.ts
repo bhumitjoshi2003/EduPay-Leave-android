@@ -182,4 +182,8 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     //                (todayAbsent may be 0 = all present, or N = N real absences)
     return this.attendanceTaken ? 'marked' : 'not-marked';
   }
+
+  hasFeature(featureKey: string): boolean {
+    return this.authState.hasFeature(featureKey);
+  }
 }

@@ -132,4 +132,8 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
       default:         return 'Pending';
     }
   }
+
+  hasFeature(featureKey: string): boolean {
+    return this.authState.hasFeature(featureKey);
+  }
 }

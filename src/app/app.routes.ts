@@ -34,27 +34,27 @@ export const routes: Routes = [
       {
         path: 'fees',
         loadComponent: () => import('./components/fees/fees.component').then(m => m.PaymentTrackerComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'fees/:studentId',
         loadComponent: () => import('./components/fees/fees.component').then(m => m.PaymentTrackerComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'payment-history',
         loadComponent: () => import('./components/payment-history/payment-history.component').then(m => m.PaymentHistoryComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'ADMIN'], featureKey: 'PAYMENT_COLLECTION' }
       },
       {
         path: 'payment-history/:studentId',
         loadComponent: () => import('./components/payment-history/payment-history.component').then(m => m.PaymentHistoryComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'PAYMENT_COLLECTION' }
       },
       {
         path: 'payment-history-details/:paymentId',
         loadComponent: () => import('./components/payment-details/payment-details.component').then(m => m.PaymentDetailsComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'ADMIN'], featureKey: 'PAYMENT_COLLECTION' }
       },
       {
         path: 'apply-leave',
@@ -139,7 +139,7 @@ export const routes: Routes = [
       {
         path: 'knowledge-base',
         loadComponent: () => import('./components/knowledge-base/knowledge-base.component').then(m => m.KnowledgeBaseComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'AI_COPILOT' }
       },
       {
         path: 'class-management',
@@ -166,27 +166,27 @@ export const routes: Routes = [
       {
         path: 'assessment-groups',
         loadComponent: () => import('./components/assessment-group-config/assessment-group-config.component').then(m => m.AssessmentGroupConfigComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'EXAM_MARKS' }
       },
       {
         path: 'report-card-templates',
         loadComponent: () => import('./components/report-card-template-config/report-card-template-config.component').then(m => m.ReportCardTemplateConfigComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'REPORT_CARD' }
       },
       {
         path: 'report-card-remarks',
         loadComponent: () => import('./components/remarks-entry/remarks-entry.component').then(m => m.RemarksEntryComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN', 'TEACHER'], featureKey: 'REPORT_CARD' }
       },
       {
         path: 'bulk-report-cards',
         loadComponent: () => import('./components/bulk-report-card/bulk-report-card.component').then(m => m.BulkReportCardComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN', 'TEACHER'], featureKey: 'REPORT_CARD' }
       },
       {
         path: 'class-overview',
         loadComponent: () => import('./components/class-overview/class-overview.component').then(m => m.ClassOverviewComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN', 'TEACHER'], featureKey: 'REPORT_CARD' }
       },
 
       // ── Admin-only routes ─────────────────────────────────────────────
@@ -198,7 +198,7 @@ export const routes: Routes = [
       {
         path: 'fee-reminders',
         loadComponent: () => import('./components/fee-reminders/fee-reminders.component').then(m => m.FeeRemindersComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_REMINDERS' }
       },
       {
         path: 'teacher-list',
@@ -255,56 +255,56 @@ export const routes: Routes = [
       {
         path: 'fee-structure',
         loadComponent: () => import('./components/fee-structure/fee-structure.component').then(m => m.FeeStructureComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'bus-fees',
         loadComponent: () => import('./components/bus-fees/bus-fees.component').then(m => m.BusFeesComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
-      },
-      {
-        path: 'fee-recalculation',
-        loadComponent: () => import('./components/fee-recalculation/fee-recalculation.component').then(m => m.FeeRecalculationComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
 
       // ── New Fee System (invoice-based) ────────────────────────────────
       {
         path: 'fee-head-management',
         loadComponent: () => import('./components/fee-head-management/fee-head-management.component').then(m => m.FeeHeadManagementComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'fee-rule-config',
         loadComponent: () => import('./components/fee-rule-config/fee-rule-config.component').then(m => m.FeeRuleConfigComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'invoice-management',
         loadComponent: () => import('./components/invoice-management/invoice-management.component').then(m => m.InvoiceManagementComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'invoice-detail/:invoiceId',
         loadComponent: () => import('./components/invoice-detail/invoice-detail.component').then(m => m.InvoiceDetailComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'STUDENT'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN', 'STUDENT'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'student-fees',
         loadComponent: () => import('./components/student-fee-overview/student-fee-overview.component').then(m => m.StudentFeeOverviewComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'student-fees/:studentId',
         loadComponent: () => import('./components/student-fee-overview/student-fee-overview.component').then(m => m.StudentFeeOverviewComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
+      },
+      {
+        path: 'fee-recalculation',
+        loadComponent: () => import('./components/fee-recalculation/fee-recalculation.component').then(m => m.FeeRecalculationComponent),
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
 
       // ── Exam / Results ────────────────────────────────────────────────
       {
         path: 'subject-config',
         loadComponent: () => import('./components/subject-config/subject-config.component').then(m => m.SubjectConfigComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'EXAM_MARKS' }
       },
       {
         path: 'exam-config',
@@ -314,12 +314,12 @@ export const routes: Routes = [
       {
         path: 'student-stream',
         loadComponent: () => import('./components/student-stream/student-stream.component').then(m => m.StudentStreamComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'EXAM_MARKS' }
       },
       {
         path: 'elective-assignment',
         loadComponent: () => import('./components/elective-assignment/elective-assignment.component').then(m => m.ElectiveAssignmentComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'EXAM_MARKS' }
       },
       {
         path: 'mark-entry',
@@ -329,12 +329,12 @@ export const routes: Routes = [
       {
         path: 'my-results',
         loadComponent: () => import('./components/student-results/student-results.component').then(m => m.StudentResultsComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT'], featureKey: 'EXAM_MARKS' }
       },
       {
         path: 'class-results',
         loadComponent: () => import('./components/class-results/class-results.component').then(m => m.ClassResultsComponent),
-        canActivate: [roleGuard], data: { roles: ['TEACHER', 'ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['TEACHER', 'ADMIN'], featureKey: 'EXAM_MARKS' }
       },
       {
         path: 'report-card',
@@ -344,7 +344,7 @@ export const routes: Routes = [
       {
         path: 'report-card-gallery',
         loadComponent: () => import('./components/report-card-demo/report-card-demo.component').then(m => m.ReportCardDemoComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN'] }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'REPORT_CARD' }
       },
 
       // ── Student Dashboard ────────────────────────────────────────────
@@ -396,8 +396,8 @@ export const routes: Routes = [
       {
         path: 'payment',
         loadComponent: () => import('./components/payment/payment.component').then(m => m.PaymentComponent),
-        canActivate: [authGuard],
-        data: { roles: ['STUDENT', 'ADMIN'] }
+        canActivate: [roleGuard, featureGuard],
+        data: { roles: ['STUDENT', 'ADMIN'], featureKey: 'PAYMENT_COLLECTION' }
       },
     ],
   },
