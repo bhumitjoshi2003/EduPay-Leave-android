@@ -35,6 +35,11 @@ export class TeacherBulkImportComponent {
       if (!file.name.endsWith('.csv')) {
         this.importError = 'Only CSV files are accepted.';
         this.selectedFile = null;
+        input.value = '';
+      } else if (file.size > 50 * 1024 * 1024) {
+        this.importError = 'File too large. CSV must be under 50MB.';
+        this.selectedFile = null;
+        input.value = '';
       } else {
         this.importError = '';
         this.selectedFile = file;
@@ -58,6 +63,9 @@ export class TeacherBulkImportComponent {
     if (file) {
       if (!file.name.endsWith('.csv')) {
         this.importError = 'Only CSV files are accepted.';
+        this.selectedFile = null;
+      } else if (file.size > 50 * 1024 * 1024) {
+        this.importError = 'File too large. CSV must be under 50MB.';
         this.selectedFile = null;
       } else {
         this.importError = '';
@@ -116,6 +124,16 @@ export class TeacherBulkImportComponent {
 
   goToTeacherList(): void {
     this.router.navigate(['/dashboard/teacher-list']);
+  }
+
+  downloadErrorCSV(): void {
+    if (!this.result?.errors?.length) return;
+    const escape = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const lines = ['Row,Teacher ID,Error',
+      ...this.result.errors.map((error: BulkImportError) =>
+        [error.row, escape(error.studentId), escape(error.reason)].join(','))
+    ];
+    saveAs(new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' }), 'teacher-import-errors.csv');
   }
 
   trackByRow(index: number, error: BulkImportError): number { return error.row; }

@@ -1,9 +1,14 @@
+@import '../bulk-import/bulk-import.component.css';
+
+/* Legacy teacher-specific theme retained for history; shared student styles are authoritative.
 .import-page {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   padding-bottom: 16px;
 }
+*/
 
-/* ── Hero ─────────────────────────────────────────────────────────── */
+@media not all {
+/* ── Legacy teacher-specific rules disabled ─────────────────────── */
 .bi-hero {
   position: relative;
   background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #34d399 100%);
@@ -505,4 +510,5 @@
   .error-table td {
     padding: 8px 12px;
   }
+}
 }

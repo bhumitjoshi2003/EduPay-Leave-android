@@ -78,7 +78,7 @@
     <ng-container *ngIf="activeTab === 'general'">
 
       <!-- Logo card -->
-      <div class="ss-card">
+      <div class="ss-card ss-general-card ss-general-logo-card">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
             <div class="ss-card-icon-box ss-icon-box-purple">🎨</div>
@@ -126,7 +126,7 @@
 
       <!-- VIEW mode -->
       <ng-container *ngIf="!isEditing">
-        <div class="ss-card">
+        <div class="ss-card ss-general-card ss-general-info-card">
           <div class="ss-card-header">
             <div class="ss-card-title-row">
               <div class="ss-card-icon-box">📋</div>
@@ -306,7 +306,7 @@
 
       <!-- EDIT mode -->
       <ng-container *ngIf="isEditing">
-        <div class="ss-card">
+        <div class="ss-card ss-general-card ss-general-edit-card">
           <div class="ss-card-header">
             <div class="ss-card-title-row">
               <div class="ss-card-icon-box ss-icon-box-warn">✏️</div>
@@ -442,7 +442,7 @@
 
     <!-- ══════════ RAZORPAY TAB ══════════ -->
     <ng-container *ngIf="activeTab === 'razorpay'">
-      <div class="ss-card">
+      <div class="ss-card ss-payment-card">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
             <div class="ss-card-icon-box ss-icon-box-purple">💳</div>
@@ -505,7 +505,7 @@
 
     <!-- ══════════ FEATURES TAB ══════════ -->
     <ng-container *ngIf="activeTab === 'features'">
-      <div class="ss-card">
+      <div class="ss-card ss-features-card">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
             <div class="ss-card-icon-box ss-icon-box-amber">⚡</div>
@@ -838,8 +838,14 @@
       <!-- Status banner -->
       <div class="ss-card" *ngIf="!isEditingStaffAttendance">
         <div class="ss-card-header">
-          <h3 class="ss-card-title">GPS Check-in Configuration</h3>
-          <button class="ss-edit-btn" (click)="startStaffAttendanceEdit()">Edit</button>
+          <div class="ss-card-title-row">
+            <div class="ss-card-icon-box ss-sa-header-icon">📍</div>
+            <div>
+              <h3 class="ss-card-title">GPS Check-in Configuration</h3>
+              <p class="ss-card-subtitle">Location, timing and attendance tracking rules</p>
+            </div>
+          </div>
+          <button class="ss-edit-btn ss-sa-edit-btn" (click)="startStaffAttendanceEdit()">✎ Edit Settings</button>
         </div>
 
         <div *ngIf="!isStaffAttendanceConfigured" class="ss-sa-banner ss-sa-banner-warn">
@@ -894,12 +900,18 @@
       <!-- Edit mode -->
       <div class="ss-card" *ngIf="isEditingStaffAttendance">
         <div class="ss-card-header">
-          <h3 class="ss-card-title">Edit GPS Check-in Settings</h3>
+          <div class="ss-card-title-row">
+            <div class="ss-card-icon-box ss-sa-header-icon">⚙️</div>
+            <div>
+              <h3 class="ss-card-title">Edit GPS Check-in Settings</h3>
+              <p class="ss-card-subtitle">Configure how teachers check in at your school</p>
+            </div>
+          </div>
         </div>
 
         <div class="ss-sa-section">
-          <h4 class="ss-sa-section-title">School Location</h4>
-          <p class="ss-sa-section-desc">Set the GPS coordinates of your school. Teachers must be within the geofence radius to check in.</p>
+          <div class="ss-sa-section-heading"><span class="ss-sa-section-icon">📍</span><div><h4 class="ss-sa-section-title">School Location</h4>
+          <p class="ss-sa-section-desc">Set the GPS coordinates of your school. Teachers must be within the geofence radius to check in.</p></div></div>
           <div class="ss-sa-form-row">
             <div class="ss-sa-field">
               <label class="ss-sa-field-label">Latitude</label>
@@ -919,8 +931,8 @@
         </div>
 
         <div class="ss-sa-section">
-          <h4 class="ss-sa-section-title">Geofence</h4>
-          <p class="ss-sa-section-desc">Maximum distance (in meters) from school where check-in is allowed.</p>
+          <div class="ss-sa-section-heading"><span class="ss-sa-section-icon">◎</span><div><h4 class="ss-sa-section-title">Geofence</h4>
+          <p class="ss-sa-section-desc">Maximum distance (in meters) from school where check-in is allowed.</p></div></div>
           <div class="ss-sa-form-row">
             <div class="ss-sa-field">
               <label class="ss-sa-field-label">Radius (meters)</label>
@@ -934,8 +946,8 @@
         </div>
 
         <div class="ss-sa-section">
-          <h4 class="ss-sa-section-title">Timing</h4>
-          <p class="ss-sa-section-desc">Define when school starts and the check-in window.</p>
+          <div class="ss-sa-section-heading"><span class="ss-sa-section-icon">⏱</span><div><h4 class="ss-sa-section-title">Timing &amp; Tracking</h4>
+          <p class="ss-sa-section-desc">Define when school starts, the check-in window and when attendance tracking begins.</p></div></div>
           <div class="ss-sa-form-row">
             <div class="ss-sa-field">
               <label class="ss-sa-field-label">School Start Time</label>
@@ -976,10 +988,10 @@
         </div>
 
         <div class="ss-sa-actions">
-          <button class="ss-save-btn" (click)="saveStaffAttendanceSettings()" [disabled]="savingStaffAttendance">
-            {{ savingStaffAttendance ? 'Saving...' : 'Save Settings' }}
+          <button class="ss-save-btn ss-sa-save-btn" (click)="saveStaffAttendanceSettings()" [disabled]="savingStaffAttendance">
+            {{ savingStaffAttendance ? 'Saving Settings…' : '✓ Save Settings' }}
           </button>
-          <button class="ss-cancel-btn" (click)="cancelStaffAttendanceEdit()">Cancel</button>
+          <button class="ss-cancel-btn ss-sa-cancel-btn" (click)="cancelStaffAttendanceEdit()">Cancel</button>
         </div>
       </div>
 

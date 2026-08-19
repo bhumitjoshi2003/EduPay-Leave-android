@@ -21,6 +21,11 @@
   <!-- Upload area -->
   <ng-container *ngIf="!result">
 
+    <div class="import-help">
+      <strong>Required columns:</strong> Teacher ID, Teacher Name, Email, Date of Birth (YYYY-MM-DD), Joining Date (YYYY-MM-DD)
+      <br><small>Phone Number, Gender and Class Teacher are optional. Download the template above for the correct format.</small>
+    </div>
+
     <div class="import-help import-help--warning">
       &#128274; <strong>Date of birth is mandatory</strong> and will be used as the initial password in
       YYYYMMDD format. The teacher will be required to change it after their first login.
@@ -130,6 +135,9 @@
     </div>
 
     <div class="action-row action-row--result">
+      <button *ngIf="result?.errors?.length" class="secondary-btn" (click)="downloadErrorCSV()">
+        &#8595; Download Error Report ({{ result!.errors.length }} rows)
+      </button>
       <button class="secondary-btn" (click)="reset()">Import Another File</button>
       <button class="import-btn" (click)="goToTeacherList()">Go to Teacher List</button>
     </div>
