@@ -38,3 +38,39 @@
     gap: 4px;
   }
 }
+
+.fa-preview-detail {
+  padding: 14px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fa-preview-student,
+.fa-preview-month > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fa-preview-student span,
+.fa-preview-month span {
+  display: block;
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.fa-preview-month {
+  margin-top: 9px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f0fdfa;
+}
+
+.fa-preview-month.ineligible {
+  background: #f8fafc;
+  opacity: 0.82;
+}
+
+.fa-preview-month p {
+  margin-top: 6px;
+  color: #475569;
+}

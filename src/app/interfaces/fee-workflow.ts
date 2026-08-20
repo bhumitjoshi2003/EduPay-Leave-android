@@ -11,7 +11,7 @@ export interface FeeAssignmentRow {
   status: FeeAssignmentStatus; effectiveDate?: string; selectedMonths: number[]; generatedMonths: number; message?: string;
 }
 export interface FeeAssignmentSummary { totalStudents: number; notAssigned: number; ready: number; generated: number; partial: number; excluded: number; failed: number; }
-export interface FeeMonthPreview { month: number; existing: boolean; eligible: boolean; baseAmount: number; discountAmount: number; busFee: number; totalAmount: number; message?: string; }
+export interface FeeMonthPreview { month: number; existing: boolean; eligible: boolean; baseAmount: number; discountAmount: number; busFee: number; totalAmount: number; billingEffectiveDate?: string; prorationFactor?: number; message?: string; }
 export interface FeeStudentPreview { studentId: string; studentName: string; eligible: boolean; totalAmount: number; months: FeeMonthPreview[]; message?: string; }
 export interface FeeGenerationResult { studentId: string; generated: number; skipped: number; successful: boolean; message: string; }
 export interface FeeAssignmentRequest { studentIds: string[]; academicSession: string; effectiveDate: string; months: number[]; reason?: string; }
