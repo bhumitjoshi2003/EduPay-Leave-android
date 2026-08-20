@@ -30,3 +30,6 @@ export interface FeeWorkflowChangeResult {
   requestedStudents: number; savedStudents: number; recalculatedMonths: number; skippedMonths: number;
   students: FeeStudentRecalculationResult[];
 }
+export interface FeeDiscountHistoryRow { id: number; studentId: string; feeHeadId: number; feeHeadName: string; configType: FeeConfigType; value?: number; validFrom: string; validUntil?: string; reason?: string; approvedBy?: string; createdAt?: string; revokedAt?: string; revokedBy?: string; revokeReason?: string; }
+export interface FeeTransportHistoryRow { id: number; studentId: string; enabled: boolean; distance?: number; effectiveFrom: string; effectiveTo?: string; reason?: string; changedBy?: string; createdAt?: string; }
+export interface FeeLifecycleHistory { studentId: string; academicSession: string; discounts: FeeDiscountHistoryRow[]; transport: FeeTransportHistoryRow[]; }

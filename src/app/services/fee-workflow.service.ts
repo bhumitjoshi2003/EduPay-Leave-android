@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { BulkDiscountRequest, FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeGenerationResult, FeeStudentPreview, FeeWorkflowChangeResult, FeeWorkflowSettings } from '../interfaces/fee-workflow';
+import { BulkDiscountRequest, FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeConfigType, FeeDiscountHistoryRow, FeeGenerationResult, FeeLifecycleHistory, FeeStudentPreview, FeeTransportHistoryRow, FeeWorkflowChangeResult, FeeWorkflowSettings } from '../interfaces/fee-workflow';
 
 @Injectable({ providedIn: 'root' })
 export class FeeWorkflowService {
@@ -25,4 +25,9 @@ export class FeeWorkflowService {
     return this.http.post<FeeWorkflowChangeResult>(`${this.url}/transport`, value);
   }
   applyBulkDiscount(value: BulkDiscountRequest): Observable<FeeWorkflowChangeResult> { return this.http.post<FeeWorkflowChangeResult>(`${this.url}/discounts`, value); }
+  getHistory(studentId: string, session: string): Observable<FeeLifecycleHistory> { return this.http.get<FeeLifecycleHistory>(`${this.url}/history/${encodeURIComponent(studentId)}`, { params: { session } }); }
+  updateFutureDiscount(id: number, value: { configType: FeeConfigType; value: number | null; validFrom: string; validUntil?: string; reason: string }): Observable<FeeDiscountHistoryRow> { return this.http.put<FeeDiscountHistoryRow>(`${this.url}/discounts/${id}/future`, value); }
+  expireDiscount(id: number, effectiveFrom: string, reason: string): Observable<FeeWorkflowChangeResult> { return this.http.post<FeeWorkflowChangeResult>(`${this.url}/discounts/${id}/expire`, { effectiveFrom, reason }); }
+  revokeFutureDiscount(id: number, reason: string): Observable<FeeDiscountHistoryRow> { return this.http.post<FeeDiscountHistoryRow>(`${this.url}/discounts/${id}/revoke-future`, { reason }); }
+  correctFutureTransport(id: number, enabled: boolean, distance: number | null, reason: string): Observable<FeeTransportHistoryRow> { return this.http.put<FeeTransportHistoryRow>(`${this.url}/transport/${id}/future`, { enabled, distance, reason }); }
 }
