@@ -3,14 +3,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, Subject, takeUntil } from 'rxjs';
 import { AcademicSession } from '../../interfaces/academic-session';
-import { FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeConfigType, FeeGenerationResult, FeeStudentPreview, FeeWorkflowSettings } from '../../interfaces/fee-workflow';
+import { FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeConfigType, FeeGenerationResult, FeeStudentPreview, FeeWorkflowChangeResult, FeeWorkflowSettings } from '../../interfaces/fee-workflow';
 import { FeeHead } from '../../interfaces/fee-head';
 import { AcademicSessionService } from '../../services/academic-session.service';
 import { FeeWorkflowService } from '../../services/fee-workflow.service';
 import { FeeHeadService } from '../../services/fee-head.service';
 import { ToastService } from '../../services/toast.service';
 
-@Component({ selector: 'app-fee-assignment', standalone: true, imports: [CommonModule, FormsModule], templateUrl: './fee-assignment.component.html', styleUrl: './fee-assignment.component.css' })
+@Component({ selector: 'app-fee-assignment', standalone: true, imports: [CommonModule, FormsModule], templateUrl: './fee-assignment.component.html', styleUrls: ['./fee-assignment.component.css', './fee-assignment-phase2.component.css'] })
 export class FeeAssignmentComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   sessions: AcademicSession[] = []; session = ''; classFilter = ''; statusFilter: FeeAssignmentStatus | '' = '';
@@ -18,6 +18,7 @@ export class FeeAssignmentComponent implements OnInit, OnDestroy {
   selected = new Set<string>(); months = Array.from({ length: 12 }, (_, i) => i + 1); selectedMonths = new Set<number>();
   effectiveDate = new Date().toISOString().slice(0, 10); reason = ''; loading = true; working = false;
   previewRows: FeeStudentPreview[] = []; results: FeeGenerationResult[] = [];
+  changeResult?: FeeWorkflowChangeResult;
   transportEnabled = false; transportDistance: number | null = null;
   feeHeads: FeeHead[] = []; discountFeeHeadId: number | null = null; discountType: FeeConfigType = 'DISCOUNT_PERCENT';
   discountValue: number | null = null; discountUntil = '';
@@ -48,7 +49,7 @@ export class FeeAssignmentComponent implements OnInit, OnDestroy {
   exclude(): void { const req = this.request(); if (!req || !this.reason.trim()) { this.toast.warning('Reason required', 'Enter a reason before excluding students.'); return; } this.run(() => this.workflow.exclude(req), 'Students excluded from fees.'); }
   preview(): void { const req = this.request(); if (!req) return; this.working = true; this.workflow.preview(req).pipe(takeUntil(this.destroy$)).subscribe({ next: x => { this.previewRows = x; this.working = false; }, error: e => { this.working = false; this.toast.error('Preview failed', e.error?.error || 'Unable to calculate fees.'); } }); }
   async generate(): Promise<void> { const req = this.request(); if (!req) return; const ok = await this.toast.confirm({ title: 'Generate fee charges?', message: `Create ${req.months.length} month(s) for ${req.studentIds.length} selected student(s)? Existing months will be skipped.`, icon: 'warning', confirmText: 'Generate', cancelText: 'Cancel' }); if (!ok) return; this.working = true; this.workflow.generate(req).pipe(takeUntil(this.destroy$)).subscribe({ next: x => { this.results = x; this.working = false; this.toast.success('Generation completed', `${x.filter(r => r.successful).length} student(s) processed successfully.`); this.reload(); }, error: e => { this.working = false; this.toast.error('Generation failed', e.error?.error || 'No charges were generated.'); } }); }
-  updateTransport(): void { const req = this.request(); if (!req || !this.reason.trim()) { this.toast.warning('Reason required', 'Enter a reason for the transport change.'); return; } if (this.transportEnabled && (!this.transportDistance || this.transportDistance <= 0)) { this.toast.warning('Distance required', 'Enter a positive transport distance.'); return; } this.run(() => this.workflow.changeTransport({ studentIds: req.studentIds, academicSession: req.academicSession, enabled: this.transportEnabled, distance: this.transportEnabled ? this.transportDistance : null, effectiveFrom: req.effectiveDate, reason: this.reason }), 'Transport assignment updated. Preview and recalculate any existing unpaid months.'); }
+  updateTransport(): void { const req = this.request(); if (!req || !this.reason.trim()) { this.toast.warning('Reason required', 'Enter a reason for the transport change.'); return; } if (this.transportEnabled && (!this.transportDistance || this.transportDistance <= 0)) { this.toast.warning('Distance required', 'Enter a positive transport distance.'); return; } this.runChange(() => this.workflow.changeTransport({ studentIds: req.studentIds, academicSession: req.academicSession, enabled: this.transportEnabled, distance: this.transportEnabled ? this.transportDistance : null, effectiveFrom: req.effectiveDate, reason: this.reason }), 'Transport assignment updated.'); }
   applyDiscount(): void {
     const selectedSession = this.sessions.find(value => value.label === this.session);
     if (!this.selected.size || !selectedSession || !this.discountFeeHeadId || !this.effectiveDate || !this.reason.trim()) { this.toast.warning('Discount details required', 'Select students, a fee head, start date and enter a reason.'); return; }
@@ -57,7 +58,14 @@ export class FeeAssignmentComponent implements OnInit, OnDestroy {
     const storedValue = needsValue && this.discountValue !== null
       ? (this.discountType === 'DISCOUNT_PERCENT' ? this.discountValue : Math.round(this.discountValue * 100))
       : null;
-    this.run(() => this.workflow.applyBulkDiscount({ studentIds: [...this.selected], academicSessionId: selectedSession.id, feeHeadId: this.discountFeeHeadId!, configType: this.discountType, value: storedValue, validFrom: this.effectiveDate, validUntil: this.discountUntil || undefined, reason: this.reason }), 'Discount configuration applied. It will be used when eligible fee months are generated.');
+    this.runChange(() => this.workflow.applyBulkDiscount({ studentIds: [...this.selected], academicSessionId: selectedSession.id, feeHeadId: this.discountFeeHeadId!, configType: this.discountType, value: storedValue, validFrom: this.effectiveDate, validUntil: this.discountUntil || undefined, reason: this.reason }), 'Discount configuration applied.');
+  }
+  private runChange(action: () => import('rxjs').Observable<FeeWorkflowChangeResult>, message: string): void {
+    this.working = true; this.changeResult = undefined;
+    action().pipe(takeUntil(this.destroy$)).subscribe({
+      next: result => { this.working = false; this.changeResult = result; this.toast.success('Completed', `${message} ${result.recalculatedMonths} month(s) recalculated; ${result.skippedMonths} protected/skipped.`); },
+      error: e => { this.working = false; this.toast.error('Action failed', e.error?.error || 'Please review the selection.'); }
+    });
   }
   private run(action: () => any, message: string): void { this.working = true; action().pipe(takeUntil(this.destroy$)).subscribe({ next: () => { this.working = false; this.toast.success('Completed', message); this.reload(); }, error: (e: any) => { this.working = false; this.toast.error('Action failed', e.error?.error || 'Please review the selection.'); } }); }
   trackByStudent(_: number, row: FeeAssignmentRow): string { return row.studentId; }

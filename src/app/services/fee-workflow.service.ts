@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { BulkDiscountRequest, FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeGenerationResult, FeeStudentPreview, FeeWorkflowSettings } from '../interfaces/fee-workflow';
+import { BulkDiscountRequest, FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeGenerationResult, FeeStudentPreview, FeeWorkflowChangeResult, FeeWorkflowSettings } from '../interfaces/fee-workflow';
 
 @Injectable({ providedIn: 'root' })
 export class FeeWorkflowService {
@@ -21,8 +21,8 @@ export class FeeWorkflowService {
   exclude(value: FeeAssignmentRequest): Observable<unknown> { return this.http.post(`${this.url}/assignments/exclude`, value); }
   preview(value: FeeAssignmentRequest): Observable<FeeStudentPreview[]> { return this.http.post<FeeStudentPreview[]>(`${this.url}/preview`, value); }
   generate(value: FeeAssignmentRequest): Observable<FeeGenerationResult[]> { return this.http.post<FeeGenerationResult[]>(`${this.url}/generate`, value); }
-  changeTransport(value: { studentIds: string[]; academicSession: string; enabled: boolean; distance: number | null; effectiveFrom: string; reason: string }): Observable<unknown> {
-    return this.http.post(`${this.url}/transport`, value);
+  changeTransport(value: { studentIds: string[]; academicSession: string; enabled: boolean; distance: number | null; effectiveFrom: string; reason: string }): Observable<FeeWorkflowChangeResult> {
+    return this.http.post<FeeWorkflowChangeResult>(`${this.url}/transport`, value);
   }
-  applyBulkDiscount(value: BulkDiscountRequest): Observable<unknown> { return this.http.post(`${this.url}/discounts`, value); }
+  applyBulkDiscount(value: BulkDiscountRequest): Observable<FeeWorkflowChangeResult> { return this.http.post<FeeWorkflowChangeResult>(`${this.url}/discounts`, value); }
 }

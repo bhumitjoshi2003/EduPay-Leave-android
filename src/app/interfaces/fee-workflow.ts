@@ -20,3 +20,13 @@ export interface BulkDiscountRequest {
   studentIds: string[]; academicSessionId: number; feeHeadId: number; configType: FeeConfigType;
   value: number | null; validFrom: string; validUntil?: string; reason: string;
 }
+export interface FeeRecalculationEntry {
+  month: number; ok: boolean; message?: string;
+  oldBaseAmountDue?: number; oldBusFeeDue?: number; oldDiscountAmount?: number; oldTotalDue?: number;
+  newBaseAmountDue?: number; newBusFeeDue?: number; newDiscountAmount?: number; newTotalDue?: number;
+}
+export interface FeeStudentRecalculationResult { studentId: string; changeSaved: boolean; months: FeeRecalculationEntry[]; message?: string; }
+export interface FeeWorkflowChangeResult {
+  requestedStudents: number; savedStudents: number; recalculatedMonths: number; skippedMonths: number;
+  students: FeeStudentRecalculationResult[];
+}
