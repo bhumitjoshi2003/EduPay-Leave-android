@@ -115,3 +115,4 @@
 .fa-batch strong,.fa-batch span { display: block; }
 .fa-batch span { margin-top: 4px; }
 @media (max-width: 900px) { .fa-ops-stats { grid-template-columns: repeat(2,1fr); } .fa-batch { grid-template-columns: 1fr; } }
+.fa-legacy { border-color: #bae6fd; background: linear-gradient(145deg,#fff,#f0f9ff); }
