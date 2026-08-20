@@ -105,3 +105,13 @@
   .fa-history-row { grid-template-columns: 1fr; }
   .fa-history-actions { justify-content: flex-start; }
 }
+
+.fa-ops-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 9px; margin-bottom: 14px; }
+.fa-ops-stats div { display: grid; gap: 3px; padding: 12px; border-radius: 11px; background: #f0fdfa; }
+.fa-ops-stats span,.fa-batch span { color: #64748b; font-size: 0.7rem; }
+.fa-missing { color: #b91c1c; }
+.fa-batch-list { display: grid; gap: 9px; }
+.fa-batch { display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: center; gap: 14px; padding: 13px 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.fa-batch strong,.fa-batch span { display: block; }
+.fa-batch span { margin-top: 4px; }
+@media (max-width: 900px) { .fa-ops-stats { grid-template-columns: repeat(2,1fr); } .fa-batch { grid-template-columns: 1fr; } }

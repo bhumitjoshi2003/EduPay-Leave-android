@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { BulkDiscountRequest, FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeConfigType, FeeDiscountHistoryRow, FeeGenerationResult, FeeLifecycleHistory, FeeStudentPreview, FeeTransportHistoryRow, FeeWorkflowChangeResult, FeeWorkflowSettings } from '../interfaces/fee-workflow';
+import { BulkDiscountRequest, FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeConfigType, FeeDiscountHistoryRow, FeeGenerationBatchRow, FeeGenerationResult, FeeLifecycleHistory, FeeReconciliationSummary, FeeStudentPreview, FeeTransportHistoryRow, FeeWorkflowChangeResult, FeeWorkflowSettings } from '../interfaces/fee-workflow';
 
 @Injectable({ providedIn: 'root' })
 export class FeeWorkflowService {
@@ -21,6 +21,9 @@ export class FeeWorkflowService {
   exclude(value: FeeAssignmentRequest): Observable<unknown> { return this.http.post(`${this.url}/assignments/exclude`, value); }
   preview(value: FeeAssignmentRequest): Observable<FeeStudentPreview[]> { return this.http.post<FeeStudentPreview[]>(`${this.url}/preview`, value); }
   generate(value: FeeAssignmentRequest): Observable<FeeGenerationResult[]> { return this.http.post<FeeGenerationResult[]>(`${this.url}/generate`, value); }
+  getGenerationBatches(session: string): Observable<FeeGenerationBatchRow[]> { return this.http.get<FeeGenerationBatchRow[]>(`${this.url}/generation-batches`, { params: { session } }); }
+  retryGenerationBatch(id: number): Observable<FeeGenerationResult[]> { return this.http.post<FeeGenerationResult[]>(`${this.url}/generation-batches/${id}/retry`, {}); }
+  getReconciliation(session: string): Observable<FeeReconciliationSummary> { return this.http.get<FeeReconciliationSummary>(`${this.url}/reconciliation`, { params: { session } }); }
   changeTransport(value: { studentIds: string[]; academicSession: string; enabled: boolean; distance: number | null; effectiveFrom: string; reason: string }): Observable<FeeWorkflowChangeResult> {
     return this.http.post<FeeWorkflowChangeResult>(`${this.url}/transport`, value);
   }

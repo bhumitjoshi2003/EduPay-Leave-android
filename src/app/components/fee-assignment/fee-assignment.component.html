@@ -8,11 +8,23 @@
       <label>Activation date<input type="date" [(ngModel)]="settings.activationDate"></label>
       <label>Mid-session policy<select [(ngModel)]="settings.midSessionPolicy"><option value="FROM_EFFECTIVE_MONTH">Charge effective month</option><option value="NEXT_MONTH">Start next month</option><option value="PRORATE_JOINING_MONTH">Prorate joining month</option></select></label>
       <label class="fa-check"><input type="checkbox" [(ngModel)]="settings.allowRetroactiveGeneration"> Allow backdated charges</label>
-      <label class="fa-check"><input type="checkbox" [(ngModel)]="settings.automaticAnnualGeneration"> Automatic annual generation</label>
     </div>
+    <p class="fa-note">Fee charges are always generated manually by an admin after preview. Saving these settings never creates charges.</p>
   </section>
 
   <section class="fa-stats" *ngIf="summary"><div><strong>{{summary.totalStudents}}</strong><span>Students</span></div><div><strong>{{summary.notAssigned}}</strong><span>Not assigned</span></div><div><strong>{{summary.ready}}</strong><span>Ready</span></div><div><strong>{{summary.generated}}</strong><span>Generated</span></div><div><strong>{{summary.failed}}</strong><span>Needs attention</span></div></section>
+
+  <section class="fa-card" *ngIf="reconciliation">
+    <div class="fa-card-head"><div><h2>Generation reconciliation</h2><p>Compare the months assigned by an admin with the fee rows actually created.</p></div><label class="fa-check"><input type="checkbox" [(ngModel)]="showOnlyMissing"> Show attention needed only</label></div>
+    <div class="fa-ops-stats"><div><strong>{{reconciliation.fullyGenerated}}</strong><span>Complete</span></div><div><strong>{{reconciliation.partiallyGenerated}}</strong><span>Partial</span></div><div><strong>{{reconciliation.notAssigned}}</strong><span>Not assigned</span></div><div><strong>{{reconciliation.failed}}</strong><span>Failed</span></div><div><strong>{{reconciliation.missingMonthCount}}</strong><span>Missing months</span></div></div>
+    <div class="fa-table-wrap"><table><thead><tr><th>Student</th><th>Class</th><th>Status</th><th>Assigned</th><th>Generated</th><th>Missing</th></tr></thead><tbody><tr *ngFor="let row of visibleReconciliationRows()"><td><strong>{{row.studentName}}</strong><small>{{row.studentId}}</small></td><td>{{row.className}}</td><td><span class="fa-badge">{{row.status}}</span><small *ngIf="row.message">{{row.message}}</small></td><td>{{row.assignedMonths.join(', ') || '—'}}</td><td>{{row.generatedMonths.join(', ') || '—'}}</td><td><strong class="fa-missing">{{row.missingMonths.join(', ') || '—'}}</strong></td></tr><tr *ngIf="!visibleReconciliationRows().length"><td colspan="6" class="fa-empty">No students currently need attention.</td></tr></tbody></table></div>
+  </section>
+
+  <section class="fa-card">
+    <div class="fa-card-head"><div><h2>Recent manual generation batches</h2><p>The latest 25 admin-triggered runs for this session. Failed students can be retried without duplicating existing months.</p></div></div>
+    <div class="fa-batch-list" *ngIf="generationBatches.length; else noBatches"><article class="fa-batch" *ngFor="let batch of generationBatches"><div><strong>Batch #{{batch.id}}</strong><span>{{batch.startedAt | date:'medium'}} · {{batch.initiatedBy}}</span></div><div><strong>{{batch.status}}</strong><span>{{batch.successfulStudents}} successful · {{batch.failedStudents}} failed</span></div><div><strong>{{batch.generatedMonths}} created</strong><span>{{batch.skippedMonths}} safely skipped · months {{batch.selectedMonths.join(', ')}}</span></div><button class="fa-secondary danger" *ngIf="batch.failedStudents" (click)="retryBatch(batch)" [disabled]="working">Retry failed</button></article></div>
+    <ng-template #noBatches><p class="fa-empty-block">No manual generation batches have been run for this session.</p></ng-template>
+  </section>
 
   <section class="fa-card">
     <div class="fa-card-head"><div><h2>Students and billing period</h2><p>Select multiple students and multiple academic months.</p></div></div>
