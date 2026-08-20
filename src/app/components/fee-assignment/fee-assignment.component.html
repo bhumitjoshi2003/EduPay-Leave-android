@@ -12,6 +12,13 @@
     <p class="fa-note">Fee charges are always generated manually by an admin after preview. Saving these settings never creates charges.</p>
   </section>
 
+  <section class="fa-card fa-readiness" *ngIf="readiness">
+    <div class="fa-card-head"><div><h2>Deployment readiness</h2><p>Preflight checks for {{readiness.academicSession}} before an admin generates real charges.</p></div><span class="fa-readiness-state" [class.ready]="readiness.readyToGenerate">{{readiness.readyToGenerate ? 'READY' : readiness.blockerCount + ' BLOCKER(S)'}}</span></div>
+    <div class="fa-ops-stats"><div><strong>{{readiness.configuredClasses}}</strong><span>Classes configured</span></div><div><strong>{{readiness.missingConfigurationClasses}}</strong><span>Missing structures</span></div><div><strong>{{readiness.unassignedStudents}}</strong><span>Unassigned students</span></div><div><strong>{{readiness.legacyStudents}}</strong><span>Legacy records</span></div></div>
+    <div class="fa-readiness-list" *ngIf="readiness.issues.length; else readinessClear"><article *ngFor="let issue of readiness.issues" [attr.data-severity]="issue.severity"><strong>{{issue.severity}}</strong><div><b>{{issue.className || issue.code}}</b><span>{{issue.message}}<ng-container *ngIf="issue.affectedStudents != null"> ({{issue.affectedStudents}} student(s))</ng-container></span></div></article></div>
+    <ng-template #readinessClear><p class="fa-empty-block">All preflight checks passed. Preview the selected students and months before generation.</p></ng-template>
+  </section>
+
   <section class="fa-stats" *ngIf="summary"><div><strong>{{summary.totalStudents}}</strong><span>Students</span></div><div><strong>{{summary.notAssigned}}</strong><span>Not assigned</span></div><div><strong>{{summary.ready}}</strong><span>Ready</span></div><div><strong>{{summary.generated}}</strong><span>Generated</span></div><div><strong>{{summary.failed}}</strong><span>Needs attention</span></div></section>
 
   <section class="fa-card fa-legacy" *ngIf="legacyCandidates.length">

@@ -38,3 +38,5 @@ export interface FeeReconciliationRow { studentId: string; studentName: string; 
 export interface FeeReconciliationSummary { totalStudents: number; fullyGenerated: number; partiallyGenerated: number; notAssigned: number; failed: number; missingMonthCount: number; students: FeeReconciliationRow[]; }
 export interface LegacyFeeCandidate { studentId: string; studentName: string; className: string; existingMonths: number[]; earliestBillingDate?: string; }
 export interface LegacyFeeAdoptionResult { requestedStudents: number; adoptedStudents: number; skippedStudentIds: string[]; }
+export interface FeeReadinessIssue { severity: 'BLOCKER'|'WARNING'; code: string; message: string; className?: string; affectedStudents?: number; }
+export interface FeeReadinessReport { academicSession: string; readyToGenerate: boolean; blockerCount: number; warningCount: number; configuredClasses: number; missingConfigurationClasses: number; unassignedStudents: number; failedStudents: number; legacyStudents: number; issues: FeeReadinessIssue[]; }

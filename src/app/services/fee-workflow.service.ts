@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { BulkDiscountRequest, FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeConfigType, FeeDiscountHistoryRow, FeeGenerationBatchRow, FeeGenerationResult, FeeLifecycleHistory, FeeReconciliationSummary, FeeStudentPreview, FeeTransportHistoryRow, FeeWorkflowChangeResult, FeeWorkflowSettings, LegacyFeeAdoptionResult, LegacyFeeCandidate } from '../interfaces/fee-workflow';
+import { BulkDiscountRequest, FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeConfigType, FeeDiscountHistoryRow, FeeGenerationBatchRow, FeeGenerationResult, FeeLifecycleHistory, FeeReadinessReport, FeeReconciliationSummary, FeeStudentPreview, FeeTransportHistoryRow, FeeWorkflowChangeResult, FeeWorkflowSettings, LegacyFeeAdoptionResult, LegacyFeeCandidate } from '../interfaces/fee-workflow';
 
 @Injectable({ providedIn: 'root' })
 export class FeeWorkflowService {
@@ -26,6 +26,7 @@ export class FeeWorkflowService {
   getReconciliation(session: string): Observable<FeeReconciliationSummary> { return this.http.get<FeeReconciliationSummary>(`${this.url}/reconciliation`, { params: { session } }); }
   getLegacyCandidates(session: string): Observable<LegacyFeeCandidate[]> { return this.http.get<LegacyFeeCandidate[]>(`${this.url}/legacy-candidates`, { params: { session } }); }
   adoptLegacyFees(session: string, studentIds: string[], reason: string): Observable<LegacyFeeAdoptionResult> { return this.http.post<LegacyFeeAdoptionResult>(`${this.url}/legacy-adoptions`, { academicSession: session, studentIds, reason }); }
+  getReadiness(session: string): Observable<FeeReadinessReport> { return this.http.get<FeeReadinessReport>(`${this.url}/readiness`, { params: { session } }); }
   changeTransport(value: { studentIds: string[]; academicSession: string; enabled: boolean; distance: number | null; effectiveFrom: string; reason: string }): Observable<FeeWorkflowChangeResult> {
     return this.http.post<FeeWorkflowChangeResult>(`${this.url}/transport`, value);
   }

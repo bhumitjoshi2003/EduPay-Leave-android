@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, Subject, takeUntil } from 'rxjs';
 import { AcademicSession } from '../../interfaces/academic-session';
-import { FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeConfigType, FeeDiscountHistoryRow, FeeGenerationBatchRow, FeeGenerationResult, FeeLifecycleHistory, FeeReconciliationSummary, FeeStudentPreview, FeeTransportHistoryRow, FeeWorkflowChangeResult, FeeWorkflowSettings, LegacyFeeCandidate } from '../../interfaces/fee-workflow';
+import { FeeAssignmentRequest, FeeAssignmentRow, FeeAssignmentStatus, FeeAssignmentSummary, FeeConfigType, FeeDiscountHistoryRow, FeeGenerationBatchRow, FeeGenerationResult, FeeLifecycleHistory, FeeReadinessReport, FeeReconciliationSummary, FeeStudentPreview, FeeTransportHistoryRow, FeeWorkflowChangeResult, FeeWorkflowSettings, LegacyFeeCandidate } from '../../interfaces/fee-workflow';
 import { FeeHead } from '../../interfaces/fee-head';
 import { AcademicSessionService } from '../../services/academic-session.service';
 import { FeeWorkflowService } from '../../services/fee-workflow.service';
@@ -25,6 +25,7 @@ export class FeeAssignmentComponent implements OnInit, OnDestroy {
   history?: FeeLifecycleHistory; editingDiscountId: number | null = null; editingTransportId: number | null = null;
   generationBatches: FeeGenerationBatchRow[] = []; reconciliation?: FeeReconciliationSummary; showOnlyMissing = true;
   legacyCandidates: LegacyFeeCandidate[] = []; selectedLegacy = new Set<string>();
+  readiness?: FeeReadinessReport;
   readonly statuses: FeeAssignmentStatus[] = ['NOT_ASSIGNED','READY','GENERATED','PARTIALLY_GENERATED','EXCLUDED','GENERATION_FAILED'];
 
   constructor(private workflow: FeeWorkflowService, private sessionsApi: AcademicSessionService, private feeHeadsApi: FeeHeadService, private toast: ToastService) {}
@@ -36,8 +37,8 @@ export class FeeAssignmentComponent implements OnInit, OnDestroy {
   }
   reload(): void {
     if (!this.session) { this.loading = false; return; } this.loading = true; this.selected.clear(); this.previewRows = [];
-    forkJoin({ rows: this.workflow.getAssignments(this.session, this.classFilter || undefined, this.statusFilter || undefined), summary: this.workflow.getSummary(this.session), batches: this.workflow.getGenerationBatches(this.session), reconciliation: this.workflow.getReconciliation(this.session), legacy: this.workflow.getLegacyCandidates(this.session) })
-      .pipe(takeUntil(this.destroy$)).subscribe({ next: x => { this.rows = x.rows; this.summary = x.summary; this.generationBatches = x.batches; this.reconciliation = x.reconciliation; this.legacyCandidates = x.legacy; this.selectedLegacy.clear(); this.loading = false; }, error: () => { this.loading = false; this.toast.error('Unable to load', 'Student fee assignments and operational status could not be loaded.'); } });
+    forkJoin({ rows: this.workflow.getAssignments(this.session, this.classFilter || undefined, this.statusFilter || undefined), summary: this.workflow.getSummary(this.session), batches: this.workflow.getGenerationBatches(this.session), reconciliation: this.workflow.getReconciliation(this.session), legacy: this.workflow.getLegacyCandidates(this.session), readiness: this.workflow.getReadiness(this.session) })
+      .pipe(takeUntil(this.destroy$)).subscribe({ next: x => { this.rows = x.rows; this.summary = x.summary; this.generationBatches = x.batches; this.reconciliation = x.reconciliation; this.legacyCandidates = x.legacy; this.readiness = x.readiness; this.selectedLegacy.clear(); this.loading = false; }, error: () => { this.loading = false; this.toast.error('Unable to load', 'Student fee assignments and operational status could not be loaded.'); } });
   }
   saveSettings(): void { if (!this.settings) return; this.working = true; this.workflow.updateSettings(this.settings).pipe(takeUntil(this.destroy$)).subscribe({ next: x => { this.settings = x; this.working = false; this.toast.success('Fee settings saved'); }, error: e => { this.working = false; this.toast.error('Could not save', e.error?.error || 'Please check the settings.'); } }); }
   toggleStudent(id: string): void { this.selected.has(id) ? this.selected.delete(id) : this.selected.add(id); this.clearLifecycleSelection(); }
