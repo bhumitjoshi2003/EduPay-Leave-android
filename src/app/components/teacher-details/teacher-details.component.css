@@ -229,6 +229,11 @@
   padding: 0;
   flex: 0 0 40px;
 }
+.td-password-icon {
+  font-size: 1.18rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 3px rgba(23, 37, 45, 0.22));
+}
 .td-card {
   margin-top: 18px;
   padding: 24px;
@@ -480,14 +485,14 @@
     margin-bottom: 9px;
   }
   .td-hero {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     min-height: 0;
-    padding: 17px;
+    padding: 14px 56px 14px 15px;
     align-items: center;
-    flex-direction: column;
-    gap: 13px;
+    gap: 12px;
     border-radius: 18px;
-    text-align: center;
+    text-align: left;
     background: radial-gradient(
         circle at 100% 0,
         rgba(255, 255, 255, 0.15) 0 55px,
@@ -496,36 +501,39 @@
       linear-gradient(125deg, #123b46, #078793);
   }
   .photo-wrapper {
-    width: 66px;
-    height: 66px;
-    border-radius: 18px;
+    width: 58px;
+    height: 58px;
+    border-width: 2px;
+    border-radius: 16px;
+    box-shadow: 0 8px 18px rgba(7, 43, 51, 0.22);
   }
   .photo-initials {
     font-size: 1.55rem;
   }
   .td-hero-badge {
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     padding: 3px 7px;
     font-size: 0.52rem;
   }
   .td-hero-name {
-    font-size: 1.18rem;
+    font-size: 1.12rem;
     line-height: 1.15;
   }
   .td-hero-meta {
-    justify-content: center;
     gap: 5px 8px;
-    margin-top: 7px;
+    margin-top: 6px;
   }
   .td-hero-meta span {
     font-size: 0.59rem;
   }
   .td-hero-actions {
+    position: static;
     display: flex;
-    width: 100%;
-    justify-content: center;
+    width: auto;
+    max-width: 130px;
+    justify-content: flex-end;
     flex-wrap: wrap;
-    gap: 7px;
+    gap: 6px;
   }
   .td-btn {
     width: auto;
@@ -534,13 +542,24 @@
     font-size: 0.65rem;
   }
   .td-btn:not(.td-btn-icon) {
-    min-width: 118px;
+    min-width: 104px;
   }
   .td-btn-icon {
-    width: 38px;
-    min-width: 38px;
+    position: absolute;
+    top: 11px;
+    right: 11px;
+    width: 34px;
+    min-width: 34px;
+    min-height: 34px;
     padding: 0;
-    flex-basis: 38px;
+    flex-basis: 34px;
+    border-color: rgba(255, 215, 64, 0.45);
+    background: rgba(255, 193, 7, 0.14);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    z-index: 2;
+  }
+  .td-password-icon {
+    font-size: 1rem;
   }
   .td-card {
     margin-top: 12px;
@@ -585,7 +604,8 @@
 }
 @media (max-width: 360px) {
   .td-hero {
-    padding: 14px;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 13px 52px 13px 13px;
   }
   .photo-wrapper {
     width: 54px;
@@ -594,5 +614,11 @@
   }
   .td-hero-meta span:last-child {
     display: none;
+  }
+  .td-hero-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+    justify-content: center;
   }
 }
