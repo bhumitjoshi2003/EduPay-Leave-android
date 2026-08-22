@@ -7,11 +7,30 @@ import { TeacherAttendanceRecord, TeacherAttendanceSummary } from '../../interfa
 import { AuthStateService } from '../../auth/auth-state.service';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation, Position } from '@capacitor/geolocation';
 
 interface CalendarDay {
   date: number | null;
   status: string;
   fullDate: string;
+}
+
+interface LocationFix {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  timestamp: number;
+}
+
+class AttendanceLocationError extends Error {
+  constructor(
+    message: string,
+    readonly kind: 'PERMISSION' | 'DISABLED' | 'TIMEOUT' | 'UNAVAILABLE' | 'INACCURATE'
+  ) {
+    super(message);
+    this.name = 'AttendanceLocationError';
+  }
 }
 
 @Component({
@@ -24,6 +43,10 @@ interface CalendarDay {
 })
 export class TeacherCheckinComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private readonly preferredAccuracyMetres = 50;
+  private readonly maximumAccuracyMetres = 100;
+  private readonly locationSamplingTimeoutMs = 25000;
+  private readonly maximumLocationAgeMs = 15000;
 
   userName = '';
   currentTime = '';
@@ -233,18 +256,122 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   }
 
   private async getPosition(): Promise<{ latitude: number; longitude: number }> {
-    const cap = (window as any).Capacitor;
-    if (cap?.isNativePlatform?.()) {
-      try {
-        const { Geolocation } = await import('@capacitor/geolocation');
-        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000 });
-        return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
-      } catch (e) {
-        // Fallback to browser geolocation
-        return this.getBrowserPosition();
-      }
+    if (Capacitor.isNativePlatform()) {
+      await this.ensureNativeLocationPermission();
+      const fix = await this.getReliableNativePosition();
+      this.logger.log(`Attendance location acquired with ${Math.round(fix.accuracy)}m accuracy.`);
+      return { latitude: fix.latitude, longitude: fix.longitude };
     }
     return this.getBrowserPosition();
+  }
+
+  private async ensureNativeLocationPermission(): Promise<void> {
+    try {
+      let permission = await Geolocation.checkPermissions();
+      if (permission.location !== 'granted') {
+        permission = await Geolocation.requestPermissions({ permissions: ['location'] });
+      }
+      if (permission.location !== 'granted') {
+        throw new AttendanceLocationError(
+          'Precise location permission is required. Open Settings > Apps > Edunexify > Permissions > Location, then choose Allow only while using the app and enable precise location.',
+          'PERMISSION'
+        );
+      }
+    } catch (error: any) {
+      if (error instanceof AttendanceLocationError) throw error;
+      throw this.mapNativeLocationError(error);
+    }
+  }
+
+  /**
+   * Watches briefly for GPS updates instead of trusting the first network-derived fix.
+   * A good fix returns immediately; otherwise the most accurate fresh reading is used only
+   * when it is accurate enough for the school's attendance geofence.
+   */
+  private getReliableNativePosition(): Promise<LocationFix> {
+    return new Promise((resolve, reject) => {
+      let watchId: string | undefined;
+      let bestFix: LocationFix | null = null;
+      let completed = false;
+
+      const clearNativeWatch = (): void => {
+        if (watchId) {
+          void Geolocation.clearWatch({ id: watchId }).catch(error =>
+            this.logger.error('Failed to clear attendance location watch', error)
+          );
+        }
+      };
+
+      const finish = (fix?: LocationFix, error?: AttendanceLocationError): void => {
+        if (completed) return;
+        completed = true;
+        window.clearTimeout(timer);
+        clearNativeWatch();
+        if (fix) resolve(fix);
+        else reject(error ?? new AttendanceLocationError('Location is currently unavailable.', 'UNAVAILABLE'));
+      };
+
+      const timer = window.setTimeout(() => {
+        if (bestFix && bestFix.accuracy <= this.maximumAccuracyMetres) {
+          finish(bestFix);
+          return;
+        }
+        if (bestFix) {
+          finish(undefined, new AttendanceLocationError(
+            `GPS accuracy is currently about ${Math.round(bestFix.accuracy)} metres. Move near a window or open area, keep GPS, Wi-Fi and mobile data on, then try again.`,
+            'INACCURATE'
+          ));
+          return;
+        }
+        finish(undefined, new AttendanceLocationError(
+          'The phone could not obtain a GPS location in time. Keep GPS, Wi-Fi and mobile data on, move near a window or open area, then try again.',
+          'TIMEOUT'
+        ));
+      }, this.locationSamplingTimeoutMs);
+
+      Geolocation.watchPosition(
+        {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: this.locationSamplingTimeoutMs,
+          minimumUpdateInterval: 1000,
+          interval: 1000,
+          enableLocationFallback: true,
+        },
+        (position, error) => {
+          if (completed) return;
+          if (error) {
+            if (String(error?.code ?? '') === 'OS-PLUG-GLOC-0010'
+                && bestFix && bestFix.accuracy <= this.maximumAccuracyMetres) {
+              finish(bestFix);
+              return;
+            }
+            finish(undefined, this.mapNativeLocationError(error));
+            return;
+          }
+          if (!position) return;
+
+          const fix = this.toLocationFix(position);
+          const age = Date.now() - fix.timestamp;
+          if (!Number.isFinite(fix.accuracy) || fix.accuracy <= 0 || age > this.maximumLocationAgeMs) return;
+
+          if (!bestFix || fix.accuracy < bestFix.accuracy) bestFix = fix;
+          if (fix.accuracy <= this.preferredAccuracyMetres) finish(fix);
+        }
+      ).then(id => {
+        watchId = id;
+        if (completed) clearNativeWatch();
+      }).catch(error => finish(undefined, this.mapNativeLocationError(error)));
+    });
+  }
+
+  private toLocationFix(position: Position): LocationFix {
+    return {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+      timestamp: position.timestamp,
+    };
   }
 
   private getBrowserPosition(): Promise<{ latitude: number; longitude: number }> {
@@ -262,10 +389,40 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   }
 
   private getGpsErrorMessage(err: GeolocationPositionError | any): string {
+    if (err instanceof AttendanceLocationError) return err.message;
     if (err?.code === 1) return 'Location permission denied. Please enable location access in your device settings.';
     if (err?.code === 2) return 'Location unavailable. Please check your GPS/network connection.';
     if (err?.code === 3) return 'Location request timed out. Please try again.';
     return 'Could not retrieve location. Please try again.';
+  }
+
+  private mapNativeLocationError(error: any): AttendanceLocationError {
+    const code = String(error?.code ?? '');
+    const message = String(error?.message ?? '').toLowerCase();
+
+    if (code === 'OS-PLUG-GLOC-0007' || code === 'OS-PLUG-GLOC-0009'
+        || code === 'OS-PLUG-GLOC-0017' || message.includes('not enabled') || message.includes('turned off')) {
+      return new AttendanceLocationError(
+        'Location services are turned off. Enable GPS/Location on the phone, keep Wi-Fi or mobile data on, then try again.',
+        'DISABLED'
+      );
+    }
+    if (code === 'OS-PLUG-GLOC-0003' || message.includes('permission')) {
+      return new AttendanceLocationError(
+        'Precise location permission is required. Open Settings > Apps > Edunexify > Permissions > Location, then choose Allow only while using the app and enable precise location.',
+        'PERMISSION'
+      );
+    }
+    if (code === 'OS-PLUG-GLOC-0010' || message.includes('timeout') || message.includes('in time')) {
+      return new AttendanceLocationError(
+        'The phone could not obtain a GPS location in time. Move near a window or open area and try again.',
+        'TIMEOUT'
+      );
+    }
+    return new AttendanceLocationError(
+      'Location is unavailable. Check GPS, Wi-Fi/mobile data and Google Location Accuracy, then try again.',
+      'UNAVAILABLE'
+    );
   }
 
   goToPreviousMonth(): void {
