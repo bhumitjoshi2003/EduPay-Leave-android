@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TeacherService } from '../../services/teacher.service';
@@ -9,6 +17,7 @@ import { AuthService } from '../../auth/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { environment } from '../../../environments/environment';
 import { SchoolService } from '../../services/school.service';
+import { MatIconModule } from '@angular/material/icon';
 
 interface TeacherDetails {
   teacherId?: string;
@@ -23,10 +32,10 @@ interface TeacherDetails {
 @Component({
   selector: 'app-teacher-details',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule],
   templateUrl: './teacher-details.component.html',
   styleUrl: './teacher-details.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TeacherDetailsComponent implements OnInit, OnDestroy {
   teacherId: string = '';
@@ -60,20 +69,25 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
-    private schoolService: SchoolService
-  ) { }
+    private schoolService: SchoolService,
+  ) {}
 
   ngOnInit(): void {
-    this.schoolService.getClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe(classes => {
-      this.classList = classes;
-      this.cdr.markForCheck();
-    });
-    this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe(params => {
-      this.teacherId = params['teacherId'];
-      if (this.teacherId) {
-        this.loadTeacherDetails(this.teacherId);
-      }
-    });
+    this.schoolService
+      .getClasses()
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((classes) => {
+        this.classList = classes;
+        this.cdr.markForCheck();
+      });
+    this.route.params
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((params) => {
+        this.teacherId = params['teacherId'];
+        if (this.teacherId) {
+          this.loadTeacherDetails(this.teacherId);
+        }
+      });
     this.role = this.authService.getUserRole();
   }
 
@@ -83,17 +97,20 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   }
 
   loadTeacherDetails(teacherId: string): void {
-    this.teacherService.getTeacher(teacherId).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-      next: (details) => {
-        this.teacherDetails = details;
-        this.updatedDetails = { ...details };
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        this.logger.error('Error fetching teacher details:', error);
-        this.toast.error('Error', 'Failed to load teacher details.');
-      }
-    });
+    this.teacherService
+      .getTeacher(teacherId)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (details) => {
+          this.teacherDetails = details;
+          this.updatedDetails = { ...details };
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.logger.error('Error fetching teacher details:', error);
+          this.toast.error('Error', 'Failed to load teacher details.');
+        },
+      });
   }
 
   getUserRole(): string {
@@ -101,16 +118,18 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   }
 
   enableEditMode(): void {
-    this.toast.confirm({
-      title: 'Are you sure?',
-      message: 'Do you want to edit the teacher details?',
-      confirmText: 'Yes, edit it!',
-    }).then((confirmed) => {
-      if (confirmed) {
-        this.isEditing = true;
-        this.cdr.markForCheck();
-      }
-    });
+    this.toast
+      .confirm({
+        title: 'Are you sure?',
+        message: 'Do you want to edit the teacher details?',
+        confirmText: 'Yes, edit it!',
+      })
+      .then((confirmed) => {
+        if (confirmed) {
+          this.isEditing = true;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   cancelEditMode(): void {
@@ -129,19 +148,25 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
       let errorMessages = '<ul class="swal-error-list">';
 
       const controls = form.controls;
-      if (controls['name']?.errors?.['required']) errorMessages += '<li>Name is required.</li>';
+      if (controls['name']?.errors?.['required'])
+        errorMessages += '<li>Name is required.</li>';
 
       if (controls['email']?.errors) {
-        if (controls['email'].errors['required']) errorMessages += '<li>Email is required.</li>';
-        if (controls['email'].errors['email']) errorMessages += '<li>Please enter a valid email address.</li>';
+        if (controls['email'].errors['required'])
+          errorMessages += '<li>Email is required.</li>';
+        if (controls['email'].errors['email'])
+          errorMessages += '<li>Please enter a valid email address.</li>';
       }
 
       if (controls['phoneNumber']?.errors) {
-        if (controls['phoneNumber'].errors['required']) errorMessages += '<li>Phone number is required.</li>';
-        if (controls['phoneNumber'].errors['pattern']) errorMessages += '<li>Phone number must be exactly 10 digits.</li>';
+        if (controls['phoneNumber'].errors['required'])
+          errorMessages += '<li>Phone number is required.</li>';
+        if (controls['phoneNumber'].errors['pattern'])
+          errorMessages += '<li>Phone number must be exactly 10 digits.</li>';
       }
 
-      if (controls['dob']?.errors?.['required']) errorMessages += '<li>Date of Birth is required.</li>';
+      if (controls['dob']?.errors?.['required'])
+        errorMessages += '<li>Date of Birth is required.</li>';
 
       errorMessages += '</ul>';
 
@@ -151,28 +176,39 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     }
 
     // Proceeds normally if form is valid
-    this.toast.confirm({
-      title: 'Are you sure?',
-      message: 'Do you want to save the changes?',
-      confirmText: 'Yes, save it!',
-    }).then((confirmed) => {
-      if (confirmed) {
-        if (this.updatedDetails) {
-          this.teacherService.updateTeacher(this.teacherId, this.updatedDetails).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-            next: (response) => {
-              this.teacherDetails = { ...this.updatedDetails };
-              this.isEditing = false;
-              this.cdr.markForCheck();
-              this.toast.success('Success!', 'Teacher details have been updated.');
-            },
-            error: (error) => {
-              this.logger.error('Error updating teacher details:', error);
-              this.toast.error('Error!', 'Failed to update teacher details.');
-            }
-          });
+    this.toast
+      .confirm({
+        title: 'Are you sure?',
+        message: 'Do you want to save the changes?',
+        confirmText: 'Yes, save it!',
+      })
+      .then((confirmed) => {
+        if (confirmed) {
+          if (this.updatedDetails) {
+            this.teacherService
+              .updateTeacher(this.teacherId, this.updatedDetails)
+              .pipe(takeUntil(this.ngUnsubscribe))
+              .subscribe({
+                next: (response) => {
+                  this.teacherDetails = { ...this.updatedDetails };
+                  this.isEditing = false;
+                  this.cdr.markForCheck();
+                  this.toast.success(
+                    'Success!',
+                    'Teacher details have been updated.',
+                  );
+                },
+                error: (error) => {
+                  this.logger.error('Error updating teacher details:', error);
+                  this.toast.error(
+                    'Error!',
+                    'Failed to update teacher details.',
+                  );
+                },
+              });
+          }
         }
-      }
-    });
+      });
   }
 
   updateFieldValue(field: keyof TeacherDetails, event: Event): void {
@@ -207,29 +243,41 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
 
     // Issue #58: File size check
     if (file.size > 5 * 1024 * 1024) {
-      this.toast.error('File Too Large', 'Profile photo must be less than 5MB.');
+      this.toast.error(
+        'File Too Large',
+        'Profile photo must be less than 5MB.',
+      );
       return;
     }
 
     this.photoUploading = true;
     this.cdr.markForCheck();
 
-    this.teacherService.uploadTeacherPhoto(this.teacherId, file).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-      next: (res) => {
-        if (this.teacherDetails) {
-          this.teacherDetails = { ...this.teacherDetails, photoUrl: res.photoUrl + '?t=' + Date.now() };
-        }
-        this.photoUploading = false;
-        this.cdr.markForCheck();
-        this.toast.success('Photo updated!');
-      },
-      error: (err) => {
-        this.logger.error('Photo upload error:', err);
-        this.photoUploading = false;
-        this.cdr.markForCheck();
-        this.toast.error('Upload failed', 'Could not upload photo. Please try again.');
-      }
-    });
+    this.teacherService
+      .uploadTeacherPhoto(this.teacherId, file)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (res) => {
+          if (this.teacherDetails) {
+            this.teacherDetails = {
+              ...this.teacherDetails,
+              photoUrl: res.photoUrl + '?t=' + Date.now(),
+            };
+          }
+          this.photoUploading = false;
+          this.cdr.markForCheck();
+          this.toast.success('Photo updated!');
+        },
+        error: (err) => {
+          this.logger.error('Photo upload error:', err);
+          this.photoUploading = false;
+          this.cdr.markForCheck();
+          this.toast.error(
+            'Upload failed',
+            'Could not upload photo. Please try again.',
+          );
+        },
+      });
   }
 
   goBackToTeacherList(): void {
@@ -243,7 +291,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     this.cpShowOld = false;
     this.cpShowNew = false;
     this.cpShowConfirm = false;
-    this.cpShowOldField = (this.role !== 'ADMIN');
+    this.cpShowOldField = this.role !== 'ADMIN';
     this.showPasswordModal = true;
   }
 
@@ -269,16 +317,23 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
       this.toast.error('Error', 'New passwords do not match');
       return;
     }
-    const payload = { userId: this.teacherId, oldPassword: this.cpOldPw, newPassword: this.cpNewPw };
-    this.authService.changePassword(payload).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-      next: () => {
-        this.closePasswordModal();
-        this.toast.success('Success', 'Password changed successfully!');
-      },
-      error: (error) => {
-        this.logger.error('Error changing password', error);
-        this.toast.error('Error', error.error || 'Failed to change password');
-      }
-    });
+    const payload = {
+      userId: this.teacherId,
+      oldPassword: this.cpOldPw,
+      newPassword: this.cpNewPw,
+    };
+    this.authService
+      .changePassword(payload)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: () => {
+          this.closePasswordModal();
+          this.toast.success('Success', 'Password changed successfully!');
+        },
+        error: (error) => {
+          this.logger.error('Error changing password', error);
+          this.toast.error('Error', error.error || 'Failed to change password');
+        },
+      });
   }
 }

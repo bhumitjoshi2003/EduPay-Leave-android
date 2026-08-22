@@ -14,6 +14,10 @@ import { StudentService } from '../../services/student.service';
 import { AttendanceService } from '../../services/attendance.service';
 import { LeaveService, LeaveApplication } from '../../services/leave.service';
 import { LoggerService } from '../../services/logger.service';
+import { TeacherCheckinService } from '../../services/teacher-checkin.service';
+import { TeacherAttendanceRecord, TeacherAttendanceSummary } from '../../interfaces/teacher-checkin';
+import { TeacherLeaveService } from '../../services/teacher-leave.service';
+import { TeacherLeave } from '../../interfaces/teacher-leave';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -38,6 +42,11 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   pendingLeavesCount = 0;
   monthlyAttendanceRate = 0;
   recentLeaves: LeaveApplication[] = [];
+  personalAttendance: TeacherAttendanceSummary | null = null;
+  todayTeacherRecord: TeacherAttendanceRecord | null = null;
+  personalSummaryLoading = true;
+  recentTeacherLeaves: TeacherLeave[] = [];
+  teacherLeavesLoading = true;
 
   constructor(
     private authState: AuthStateService,
@@ -47,12 +56,17 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     private leaveService: LeaveService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
-    private toast: ToastService
+    private toast: ToastService,
+    private checkinService: TeacherCheckinService,
+    private teacherLeaveService: TeacherLeaveService
   ) { }
 
   ngOnInit(): void {
     const user = this.authState.getUser();
     if (!user?.userId) { this.isLoading = false; return; }
+
+    this.loadPersonalAttendance();
+    this.loadRecentTeacherLeaves();
 
     this.teacherService.getTeacher(user.userId)
       .pipe(takeUntil(this.destroy$))
@@ -74,6 +88,50 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  private loadRecentTeacherLeaves(): void {
+    this.teacherLeaveService.getMyLeaves(0, 3)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: response => {
+          this.recentTeacherLeaves = response.content.slice(0, 3);
+          this.teacherLeavesLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: error => {
+          this.logger.error('Recent teacher leaves load error:', error);
+          this.teacherLeavesLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  private loadPersonalAttendance(): void {
+    const month = this.today.getMonth() + 1;
+    const year = this.today.getFullYear();
+
+    this.checkinService.getMyAttendance(month, year)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: summary => {
+          this.personalAttendance = summary;
+          const todayKey = this.toLocalDateKey(this.today);
+          this.todayTeacherRecord = summary.records.find(record => record.date === todayKey) ?? null;
+          this.personalSummaryLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: error => {
+          this.logger.error('Personal attendance summary load error:', error);
+          this.personalSummaryLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  private toLocalDateKey(date: Date): string {
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 
   ngOnDestroy(): void {
@@ -169,6 +227,24 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
 
   get todayPresentCount(): number {
     return Math.max(0, this.totalStudents - this.todayAbsent);
+  }
+
+  get personalAttendanceStatus(): string {
+    if (!this.todayTeacherRecord) return 'Not checked in';
+    return this.todayTeacherRecord.status.replaceAll('_', ' ').toLowerCase()
+      .replace(/\b\w/g, character => character.toUpperCase());
+  }
+
+  get personalAttendancePercent(): number {
+    return Math.max(0, Math.min(100, this.personalAttendance?.attendancePercentage ?? 0));
+  }
+
+  formatAttendanceTime(value: string | null): string {
+    if (!value) return '—';
+    const time = value.includes('T') ? value.split('T')[1] : value;
+    const [hour = '', minute = ''] = time.split(':');
+    if (!hour || !minute) return value;
+    return `${Number(hour)}:${minute}`;
   }
 
   get isWeekend(): boolean {
