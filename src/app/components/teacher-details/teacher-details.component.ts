@@ -1,7 +1,18 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TeacherService } from '../../services/teacher.service';
+import {
+  TeacherAttendanceSchedule,
+  TeacherService,
+} from '../../services/teacher.service';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -9,6 +20,7 @@ import { AuthService } from '../../auth/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { environment } from '../../../environments/environment';
 import { SchoolService } from '../../services/school.service';
+import { TeacherExitRequest } from '../../interfaces/teacher';
 
 interface TeacherDetails {
   teacherId?: string;
@@ -18,6 +30,10 @@ interface TeacherDetails {
   dob?: string;
   classTeacher?: string | null;
   photoUrl?: string;
+  status?: 'ACTIVE' | 'LEFT';
+  leavingDate?: string;
+  reasonForLeaving?: string;
+  exitRemarks?: string;
 }
 
 @Component({
@@ -26,7 +42,7 @@ interface TeacherDetails {
   imports: [CommonModule, FormsModule],
   templateUrl: './teacher-details.component.html',
   styleUrl: './teacher-details.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TeacherDetailsComponent implements OnInit, OnDestroy {
   teacherId: string = '';
@@ -51,6 +67,29 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   cpShowOldField = false;
 
   classList: string[] = [];
+  readonly scheduleDays = [
+    'MONDAY',
+    'TUESDAY',
+    'WEDNESDAY',
+    'THURSDAY',
+    'FRIDAY',
+    'SATURDAY',
+    'SUNDAY',
+  ];
+  scheduleType: 'SCHOOL' | 'CUSTOM' = 'SCHOOL';
+  selectedScheduleDays: string[] = [];
+  scheduleEffectiveFrom = new Date().toISOString().slice(0, 10);
+  scheduleHistory: TeacherAttendanceSchedule[] = [];
+  schoolWorkingDays: string[] = [];
+  scheduleSaving = false;
+  showExitModal = false;
+  exitLoading = false;
+  exitRequest: TeacherExitRequest = {
+    reasonForLeaving: '',
+    leavingDate: new Date().toISOString().slice(0, 10),
+    exitRemarks: '',
+  };
+  readonly exitReasons = ['Resigned', 'Contract completed', 'Relocation', 'Retired', 'Health reasons', 'Personal reasons', 'Terminated', 'Other'];
 
   constructor(
     private route: ActivatedRoute,
@@ -61,20 +100,37 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private schoolService: SchoolService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.schoolService.getClasses().pipe(takeUntil(this.ngUnsubscribe)).subscribe(classes => {
-      this.classList = classes;
-      this.cdr.markForCheck();
-    });
-    this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe(params => {
-      this.teacherId = params['teacherId'];
-      if (this.teacherId) {
-        this.loadTeacherDetails(this.teacherId);
-      }
-    });
     this.role = this.authService.getUserRole();
+    if (this.role === 'ADMIN') {
+      this.schoolService
+        .getSettings()
+        .pipe(takeUntil(this.ngUnsubscribe))
+        .subscribe((settings) => {
+          this.schoolWorkingDays = this.parseDays(settings.workingDays);
+          if (this.scheduleType === 'SCHOOL') {
+            this.selectedScheduleDays = [...this.schoolWorkingDays];
+          }
+          this.cdr.markForCheck();
+        });
+    }
+    this.schoolService
+      .getClasses()
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((classes) => {
+        this.classList = classes;
+        this.cdr.markForCheck();
+      });
+    this.route.params
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((params) => {
+        this.teacherId = params['teacherId'];
+        if (this.teacherId) {
+          this.loadTeacherDetails(this.teacherId);
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -83,17 +139,105 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   }
 
   loadTeacherDetails(teacherId: string): void {
-    this.teacherService.getTeacher(teacherId).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-      next: (details) => {
-        this.teacherDetails = details;
-        this.updatedDetails = { ...details };
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        this.logger.error('Error fetching teacher details:', error);
-        this.toast.error('Error', 'Failed to load teacher details.');
-      }
-    });
+    this.teacherService
+      .getTeacher(teacherId)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (details) => {
+          this.teacherDetails = details;
+          this.updatedDetails = { ...details };
+          if (this.role === 'ADMIN') this.loadScheduleHistory();
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.logger.error('Error fetching teacher details:', error);
+          this.toast.error('Error', 'Failed to load teacher details.');
+        },
+      });
+  }
+
+  loadScheduleHistory(): void {
+    this.teacherService
+      .getAttendanceSchedules(this.teacherId)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (history) => {
+          this.scheduleHistory = history;
+          const current =
+            history.find((item) => !item.effectiveTo) ?? history.at(-1);
+          this.scheduleType = current?.scheduleType ?? 'SCHOOL';
+          this.selectedScheduleDays =
+            current?.scheduleType === 'CUSTOM'
+              ? this.parseDays(current.workingDays)
+              : [...this.schoolWorkingDays];
+          this.cdr.markForCheck();
+        },
+        error: () =>
+          this.toast.error(
+            'Schedule unavailable',
+            'Could not load this teacher’s attendance schedule.'
+          ),
+      });
+  }
+
+  toggleScheduleDay(day: string): void {
+    this.selectedScheduleDays = this.selectedScheduleDays.includes(day)
+      ? this.selectedScheduleDays.filter((value) => value !== day)
+      : [...this.selectedScheduleDays, day];
+  }
+
+  saveAttendanceSchedule(): void {
+    if (
+      this.scheduleType === 'CUSTOM' &&
+      this.selectedScheduleDays.length === 0
+    ) {
+      this.toast.warning(
+        'Select working days',
+        'Choose at least one day for a custom schedule.'
+      );
+      return;
+    }
+    this.scheduleSaving = true;
+    this.teacherService
+      .changeAttendanceSchedule(this.teacherId, {
+        scheduleType: this.scheduleType,
+        workingDays:
+          this.scheduleType === 'CUSTOM'
+            ? this.selectedScheduleDays.join(',')
+            : null,
+        effectiveFrom: this.scheduleEffectiveFrom,
+      })
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: () => {
+          this.scheduleSaving = false;
+          this.toast.success(
+            'Schedule saved',
+            'Attendance calculations will use this schedule from the selected date.'
+          );
+          this.loadScheduleHistory();
+        },
+        error: (error) => {
+          this.scheduleSaving = false;
+          this.cdr.markForCheck();
+          this.toast.error(
+            'Could not save schedule',
+            error?.error || 'Please try again.'
+          );
+        },
+      });
+  }
+
+  scheduleDayLabel(day: string): string {
+    return day.charAt(0) + day.slice(1).toLowerCase();
+  }
+  private parseDays(value: string | null | undefined): string[] {
+    return value
+      ? value
+          .split(',')
+          .map((day) => day.trim().toUpperCase())
+          .filter(Boolean)
+      : [];
   }
 
   getUserRole(): string {
@@ -101,16 +245,18 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   }
 
   enableEditMode(): void {
-    this.toast.confirm({
-      title: 'Are you sure?',
-      message: 'Do you want to edit the teacher details?',
-      confirmText: 'Yes, edit it!',
-    }).then((confirmed) => {
-      if (confirmed) {
-        this.isEditing = true;
-        this.cdr.markForCheck();
-      }
-    });
+    this.toast
+      .confirm({
+        title: 'Are you sure?',
+        message: 'Do you want to edit the teacher details?',
+        confirmText: 'Yes, edit it!',
+      })
+      .then((confirmed) => {
+        if (confirmed) {
+          this.isEditing = true;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   cancelEditMode(): void {
@@ -129,19 +275,25 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
       let errorMessages = '<ul class="swal-error-list">';
 
       const controls = form.controls;
-      if (controls['name']?.errors?.['required']) errorMessages += '<li>Name is required.</li>';
+      if (controls['name']?.errors?.['required'])
+        errorMessages += '<li>Name is required.</li>';
 
       if (controls['email']?.errors) {
-        if (controls['email'].errors['required']) errorMessages += '<li>Email is required.</li>';
-        if (controls['email'].errors['email']) errorMessages += '<li>Please enter a valid email address.</li>';
+        if (controls['email'].errors['required'])
+          errorMessages += '<li>Email is required.</li>';
+        if (controls['email'].errors['email'])
+          errorMessages += '<li>Please enter a valid email address.</li>';
       }
 
       if (controls['phoneNumber']?.errors) {
-        if (controls['phoneNumber'].errors['required']) errorMessages += '<li>Phone number is required.</li>';
-        if (controls['phoneNumber'].errors['pattern']) errorMessages += '<li>Phone number must be exactly 10 digits.</li>';
+        if (controls['phoneNumber'].errors['required'])
+          errorMessages += '<li>Phone number is required.</li>';
+        if (controls['phoneNumber'].errors['pattern'])
+          errorMessages += '<li>Phone number must be exactly 10 digits.</li>';
       }
 
-      if (controls['dob']?.errors?.['required']) errorMessages += '<li>Date of Birth is required.</li>';
+      if (controls['dob']?.errors?.['required'])
+        errorMessages += '<li>Date of Birth is required.</li>';
 
       errorMessages += '</ul>';
 
@@ -151,31 +303,42 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     }
 
     // Proceeds normally if form is valid
-    this.toast.confirm({
-      title: 'Are you sure?',
-      message: 'Do you want to save the changes?',
-      confirmText: 'Yes, save it!',
-    }).then((confirmed) => {
-      if (confirmed) {
-        if (this.updatedDetails) {
-          this.teacherService.updateTeacher(this.teacherId, this.updatedDetails).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-            next: (response) => {
-              this.teacherDetails = { ...this.updatedDetails };
-              this.isEditing = false;
-              this.cdr.markForCheck();
-              this.toast.success('Success!', 'Teacher details have been updated.');
-            },
-            error: (error) => {
-              this.logger.error('Error updating teacher details:', error);
-              this.toast.error('Error!', 'Failed to update teacher details.');
-            }
-          });
+    this.toast
+      .confirm({
+        title: 'Are you sure?',
+        message: 'Do you want to save the changes?',
+        confirmText: 'Yes, save it!',
+      })
+      .then((confirmed) => {
+        if (confirmed) {
+          if (this.updatedDetails) {
+            this.teacherService
+              .updateTeacher(this.teacherId, this.updatedDetails)
+              .pipe(takeUntil(this.ngUnsubscribe))
+              .subscribe({
+                next: (response) => {
+                  this.teacherDetails = { ...this.updatedDetails };
+                  this.isEditing = false;
+                  this.cdr.markForCheck();
+                  this.toast.success(
+                    'Success!',
+                    'Teacher details have been updated.'
+                  );
+                },
+                error: (error) => {
+                  this.logger.error('Error updating teacher details:', error);
+                  this.toast.error(
+                    'Error!',
+                    'Failed to update teacher details.'
+                  );
+                },
+              });
+          }
         }
-      }
-    });
+      });
   }
 
-  updateFieldValue(field: keyof TeacherDetails, event: Event): void {
+  updateFieldValue(field: 'name' | 'email' | 'phoneNumber' | 'dob' | 'classTeacher', event: Event): void {
     if (this.updatedDetails) {
       this.updatedDetails[field] = (event.target as HTMLInputElement).value;
     }
@@ -207,29 +370,41 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
 
     // Issue #58: File size check
     if (file.size > 5 * 1024 * 1024) {
-      this.toast.error('File Too Large', 'Profile photo must be less than 5MB.');
+      this.toast.error(
+        'File Too Large',
+        'Profile photo must be less than 5MB.'
+      );
       return;
     }
 
     this.photoUploading = true;
     this.cdr.markForCheck();
 
-    this.teacherService.uploadTeacherPhoto(this.teacherId, file).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-      next: (res) => {
-        if (this.teacherDetails) {
-          this.teacherDetails = { ...this.teacherDetails, photoUrl: res.photoUrl + '?t=' + Date.now() };
-        }
-        this.photoUploading = false;
-        this.cdr.markForCheck();
-        this.toast.success('Photo updated!');
-      },
-      error: (err) => {
-        this.logger.error('Photo upload error:', err);
-        this.photoUploading = false;
-        this.cdr.markForCheck();
-        this.toast.error('Upload failed', 'Could not upload photo. Please try again.');
-      }
-    });
+    this.teacherService
+      .uploadTeacherPhoto(this.teacherId, file)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (res) => {
+          if (this.teacherDetails) {
+            this.teacherDetails = {
+              ...this.teacherDetails,
+              photoUrl: res.photoUrl + '?t=' + Date.now(),
+            };
+          }
+          this.photoUploading = false;
+          this.cdr.markForCheck();
+          this.toast.success('Photo updated!');
+        },
+        error: (err) => {
+          this.logger.error('Photo upload error:', err);
+          this.photoUploading = false;
+          this.cdr.markForCheck();
+          this.toast.error(
+            'Upload failed',
+            'Could not upload photo. Please try again.'
+          );
+        },
+      });
   }
 
   goBackToTeacherList(): void {
@@ -243,7 +418,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     this.cpShowOld = false;
     this.cpShowNew = false;
     this.cpShowConfirm = false;
-    this.cpShowOldField = (this.role !== 'ADMIN');
+    this.cpShowOldField = this.role !== 'ADMIN';
     this.showPasswordModal = true;
   }
 
@@ -269,16 +444,83 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
       this.toast.error('Error', 'New passwords do not match');
       return;
     }
-    const payload = { userId: this.teacherId, oldPassword: this.cpOldPw, newPassword: this.cpNewPw };
-    this.authService.changePassword(payload).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-      next: () => {
-        this.closePasswordModal();
-        this.toast.success('Success', 'Password changed successfully!');
-      },
-      error: (error) => {
-        this.logger.error('Error changing password', error);
-        this.toast.error('Error', error.error || 'Failed to change password');
-      }
+    const payload = {
+      userId: this.teacherId,
+      oldPassword: this.cpOldPw,
+      newPassword: this.cpNewPw,
+    };
+    this.authService
+      .changePassword(payload)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: () => {
+          this.closePasswordModal();
+          this.toast.success('Success', 'Password changed successfully!');
+        },
+        error: (error) => {
+          this.logger.error('Error changing password', error);
+          this.toast.error('Error', error.error || 'Failed to change password');
+        },
+      });
+  }
+
+  get todayStr(): string { return new Date().toISOString().slice(0, 10); }
+
+  openExitModal(): void {
+    this.exitRequest = { reasonForLeaving: '', leavingDate: this.todayStr, exitRemarks: '' };
+    this.showExitModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closeExitModal(): void {
+    this.showExitModal = false;
+    this.cdr.markForCheck();
+  }
+
+  submitExit(): void {
+    if (!this.exitRequest.reasonForLeaving || !this.exitRequest.leavingDate) {
+      this.toast.error('Required', 'Please select a reason and leaving date.');
+      return;
+    }
+    this.exitLoading = true;
+    this.teacherService.exitTeacher(this.teacherId, this.exitRequest)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (teacher) => {
+          this.teacherDetails = teacher;
+          this.updatedDetails = { ...teacher };
+          this.exitLoading = false;
+          this.showExitModal = false;
+          this.cdr.markForCheck();
+          this.toast.success('Teacher marked as left', 'Historical records have been preserved.');
+        },
+        error: (err) => {
+          this.exitLoading = false;
+          this.cdr.markForCheck();
+          this.toast.error('Unable to update teacher', typeof err?.error === 'string' ? err.error : 'Please try again.');
+        },
+      });
+  }
+
+  reactivateTeacher(): void {
+    this.toast.confirm({
+      title: 'Re-activate teacher?',
+      message: `This will make ${this.teacherDetails?.name} an active staff member again.`,
+      confirmText: 'Re-activate',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
+      this.teacherService.reactivateTeacher(this.teacherId)
+        .pipe(takeUntil(this.ngUnsubscribe))
+        .subscribe({
+          next: (teacher) => {
+            this.teacherDetails = teacher;
+            this.updatedDetails = { ...teacher };
+            this.cdr.markForCheck();
+            this.toast.success('Teacher re-activated');
+          },
+          error: (err) => this.toast.error('Unable to re-activate teacher', typeof err?.error === 'string' ? err.error : 'Please try again.'),
+        });
     });
   }
 }
