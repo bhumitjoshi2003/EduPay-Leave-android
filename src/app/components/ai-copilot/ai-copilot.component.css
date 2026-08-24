@@ -144,7 +144,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
   background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1f6f8b 100%);
   gap: 10px;
 }
