@@ -1,0 +1,781 @@
+<div class="fa-page">
+  <div
+    class="fa-working-overlay"
+    *ngIf="working"
+    role="status"
+    aria-live="polite"
+  >
+    <div class="fa-working-dialog">
+      <span class="fa-working-spinner" aria-hidden="true"></span>
+      <strong>Processing fee changes</strong>
+      <p>Please wait. Existing protected payments will not be changed.</p>
+    </div>
+  </div>
+  <section class="fa-hero">
+    <div>
+      <span class="fa-eyebrow">FEES</span>
+      <h1>Fee Assignment</h1>
+      <p>
+        Assign, preview and generate charges without coupling billing to
+        admission.
+      </p>
+    </div>
+    <span class="fa-state" [attr.data-state]="settings?.operationalStatus">{{
+      settings?.operationalStatus || "LOADING"
+    }}</span>
+  </section>
+
+  <section class="fa-card fa-settings" *ngIf="settings">
+    <div class="fa-card-head">
+      <div>
+        <h2>Operational settings</h2>
+        <p>Configuration access is separate from activation of real charges.</p>
+      </div>
+      <button class="fa-primary" (click)="saveSettings()" [disabled]="working">
+        Save settings
+      </button>
+    </div>
+    <div class="fa-grid">
+      <label
+        >Status<select [(ngModel)]="settings.operationalStatus">
+          <option value="DISABLED">Disabled</option>
+          <option value="DRAFT">Draft</option>
+          <option value="ACTIVE">Active</option>
+          <option value="PAUSED">Paused</option>
+        </select></label
+      >
+      <label
+        >Activation date<input
+          type="date"
+          [(ngModel)]="settings.activationDate"
+      /></label>
+      <label
+        >Mid-session policy<select [(ngModel)]="settings.midSessionPolicy">
+          <option value="FROM_EFFECTIVE_MONTH">Charge effective month</option>
+          <option value="NEXT_MONTH">Start next month</option>
+          <option value="PRORATE_JOINING_MONTH">Prorate joining month</option>
+        </select></label
+      >
+      <label class="fa-check"
+        ><input
+          type="checkbox"
+          [(ngModel)]="settings.allowRetroactiveGeneration"
+        />
+        Allow backdated charges</label
+      >
+    </div>
+    <p class="fa-note">
+      Fee charges are always generated manually by an admin after preview.
+      Saving these settings never creates charges.
+    </p>
+  </section>
+
+  <section class="fa-card fa-readiness" *ngIf="readiness">
+    <div class="fa-card-head">
+      <div>
+        <h2>Deployment readiness</h2>
+        <p>
+          Preflight checks for {{ readiness.academicSession }} before an admin
+          generates real charges.
+        </p>
+      </div>
+      <span
+        class="fa-readiness-state"
+        [class.ready]="readiness.readyToGenerate"
+        >{{
+          readiness.readyToGenerate
+            ? "READY"
+            : readiness.blockerCount + " BLOCKER(S)"
+        }}</span
+      >
+    </div>
+    <div class="fa-ops-stats">
+      <div>
+        <strong>{{ readiness.configuredClasses }}</strong
+        ><span>Classes configured</span>
+      </div>
+      <div>
+        <strong>{{ readiness.missingConfigurationClasses }}</strong
+        ><span>Missing structures</span>
+      </div>
+      <div>
+        <strong>{{ readiness.unassignedStudents }}</strong
+        ><span>Unassigned students</span>
+      </div>
+      <div>
+        <strong>{{ readiness.legacyStudents }}</strong
+        ><span>Legacy records</span>
+      </div>
+    </div>
+    <div
+      class="fa-readiness-list"
+      *ngIf="readiness.issues.length; else readinessClear"
+    >
+      <article
+        *ngFor="let issue of readiness.issues"
+        [attr.data-severity]="issue.severity"
+      >
+        <strong>{{ issue.severity }}</strong>
+        <div>
+          <b>{{ issue.className || issue.code }}</b
+          ><span
+            >{{ issue.message
+            }}<ng-container *ngIf="issue.affectedStudents != null">
+              ({{ issue.affectedStudents }} student(s))</ng-container
+            ></span
+          >
+        </div>
+      </article>
+    </div>
+    <ng-template #readinessClear
+      ><p class="fa-empty-block">
+        All preflight checks passed. Preview the selected students and months
+        before generation.
+      </p></ng-template
+    >
+  </section>
+
+  <section class="fa-stats" *ngIf="summary">
+    <div>
+      <strong>{{ summary.totalStudents }}</strong
+      ><span>Students</span>
+    </div>
+    <div>
+      <strong>{{ summary.notAssigned }}</strong
+      ><span>Not assigned</span>
+    </div>
+    <div>
+      <strong>{{ summary.ready }}</strong
+      ><span>Ready</span>
+    </div>
+    <div>
+      <strong>{{ summary.generated }}</strong
+      ><span>Generated</span>
+    </div>
+    <div>
+      <strong>{{ summary.failed }}</strong
+      ><span>Needs attention</span>
+    </div>
+  </section>
+
+  <section class="fa-card fa-legacy" *ngIf="legacyCandidates.length">
+    <div class="fa-card-head">
+      <div>
+        <h2>Adopt existing fee records</h2>
+        <p>
+          These students have legacy fee rows but no new workflow assignment.
+          Adoption only links their existing months; it never recalculates
+          amounts or creates charges.
+        </p>
+      </div>
+      <button
+        class="fa-primary"
+        (click)="adoptLegacy()"
+        [disabled]="working || !selectedLegacy.size"
+      >
+        Adopt selected ({{ selectedLegacy.size }})
+      </button>
+    </div>
+    <div class="fa-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>
+              <input
+                type="checkbox"
+                [checked]="selectedLegacy.size === legacyCandidates.length"
+                (change)="toggleAllLegacy()"
+              />
+            </th>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Existing months</th>
+            <th>Earliest billing date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of legacyCandidates">
+            <td>
+              <input
+                type="checkbox"
+                [checked]="selectedLegacy.has(row.studentId)"
+                (change)="toggleLegacy(row.studentId)"
+              />
+            </td>
+            <td>
+              <strong>{{ row.studentName }}</strong
+              ><small>{{ row.studentId }}</small>
+            </td>
+            <td>{{ row.className }}</td>
+            <td>{{ formatAcademicMonths(row.existingMonths) }}</td>
+            <td>
+              {{
+                row.earliestBillingDate
+                  ? (row.earliestBillingDate | date : "mediumDate")
+                  : "Session start"
+              }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fa-note">
+      Enter a migration reference in the Reason / note field below before
+      adopting. This action is audited and can safely be run in smaller batches.
+    </p>
+  </section>
+
+  <section class="fa-card" *ngIf="reconciliation">
+    <div class="fa-card-head">
+      <div>
+        <h2>Generation reconciliation</h2>
+        <p>
+          Compare the months assigned by an admin with the fee rows actually
+          created.
+        </p>
+      </div>
+      <label class="fa-check"
+        ><input type="checkbox" [(ngModel)]="showOnlyMissing" /> Show attention
+        needed only</label
+      >
+    </div>
+    <div class="fa-ops-stats">
+      <div>
+        <strong>{{ reconciliation.fullyGenerated }}</strong
+        ><span>Complete</span>
+      </div>
+      <div>
+        <strong>{{ reconciliation.partiallyGenerated }}</strong
+        ><span>Partial</span>
+      </div>
+      <div>
+        <strong>{{ reconciliation.notAssigned }}</strong
+        ><span>Not assigned</span>
+      </div>
+      <div>
+        <strong>{{ reconciliation.failed }}</strong
+        ><span>Failed</span>
+      </div>
+      <div>
+        <strong>{{ reconciliation.missingMonthCount }}</strong
+        ><span>Missing months</span>
+      </div>
+    </div>
+    <div class="fa-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Status</th>
+            <th>Assigned</th>
+            <th>Generated</th>
+            <th>Missing</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of visibleReconciliationRows()">
+            <td>
+              <strong>{{ row.studentName }}</strong
+              ><small>{{ row.studentId }}</small>
+            </td>
+            <td>{{ row.className }}</td>
+            <td>
+              <span class="fa-badge">{{ row.status }}</span
+              ><small *ngIf="row.message">{{ row.message }}</small>
+            </td>
+            <td>{{ formatAcademicMonths(row.assignedMonths) }}</td>
+            <td>{{ formatAcademicMonths(row.generatedMonths) }}</td>
+            <td>
+              <strong class="fa-missing">{{
+                formatAcademicMonths(row.missingMonths)
+              }}</strong>
+            </td>
+          </tr>
+          <tr *ngIf="!visibleReconciliationRows().length">
+            <td colspan="6" class="fa-empty">
+              No students currently need attention.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="fa-card">
+    <div class="fa-card-head">
+      <div>
+        <h2>Recent manual generation batches</h2>
+        <p>
+          The latest 25 admin-triggered runs for this session. Failed students
+          can be retried without duplicating existing months.
+        </p>
+      </div>
+    </div>
+    <div class="fa-batch-list" *ngIf="generationBatches.length; else noBatches">
+      <article class="fa-batch" *ngFor="let batch of generationBatches">
+        <div>
+          <strong>Batch #{{ batch.id }}</strong
+          ><span
+            >{{ batch.startedAt | date : "medium" }} ·
+            {{ batch.initiatedBy }}</span
+          >
+        </div>
+        <div>
+          <strong>{{ batch.status }}</strong
+          ><span
+            >{{ batch.successfulStudents }} successful ·
+            {{ batch.failedStudents }} failed</span
+          >
+        </div>
+        <div>
+          <strong>{{ batch.generatedMonths }} created</strong
+          ><span
+            >{{ batch.skippedMonths }} not created (already existing or
+            ineligible) · {{ formatAcademicMonths(batch.selectedMonths) }}</span
+          >
+        </div>
+        <button
+          class="fa-secondary danger"
+          *ngIf="batch.failedStudents"
+          (click)="retryBatch(batch)"
+          [disabled]="working"
+        >
+          Retry failed
+        </button>
+      </article>
+    </div>
+    <ng-template #noBatches
+      ><p class="fa-empty-block">
+        No manual generation batches have been run for this session.
+      </p></ng-template
+    >
+  </section>
+
+  <section class="fa-card">
+    <div class="fa-card-head">
+      <div>
+        <h2>Students and billing period</h2>
+        <p>Select multiple students and multiple academic months.</p>
+      </div>
+    </div>
+    <div class="fa-filters">
+      <label
+        >Session<select [(ngModel)]="session" (change)="reload()">
+          <option *ngFor="let s of sessions" [value]="s.label">
+            {{ s.label }}
+          </option>
+        </select></label
+      ><label
+        >Class<input
+          [(ngModel)]="classFilter"
+          placeholder="All classes" /></label
+      ><label
+        >Status<select [(ngModel)]="statusFilter">
+          <option value="">All statuses</option>
+          <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+        </select></label
+      ><button class="fa-secondary" (click)="reload()">Apply filters</button>
+    </div>
+    <div class="fa-months">
+      <button
+        *ngFor="let month of months"
+        [class.active]="selectedMonths.has(month)"
+        (click)="toggleMonth(month)"
+      >
+        {{ monthLabel(month) }}</button
+      ><button class="fa-link" (click)="selectRemainingMonths()">
+        Current onward</button
+      ><button
+        class="fa-link"
+        (click)="suggestEligibleMonths()"
+        [disabled]="working"
+      >
+        Suggest eligible
+      </button>
+    </div>
+    <p class="fa-month-hint" *ngIf="sessionMonthHint()">
+      {{ sessionMonthHint() }}
+    </p>
+    <div class="fa-action-grid">
+      <label
+        >Effective date<input type="date" [(ngModel)]="effectiveDate" /></label
+      ><label
+        >Reason / note<input
+          [(ngModel)]="reason"
+          placeholder="Required for exclusions and transport"
+      /></label>
+    </div>
+    <div class="fa-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>
+              <input
+                type="checkbox"
+                [checked]="rows.length > 0 && selected.size === rows.length"
+                (change)="toggleAll()"
+              />
+            </th>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Joining</th>
+            <th>Status</th>
+            <th>Months</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows; trackBy: trackByStudent">
+            <td>
+              <input
+                type="checkbox"
+                [checked]="selected.has(row.studentId)"
+                (change)="toggleStudent(row.studentId)"
+              />
+            </td>
+            <td>
+              <strong>{{ row.studentName }}</strong
+              ><small>{{ row.studentId }}</small>
+            </td>
+            <td>{{ row.className }} {{ row.sectionName || "" }}</td>
+            <td>{{ row.joiningDate | date : "mediumDate" }}</td>
+            <td>
+              <span class="fa-badge">{{ row.status }}</span
+              ><small *ngIf="row.message">{{ row.message }}</small>
+            </td>
+            <td>{{ row.generatedMonths }} generated</td>
+          </tr>
+          <tr *ngIf="!loading && !rows.length">
+            <td colspan="6" class="fa-empty">
+              No students match these filters.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="fa-actions">
+      <button
+        class="fa-secondary"
+        (click)="loadHistory()"
+        [disabled]="working || selected.size !== 1"
+      >
+        View fee history</button
+      ><button class="fa-secondary" (click)="assign()" [disabled]="working">
+        Assign</button
+      ><button
+        class="fa-secondary danger"
+        (click)="exclude()"
+        [disabled]="working"
+      >
+        Exclude</button
+      ><button class="fa-secondary" (click)="preview()" [disabled]="working">
+        Preview</button
+      ><button
+        class="fa-primary"
+        (click)="generate()"
+        [disabled]="working || settings?.operationalStatus !== 'ACTIVE'"
+      >
+        Generate fees
+      </button>
+    </div>
+  </section>
+
+  <section class="fa-card" *ngIf="previewRows.length">
+    <div class="fa-card-head">
+      <div>
+        <h2>Generation preview</h2>
+        <p>
+          Amounts are calculated separately for every student and calendar month
+          in the selected academic session.
+        </p>
+      </div>
+    </div>
+    <div class="fa-preview-detail" *ngFor="let row of previewRows">
+      <div class="fa-preview-student">
+        <div>
+          <strong>{{ row.studentName }}</strong
+          ><span>{{ row.studentId }}</span>
+        </div>
+        <strong>{{
+          row.eligible ? (row.totalAmount | currency : "INR") : row.message
+        }}</strong>
+      </div>
+      <div
+        class="fa-preview-month"
+        *ngFor="let month of row.months"
+        [class.ineligible]="!month.eligible"
+      >
+        <div>
+          <strong>{{ monthLabel(month.month, true) }}</strong
+          ><span *ngIf="month.billingEffectiveDate"
+            >Effective
+            {{ month.billingEffectiveDate | date : "mediumDate" }}</span
+          >
+        </div>
+        <div *ngIf="month.eligible">
+          <span>Base {{ month.baseAmount | currency : "INR" }}</span
+          ><span>Discount {{ month.discountAmount | currency : "INR" }}</span
+          ><span>Transport {{ month.busFee | currency : "INR" }}</span
+          ><strong>{{ month.totalAmount | currency : "INR" }}</strong>
+        </div>
+        <p *ngIf="month.message">
+          {{ month.message
+          }}<ng-container
+            *ngIf="month.prorationFactor && month.prorationFactor < 1"
+          >
+            ({{ month.prorationFactor | percent : "1.0-2" }} of recurring
+            charges)</ng-container
+          >
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fa-card">
+    <div class="fa-card-head">
+      <div>
+        <h2>
+          {{
+            editingDiscountId === null
+              ? "Bulk discount or waiver"
+              : "Correct future discount"
+          }}
+        </h2>
+        <p>
+          {{
+            editingDiscountId === null
+              ? "Apply one effective-dated fee-head rule to every selected student."
+              : "Only a rule that has not started can be edited. The audit record is preserved."
+          }}
+        </p>
+      </div>
+    </div>
+    <div class="fa-grid">
+      <label
+        >Fee head<select [(ngModel)]="discountFeeHeadId">
+          <option [ngValue]="null">Select fee head</option>
+          <option *ngFor="let head of feeHeads" [ngValue]="head.id">
+            {{ head.name }}
+          </option>
+        </select></label
+      ><label
+        >Rule<select [(ngModel)]="discountType">
+          <option value="DISCOUNT_PERCENT">Percentage discount</option>
+          <option value="DISCOUNT_FIXED">Fixed discount</option>
+          <option value="WAIVER">Full waiver</option>
+          <option value="CUSTOM_AMOUNT">Custom amount</option>
+          <option value="OPT_OUT">Optional fee opt-out</option>
+        </select></label
+      ><label
+        >{{ discountType === "DISCOUNT_PERCENT" ? "Percentage" : "Amount (₹)"
+        }}<input
+          type="number"
+          min="0"
+          [(ngModel)]="discountValue"
+          [disabled]="discountType === 'WAIVER' || discountType === 'OPT_OUT'"
+          placeholder="Required where applicable" /></label
+      ><label
+        >Valid until (optional)<input
+          type="date"
+          [(ngModel)]="discountUntil" /></label
+      ><button
+        class="fa-primary"
+        (click)="applyDiscount()"
+        [disabled]="working"
+      >
+        {{
+          editingDiscountId === null ? "Apply to selected" : "Save correction"
+        }}
+      </button>
+    </div>
+    <p class="fa-note">
+      The effective date and reason above are used. Overlapping rules are
+      rejected to prevent accidental double discounts.
+    </p>
+  </section>
+
+  <section class="fa-card">
+    <div class="fa-card-head">
+      <div>
+        <h2>
+          {{
+            editingTransportId === null
+              ? "Transport fee change"
+              : "Correct future transport rule"
+          }}
+        </h2>
+        <p>
+          Record an effective-dated start, stop or distance change for the
+          selected students.
+        </p>
+      </div>
+    </div>
+    <div class="fa-action-grid">
+      <label class="fa-check"
+        ><input type="checkbox" [(ngModel)]="transportEnabled" /> Uses school
+        bus</label
+      ><label
+        >Distance (km)<input
+          type="number"
+          min="0"
+          [(ngModel)]="transportDistance"
+          [disabled]="!transportEnabled" /></label
+      ><button
+        class="fa-primary"
+        (click)="updateTransport()"
+        [disabled]="working"
+      >
+        {{
+          editingTransportId === null
+            ? "Save transport change"
+            : "Save correction"
+        }}
+      </button>
+    </div>
+    <p class="fa-note">
+      Existing eligible unpaid months are recalculated automatically. Paid,
+      partially paid, refunded, allocated or manually settled months remain
+      protected.
+    </p>
+  </section>
+
+  <section class="fa-card fa-history" *ngIf="history">
+    <div class="fa-card-head">
+      <div>
+        <h2>Fee lifecycle history</h2>
+        <p>
+          {{ history.studentId }} · {{ history.academicSession }}. Past records
+          are immutable; only future rules can be corrected or removed.
+        </p>
+      </div>
+      <button class="fa-secondary" (click)="loadHistory()" [disabled]="working">
+        Refresh
+      </button>
+    </div>
+    <h3>Discounts and waivers</h3>
+    <div
+      class="fa-history-list"
+      *ngIf="history.discounts.length; else noDiscounts"
+    >
+      <article
+        class="fa-history-row"
+        *ngFor="let row of history.discounts"
+        [class.revoked]="row.revokedAt"
+      >
+        <div>
+          <strong>{{ row.feeHeadName }}</strong
+          ><span>{{ row.configType }} · {{ discountValueText(row) }}</span>
+        </div>
+        <div>
+          <strong
+            >{{ row.validFrom | date : "mediumDate" }}
+            <ng-container *ngIf="row.validUntil"
+              >to {{ row.validUntil | date : "mediumDate" }}</ng-container
+            ></strong
+          ><span>{{
+            row.revokedAt
+              ? "Removed: " + (row.revokeReason || "—")
+              : row.reason || "No reason recorded"
+          }}</span>
+        </div>
+        <div class="fa-history-actions" *ngIf="!row.revokedAt">
+          <button
+            class="fa-secondary"
+            *ngIf="isFuture(row.validFrom)"
+            (click)="editDiscount(row)"
+          >
+            Edit</button
+          ><button
+            class="fa-secondary danger"
+            *ngIf="isFuture(row.validFrom)"
+            (click)="revokeFutureDiscount(row)"
+          >
+            Remove future</button
+          ><button
+            class="fa-secondary danger"
+            *ngIf="!isFuture(row.validFrom)"
+            (click)="expireDiscount(row)"
+          >
+            Expire
+          </button>
+        </div>
+      </article>
+    </div>
+    <ng-template #noDiscounts
+      ><p class="fa-empty-block">
+        No discount history for this session.
+      </p></ng-template
+    >
+    <h3>Transport</h3>
+    <div
+      class="fa-history-list"
+      *ngIf="history.transport.length; else noTransport"
+    >
+      <article class="fa-history-row" *ngFor="let row of history.transport">
+        <div>
+          <strong>{{ row.enabled ? "Bus enabled" : "Bus stopped" }}</strong
+          ><span>{{
+            row.enabled ? (row.distance || 0) + " km" : "No transport charge"
+          }}</span>
+        </div>
+        <div>
+          <strong>From {{ row.effectiveFrom | date : "mediumDate" }}</strong
+          ><span>{{
+            row.effectiveTo
+              ? "Until " + (row.effectiveTo | date : "mediumDate")
+              : row.reason || "Current rule"
+          }}</span>
+        </div>
+        <div class="fa-history-actions">
+          <button
+            class="fa-secondary"
+            *ngIf="isFuture(row.effectiveFrom)"
+            (click)="editTransport(row)"
+          >
+            Correct future
+          </button>
+        </div>
+      </article>
+    </div>
+    <ng-template #noTransport
+      ><p class="fa-empty-block">
+        No transport history for this session.
+      </p></ng-template
+    >
+  </section>
+
+  <section class="fa-card" *ngIf="changeResult">
+    <div class="fa-card-head">
+      <div>
+        <h2>Recalculation results</h2>
+        <p>
+          {{ changeResult.savedStudents }} of
+          {{ changeResult.requestedStudents }} student changes saved ·
+          {{ changeResult.recalculatedMonths }} months recalculated ·
+          {{ changeResult.skippedMonths }} unchanged (protected or ineligible)
+        </p>
+      </div>
+    </div>
+    <div
+      class="fa-result-student"
+      *ngFor="let student of changeResult.students"
+    >
+      <div class="fa-result-title">
+        <strong>{{ student.studentId }}</strong
+        ><span [class.failed]="!student.changeSaved">{{
+          student.changeSaved ? "Change saved" : "Not saved"
+        }}</span>
+      </div>
+      <p *ngIf="student.message">{{ student.message }}</p>
+      <div class="fa-result-month" *ngFor="let month of student.months">
+        <span>{{ monthLabel(month.month, true) }}</span
+        ><span *ngIf="month.ok"
+          >{{ month.oldTotalDue | currency : "INR" }} →
+          {{ month.newTotalDue | currency : "INR" }}</span
+        ><span class="failed" *ngIf="!month.ok"
+          >Protected: {{ month.message }}</span
+        >
+      </div>
+    </div>
+  </section>
+</div>

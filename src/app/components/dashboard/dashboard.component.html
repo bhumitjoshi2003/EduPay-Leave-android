@@ -286,6 +286,10 @@
            (click)="closeSidebarOnMobile()" title="Fee Structure">
           <mat-icon>list_alt</mat-icon><span>Fee Structure</span>
         </a>
+        <a class="nav-item" *ngIf="hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/fee-assignment" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Fee Assignment">
+          <mat-icon>playlist_add_check</mat-icon><span>Fee Assignment</span>
+        </a>
         <a class="nav-item" *ngIf="hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/bus-fees" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Bus Fees">
           <mat-icon>directions_bus</mat-icon><span>Bus Fees</span>
