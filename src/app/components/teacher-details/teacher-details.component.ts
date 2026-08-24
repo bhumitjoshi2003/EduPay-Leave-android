@@ -9,7 +9,10 @@ import {
 } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TeacherService } from '../../services/teacher.service';
+import {
+  TeacherAttendanceSchedule,
+  TeacherService,
+} from '../../services/teacher.service';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -18,6 +21,7 @@ import { ToastService } from '../../services/toast.service';
 import { environment } from '../../../environments/environment';
 import { SchoolService } from '../../services/school.service';
 import { MatIconModule } from '@angular/material/icon';
+import { TeacherExitRequest } from '../../interfaces/teacher';
 
 interface TeacherDetails {
   teacherId?: string;
@@ -27,6 +31,10 @@ interface TeacherDetails {
   dob?: string;
   classTeacher?: string | null;
   photoUrl?: string;
+  status?: 'ACTIVE' | 'LEFT';
+  leavingDate?: string;
+  reasonForLeaving?: string;
+  exitRemarks?: string;
 }
 
 @Component({
@@ -60,6 +68,38 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   cpShowOldField = false;
 
   classList: string[] = [];
+  readonly scheduleDays = [
+    'MONDAY',
+    'TUESDAY',
+    'WEDNESDAY',
+    'THURSDAY',
+    'FRIDAY',
+    'SATURDAY',
+    'SUNDAY',
+  ];
+  scheduleType: 'SCHOOL' | 'CUSTOM' = 'SCHOOL';
+  selectedScheduleDays: string[] = [];
+  scheduleEffectiveFrom = new Date().toISOString().slice(0, 10);
+  scheduleHistory: TeacherAttendanceSchedule[] = [];
+  schoolWorkingDays: string[] = [];
+  scheduleSaving = false;
+  showExitModal = false;
+  exitLoading = false;
+  exitRequest: TeacherExitRequest = {
+    reasonForLeaving: '',
+    leavingDate: new Date().toISOString().slice(0, 10),
+    exitRemarks: '',
+  };
+  readonly exitReasons = [
+    'Resigned',
+    'Contract completed',
+    'Relocation',
+    'Retired',
+    'Health reasons',
+    'Personal reasons',
+    'Terminated',
+    'Other',
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -73,6 +113,19 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.role = this.authService.getUserRole();
+    if (this.role === 'ADMIN') {
+      this.schoolService
+        .getSettings()
+        .pipe(takeUntil(this.ngUnsubscribe))
+        .subscribe((settings) => {
+          this.schoolWorkingDays = this.parseDays(settings.workingDays);
+          if (this.scheduleType === 'SCHOOL') {
+            this.selectedScheduleDays = [...this.schoolWorkingDays];
+          }
+          this.cdr.markForCheck();
+        });
+    }
     this.schoolService
       .getClasses()
       .pipe(takeUntil(this.ngUnsubscribe))
@@ -88,7 +141,6 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
           this.loadTeacherDetails(this.teacherId);
         }
       });
-    this.role = this.authService.getUserRole();
   }
 
   ngOnDestroy(): void {
@@ -104,6 +156,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
         next: (details) => {
           this.teacherDetails = details;
           this.updatedDetails = { ...details };
+          if (this.role === 'ADMIN') this.loadScheduleHistory();
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -111,6 +164,90 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
           this.toast.error('Error', 'Failed to load teacher details.');
         },
       });
+  }
+
+  loadScheduleHistory(): void {
+    this.teacherService
+      .getAttendanceSchedules(this.teacherId)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (history) => {
+          this.scheduleHistory = history;
+          const current =
+            history.find((item) => !item.effectiveTo) ?? history.at(-1);
+          this.scheduleType = current?.scheduleType ?? 'SCHOOL';
+          this.selectedScheduleDays =
+            current?.scheduleType === 'CUSTOM'
+              ? this.parseDays(current.workingDays)
+              : [...this.schoolWorkingDays];
+          this.cdr.markForCheck();
+        },
+        error: () =>
+          this.toast.error(
+            'Schedule unavailable',
+            'Could not load this teacher’s attendance schedule.',
+          ),
+      });
+  }
+
+  toggleScheduleDay(day: string): void {
+    this.selectedScheduleDays = this.selectedScheduleDays.includes(day)
+      ? this.selectedScheduleDays.filter((value) => value !== day)
+      : [...this.selectedScheduleDays, day];
+  }
+
+  saveAttendanceSchedule(): void {
+    if (
+      this.scheduleType === 'CUSTOM' &&
+      this.selectedScheduleDays.length === 0
+    ) {
+      this.toast.warning(
+        'Select working days',
+        'Choose at least one day for a custom schedule.',
+      );
+      return;
+    }
+    this.scheduleSaving = true;
+    this.teacherService
+      .changeAttendanceSchedule(this.teacherId, {
+        scheduleType: this.scheduleType,
+        workingDays:
+          this.scheduleType === 'CUSTOM'
+            ? this.selectedScheduleDays.join(',')
+            : null,
+        effectiveFrom: this.scheduleEffectiveFrom,
+      })
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: () => {
+          this.scheduleSaving = false;
+          this.toast.success(
+            'Schedule saved',
+            'Attendance calculations will use this schedule from the selected date.',
+          );
+          this.loadScheduleHistory();
+        },
+        error: (error) => {
+          this.scheduleSaving = false;
+          this.cdr.markForCheck();
+          this.toast.error(
+            'Could not save schedule',
+            error?.error || 'Please try again.',
+          );
+        },
+      });
+  }
+
+  scheduleDayLabel(day: string): string {
+    return day.charAt(0) + day.slice(1).toLowerCase();
+  }
+  private parseDays(value: string | null | undefined): string[] {
+    return value
+      ? value
+          .split(',')
+          .map((day) => day.trim().toUpperCase())
+          .filter(Boolean)
+      : [];
   }
 
   getUserRole(): string {
@@ -211,7 +348,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
       });
   }
 
-  updateFieldValue(field: keyof TeacherDetails, event: Event): void {
+  updateFieldValue(field: 'name' | 'email' | 'phoneNumber' | 'dob' | 'classTeacher', event: Event): void {
     if (this.updatedDetails) {
       this.updatedDetails[field] = (event.target as HTMLInputElement).value;
     }
@@ -335,5 +472,67 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
           this.toast.error('Error', error.error || 'Failed to change password');
         },
       });
+  }
+
+  get todayStr(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  openExitModal(): void {
+    this.exitRequest = { reasonForLeaving: '', leavingDate: this.todayStr, exitRemarks: '' };
+    this.showExitModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closeExitModal(): void {
+    this.showExitModal = false;
+    this.cdr.markForCheck();
+  }
+
+  submitExit(): void {
+    if (!this.exitRequest.reasonForLeaving || !this.exitRequest.leavingDate) {
+      this.toast.error('Required', 'Please select a reason and leaving date.');
+      return;
+    }
+    this.exitLoading = true;
+    this.teacherService.exitTeacher(this.teacherId, this.exitRequest)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (teacher) => {
+          this.teacherDetails = teacher;
+          this.updatedDetails = { ...teacher };
+          this.exitLoading = false;
+          this.showExitModal = false;
+          this.cdr.markForCheck();
+          this.toast.success('Teacher marked as left', 'Historical records have been preserved.');
+        },
+        error: (err) => {
+          this.exitLoading = false;
+          this.cdr.markForCheck();
+          this.toast.error('Unable to update teacher', typeof err?.error === 'string' ? err.error : 'Please try again.');
+        },
+      });
+  }
+
+  reactivateTeacher(): void {
+    this.toast.confirm({
+      title: 'Re-activate teacher?',
+      message: `This will make ${this.teacherDetails?.name} an active staff member again.`,
+      confirmText: 'Re-activate',
+      cancelText: 'Cancel',
+    }).then((confirmed) => {
+      if (!confirmed) return;
+      this.teacherService.reactivateTeacher(this.teacherId)
+        .pipe(takeUntil(this.ngUnsubscribe))
+        .subscribe({
+          next: (teacher) => {
+            this.teacherDetails = teacher;
+            this.updatedDetails = { ...teacher };
+            this.cdr.markForCheck();
+            this.toast.success('Teacher re-activated');
+          },
+          error: (err) => this.toast.error('Unable to re-activate teacher', typeof err?.error === 'string' ? err.error : 'Please try again.'),
+        });
+    });
   }
 }

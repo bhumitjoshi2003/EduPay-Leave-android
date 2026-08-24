@@ -82,7 +82,7 @@
           *ngIf="getUserRole() === 'ADMIN' && !isEditing"
           (click)="enableEditMode()"
         >
-          <mat-icon>edit</mat-icon>Edit profile
+          <mat-icon>edit</mat-icon>Edit
         </button>
         <ng-container *ngIf="getUserRole() === 'ADMIN' && isEditing">
           <button
@@ -109,6 +109,35 @@
         >
           <span class="td-password-icon" aria-hidden="true">🔐</span>
         </button>
+        <button
+          type="button"
+          class="td-btn td-btn-exit"
+          *ngIf="getUserRole() === 'ADMIN' && teacherDetails.status !== 'LEFT' && !isEditing"
+          (click)="openExitModal()"
+        >
+          Mark as Left
+        </button>
+        <button
+          type="button"
+          class="td-btn td-btn-reactivate"
+          *ngIf="getUserRole() === 'ADMIN' && teacherDetails.status === 'LEFT' && !isEditing"
+          (click)="reactivateTeacher()"
+        >
+          Re-activate
+        </button>
+      </div>
+    </div>
+
+    <div class="td-card td-exit-card" *ngIf="teacherDetails.status === 'LEFT'">
+      <div class="td-card-heading">
+        <div class="td-card-icon td-exit-icon"><mat-icon>person_off</mat-icon></div>
+        <div><span>Exit information</span><p>This teacher is no longer active staff.</p></div>
+        <span class="td-left-badge">Left</span>
+      </div>
+      <div class="details-grid">
+        <div class="detail-item"><span class="detail-icon"><mat-icon>event</mat-icon></span><div class="detail-content"><span class="label">Leaving date</span><span class="value">{{ teacherDetails.leavingDate | date: "d MMMM yyyy" }}</span></div></div>
+        <div class="detail-item"><span class="detail-icon"><mat-icon>logout</mat-icon></span><div class="detail-content"><span class="label">Reason</span><span class="value">{{ teacherDetails.reasonForLeaving }}</span></div></div>
+        <div class="detail-item detail-item-wide" *ngIf="teacherDetails.exitRemarks"><span class="detail-icon"><mat-icon>notes</mat-icon></span><div class="detail-content"><span class="label">Remarks</span><span class="value">{{ teacherDetails.exitRemarks }}</span></div></div>
       </div>
     </div>
 
@@ -194,7 +223,7 @@
           <div class="detail-content">
             <span class="label">Date of birth</span>
             <span class="value" *ngIf="!isEditing">{{
-              teacherDetails.dob | date : "d MMMM yyyy"
+              teacherDetails.dob | date: "d MMMM yyyy"
             }}</span>
             <input
               type="date"
@@ -232,7 +261,139 @@
         </div>
       </div>
     </div>
+    <section class="schedule-card" *ngIf="role === 'ADMIN'">
+      <div class="schedule-heading">
+        <div class="schedule-heading-icon">🗓️</div>
+        <div>
+          <span>Attendance schedule</span>
+          <p>
+            Set an exception only when this teacher does not follow the regular
+            school week.
+          </p>
+        </div>
+        <span class="schedule-mode-badge">{{
+          scheduleType === "SCHOOL" ? "School default" : "Custom"
+        }}</span>
+      </div>
+      <div class="schedule-options">
+        <label
+          class="schedule-option"
+          [class.selected]="scheduleType === 'SCHOOL'"
+        >
+          <input
+            type="radio"
+            name="scheduleType"
+            value="SCHOOL"
+            [(ngModel)]="scheduleType"
+          />
+          <span
+            ><strong>Regular school schedule</strong
+            ><small>{{
+              schoolWorkingDays.length
+                ? schoolWorkingDays.join(" · ")
+                : "Uses School Settings"
+            }}</small></span
+          >
+        </label>
+        <label
+          class="schedule-option"
+          [class.selected]="scheduleType === 'CUSTOM'"
+        >
+          <input
+            type="radio"
+            name="scheduleType"
+            value="CUSTOM"
+            [(ngModel)]="scheduleType"
+          />
+          <span
+            ><strong>Custom working days</strong
+            ><small>For visiting, part-time or specialist teachers</small></span
+          >
+        </label>
+      </div>
+      <div class="schedule-days" *ngIf="scheduleType === 'CUSTOM'">
+        <button
+          type="button"
+          *ngFor="let day of scheduleDays"
+          [class.selected]="selectedScheduleDays.includes(day)"
+          (click)="toggleScheduleDay(day)"
+        >
+          <span>{{ scheduleDayLabel(day).slice(0, 3) }}</span
+          ><small>{{ scheduleDayLabel(day) }}</small>
+        </button>
+      </div>
+      <div class="schedule-effective">
+        <label
+          ><span>Effective from</span
+          ><input
+            type="date"
+            name="scheduleEffectiveFrom"
+            [(ngModel)]="scheduleEffectiveFrom"
+        /></label>
+        <p>Past attendance keeps the schedule that was active on that date.</p>
+        <button
+          type="button"
+          class="schedule-save"
+          [disabled]="scheduleSaving"
+          (click)="saveAttendanceSchedule()"
+        >
+          {{ scheduleSaving ? "Saving…" : "Save schedule" }}
+        </button>
+      </div>
+      <div class="schedule-history" *ngIf="scheduleHistory.length">
+        <h3>Schedule history</h3>
+        <div class="schedule-history-row" *ngFor="let item of scheduleHistory">
+          <span class="history-dot"></span>
+          <div>
+            <strong>{{
+              item.scheduleType === "SCHOOL"
+                ? "Regular school schedule"
+                : "Custom schedule"
+            }}</strong
+            ><small>{{
+              item.scheduleType === "CUSTOM"
+                ? item.workingDays
+                : "Inherits School Settings"
+            }}</small>
+          </div>
+          <time
+            >{{ item.effectiveFrom | date: "d MMM y" }} —
+            {{
+              item.effectiveTo
+                ? (item.effectiveTo | date: "d MMM y")
+                : "Current"
+            }}</time
+          >
+        </div>
+      </div>
+    </section>
   </form>
+</div>
+
+<div class="cp-overlay" *ngIf="showExitModal" (click)="closeExitModal()">
+  <div class="cp-modal exit-modal" (click)="$event.stopPropagation()">
+    <h3 class="cp-title">Mark Teacher as Left</h3>
+    <p class="exit-help">The teacher's attendance and historical records will be preserved.</p>
+    <div class="cp-field">
+      <label class="cp-label">Reason for leaving *</label>
+      <select class="cp-input exit-input" [(ngModel)]="exitRequest.reasonForLeaving">
+        <option value="" disabled>Select reason...</option>
+        <option *ngFor="let reason of exitReasons" [value]="reason">{{ reason }}</option>
+      </select>
+    </div>
+    <div class="cp-field">
+      <label class="cp-label">Leaving date *</label>
+      <input type="date" class="cp-input exit-input" [(ngModel)]="exitRequest.leavingDate" [max]="todayStr" />
+    </div>
+    <div class="cp-field">
+      <label class="cp-label">Remarks</label>
+      <textarea class="cp-input exit-input exit-remarks" rows="3" [(ngModel)]="exitRequest.exitRemarks" placeholder="Optional notes..."></textarea>
+    </div>
+    <div class="cp-actions">
+      <button class="cp-btn-cancel" (click)="closeExitModal()">Cancel</button>
+      <button class="cp-btn-submit exit-submit" (click)="submitExit()" [disabled]="exitLoading">{{ exitLoading ? "Processing…" : "Confirm" }}</button>
+    </div>
+  </div>
 </div>
 
 <div *ngIf="!teacherDetails">
