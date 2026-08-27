@@ -262,6 +262,11 @@ export const routes: Routes = [
         loadComponent: () => import('./components/bus-fees/bus-fees.component').then(m => m.BusFeesComponent),
         canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
+      {
+        path: 'fee-assignment',
+        loadComponent: () => import('./components/fee-assignment/fee-assignment.component').then(m => m.FeeAssignmentComponent),
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
+      },
 
       // ── New Fee System (invoice-based) ────────────────────────────────
       {

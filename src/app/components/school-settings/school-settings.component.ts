@@ -12,6 +12,8 @@ import { NotificationChannelService } from '../../services/notification-channel.
 import { NotificationChannel } from '../../interfaces/notification-channel';
 import { AcademicSessionService } from '../../services/academic-session.service';
 import { AcademicSession } from '../../interfaces/academic-session';
+import { FeeWorkflowSettings } from '../../interfaces/fee-workflow';
+import { FeeWorkflowService } from '../../services/fee-workflow.service';
 
 @Component({
   selector: 'app-school-settings',
@@ -29,6 +31,9 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   loading = false;
   saving = false;
   savingRazorpay = false;
+  feePolicy?: FeeWorkflowSettings;
+  feePolicyLoading = false;
+  feePolicySaving = false;
 
   isEditing = false;
   editForm: Partial<SchoolSettings> = {};
@@ -110,7 +115,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     private toast: ToastService,
     private route: ActivatedRoute,
     private notificationChannelService: NotificationChannelService,
-    private academicSessionService: AcademicSessionService
+    private academicSessionService: AcademicSessionService,
+    private feeWorkflowService: FeeWorkflowService
   ) {}
 
   ngOnInit(): void {
@@ -124,9 +130,49 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     this.loadSettings();
     this.loadEntitlement();
     this.loadSessions();
+    this.loadFeePolicy();
     if (this.activeTab === 'subscription') {
       this.loadAvailablePlans();
     }
+  }
+
+  loadFeePolicy(): void {
+    this.feePolicyLoading = true;
+    this.feeWorkflowService.getSettings().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (settings) => {
+        this.feePolicy = settings;
+        this.feePolicyLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.feePolicyLoading = false;
+        this.toast.error('Fee policy unavailable', 'Unable to load the school fee policy.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  saveFeePolicy(): void {
+    if (!this.feePolicy || this.feePolicySaving) return;
+    this.feePolicySaving = true;
+    const value: FeeWorkflowSettings = {
+      ...this.feePolicy,
+      operationalStatus: 'ACTIVE',
+      automaticAnnualGeneration: false,
+    };
+    this.feeWorkflowService.updateSettings(value).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (saved) => {
+        this.feePolicy = saved;
+        this.feePolicySaving = false;
+        this.toast.success('Fee policy saved', 'New previews and fee generation will use this policy.');
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.feePolicySaving = false;
+        this.toast.error('Unable to save fee policy', error.error?.error || 'Please try again.');
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   ngOnDestroy(): void {
