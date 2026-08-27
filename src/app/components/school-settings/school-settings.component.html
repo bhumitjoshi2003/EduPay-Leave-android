@@ -78,7 +78,7 @@
     <ng-container *ngIf="activeTab === 'general'">
 
       <!-- Logo card -->
-      <div class="ss-card ss-general-card ss-general-logo-card">
+      <div class="ss-card">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
             <div class="ss-card-icon-box ss-icon-box-purple">🎨</div>
@@ -126,7 +126,7 @@
 
       <!-- VIEW mode -->
       <ng-container *ngIf="!isEditing">
-        <div class="ss-card ss-general-card ss-general-info-card">
+        <div class="ss-card">
           <div class="ss-card-header">
             <div class="ss-card-title-row">
               <div class="ss-card-icon-box">📋</div>
@@ -306,7 +306,7 @@
 
       <!-- EDIT mode -->
       <ng-container *ngIf="isEditing">
-        <div class="ss-card ss-general-card ss-general-edit-card">
+        <div class="ss-card">
           <div class="ss-card-header">
             <div class="ss-card-title-row">
               <div class="ss-card-icon-box ss-icon-box-warn">✏️</div>
@@ -442,7 +442,44 @@
 
     <!-- ══════════ RAZORPAY TAB ══════════ -->
     <ng-container *ngIf="activeTab === 'razorpay'">
-      <div class="ss-card ss-payment-card">
+      <div class="ss-card ss-fee-policy-card">
+        <div class="ss-card-header">
+          <div class="ss-card-title-row">
+            <div class="ss-card-icon-box ss-icon-box-amber">📅</div>
+            <div>
+              <h2 class="ss-card-title">Mid-session fee policy</h2>
+              <p class="ss-card-subtitle">Choose how fees begin when a student starts partway through a month.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="ss-policy-loading" *ngIf="feePolicyLoading">Loading fee policy…</div>
+        <div class="ss-policy-options" *ngIf="feePolicy as policy">
+          <label class="ss-policy-option" [class.selected]="policy.midSessionPolicy === 'FROM_EFFECTIVE_MONTH'">
+            <input type="radio" name="midSessionPolicy" value="FROM_EFFECTIVE_MONTH"
+                   [(ngModel)]="policy.midSessionPolicy">
+            <span><strong>Charge the full effective month</strong><small>Generates the complete month even when the effective date is mid-month.</small></span>
+          </label>
+          <label class="ss-policy-option" [class.selected]="policy.midSessionPolicy === 'NEXT_MONTH'">
+            <input type="radio" name="midSessionPolicy" value="NEXT_MONTH"
+                   [(ngModel)]="policy.midSessionPolicy">
+            <span><strong>Start from the next month</strong><small>Skips the partial month and begins normal billing next month.</small></span>
+          </label>
+          <label class="ss-policy-option" [class.selected]="policy.midSessionPolicy === 'PRORATE_JOINING_MONTH'">
+            <input type="radio" name="midSessionPolicy" value="PRORATE_JOINING_MONTH"
+                   [(ngModel)]="policy.midSessionPolicy">
+            <span><strong>Prorate the effective month</strong><small>Charges only for the remaining days of the effective month.</small></span>
+          </label>
+          <p class="ss-policy-note">The explanation above is guidance only. No additional note is required to save this policy.</p>
+          <div class="ss-form-actions" *ngIf="isAdmin">
+            <button class="ss-btn ss-btn-primary" (click)="saveFeePolicy()" [disabled]="feePolicySaving">
+              {{ feePolicySaving ? 'Saving…' : 'Save fee policy' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ss-card">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
             <div class="ss-card-icon-box ss-icon-box-purple">💳</div>
@@ -505,7 +542,7 @@
 
     <!-- ══════════ FEATURES TAB ══════════ -->
     <ng-container *ngIf="activeTab === 'features'">
-      <div class="ss-card ss-features-card">
+      <div class="ss-card">
         <div class="ss-card-header">
           <div class="ss-card-title-row">
             <div class="ss-card-icon-box ss-icon-box-amber">⚡</div>
