@@ -33,6 +33,8 @@ export const featureGuard: CanActivateFn = (route, _state) => {
       ? '/dashboard/teacher-dashboard'
       : role === 'STUDENT'
         ? '/dashboard/student-dashboard'
+        : role === 'PARENT'
+          ? '/home'
         : role === 'SUPER_ADMIN'
           ? '/dashboard/super-admin-dashboard'
           : '/home';

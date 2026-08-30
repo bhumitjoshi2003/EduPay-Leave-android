@@ -30,6 +30,7 @@ import { FeeBreakdownComponent } from './fee-breakdown.component';
 import { LoggerService } from '../../services/logger.service';
 import { SchoolService } from '../../services/school.service';
 import { take } from 'rxjs/operators';
+import { ParentPortalService } from '../../services/parent-portal.service';
 
 export interface FeeLineItem {
   name: string;
@@ -102,7 +103,8 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     private feesCalc: FeesCalculationService,
     private logger: LoggerService,
     private toast: ToastService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private parentPortalService: ParentPortalService
   ) {}
 
   comingSoonConfig = MODULE_MESSAGES.fees;
@@ -122,6 +124,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
   lastSelectedMonth: MonthViewModel | null = null;
   studentName: string = '';
   role: string = '';
+  parentCanPay = false;
   manualPaymentAmount: number = 0;
   manualPaymentMode: ManualPaymentRequest['paymentMode'] = 'CASH';
   manualPaymentReference: string = '';
@@ -155,6 +158,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
       }
     });
     if (this.role === 'STUDENT') this.getStudentId();
+    if (this.role === 'PARENT') this.loadParentChildAccess();
 
     // Load school settings first so academic year calculations use the correct start month
     this.schoolService
@@ -185,6 +189,23 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
 
   getStudentId(): void {
     this.studentId = this.authStateService.getUserId();
+  }
+
+  private loadParentChildAccess(): void {
+    this.parentPortalService.getMyProfile().pipe(takeUntil(this.destroy$)).subscribe({
+      next: profile => {
+        const child = profile.children.find(item => item.studentId === this.studentId);
+        if (!child || !child.canViewFees) {
+          this.toast.error('Fee access unavailable', 'Please contact the school administrator.');
+          return;
+        }
+        this.studentName = child.studentName;
+        this.className = child.className;
+        this.parentCanPay = child.canPayFees;
+        this.cdr.markForCheck();
+      },
+      error: () => this.toast.error('Could not verify parent access', 'Please try again.'),
+    });
   }
 
   fetchSessions(): void {
@@ -495,8 +516,11 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
 
   populateMonthDetails(month: MonthViewModel): Promise<void> {
     return new Promise((resolve) => {
+      const student$ = this.role === 'PARENT'
+        ? of({ name: this.studentName || this.studentId, className: this.className || '' })
+        : this.studentService.getStudent(this.studentId);
       forkJoin({
-        student: this.studentService.getStudent(this.studentId),
+        student: student$,
         breakdown: this.feesService
           .getMonthFeeBreakdown(this.studentId, this.session, month.month)
           .pipe(

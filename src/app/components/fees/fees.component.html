@@ -202,9 +202,10 @@
         [paymentData]="paymentData"
         (paymentSuccess)="handleSuccessfulPayment()"
         (paymentProcessingStarted)="onPaymentProcessingStarted()"
-        [disabled]="isLoadingPayment"
+        [disabled]="isLoadingPayment || (role === 'PARENT' && !parentCanPay)"
       >
       </app-payment>
+      <span class="pt-payment-note" *ngIf="role === 'PARENT' && !parentCanPay">This account has view-only fee access.</span>
     </div>
 
     <ng-template #adminPayment>

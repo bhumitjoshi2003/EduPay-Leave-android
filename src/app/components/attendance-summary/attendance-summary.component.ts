@@ -102,14 +102,16 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     this.userId = user?.userId ?? '';
     this.userClassName = user?.className ?? '';
 
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
-      next: classes => { this.classList = classes; this.cdr.markForCheck(); },
-      error: (err) => this.logger.error('Failed to load classes', err)
-    });
-    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
-      next: classes => { this.managedClasses = classes; },
-      error: (err) => this.logger.error('Failed to load managed classes', err)
-    });
+    if (this.role !== 'PARENT') {
+      this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+        next: classes => { this.classList = classes; this.cdr.markForCheck(); },
+        error: (err) => this.logger.error('Failed to load classes', err)
+      });
+      this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+        next: classes => { this.managedClasses = classes; },
+        error: (err) => this.logger.error('Failed to load managed classes', err)
+      });
+    }
 
     this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
       next: sessions => {
@@ -530,6 +532,10 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
 
   canChangeClass(): boolean {
     return this.role === 'ADMIN' || this.role === 'SUB_ADMIN' || this.role === 'SUPER_ADMIN';
+  }
+
+  isSelfServiceView(): boolean {
+    return this.role === 'STUDENT' || this.role === 'PARENT';
   }
 
   printReport(): void {

@@ -34,8 +34,9 @@ export class LeaveService {
 
   constructor(private http: HttpClient) { }
 
-  applyLeave(leaveRequest: LeaveRequest): Observable<string> {
-    return this.http.post(`${this.apiUrl}/apply-leave`, leaveRequest, { responseType: 'text', withCredentials: true });
+  applyLeave(leaveRequest: LeaveRequest, studentId?: string): Observable<string> {
+    const params = studentId ? new HttpParams().set('studentId', studentId) : undefined;
+    return this.http.post(`${this.apiUrl}/apply-leave`, leaveRequest, { params, responseType: 'text', withCredentials: true });
   }
 
   getLeavesPaginated(

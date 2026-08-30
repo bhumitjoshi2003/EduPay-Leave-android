@@ -10,6 +10,8 @@ import { LeaveRequest } from '../../interfaces/leave-request';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { PaginatedResponse } from '../../services/payment-history.service';
 import { Subject, takeUntil } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { ParentPortalService } from '../../services/parent-portal.service';
 
 
 @Component({
@@ -53,7 +55,9 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
     private authStateService: AuthStateService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private route: ActivatedRoute,
+    private parentPortalService: ParentPortalService
   ) {
     this.leaveForm = this.fb.group({
       leaveDate: ['', Validators.required],
@@ -96,6 +100,36 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
     if (!user) {
       this.isLoading = false;
       this.cdr.markForCheck();
+      return;
+    }
+    if (user.role === 'PARENT') {
+      const requestedStudentId = this.route.snapshot.queryParamMap.get('studentId');
+      if (!requestedStudentId) {
+        this.isLoading = false;
+        this.toast.error('No child selected', 'Open leave from the parent portal.');
+        this.cdr.markForCheck();
+        return;
+      }
+      this.parentPortalService.getMyProfile().pipe(takeUntil(this.destroy$)).subscribe({
+        next: profile => {
+          const child = profile.children.find(item => item.studentId === requestedStudentId && item.canManageLeave);
+          if (!child) {
+            this.isLoading = false;
+            this.toast.error('Leave access unavailable', 'Please contact the school administrator.');
+            this.cdr.markForCheck();
+            return;
+          }
+          this.studentId = child.studentId;
+          this.studentName = child.studentName;
+          this.className = child.className;
+          this.loadStudentLeaves();
+        },
+        error: () => {
+          this.isLoading = false;
+          this.toast.error('Could not load child details');
+          this.cdr.markForCheck();
+        }
+      });
       return;
     }
     this.studentId = user.userId;
@@ -262,7 +296,8 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
         reason: finalReason,
         className: this.className,
       };
-      this.leaveService.applyLeave(leaveRequest).pipe(takeUntil(this.destroy$)).subscribe({
+      const parentStudentId = this.authStateService.getUserRole() === 'PARENT' ? this.studentId : undefined;
+      this.leaveService.applyLeave(leaveRequest, parentStudentId).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response) => {
           this.leaveForm.reset();
           this.reasonControl?.setValue('');

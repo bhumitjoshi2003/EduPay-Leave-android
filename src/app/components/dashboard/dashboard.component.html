@@ -84,6 +84,22 @@
         </a>
       </ng-container>
 
+      <!-- ── PARENT ── -->
+      <ng-container *ngIf="isParent()">
+        <div class="nav-section-label">Family</div>
+        <a class="nav-item" routerLink="/dashboard/parent-dashboard" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Parent Dashboard">
+          <mat-icon>family_restroom</mat-icon><span>My Children</span>
+        </a>
+        <div class="nav-section-label">School</div>
+        <a class="nav-item" routerLink="/dashboard/notice" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()"><mat-icon>campaign</mat-icon><span>Notice Board</span></a>
+        <a class="nav-item" routerLink="/dashboard/event-calendar" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()"><mat-icon>calendar_month</mat-icon><span>Events</span></a>
+        <a class="nav-item" routerLink="/dashboard/holiday-calendar" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()"><mat-icon>beach_access</mat-icon><span>Holidays</span></a>
+      </ng-container>
+
       <!-- ── TEACHER ── -->
       <ng-container *ngIf="isTeacher()">
         <div class="nav-section-label">Main</div>
@@ -197,6 +213,10 @@
         <a class="nav-item" routerLink="/dashboard/admin-list" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Admins">
           <mat-icon>manage_accounts</mat-icon><span>Admins</span>
+        </a>
+        <a class="nav-item" *ngIf="hasFeature('PARENT_PORTAL')" routerLink="/dashboard/parent-portal" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Parents & Guardians">
+          <mat-icon>family_restroom</mat-icon><span>Parents</span>
         </a>
         <a class="nav-item" routerLink="/dashboard/register" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Register">

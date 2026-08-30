@@ -10,10 +10,13 @@ export class TimetableService {
 
   constructor(private http: HttpClient) {}
 
-  getClassTimetable(className: string, sectionId?: number | null): Observable<TimetableEntry[]> {
+  getClassTimetable(className: string, sectionId?: number | null, studentId?: string | null): Observable<TimetableEntry[]> {
     let params = new HttpParams();
     if (sectionId != null) {
       params = params.set('sectionId', sectionId.toString());
+    }
+    if (studentId) {
+      params = params.set('studentId', studentId);
     }
     return this.http.get<TimetableEntry[]>(
       `${this.baseUrl}/class/${encodeURIComponent(className)}`,

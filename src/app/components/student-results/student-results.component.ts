@@ -4,12 +4,14 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import Chart from 'chart.js/auto';
 import { MarksService, ExamResult } from '../../services/marks.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { AcademicSessionService } from '../../services/academic-session.service';
+import { ParentPortalService } from '../../services/parent-portal.service';
+import { ToastService } from '../../services/toast.service';
 import { LoggerService } from '../../services/logger.service';
 
 @Component({
@@ -42,6 +44,9 @@ export class StudentResultsComponent implements OnInit, OnDestroy, AfterViewChec
     private marksService: MarksService,
     private authState: AuthStateService,
     private academicSessionService: AcademicSessionService,
+    private parentPortalService: ParentPortalService,
+    private route: ActivatedRoute,
+    private toast: ToastService,
     private router: Router,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
@@ -49,7 +54,27 @@ export class StudentResultsComponent implements OnInit, OnDestroy, AfterViewChec
   ) { }
 
   ngOnInit(): void {
-    this.studentId = this.authState.getUserId();
+    const requestedStudentId = this.route.snapshot.queryParamMap.get('studentId');
+    if (this.authState.getUserRole() === 'PARENT') {
+      if (!requestedStudentId) {
+        this.toast.error('No child selected', 'Open results from the parent portal.');
+        return;
+      }
+      this.studentId = requestedStudentId;
+      this.parentPortalService.getMyProfile().pipe(takeUntil(this.destroy$)).subscribe({
+        next: profile => {
+          const allowed = profile.children.some(child => child.studentId === this.studentId && child.canViewResults);
+          if (!allowed) {
+            this.studentId = '';
+            this.toast.error('Results access unavailable', 'Please contact the school administrator.');
+            this.cdr.markForCheck();
+          }
+        },
+        error: () => this.toast.error('Could not verify results access')
+      });
+    } else {
+      this.studentId = this.authState.getUserId();
+    }
     this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
       next: sessions => {
         this.sessions = sessions.map(s => s.label);

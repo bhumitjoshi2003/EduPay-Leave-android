@@ -174,6 +174,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.router.navigate(['/dashboard/teacher-dashboard']);
     } else if (this.Role === 'ADMIN' || this.Role === 'SUB_ADMIN') {
       this.router.navigate(['/dashboard/admin-dashboard']);
+    } else if (this.Role === 'PARENT') {
+      this.router.navigate(['/dashboard/parent-dashboard']);
     } else if (this.Role === 'SUPER_ADMIN') {
       this.router.navigate(['/dashboard/super-admin-dashboard']);
     }
@@ -193,6 +195,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   isSuperAdmin(): boolean {
     return this.Role === 'SUPER_ADMIN';
+  }
+
+  isParent(): boolean {
+    return this.Role === 'PARENT';
   }
 
   get subscriptionStatus(): string | null {
@@ -269,6 +275,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       'ADMIN': 'Admin',
       'SUB_ADMIN': 'Sub Admin',
       'SUPER_ADMIN': 'Super Admin',
+      'PARENT': 'Parent',
     };
     return labels[this.Role] ?? this.Role;
   }
@@ -289,6 +296,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       'ADMIN': 'chip-admin',
       'SUB_ADMIN': 'chip-subadmin',
       'SUPER_ADMIN': 'chip-superadmin',
+      'PARENT': 'chip-parent',
     };
     return classes[this.Role] ?? 'chip-student';
   }
