@@ -7,7 +7,7 @@
 
 .cp-fab {
   position: fixed;
-  bottom: 28px;
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
   right: 28px;
   z-index: 500;
 
@@ -131,7 +131,7 @@
 
 @media (max-width: 420px) {
   .cp-fab {
-    bottom: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     right: 16px;
   }
 }

@@ -67,6 +67,10 @@
            (click)="closeSidebarOnMobile()" title="Fee Structure">
           <mat-icon>list_alt</mat-icon><span>Fee Structure</span>
         </a>
+        <a class="nav-item" *ngIf="hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/bus-fees" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Bus Fees">
+          <mat-icon>directions_bus</mat-icon><span>Bus Fees</span>
+        </a>
 
         <div class="nav-section-label">Communication</div>
 
@@ -82,6 +86,70 @@
            (click)="closeSidebarOnMobile()" title="Holiday Calendar">
           <mat-icon>beach_access</mat-icon><span>Holiday Calendar</span>
         </a>
+      </ng-container>
+
+      <!-- ── PARENT ──
+           Academics/Fees items are gated on the currently SELECTED child's permissions
+           (dashboard.component.ts childCan()) — they appear/disappear as the parent switches
+           between linked children with different access, per-child, on every navigation. -->
+      <ng-container *ngIf="isParent()">
+        <div class="nav-section-label">Child</div>
+        <a class="nav-item" routerLink="/dashboard/parent-dashboard" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="My Children">
+          <mat-icon>family_restroom</mat-icon><span>My Children</span>
+        </a>
+
+        <ng-container *ngIf="selectedChild">
+          <div class="nav-section-label">Academics</div>
+          <a class="nav-item" *ngIf="childCan('canViewAttendance')" routerLink="/dashboard/attendance-summary"
+             [queryParams]="{ studentId: selectedChild.studentId, className: selectedChild.className }"
+             routerLinkActive="active" (click)="closeSidebarOnMobile()" title="Attendance">
+            <mat-icon>bar_chart</mat-icon><span>Attendance</span>
+          </a>
+          <a class="nav-item" *ngIf="childCan('canViewTimetable')" routerLink="/dashboard/timetable"
+             [queryParams]="{ studentId: selectedChild.studentId, className: selectedChild.className }"
+             routerLinkActive="active" (click)="closeSidebarOnMobile()" title="Timetable">
+            <mat-icon>schedule</mat-icon><span>Timetable</span>
+          </a>
+          <a class="nav-item" *ngIf="childCan('canViewResults')" routerLink="/dashboard/my-results"
+             [queryParams]="{ studentId: selectedChild.studentId }"
+             routerLinkActive="active" (click)="closeSidebarOnMobile()" title="Results">
+            <mat-icon>grade</mat-icon><span>Results</span>
+          </a>
+          <a class="nav-item" *ngIf="childCan('canManageLeave')" routerLink="/dashboard/apply-leave"
+             [queryParams]="{ studentId: selectedChild.studentId }"
+             routerLinkActive="active" (click)="closeSidebarOnMobile()" title="Leave">
+            <mat-icon>event_note</mat-icon><span>Leave</span>
+          </a>
+
+          <div class="nav-section-label" *ngIf="childCan('canViewFees')">Fees</div>
+          <a class="nav-item" *ngIf="childCan('canViewFees')" routerLink="/dashboard/fees/{{ selectedChild.studentId }}"
+             routerLinkActive="active" (click)="closeSidebarOnMobile()" title="My Fees">
+            <mat-icon>account_balance_wallet</mat-icon><span>My Fees</span>
+          </a>
+          <a class="nav-item" *ngIf="childCan('canViewFees')" routerLink="/dashboard/payment-history/{{ selectedChild.studentId }}"
+             routerLinkActive="active" (click)="closeSidebarOnMobile()" title="Payment History">
+            <mat-icon>receipt_long</mat-icon><span>Payment History</span>
+          </a>
+          <a class="nav-item" *ngIf="childCan('canViewFees')" routerLink="/dashboard/fee-structure"
+             [queryParams]="{ studentId: selectedChild.studentId }"
+             routerLinkActive="active" (click)="closeSidebarOnMobile()" title="Fee Structure">
+            <mat-icon>list_alt</mat-icon><span>Fee Structure</span>
+          </a>
+          <a class="nav-item" *ngIf="childCan('canViewFees')" routerLink="/dashboard/bus-fees"
+             [queryParams]="{ studentId: selectedChild.studentId }"
+             routerLinkActive="active" (click)="closeSidebarOnMobile()" title="Bus Fees">
+            <mat-icon>directions_bus</mat-icon><span>Bus Fees</span>
+          </a>
+        </ng-container>
+
+        <div class="nav-section-label">School</div>
+        <a class="nav-item" routerLink="/dashboard/notice" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()"><mat-icon>campaign</mat-icon><span>Notice Board</span></a>
+        <a class="nav-item" *ngIf="hasFeature('EVENT_CALENDAR')" routerLink="/dashboard/event-calendar" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()"><mat-icon>calendar_month</mat-icon><span>Events</span></a>
+        <a class="nav-item" routerLink="/dashboard/holiday-calendar" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()"><mat-icon>beach_access</mat-icon><span>Holidays</span></a>
       </ng-container>
 
       <!-- ── TEACHER ── -->
@@ -197,6 +265,10 @@
         <a class="nav-item" routerLink="/dashboard/admin-list" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Admins">
           <mat-icon>manage_accounts</mat-icon><span>Admins</span>
+        </a>
+        <a class="nav-item" *ngIf="hasFeature('PARENT_PORTAL')" routerLink="/dashboard/parent-portal" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Parents & Guardians">
+          <mat-icon>family_restroom</mat-icon><span>Parents</span>
         </a>
         <a class="nav-item" routerLink="/dashboard/register" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Register">

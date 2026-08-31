@@ -17,11 +17,13 @@ import {
   StudentAttendanceSummary, ClassAttendanceSummary, MonthlyBreakdown,
   DailyDetail, CalendarCell, CellStatus
 } from '../../interfaces/attendance-summary';
+import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
+import { ChildAccess } from '../../interfaces/parent-portal';
 
 @Component({
   selector: 'app-attendance-summary',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ParentChildContextComponent],
   templateUrl: './attendance-summary.component.html',
   styleUrl: './attendance-summary.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -102,14 +104,16 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     this.userId = user?.userId ?? '';
     this.userClassName = user?.className ?? '';
 
-    this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
-      next: classes => { this.classList = classes; this.cdr.markForCheck(); },
-      error: (err) => this.logger.error('Failed to load classes', err)
-    });
-    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
-      next: classes => { this.managedClasses = classes; },
-      error: (err) => this.logger.error('Failed to load managed classes', err)
-    });
+    if (this.role !== 'PARENT') {
+      this.schoolService.getClasses().pipe(takeUntil(this.destroy$)).subscribe({
+        next: classes => { this.classList = classes; this.cdr.markForCheck(); },
+        error: (err) => this.logger.error('Failed to load classes', err)
+      });
+      this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+        next: classes => { this.managedClasses = classes; },
+        error: (err) => this.logger.error('Failed to load managed classes', err)
+      });
+    }
 
     this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
       next: sessions => {
@@ -532,12 +536,32 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     return this.role === 'ADMIN' || this.role === 'SUB_ADMIN' || this.role === 'SUPER_ADMIN';
   }
 
+  isSelfServiceView(): boolean {
+    return this.role === 'STUDENT' || this.role === 'PARENT';
+  }
+
   printReport(): void {
     window.print();
   }
 
   goBack(): void {
     this.router.navigate(['/dashboard/student-list']);
+  }
+
+  onChildTabSelected(child: ChildAccess): void {
+    if (!child.canViewAttendance) {
+      this.error = "You do not have permission to view this child's attendance.";
+      this.cdr.markForCheck();
+      return;
+    }
+    this.selectedStudentId = child.studentId;
+    this.selectedClass = child.className;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { studentId: child.studentId, className: child.className },
+      replaceUrl: true,
+    });
+    this.loadReport();
   }
 
   trackByMonth(_: number, row: MonthlyBreakdown): string { return `${row.month}-${row.year}`; }

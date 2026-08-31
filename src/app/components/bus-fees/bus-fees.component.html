@@ -1,4 +1,5 @@
 <div class="bf-page">
+  <app-parent-child-context [studentId]="subjectStudentId" requiredPermission="canViewFees" (childSelected)="onChildTabSelected($event)"></app-parent-child-context>
 
   <!-- ── Hero ─────────────────────────────��───────────────────────── -->
   <div class="bf-hero">
@@ -13,8 +14,30 @@
     <div class="bf-blob bf-blob-2"></div>
   </div>
 
+  <!-- Parent without fee-view permission for the selected child, or no child selected -->
+  <div class="bf-card" *ngIf="accessDenied">
+    <div class="bf-empty-state">
+      <div class="bf-empty-icon">🔒</div>
+      <p class="bf-empty-title">Bus fees unavailable</p>
+      <p style="font-size:0.85rem; color:#94a3b8; margin:6px 0 0">Open this page from the parent portal for a child you have fee-viewing access to.</p>
+    </div>
+  </div>
+
+  <!-- Your/your child's applicable bus fee — backend-resolved, never computed on the frontend -->
+  <div class="bf-callout" *ngIf="!accessDenied && subjectStudentId && !applicableLoading && applicableBusFee as ab">
+    <ng-container *ngIf="ab.takesBus && ab.busFee !== null">
+      Your applicable bus fee is <strong>₹{{ ab.busFee | number }}</strong> for a distance of {{ ab.distance }} km ({{ ab.academicYear }}).
+    </ng-container>
+    <ng-container *ngIf="ab.takesBus && ab.busFee === null">
+      Marked as using school transport, but no bus fee slab is configured for a distance of {{ ab.distance }} km yet. Please contact the school office.
+    </ng-container>
+    <ng-container *ngIf="!ab.takesBus">
+      Not registered for school transport.
+    </ng-container>
+  </div>
+
   <!-- ── Controls card ──────────────────────────────────────────────── -->
-  <div class="bf-card">
+  <div class="bf-card" *ngIf="!accessDenied">
     <div class="bf-controls" *ngIf="!isLoading">
       <div class="bf-control-group" *ngIf="sessions.length > 0">
         <label class="bf-label">Session</label>

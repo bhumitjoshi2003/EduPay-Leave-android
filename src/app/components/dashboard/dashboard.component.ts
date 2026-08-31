@@ -21,6 +21,9 @@ import { filter } from 'rxjs/operators';
 import { Capacitor } from '@capacitor/core';
 import { AppUpdate, AppUpdateAvailability } from '@capawesome/capacitor-app-update';
 import { AiCopilotComponent } from '../ai-copilot/ai-copilot.component';
+import { ParentPortalService } from '../../services/parent-portal.service';
+import { ParentChildContextService } from '../../services/parent-child-context.service';
+import { ChildAccess } from '../../interfaces/parent-portal';
 
 @Component({
   selector: 'app-dashboard',
@@ -53,6 +56,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   latestAppVersion = '';
   sidebarCollapsed = false;
   mobileSidebarOpen = false;
+  selectedChild: ChildAccess | null = null;
   private ngUnsubscribe = new Subject<void>();
   private pollingIntervalSubscription: Subscription | undefined;
 
@@ -67,6 +71,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private pushNotificationService: PushNotificationService,
     private schoolService: SchoolService,
     public tenantService: TenantService,
+    private parentPortalService: ParentPortalService,
+    private childContext: ParentChildContextService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService
   ) { }
@@ -75,6 +81,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.getDetails();
     this.handleInitialNavigation();
     this.fetchUnreadCount();
+    this.initParentChildContext();
     // Re-fetch on every navigation (catches mark-all-read from notice board)
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
@@ -104,6 +111,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
         .then(() => this.cdr.markForCheck())
         .catch(() => {});
     }
+  }
+
+  /** Keeps the PARENT sidebar's permission-gated items in sync with whichever child is
+   *  currently selected — reactively, so switching children (from any page) updates the
+   *  sidebar without a reload. Eagerly reconciles on shell load so a deep link straight into
+   *  a feature page still has a correctly gated sidebar, not just after visiting My Children. */
+  private initParentChildContext(): void {
+    if (this.Role !== 'PARENT') return;
+    this.childContext.selectedChild$.pipe(takeUntil(this.ngUnsubscribe)).subscribe(child => {
+      this.selectedChild = child;
+      this.cdr.markForCheck();
+    });
+    this.parentPortalService.getMyProfile().pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+      next: profile => this.childContext.reconcile(profile),
+      error: () => { /* sidebar simply shows no child-specific items until a page reconciles it */ },
+    });
+  }
+
+  /** Gates a PARENT sidebar item on the currently selected child's permission flag. */
+  childCan(permission: keyof ChildAccess): boolean {
+    return !!this.selectedChild && !!this.selectedChild[permission];
   }
 
   getDetails() {
@@ -174,6 +202,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.router.navigate(['/dashboard/teacher-dashboard']);
     } else if (this.Role === 'ADMIN' || this.Role === 'SUB_ADMIN') {
       this.router.navigate(['/dashboard/admin-dashboard']);
+    } else if (this.Role === 'PARENT') {
+      this.router.navigate(['/dashboard/parent-dashboard']);
     } else if (this.Role === 'SUPER_ADMIN') {
       this.router.navigate(['/dashboard/super-admin-dashboard']);
     }
@@ -193,6 +223,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   isSuperAdmin(): boolean {
     return this.Role === 'SUPER_ADMIN';
+  }
+
+  isParent(): boolean {
+    return this.Role === 'PARENT';
   }
 
   get subscriptionStatus(): string | null {
@@ -269,6 +303,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       'ADMIN': 'Admin',
       'SUB_ADMIN': 'Sub Admin',
       'SUPER_ADMIN': 'Super Admin',
+      'PARENT': 'Parent',
     };
     return labels[this.Role] ?? this.Role;
   }
@@ -289,12 +324,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
       'ADMIN': 'chip-admin',
       'SUB_ADMIN': 'chip-subadmin',
       'SUPER_ADMIN': 'chip-superadmin',
+      'PARENT': 'chip-parent',
     };
     return classes[this.Role] ?? 'chip-student';
   }
 
+  private get isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 900;
+  }
+
   toggleSidebar(): void {
-    if (window.innerWidth <= 768) {
+    if (this.isMobile) {
       this.mobileSidebarOpen = !this.mobileSidebarOpen;
     } else {
       this.sidebarCollapsed = !this.sidebarCollapsed;
@@ -308,7 +348,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   closeSidebarOnMobile(): void {
-    if (window.innerWidth <= 768) {
+    if (this.isMobile) {
       this.mobileSidebarOpen = false;
       this.cdr.markForCheck();
     }

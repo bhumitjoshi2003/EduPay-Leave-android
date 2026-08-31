@@ -39,7 +39,7 @@ export const routes: Routes = [
       {
         path: 'fees/:studentId',
         loadComponent: () => import('./components/fees/fees.component').then(m => m.PaymentTrackerComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN', 'PARENT'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'payment-history',
@@ -49,22 +49,22 @@ export const routes: Routes = [
       {
         path: 'payment-history/:studentId',
         loadComponent: () => import('./components/payment-history/payment-history.component').then(m => m.PaymentHistoryComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'PAYMENT_COLLECTION' }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN', 'PARENT'], featureKey: 'PAYMENT_COLLECTION' }
       },
       {
         path: 'payment-history-details/:paymentId',
         loadComponent: () => import('./components/payment-details/payment-details.component').then(m => m.PaymentDetailsComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'ADMIN'], featureKey: 'PAYMENT_COLLECTION' }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'ADMIN', 'PARENT'], featureKey: 'PAYMENT_COLLECTION' }
       },
       {
         path: 'apply-leave',
         loadComponent: () => import('./components/apply-leave/apply-leave.component').then(m => m.ApplyLeaveComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'PARENT'] }
       },
       {
         path: 'attendance-summary',
         loadComponent: () => import('./components/attendance-summary/attendance-summary.component').then(m => m.AttendanceSummaryComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'PARENT'] }
       },
 
       // ── Teacher routes ────────────────────────────────────────────────
@@ -149,7 +149,7 @@ export const routes: Routes = [
       {
         path: 'holiday-calendar',
         loadComponent: () => import('./components/holiday-calendar/holiday-calendar.component').then(m => m.HolidayCalendarComponent),
-        canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER', 'STUDENT'] }
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'TEACHER', 'STUDENT', 'PARENT'] }
       },
       {
         path: 'teacher-checkin',
@@ -260,7 +260,7 @@ export const routes: Routes = [
       {
         path: 'bus-fees',
         loadComponent: () => import('./components/bus-fees/bus-fees.component').then(m => m.BusFeesComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN', 'STUDENT', 'PARENT'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'fee-assignment',
@@ -334,7 +334,7 @@ export const routes: Routes = [
       {
         path: 'my-results',
         loadComponent: () => import('./components/student-results/student-results.component').then(m => m.StudentResultsComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT'], featureKey: 'EXAM_MARKS' }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'PARENT'], featureKey: 'EXAM_MARKS' }
       },
       {
         path: 'class-results',
@@ -344,12 +344,34 @@ export const routes: Routes = [
       {
         path: 'report-card',
         loadComponent: () => import('./components/report-card/report-card.component').then(m => m.ReportCardComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN'], featureKey: 'REPORT_CARD' }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'PARENT', 'TEACHER', 'ADMIN'], featureKey: 'REPORT_CARD' }
       },
       {
         path: 'report-card-gallery',
         loadComponent: () => import('./components/report-card-demo/report-card-demo.component').then(m => m.ReportCardDemoComponent),
         canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'REPORT_CARD' }
+      },
+
+      // ── Parent portal ────────────────────────────────────────────────
+      {
+        path: 'parent-portal',
+        loadComponent: () => import('./components/parent-portal/parent-portal.component').then(m => m.ParentPortalComponent),
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN', 'PARENT'], featureKey: 'PARENT_PORTAL' }
+      },
+      {
+        path: 'parent-portal/:parentId',
+        loadComponent: () => import('./components/parent-detail/parent-detail.component').then(m => m.ParentDetailComponent),
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'PARENT_PORTAL' }
+      },
+      {
+        path: 'parent-bulk-import',
+        loadComponent: () => import('./components/parent-bulk-import/parent-bulk-import.component').then(m => m.ParentBulkImportComponent),
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'PARENT_PORTAL' }
+      },
+      {
+        path: 'parent-dashboard',
+        loadComponent: () => import('./components/parent-portal/parent-portal.component').then(m => m.ParentPortalComponent),
+        canActivate: [roleGuard, featureGuard], data: { roles: ['PARENT'], featureKey: 'PARENT_PORTAL' }
       },
 
       // ── Student Dashboard ────────────────────────────────────────────
@@ -384,19 +406,19 @@ export const routes: Routes = [
       {
         path: 'timetable',
         loadComponent: () => import('./components/timetable/timetable.component').then(m => m.TimetableComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'PARENT'] }
       },
 
       // ── Open to all authenticated users ──────────────────────────────
       {
         path: 'notice',
         loadComponent: () => import('./components/notice/notice.component').then(m => m.NoticeComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'PARENT'] }
       },
       {
         path: 'event-calendar',
         loadComponent: () => import('./components/event-calendar/event-calendar.component').then(m => m.EventCalendarComponent),
-        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN'] }
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'PARENT'] }
       },
       {
         path: 'payment',

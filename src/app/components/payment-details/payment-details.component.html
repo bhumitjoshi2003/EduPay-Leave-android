@@ -44,6 +44,8 @@
     </div>
   </div>
 
+  <app-parent-child-context *ngIf="paymentDetails" [studentId]="paymentDetails.studentId" requiredPermission="canViewFees" (childSelected)="onChildTabSelected($event)"></app-parent-child-context>
+
   <!-- ── Skeleton ─────────────────────────────────────────────────── -->
   <ng-container *ngIf="loading">
     <div class="pd-card">

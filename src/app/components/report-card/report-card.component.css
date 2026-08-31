@@ -718,6 +718,253 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════
+   MOBILE — SCREEN ONLY
+
+   `.rc-card` above is a fixed 210mm x 297mm A4 document (~794px wide). On a
+   phone that can only be read by pinch-zooming and scrolling sideways, which
+   is not an acceptable way for a parent to read their child's report card.
+
+   Below, the SAME markup is reflowed into a single-column layout at real
+   reading sizes (13–14px body text), and "Download PDF" is promoted to a
+   full-width primary action so the print-fidelity document is always one
+   tap away.
+
+   IMPORTANT: every rule here is scoped to `screen`, so none of it is ever
+   evaluated in a print context. The A4 `.rc-card` rule, the `@media print`
+   block below, and the server-generated PDF are all completely unaffected.
+════════════════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 768px) {
+
+  /* ── Page ──────────────────────────────────────────────────────────── */
+  .rc-page {
+    background: #eef1f4;
+    padding: 12px 8px 28px;
+  }
+
+  /* ── Hero: "Download PDF" becomes the full-width primary action ────── */
+  .rc-hero {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 12px;
+    padding: 14px 14px 16px;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .rc-hero-left { gap: 12px; }
+  .rc-hero-icon { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
+  .rc-hero-title { font-size: 1.05rem; }
+  .rc-hero-sub   { font-size: 0.72rem; }
+
+  .rc-hero-actions { width: 100%; gap: 10px; }
+
+  /* Primary — the main path for a parent on a phone. Full width, 48px tap target. */
+  .rc-btn-pdf {
+    order: 1;
+    flex: 0 0 100%;
+    width: 100%;
+    min-height: 48px;
+    font-size: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  }
+  /* Secondary — Back and Preview & Print share the row beneath it. */
+  .rc-btn-back  { order: 2; flex: 1 1 0; min-height: 42px; font-size: 0.85rem; }
+  .rc-btn-print { order: 3; flex: 1 1 0; min-height: 42px; font-size: 0.85rem; }
+
+  /* ── Status states ─────────────────────────────────────────────────── */
+  .rc-loading { padding: 48px 24px; }
+  .rc-locked  { margin: 24px auto; padding: 32px 22px; border-radius: 12px; }
+  .rc-locked-title { font-size: 1.1rem; }
+  .rc-locked-msg   { font-size: 0.86rem; }
+  .rc-empty { padding: 36px 20px; }
+
+  /* ── The document card: fluid width, auto height ───────────────────── */
+  .rc-card {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 16px 12px 20px;
+    outline-offset: -4px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Watermark kept proportional so it can't widen the card */
+  .rc-watermark-img  { width: 150px; }
+  .rc-watermark-text { font-size: 34px; letter-spacing: 2px; }
+
+  /* ── Header ────────────────────────────────────────────────────────── */
+  .rc-header { min-height: 0; padding: 0 0 10px; }
+  .rc-logo-img { height: 52px; max-width: 120px; }
+  .rc-school-name { font-size: 17px; letter-spacing: 0.16em; margin: 4px 0 5px; }
+  .rc-motto       { font-size: 12px; margin: 3px 0 6px; }
+  .rc-affiliation { font-size: 11px; line-height: 1.45; }
+
+  /* ── Title band ────────────────────────────────────────────────────── */
+  .rc-title-label   { font-size: 12px; letter-spacing: 0.25em; padding: 7px 0; }
+  .rc-title-session { font-size: 12px; }
+
+  /* ── Sections ──────────────────────────────────────────────────────── */
+  .rc-section  { margin-bottom: 14px; }
+  .rc-sec-title { font-size: 11px; letter-spacing: 0.16em; margin: 16px 0 8px; }
+
+  /* ── Student info: label/value pairs stack into two readable columns ─ */
+  .rc-student-layout {
+    grid-template-columns: 1fr 72px;
+    gap: 12px;
+  }
+  .rc-student-fields {
+    grid-template-rows: none;
+    height: auto;
+  }
+  .rc-info-row {
+    grid-template-columns: 88px 1fr;
+    height: auto;
+    min-height: 0;
+    align-items: baseline;
+    padding: 8px 0;
+    row-gap: 6px;
+    column-gap: 8px;
+    font-size: 14px;
+  }
+  .rc-lbl { font-size: 11.5px; line-height: 1.35; }
+  .rc-val { padding-left: 0; line-height: 1.35; }
+
+  .rc-student-photo,
+  .rc-photo-placeholder { width: 68px; height: 88px; }
+  .rc-photo-placeholder { font-size: 9px; }
+  .rc-photo-label { font-size: 9px; }
+
+  /* ── Marks table: legible text, scrolls sideways only if it must ───── */
+  .rc-marks-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rc-marks-scroll .rc-table {
+    width: auto;
+    min-width: 100%;
+    white-space: nowrap;
+  }
+  .rc-marks-table { font-size: 13px; }
+  .rc-th { font-size: 10.5px; letter-spacing: 0.1em; padding: 7px 6px; }
+  .rc-td-subject,
+  .rc-td-center,
+  .rc-td-grade { padding: 8px 6px; }
+  .rc-tfoot-row td { font-size: 13px; padding: 8px 6px; }
+
+  /* ── Attendance / Co-scholastic stack instead of sitting side by side ─ */
+  .rc-two-col {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .rc-simple-row { font-size: 14px; padding: 8px 0; }
+
+  /* ── KPI tiles: 2-up grid instead of a cramped single row ──────────── */
+  .rc-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 4px 0 2px;
+  }
+  .rc-kpi {
+    border: 1px solid #d5c9b8;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 10px 6px;
+  }
+  .rc-kpi-val { font-size: 22px; }
+  .rc-kpi-lbl { font-size: 11px; }
+
+  /* ── Remarks: label above text ─────────────────────────────────────── */
+  .rc-remark-line {
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding: 7px 0;
+    font-size: 14px;
+  }
+  .rc-remark-lbl { font-size: 10px; }
+  .rc-remark-txt { line-height: 1.5; }
+
+  /* ── Signatures + footer: un-pin from the fixed A4 page bottom ─────── */
+  .rc-sig-badge-row {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin-top: 26px;
+  }
+  .rc-sig-col  { min-height: 0; }
+  .rc-sig-line { width: 100%; max-width: 120px; }
+  .rc-sig-label { font-size: 10px; }
+  .rc-badge-center { display: none; }
+
+  .rc-footer-section {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #d5c9b8;
+  }
+  .rc-footer-seal  { font-size: 9px; line-height: 1.5; }
+  .rc-footer-brand { font-size: 9px; }
+
+  /* ── Neutralise the print-density scaling — it only makes sense on A4 ─ */
+  .rc-dense.rc-card { padding-top: 16px; }
+  .rc-dense .rc-header { min-height: 0; }
+  .rc-dense .rc-logo-img { height: 52px; }
+  .rc-dense .rc-school-name { font-size: 17px; letter-spacing: 0.16em; }
+  .rc-dense .rc-info-row { font-size: 14px; }
+  .rc-dense .rc-simple-row { font-size: 14px; }
+  .rc-dense .rc-marks-table { font-size: 13px; }
+  .rc-dense .rc-td-subject,
+  .rc-dense .rc-td-center,
+  .rc-dense .rc-td-grade { padding-top: 8px; padding-bottom: 8px; }
+  .rc-dense .rc-kpi-val { font-size: 22px; }
+  .rc-dense .rc-sig-line { margin-top: 26px; }
+
+  /* ── Legacy exam-based card ────────────────────────────────────────── */
+  .rc-card-title   { font-size: 15px; letter-spacing: 0.5px; }
+  .rc-session-badge { font-size: 11px; }
+  .rc-student-info { flex-direction: column; }
+  .rc-info-item {
+    border-right: none;
+    border-bottom: 0.5px solid #aaa;
+    padding: 8px 10px;
+  }
+  .rc-info-item:last-child { border-bottom: none; }
+  .rc-info-label { font-size: 10px; }
+  .rc-info-value { font-size: 14px; }
+  .rc-exam-heading { font-size: 12px; padding: 7px 10px; }
+  .rc-table { font-size: 13px; }
+  .rc-table th { font-size: 11px; padding: 7px 6px; }
+  .rc-table td { font-size: 13px; padding: 8px 6px; }
+  .rc-tfoot-label { font-size: 11px; }
+  .rc-tfoot-summary td { font-size: 12px; }
+  .rc-sign-label { font-size: 10px; }
+}
+
+/* ── Very small phones (320–360px) ──────────────────────────────────── */
+@media screen and (max-width: 360px) {
+  .rc-page { padding: 10px 6px 24px; }
+  .rc-card { padding: 14px 10px 18px; }
+  .rc-school-name { font-size: 15px; letter-spacing: 0.12em; }
+  .rc-title-label { font-size: 11px; letter-spacing: 0.18em; }
+  .rc-student-layout { grid-template-columns: 1fr 60px; gap: 10px; }
+  .rc-student-photo,
+  .rc-photo-placeholder { width: 58px; height: 76px; }
+  .rc-info-row { grid-template-columns: 78px 1fr; font-size: 13.5px; }
+  .rc-lbl { font-size: 11px; }
+  .rc-marks-table,
+  .rc-dense .rc-marks-table { font-size: 12.5px; }
+  .rc-table { font-size: 12.5px; }
+  .rc-table td { font-size: 12.5px; }
+  .rc-kpi-val,
+  .rc-dense .rc-kpi-val { font-size: 20px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
    PRINT STYLES
 ════════════════════════════════════════════════════════════════════════ */
 @media print {

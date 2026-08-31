@@ -1,0 +1,18 @@
+<aside class="child-context" *ngIf="isParent && child && (!showSwitcher || visibleChildren.length <= 1)" aria-live="polite">
+  <div class="child-context-icon"><mat-icon>person_pin</mat-icon></div>
+  <div><span>Currently viewing</span><strong>{{ child.studentName }}</strong></div>
+  <small>{{ child.studentId }} · Class {{ child.className }}{{ child.sectionName ? ' · ' + child.sectionName : '' }}</small>
+</aside>
+
+<nav class="child-tabs" *ngIf="isParent && child && showSwitcher && visibleChildren.length > 1" aria-label="Switch child">
+  <button type="button" *ngFor="let c of visibleChildren; trackBy: trackByStudentId" class="child-tab"
+    [class.active]="c.studentId === studentId" (click)="selectChild(c)">
+    <span class="child-tab-avatar">{{ c.studentName.charAt(0) }}</span>
+    <span class="child-tab-text"><strong>{{ c.studentName }}</strong><small>Class {{ c.className }}{{ c.sectionName ? ' · ' + c.sectionName : '' }}</small></span>
+  </button>
+</nav>
+
+<aside class="child-context invalid" *ngIf="isParent && invalid" aria-live="polite">
+  <div class="child-context-icon"><mat-icon>link_off</mat-icon></div>
+  <strong>This child is no longer available to this account.</strong>
+</aside>

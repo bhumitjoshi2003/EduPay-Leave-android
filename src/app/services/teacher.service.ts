@@ -45,7 +45,8 @@ export class TeacherService {
     );
   }
 
-  addTeacher(teacherData: Teacher): Observable<Teacher> {
+  /** teacherId is never supplied by the caller — Edunexify generates it. */
+  addTeacher(teacherData: Omit<Teacher, 'teacherId'>): Observable<Teacher> {
     return this.http.post<Teacher>(this.baseUrl, teacherData);
   }
 

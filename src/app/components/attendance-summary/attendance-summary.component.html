@@ -1,4 +1,5 @@
 <div class="as-page">
+  <app-parent-child-context *ngIf="role === 'PARENT'" [studentId]="selectedStudentId" requiredPermission="canViewAttendance" (childSelected)="onChildTabSelected($event)"></app-parent-child-context>
 
   <!-- ── Hero ─────────────────────────────────────────────────── -->
   <div class="as-hero no-print">
@@ -14,7 +15,7 @@
   </div>
 
   <!-- ── Controls Card ─────────────────────────────────────────── -->
-  <div class="as-controls no-print" *ngIf="role !== 'STUDENT'">
+  <div class="as-controls no-print" *ngIf="!isSelfServiceView()">
 
     <!-- View mode toggle -->
     <div class="as-toggle-row" *ngIf="canShowViewToggle()">
@@ -74,8 +75,8 @@
     </div>
   </div>
 
-  <!-- STUDENT role: minimal period controls -->
-  <div class="as-controls no-print" *ngIf="role === 'STUDENT'">
+  <!-- Student and parent roles: minimal period controls, never school-wide selectors. -->
+  <div class="as-controls no-print" *ngIf="isSelfServiceView()">
     <div class="as-filters-row">
       <div class="as-toggle-group" role="group" aria-label="Period type">
         <button [class.active]="periodType === 'month'" (click)="setPeriodType('month')">Month</button>

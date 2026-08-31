@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { FeeReminderService } from '../../services/fee-reminder.service';
 import { LoggerService } from '../../services/logger.service';
-import { OverdueStudent } from '../../interfaces/fee-reminder';
+import { BulkReminderResult, OverdueStudent, ReminderOutcome } from '../../interfaces/fee-reminder';
 import { ComingSoonComponent } from '../coming-soon/coming-soon.component';
 import { MODULE_MESSAGES } from '../../config/module-messages.config';
 import { ToastService } from '../../services/toast.service';
@@ -44,11 +44,11 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
 
   /**
    * Issue #46: Per-student reminder state tracking.
-   * 'idle' | 'sending' | 'sent' | 'failed'
-   * Note: If a student has no registered contact (phone/email/FCM token),
-   * the backend may silently skip delivery. States here track API call outcomes only.
+   * 'idle' | 'sending' | ReminderOutcome ('sent' | 'skipped_not_active' | 'skipped_no_email' | 'failed')
+   * Reflects the backend's actual per-student outcome — a skipped/failed send is never shown
+   * as sent.
    */
-  reminderStates: Map<string, 'idle' | 'sending' | 'sent' | 'failed'> = new Map();
+  reminderStates: Map<string, 'idle' | 'sending' | ReminderOutcome> = new Map();
 
   // ── Pagination ───────────────────────────────────────────────────
   currentPage = 0;
@@ -202,11 +202,12 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
 
     this.feeReminderService.sendReminder(student.studentId, this.selectedSession)
       .pipe(takeUntil(this.destroy$)).subscribe({
-        next: () => {
-          this.reminderSent.add(student.studentId);
-          this.reminderStates.set(student.studentId, 'sent');
+        next: (res) => {
+          this.reminderStates.set(student.studentId, res.status);
+          if (res.status === 'sent') this.reminderSent.add(student.studentId);
           this.sendingId = null;
           this.cdr.markForCheck();
+          this.toastForOutcome(res.status, res.message);
         },
         error: (err) => {
           this.logger.error('Failed to send reminder:', err);
@@ -216,6 +217,25 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
           this.toast.error('Error', 'Failed to send reminder. Please try again.');
         }
       });
+  }
+
+  /** Maps one backend ReminderOutcome to the toast the admin actually needs to see —
+   * "sent" means it genuinely went out; the others explain exactly why it did not. */
+  private toastForOutcome(status: ReminderOutcome, message: string): void {
+    switch (status) {
+      case 'sent':
+        this.toast.success('Reminder sent!', message);
+        break;
+      case 'skipped_not_active':
+        this.toast.warning('Reminder skipped', 'Reminder skipped because the student is no longer active.');
+        break;
+      case 'skipped_no_email':
+        this.toast.warning('Reminder skipped', 'Reminder skipped because no email address is available.');
+        break;
+      case 'failed':
+        this.toast.error('Reminder failed', message || 'The reminder could not be sent.');
+        break;
+    }
   }
 
   sendAllReminders(): void {
@@ -241,14 +261,10 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
       ids.forEach(id => this.reminderStates.set(id, 'sending'));
       this.feeReminderService.sendBulkReminders(ids, this.selectedSession)
         .pipe(takeUntil(this.destroy$)).subscribe({
-          next: (res) => {
-            ids.forEach(id => {
-              this.reminderSent.add(id);
-              this.reminderStates.set(id, 'sent');
-            });
+          next: (res: BulkReminderResult) => {
+            this.applyBulkOutcome(ids, res);
             this.sendingBulk = false;
             this.cdr.markForCheck();
-            this.toast.success('Reminders sent!', `Successfully sent ${res.sent} reminder${res.sent !== 1 ? 's' : ''}.`);
           },
           error: (err) => {
             this.logger.error('Failed to send bulk reminders:', err);
@@ -259,6 +275,43 @@ export class FeeRemindersComponent implements OnInit, OnDestroy {
           }
         });
     });
+  }
+
+  /** Every id in `ids` is accounted for by the backend as either sent (absent from
+   * res.skipped) or present in res.skipped with a reason — "error" (a genuine per-student
+   * failure) is shown as failed, any other reason (skipped_not_active/skipped_no_email) is
+   * shown as skipped. Summarizes all three counts in a single toast. */
+  private applyBulkOutcome(ids: string[], res: BulkReminderResult): void {
+    const skippedByStudent = new Map(res.skipped.map(s => [s.studentId, s.reason]));
+    let sentCount = 0, skippedCount = 0, failedCount = 0;
+
+    ids.forEach(id => {
+      const reason = skippedByStudent.get(id);
+      if (!reason) {
+        this.reminderStates.set(id, 'sent');
+        this.reminderSent.add(id);
+        sentCount++;
+      } else if (reason === 'error') {
+        this.reminderStates.set(id, 'failed');
+        failedCount++;
+      } else {
+        this.reminderStates.set(id, reason as ReminderOutcome);
+        skippedCount++;
+      }
+    });
+
+    const parts = [`${sentCount} sent`];
+    if (skippedCount > 0) parts.push(`${skippedCount} skipped`);
+    if (failedCount > 0) parts.push(`${failedCount} failed`);
+    const summary = parts.join(', ') + '.';
+
+    if (failedCount > 0) {
+      this.toast.error('Reminders processed', summary);
+    } else if (skippedCount > 0) {
+      this.toast.warning('Reminders processed', summary);
+    } else {
+      this.toast.success('Reminders sent!', summary);
+    }
   }
 
   printReport(): void {

@@ -1,0 +1,368 @@
+<div class="import-page">
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="bi-hero">
+    <div class="bi-hero-left">
+      <button class="bi-back-btn" (click)="goToParentPortal()">&#8592;</button>
+      <div class="bi-hero-icon">👪</div>
+      <div>
+        <h1 class="bi-hero-title">Bulk Parent Import</h1>
+        <p class="bi-hero-sub">Upload a CSV — one row per parent-student relationship</p>
+      </div>
+    </div>
+    <div class="bi-hero-actions" *ngIf="stage === 'upload'">
+      <button class="bi-template-btn" (click)="downloadPrefill()" [disabled]="isDownloadingPrefill">
+        <span *ngIf="!isDownloadingPrefill">&#8595; Pre-fill from Student Records</span>
+        <span *ngIf="isDownloadingPrefill">Downloading...</span>
+      </button>
+      <button class="bi-template-btn" (click)="downloadTemplate()" [disabled]="isDownloadingTemplate">
+        <span *ngIf="!isDownloadingTemplate">&#8595; Download Template</span>
+        <span *ngIf="isDownloadingTemplate">Downloading...</span>
+      </button>
+    </div>
+    <div class="bi-blob bi-blob-1"></div>
+    <div class="bi-blob bi-blob-2"></div>
+  </div>
+
+  <!-- ── Stage 1: Upload ─────────────────────────────────────────────── -->
+  <ng-container *ngIf="stage === 'upload'">
+
+    <p class="import-columns">
+      <strong>Columns:</strong> Parent Name, Phone, Email, Student ID, Relationship
+    </p>
+
+    <div class="drop-zone"
+         [class.drop-zone--has-file]="selectedFile"
+         (click)="onDropZoneClick()"
+         (dragover)="onDragOver($event)"
+         (drop)="onDrop($event)">
+      <input #fileInput type="file" accept=".csv" (change)="onFileSelected($event)" class="file-input-hidden">
+
+      <ng-container *ngIf="!selectedFile">
+        <div class="drop-zone__icon">&#128196;</div>
+        <p class="drop-zone__primary">Click to browse or drag &amp; drop</p>
+        <p class="drop-zone__secondary">CSV files only</p>
+      </ng-container>
+
+      <ng-container *ngIf="selectedFile">
+        <div class="drop-zone__icon drop-zone__icon--ready">&#10003;</div>
+        <p class="drop-zone__primary drop-zone__primary--ready">{{ selectedFile.name }}</p>
+        <p class="drop-zone__secondary">{{ (selectedFile.size / 1024).toFixed(1) }} KB &nbsp;&middot;&nbsp; Click to change file</p>
+      </ng-container>
+    </div>
+
+    <div class="error-banner" *ngIf="error">&#9888; {{ error }}</div>
+
+    <div class="action-row">
+      <button class="import-btn" [disabled]="!selectedFile || isUploading" (click)="runPreview()">
+        <span *ngIf="!isUploading">Preview Import</span>
+        <span *ngIf="isUploading" class="loading-text"><span class="spinner-inline"></span> Reading file...</span>
+      </button>
+    </div>
+
+    <p class="import-note">Nothing is created until you review the preview and confirm.</p>
+
+    <details class="import-details">
+      <summary>How this works</summary>
+      <ul>
+        <li>One row per parent-student relationship — a parent with three children on file is three rows sharing the same name, phone and email.</li>
+        <li>Parent IDs are generated for you. Each new parent is emailed a secure link to set their own password — you never type one.</li>
+        <li>A parent who already exists (matching phone <strong>and</strong> email) is never duplicated; only the new relationship is added.</li>
+        <li>A row matching on phone <em>or</em> email but not both is flagged for your review — never merged automatically.</li>
+        <li>The pre-fill sheet is built from the Father/Mother names already on file; phone and email are left blank for you to complete.</li>
+      </ul>
+    </details>
+
+  </ng-container>
+
+  <!-- ── Stage 2: Preview / Resolve ──────────────────────────────────── -->
+  <ng-container *ngIf="stage === 'preview' && preview">
+
+    <div class="result-summary">
+      <div class="summary-card summary-card--total">
+        <span class="summary-card__value">{{ preview.totalRows }}</span>
+        <span class="summary-card__label">Total Rows</span>
+      </div>
+      <div class="summary-card summary-card--success">
+        <span class="summary-card__value">{{ preview.newParentCount + preview.existingParentMatchCount }}</span>
+        <span class="summary-card__label">Ready to Import</span>
+      </div>
+      <div class="summary-card summary-card--warning">
+        <span class="summary-card__value">{{ preview.conflictCount }}</span>
+        <span class="summary-card__label">Need Your Review</span>
+      </div>
+      <div class="summary-card summary-card--fail">
+        <span class="summary-card__value">{{ preview.invalidCount + preview.duplicateCount }}</span>
+        <span class="summary-card__label">Can't Be Imported</span>
+      </div>
+    </div>
+
+    <!-- Rows needing review -->
+    <div class="error-table-wrapper" *ngIf="resolvableRows.length > 0">
+      <h3 class="error-table__title">Needs Your Review ({{ resolvableRows.length }})</h3>
+      <p class="pbi-table-hint">
+        Same phone or email as an existing parent, but not both — never merged automatically.
+        Choose what to do with each row before confirming.
+      </p>
+
+      <!-- Desktop table -->
+      <div class="pbi-table-scroll">
+        <table class="error-table pbi-review-table">
+          <thead>
+            <tr>
+              <th>Row</th><th>Parent</th><th>Student</th><th>Reason</th><th>Decision</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of resolvableRows; trackBy: trackByRow">
+              <td>{{ row.row }}</td>
+              <td>{{ row.parentName }}<br><small>{{ row.phone }} &middot; {{ row.email || '—' }}</small></td>
+              <td>{{ row.studentName || row.studentId }}<br><small>{{ row.className }}</small></td>
+              <td class="error-reason">{{ row.message }}</td>
+              <td class="pbi-decision">
+                <select [ngModel]="choiceFor(row).action" (ngModelChange)="setAction(row, $event)">
+                  <option value="LINK_EXISTING">Link to existing parent {{ row.matchedParentId }}</option>
+                  <option value="CREATE_NEW">This is a different parent — create new</option>
+                  <option value="SKIP">Skip this row</option>
+                </select>
+                <input *ngIf="choiceFor(row).action === 'LINK_EXISTING'" type="text"
+                       class="pbi-parent-id-input"
+                       placeholder="Parent ID"
+                       [ngModel]="choiceFor(row).existingParentId"
+                       (ngModelChange)="setExistingParentId(row, $event)">
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile cards — parent, student, reason and the decision control stay together -->
+      <div class="pbi-cards">
+        <div class="pbi-m-card" *ngFor="let row of resolvableRows; trackBy: trackByRow">
+          <div class="pbi-m-head">
+            <span class="pbi-m-row">Row {{ row.row }}</span>
+            <span class="pbi-m-badge pbi-m-badge--warn">{{ statusLabel(row.status) }}</span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Parent</span>
+            <span class="pbi-m-val">{{ row.parentName }}<small>{{ row.phone }} &middot; {{ row.email || '—' }}</small></span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Student</span>
+            <span class="pbi-m-val">{{ row.studentName || row.studentId }}<small *ngIf="row.className">{{ row.className }}</small></span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Reason</span>
+            <span class="pbi-m-val pbi-m-val--reason">{{ row.message }}</span>
+          </div>
+          <div class="pbi-m-decision">
+            <label class="pbi-m-key" [attr.for]="'pbi-action-' + row.row">Your decision</label>
+            <select [id]="'pbi-action-' + row.row"
+                    [ngModel]="choiceFor(row).action" (ngModelChange)="setAction(row, $event)">
+              <option value="LINK_EXISTING">Link to existing parent {{ row.matchedParentId }}</option>
+              <option value="CREATE_NEW">This is a different parent — create new</option>
+              <option value="SKIP">Skip this row</option>
+            </select>
+            <input *ngIf="choiceFor(row).action === 'LINK_EXISTING'" type="text"
+                   class="pbi-parent-id-input"
+                   placeholder="Parent ID"
+                   [ngModel]="choiceFor(row).existingParentId"
+                   (ngModelChange)="setExistingParentId(row, $event)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rows that will import automatically -->
+    <div class="error-table-wrapper" *ngIf="autoImportRows.length > 0">
+      <h3 class="error-table__title">Will Be Imported ({{ autoImportRows.length }})</h3>
+
+      <div class="pbi-table-scroll">
+        <table class="error-table">
+          <thead>
+            <tr><th>Row</th><th>Parent</th><th>Student</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of autoImportRows; trackBy: trackByRow">
+              <td>{{ row.row }}</td>
+              <td>{{ row.parentName }}<br><small>{{ row.phone }} &middot; {{ row.email || '—' }}</small></td>
+              <td>{{ row.studentName || row.studentId }}<br><small>{{ row.className }}</small></td>
+              <td>{{ statusLabel(row.status) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pbi-cards">
+        <div class="pbi-m-card" *ngFor="let row of autoImportRows; trackBy: trackByRow">
+          <div class="pbi-m-head">
+            <span class="pbi-m-row">Row {{ row.row }}</span>
+            <span class="pbi-m-badge pbi-m-badge--ok">{{ statusLabel(row.status) }}</span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Parent</span>
+            <span class="pbi-m-val">{{ row.parentName }}<small>{{ row.phone }} &middot; {{ row.email || '—' }}</small></span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Student</span>
+            <span class="pbi-m-val">{{ row.studentName || row.studentId }}<small *ngIf="row.className">{{ row.className }}</small></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rows that can never be imported -->
+    <div class="error-table-wrapper" *ngIf="blockedRows.length > 0">
+      <h3 class="error-table__title">Can't Be Imported ({{ blockedRows.length }})</h3>
+
+      <div class="pbi-table-scroll">
+        <table class="error-table">
+          <thead>
+            <tr><th>Row</th><th>Parent</th><th>Reason</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of blockedRows; trackBy: trackByRow">
+              <td>{{ row.row }}</td>
+              <td>{{ row.parentName || '—' }}</td>
+              <td class="error-reason">{{ row.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pbi-cards">
+        <div class="pbi-m-card" *ngFor="let row of blockedRows; trackBy: trackByRow">
+          <div class="pbi-m-head">
+            <span class="pbi-m-row">Row {{ row.row }}</span>
+            <span class="pbi-m-badge pbi-m-badge--bad">{{ statusLabel(row.status) }}</span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Parent</span>
+            <span class="pbi-m-val">{{ row.parentName || '—' }}</span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Reason</span>
+            <span class="pbi-m-val pbi-m-val--reason">{{ row.message }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="error-banner" *ngIf="error">&#9888; {{ error }}</div>
+
+    <div class="action-row action-row--result">
+      <button class="secondary-btn" (click)="backToUpload()" [disabled]="isConfirming">&#8592; Choose a Different File</button>
+      <button class="import-btn" (click)="confirmImport()" [disabled]="isConfirming">
+        <span *ngIf="!isConfirming">Confirm Import</span>
+        <span *ngIf="isConfirming" class="loading-text"><span class="spinner-inline"></span> Importing...</span>
+      </button>
+    </div>
+
+  </ng-container>
+
+  <!-- ── Stage 3: Result ─────────────────────────────────────────────── -->
+  <ng-container *ngIf="stage === 'result' && confirmResult">
+
+    <div class="result-summary">
+      <div class="summary-card summary-card--total">
+        <span class="summary-card__value">{{ confirmResult.totalRows }}</span>
+        <span class="summary-card__label">Total Rows</span>
+      </div>
+      <div class="summary-card summary-card--success">
+        <span class="summary-card__value">{{ confirmResult.parentsCreated }}</span>
+        <span class="summary-card__label">Parents Created</span>
+      </div>
+      <div class="summary-card summary-card--success">
+        <span class="summary-card__value">{{ confirmResult.relationshipsCreated }}</span>
+        <span class="summary-card__label">Relationships Created</span>
+      </div>
+      <div class="summary-card summary-card--fail">
+        <span class="summary-card__value">{{ confirmResult.skipped }}</span>
+        <span class="summary-card__label">Skipped</span>
+      </div>
+    </div>
+
+    <div class="result-banner result-banner--success" *ngIf="confirmResult.skipped === 0">
+      &#10003; Import complete — {{ confirmResult.relationshipsCreated }} relationship(s) created across {{ confirmResult.parentsCreated }} new parent account(s).
+    </div>
+    <div class="result-banner result-banner--partial" *ngIf="confirmResult.skipped > 0">
+      &#9888; {{ confirmResult.relationshipsCreated }} relationship(s) created. {{ confirmResult.skipped }} row(s) skipped — see below.
+    </div>
+
+    <div class="error-table-wrapper" *ngIf="confirmResult.created.length > 0">
+      <h3 class="error-table__title">Created</h3>
+
+      <div class="pbi-table-scroll">
+        <table class="error-table">
+          <thead><tr><th>Row</th><th>Parent ID</th><th>Student ID</th><th>Outcome</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let c of confirmResult.created">
+              <td>{{ c.row }}</td>
+              <td><strong>{{ c.parentId }}</strong></td>
+              <td>{{ c.studentId }}</td>
+              <td>{{ c.outcome }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pbi-cards">
+        <div class="pbi-m-card" *ngFor="let c of confirmResult.created">
+          <div class="pbi-m-head">
+            <span class="pbi-m-row">Row {{ c.row }}</span>
+            <span class="pbi-m-badge pbi-m-badge--ok">{{ c.outcome }}</span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Parent ID</span>
+            <span class="pbi-m-val"><strong>{{ c.parentId }}</strong></span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Student ID</span>
+            <span class="pbi-m-val">{{ c.studentId }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="error-table-wrapper" *ngIf="confirmResult.skippedRows.length > 0">
+      <h3 class="error-table__title">Skipped</h3>
+
+      <div class="pbi-table-scroll">
+        <table class="error-table">
+          <thead><tr><th>Row</th><th>Parent</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let row of confirmResult.skippedRows; trackBy: trackByRow">
+              <td>{{ row.row }}</td>
+              <td>{{ row.parentName || '—' }}</td>
+              <td class="error-reason">{{ row.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pbi-cards">
+        <div class="pbi-m-card" *ngFor="let row of confirmResult.skippedRows; trackBy: trackByRow">
+          <div class="pbi-m-head">
+            <span class="pbi-m-row">Row {{ row.row }}</span>
+            <span class="pbi-m-badge pbi-m-badge--bad">{{ statusLabel(row.status) }}</span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Parent</span>
+            <span class="pbi-m-val">{{ row.parentName || '—' }}</span>
+          </div>
+          <div class="pbi-m-field">
+            <span class="pbi-m-key">Reason</span>
+            <span class="pbi-m-val pbi-m-val--reason">{{ row.message }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-row action-row--result">
+      <button class="secondary-btn" (click)="reset()">Import Another File</button>
+      <button class="import-btn" (click)="goToParentPortal()">Go to Parent Portal</button>
+    </div>
+
+  </ng-container>
+
+</div>

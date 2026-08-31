@@ -30,11 +30,23 @@ export interface BulkImportError {
   reason: string;
 }
 
+/** One successfully created account — reports the Edunexify-generated ID, since the
+ *  import request no longer supplies (or honors) one. */
+export interface BulkImportSuccess {
+  row: number;
+  name: string;
+  generatedId: string;
+}
+
 export interface BulkImportResult {
   totalRows: number;
   successful: number;
   failed: number;
   errors: BulkImportError[];
+  created: BulkImportSuccess[];
+  /** Non-null only when the uploaded CSV still had a legacy ID column — accepted for
+   *  backward compatibility but its values were never used. */
+  notice: string | null;
 }
 
 @Injectable({

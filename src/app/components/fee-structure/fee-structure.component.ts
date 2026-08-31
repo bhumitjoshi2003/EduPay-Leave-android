@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil, forkJoin, Observable } from 'rxjs';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
@@ -9,6 +10,7 @@ import { FeeHeadService } from '../../services/fee-head.service';
 import { FeeRuleService } from '../../services/fee-rule.service';
 import { AcademicSessionService } from '../../services/academic-session.service';
 import { SchoolService } from '../../services/school.service';
+import { ParentPortalService } from '../../services/parent-portal.service';
 import { FeeHead } from '../../interfaces/fee-head';
 import { FeeStructureRule } from '../../interfaces/fee-rule';
 import { AcademicSession } from '../../interfaces/academic-session';
@@ -28,6 +30,10 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   currentSession: AcademicSession | null = null;
   feeHeads: FeeHead[] = [];
   classes: string[] = [];
+
+  // Set for STUDENT (self) and PARENT (selected child, permission-checked); left blank for ADMIN.
+  subjectStudentId = '';
+  accessDenied = false;
 
   // Grid: feeGrid[className][feeHeadId] = amount in rupees
   feeGrid: { [className: string]: { [feeHeadId: number]: number } } = {};
@@ -49,6 +55,8 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
     private feeRuleService: FeeRuleService,
     private sessionService: AcademicSessionService,
     private schoolService: SchoolService,
+    private parentPortalService: ParentPortalService,
+    private route: ActivatedRoute,
     private authStateService: AuthStateService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
@@ -61,6 +69,31 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const role = this.authStateService.getUserRole();
+    if (role === 'PARENT') {
+      const requestedStudentId = this.route.snapshot.queryParamMap.get('studentId');
+      if (!requestedStudentId) {
+        this.accessDenied = true;
+        this.isLoading = false;
+        this.toast.error('No child selected', 'Open fee structure from the parent portal.');
+        return;
+      }
+      this.subjectStudentId = requestedStudentId;
+      this.parentPortalService.getMyProfile().pipe(takeUntil(this.destroy$)).subscribe({
+        next: profile => {
+          const allowed = profile.children.some(child => child.studentId === this.subjectStudentId && child.canViewFees);
+          if (!allowed) {
+            this.subjectStudentId = '';
+            this.accessDenied = true;
+            this.toast.error('Fee structure access unavailable', 'Please contact the school administrator.');
+            this.cdr.markForCheck();
+          }
+        },
+        error: () => this.toast.error('Could not verify fee structure access')
+      });
+    } else if (role === 'STUDENT') {
+      this.subjectStudentId = this.authStateService.getUserId();
+    }
     this.loadInitialData();
   }
 

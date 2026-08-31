@@ -22,8 +22,8 @@
   <ng-container *ngIf="!result">
 
     <div class="import-help">
-      <strong>Required columns:</strong> Teacher ID, Teacher Name, Email, Date of Birth (YYYY-MM-DD), Joining Date (YYYY-MM-DD)
-      <br><small>Phone Number, Gender and Class Teacher are optional. Download the template above for the correct format.</small>
+      <strong>Required columns:</strong> Teacher Name, Email, Date of Birth (YYYY-MM-DD), Joining Date (YYYY-MM-DD)
+      <br><small>Phone Number, Gender and Class Teacher are optional. Download the template above for the correct format. Edunexify automatically generates each teacher's account ID — there is no Teacher ID column to fill in.</small>
     </div>
 
     <div class="import-help import-help--warning">
@@ -112,6 +112,30 @@
     </div>
     <div class="result-banner result-banner--error" *ngIf="result.successful === 0">
       &#10007; No teachers were imported. Please fix the errors below and try again.
+    </div>
+
+    <div class="import-help import-help--warning" *ngIf="result.notice">
+      &#8505; {{ result.notice }}
+    </div>
+
+    <div class="error-table-wrapper" *ngIf="result.created.length > 0">
+      <h3 class="error-table__title">Created Accounts</h3>
+      <table class="error-table">
+        <thead>
+          <tr>
+            <th>Row</th>
+            <th>Name</th>
+            <th>Generated Employee ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let created of result.created">
+            <td>{{ created.row }}</td>
+            <td>{{ created.name }}</td>
+            <td><strong>{{ created.generatedId }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="error-table-wrapper" *ngIf="result.errors.length > 0">

@@ -1,0 +1,40 @@
+<form [formGroup]="linkForm" (ngSubmit)="submit()" class="access-editor">
+  <div class="subsection-heading editor-title">
+    <div><span class="step-number">{{ editingChild ? 'EDIT' : '01' }}</span><h3>{{ editingChild ? 'Update student access' : 'Link a student' }}</h3></div>
+    <button type="button" class="text-button" (click)="cancel()"><mat-icon>close</mat-icon>Cancel</button>
+  </div>
+  <div class="link-fields">
+    <label class="student-search">Student
+      <span class="input-with-icon"><mat-icon>search</mat-icon><input [value]="studentQuery" (input)="searchStudents($event)" [readonly]="!!editingChild" placeholder="Search student name or ID" autocomplete="off"></span>
+      <div class="student-results" *ngIf="studentSearchOpen">
+        <div class="searching" *ngIf="searchingStudents"><span class="spinner"></span>Searching students…</div>
+        <button type="button" *ngFor="let student of studentMatches" (click)="chooseStudent(student)"><span class="avatar student">{{ student.name.charAt(0) }}</span><span><strong>{{ student.name }}</strong><small>{{ student.studentId }} · Class {{ student.className }}{{ student.sectionName ? ' · ' + student.sectionName : '' }}</small></span><mat-icon>add_circle_outline</mat-icon></button>
+        <div class="no-results" *ngIf="!searchingStudents && !studentMatches.length">No active student found.</div>
+      </div>
+    </label>
+    <label>Relationship<select formControlName="relationshipType"><option value="PARENT">Parent</option><option value="MOTHER">Mother</option><option value="FATHER">Father</option><option value="GUARDIAN">Guardian</option></select></label>
+    <label>Access starts<input formControlName="effectiveFrom" type="date"></label>
+  </div>
+
+  <label class="primary-guardian-field"><input type="checkbox" formControlName="primaryGuardian"><span><strong>Primary guardian</strong><small>Main school contact for this student</small></span></label>
+
+  <div class="permission-heading"><div><span class="step-number">02</span><h3>Choose access</h3><p *ngIf="customizingAccess">Only checked items will be visible.</p></div></div>
+
+  <div class="standard-access-summary" *ngIf="!customizingAccess">
+    <div class="standard-chips"><span>Attendance</span><span>View fees</span><span>Make payments</span><span>Results</span><span>Timetable</span><span>Manage leave</span></div>
+    <button type="button" class="text-button" (click)="enableCustomizeAccess()"><mat-icon>tune</mat-icon>Customize access</button>
+  </div>
+
+  <ng-container *ngIf="customizingAccess">
+    <div class="customize-toolbar">
+      <label class="select-all"><input type="checkbox" [checked]="allPermissionsSelected" (change)="setAllPermissions($any($event.target).checked)">Select all</label>
+      <button type="button" class="text-button" (click)="useStandardAccess()"><mat-icon>undo</mat-icon>Use standard access</button>
+    </div>
+    <div class="permission-groups">
+      <fieldset><legend><mat-icon>school</mat-icon>Academics</legend><label><input type="checkbox" formControlName="canViewAttendance"><span><strong>Attendance</strong><small>Daily and monthly status</small></span></label><label><input type="checkbox" formControlName="canViewResults"><span><strong>Results</strong><small>Marks and report cards</small></span></label><label><input type="checkbox" formControlName="canViewTimetable"><span><strong>Timetable</strong><small>Class schedule</small></span></label></fieldset>
+      <fieldset><legend><mat-icon>account_balance_wallet</mat-icon>Finance</legend><label><input type="checkbox" formControlName="canViewFees"><span><strong>View fees</strong><small>Dues and statements</small></span></label><label class="dependent" [class.is-disabled]="!linkForm.controls.canViewFees.value"><input type="checkbox" formControlName="canPayFees" [disabled]="!linkForm.controls.canViewFees.value"><span><strong>Make payments</strong><small>{{ linkForm.controls.canViewFees.value ? 'Online fee payment' : 'Requires View fees' }}</small></span></label></fieldset>
+      <fieldset><legend><mat-icon>verified_user</mat-icon>Requests</legend><label><input type="checkbox" formControlName="canManageLeave"><span><strong>Manage leave</strong><small>Apply and track leave</small></span></label></fieldset>
+    </div>
+  </ng-container>
+  <div class="editor-actions"><button class="primary" type="submit" [disabled]="working || linkForm.invalid"><mat-icon>{{ editingChild ? 'save' : 'link' }}</mat-icon>{{ working ? 'Saving…' : (editingChild ? 'Save access' : 'Link student') }}</button></div>
+</form>

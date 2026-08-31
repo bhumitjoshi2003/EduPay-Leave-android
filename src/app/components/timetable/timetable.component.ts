@@ -16,11 +16,14 @@ import { Capacitor } from '@capacitor/core';
 import { SchoolService, SchoolClass } from '../../services/school.service';
 import { SectionService } from '../../services/section.service';
 import { Section } from '../../interfaces/section';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
+import { ChildAccess } from '../../interfaces/parent-portal';
 
 @Component({
   selector: 'app-timetable',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ParentChildContextComponent],
   templateUrl: './timetable.component.html',
   styleUrl: './timetable.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -87,7 +90,9 @@ export class TimetableComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private schoolService: SchoolService,
-    private sectionService: SectionService
+    private sectionService: SectionService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -151,6 +156,18 @@ export class TimetableComponent implements OnInit, OnDestroy {
         }
       });
     }
+
+    if (this.isParent()) {
+      const studentId = this.route.snapshot.queryParamMap.get('studentId') ?? '';
+      const className = this.route.snapshot.queryParamMap.get('className') ?? '';
+      if (!studentId || !className) {
+        this.error = 'Select a child from the parent dashboard to view their timetable.';
+      } else {
+        this.userId = studentId;
+        this.selectedClass = className;
+        this.loadClassTimetable();
+      }
+    }
   }
 
   ngOnDestroy(): void {
@@ -158,7 +175,24 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  onChildTabSelected(child: ChildAccess): void {
+    if (!child.canViewTimetable) {
+      this.toast.error('Timetable access unavailable', 'Please contact the school administrator.');
+      return;
+    }
+    this.userId = child.studentId;
+    this.selectedClass = child.className;
+    this.error = null;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { studentId: child.studentId, className: child.className },
+      replaceUrl: true,
+    });
+    this.loadClassTimetable();
+  }
+
   isStudent(): boolean { return this.role === 'STUDENT'; }
+  isParent(): boolean { return this.role === 'PARENT'; }
   isTeacher(): boolean { return this.role === 'TEACHER'; }
   isAdmin(): boolean {
     return this.role === 'ADMIN' || this.role === 'SUB_ADMIN' || this.role === 'SUPER_ADMIN';
@@ -283,7 +317,11 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.entries = [];
     this.cdr.markForCheck();
 
-    this.timetableService.getClassTimetable(this.selectedClass, this.selectedSectionId)
+    this.timetableService.getClassTimetable(
+      this.selectedClass,
+      this.selectedSectionId,
+      this.isParent() ? this.userId : null
+    )
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (data) => {
           this.entries = data;

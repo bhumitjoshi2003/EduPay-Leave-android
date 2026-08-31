@@ -1,17 +1,21 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BusFeesService, BusFee } from '../../services/bus-fees.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BusFeesService, BusFee, ApplicableBusFee } from '../../services/bus-fees.service';
 import { AcademicSessionService } from '../../services/academic-session.service';
 import { AcademicSession } from '../../interfaces/academic-session';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { ToastService } from '../../services/toast.service';
+import { ParentPortalService } from '../../services/parent-portal.service';
+import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
+import { ChildAccess } from '../../interfaces/parent-portal';
 
 @Component({
   selector: 'app-bus-fees',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ParentChildContextComponent],
   templateUrl: './bus-fees.component.html',
   styleUrls: ['./bus-fees.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,10 +29,19 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   isLoading = true;
   originalBusFees: BusFee[] = [];
 
+  // Set for STUDENT (self) and PARENT (selected child, permission-checked); blank for ADMIN.
+  subjectStudentId = '';
+  accessDenied = false;
+  applicableBusFee: ApplicableBusFee | null = null;
+  applicableLoading = false;
+
   constructor(
     private busFeesService: BusFeesService,
     private sessionService: AcademicSessionService,
     private authStateService: AuthStateService,
+    private parentPortalService: ParentPortalService,
+    private route: ActivatedRoute,
+    private router: Router,
     private cdr: ChangeDetectorRef,
     private toast: ToastService
   ) { }
@@ -39,7 +52,60 @@ export class BusFeesComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const role = this.authStateService.getUserRole();
+    if (role === 'PARENT') {
+      const requestedStudentId = this.route.snapshot.queryParamMap.get('studentId');
+      if (!requestedStudentId) {
+        this.accessDenied = true;
+        this.isLoading = false;
+        this.toast.error('No child selected', 'Open bus fees from the parent portal.');
+        return;
+      }
+      this.subjectStudentId = requestedStudentId;
+      this.parentPortalService.getMyProfile().pipe(takeUntil(this.destroy$)).subscribe({
+        next: profile => {
+          const allowed = profile.children.some(child => child.studentId === this.subjectStudentId && child.canViewFees);
+          if (!allowed) {
+            this.subjectStudentId = '';
+            this.accessDenied = true;
+            this.toast.error('Bus fees access unavailable', 'Please contact the school administrator.');
+            this.cdr.markForCheck();
+          } else if (this.currentSession) {
+            this.loadApplicableBusFee();
+          }
+        },
+        error: () => this.toast.error('Could not verify bus fees access')
+      });
+    } else if (role === 'STUDENT') {
+      this.subjectStudentId = this.authStateService.getUserId();
+    }
     this.loadSessions();
+  }
+
+  /** The slab table is shared across the whole school/session, so switching children never
+   *  needs to re-fetch it — only the fee-viewing permission and the per-student applicable
+   *  amount need to change. If the *first* child shown had no access, loadSessions() may
+   *  never have completed (accessDenied set before the sync-fired call resolves), so fall
+   *  back to a full reload in that edge case. */
+  onChildTabSelected(child: ChildAccess): void {
+    this.subjectStudentId = child.studentId;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { studentId: child.studentId },
+      replaceUrl: true,
+    });
+    if (!child.canViewFees) {
+      this.accessDenied = true;
+      this.toast.error('Bus fees access unavailable', 'Please contact the school administrator.');
+      this.cdr.markForCheck();
+      return;
+    }
+    this.accessDenied = false;
+    if (!this.currentSession) {
+      this.loadSessions();
+    } else {
+      this.loadApplicableBusFee();
+    }
   }
 
   loadSessions(): void {
@@ -83,6 +149,29 @@ export class BusFeesComponent implements OnInit, OnDestroy {
         this.toast.error('Error', 'Failed to load bus fee structure.');
       }
     });
+    if (!this.accessDenied) this.loadApplicableBusFee();
+  }
+
+  /** The current student's (self for STUDENT, selected child for PARENT) resolved bus fee —
+   *  always backend-computed (FeeCalculationService.loadBusFee), never matched against the
+   *  slab table on the frontend. */
+  private loadApplicableBusFee(): void {
+    if (!this.currentSession || !this.subjectStudentId) return;
+    this.applicableLoading = true;
+    this.applicableBusFee = null;
+    this.cdr.markForCheck();
+    this.busFeesService.getApplicableBusFee(this.subjectStudentId, this.currentSession.label)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: (applicable) => {
+          this.applicableBusFee = applicable;
+          this.applicableLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.applicableLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   changeSession(session: AcademicSession): void {

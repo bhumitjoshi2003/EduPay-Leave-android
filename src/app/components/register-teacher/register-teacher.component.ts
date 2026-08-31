@@ -39,7 +39,6 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
     private schoolService: SchoolService
   ) {
     this.teacherForm = this.fb.group({
-      teacherId: ['', Validators.required],
       name: ['', Validators.required],
       email: ['', [Validators.required, strictEmailValidator()]],
       phoneNumber: ['', phoneValidator()],
@@ -84,10 +83,14 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
     if (this.teacherForm.valid) {
       this.isSubmitting = true;
       this.cdr.markForCheck();
-      // The backend derives the initial login password from the teacher's date of
-      // birth (YYYYMMDD) — it is never generated or supplied by the frontend.
+      // The backend generates the Employee ID (and derives the initial login password
+      // from date of birth, YYYYMMDD) — neither is ever supplied by the frontend. The
+      // generated ID is captured here (switchMap discards the outer emission) so it can
+      // still be shown to the admin once account setup completes.
+      let generatedTeacherId = '';
       this.teacherService.addTeacher(this.teacherForm.value).pipe(
         switchMap((response: { teacherId: string }) => {
+          generatedTeacherId = response.teacherId;
           return this.authService.register({
             userId: response.teacherId,
             role: 'TEACHER',
@@ -106,7 +109,7 @@ export class RegisterTeacherComponent implements OnInit, OnDestroy {
         })
       ).subscribe({
         next: () => {
-          this.toast.success('Teacher Registered!', 'Registration successful. Initial password: Date of birth in YYYYMMDD format. ' +
+          this.toast.success('Teacher Registered!', `Edunexify Employee ID: ${generatedTeacherId}. Initial password: Date of birth in YYYYMMDD format. ` +
             'Example: 23 May 1990 → 19900523. The user must create a new password during their first login.');
           this.teacherForm.reset();
         },

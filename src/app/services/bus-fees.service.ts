@@ -11,6 +11,14 @@ export interface BusFee {
   fees: number;
 }
 
+export interface ApplicableBusFee {
+  studentId: string;
+  takesBus: boolean;
+  distance: number | null;
+  academicYear: string;
+  busFee: number | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -35,6 +43,13 @@ export class BusFeesService {
 
   getBusFeesOfDistance(distance: number, academicYear: string): Observable<number> {
     return this.http.get<number>(`${this.apiUrl}/${distance}/${academicYear}`);
+  }
+
+  /** Backend-resolved bus fee for one student (self for STUDENT, a linked child for PARENT). */
+  getApplicableBusFee(studentId: string, academicYear: string): Observable<ApplicableBusFee> {
+    return this.http.get<ApplicableBusFee>(`${this.apiUrl}/student/${encodeURIComponent(studentId)}`, {
+      params: { academicYear },
+    });
   }
 
   updateBusFees(year: string, busFees: BusFee[]): Observable<void> {

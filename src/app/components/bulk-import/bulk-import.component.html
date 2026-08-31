@@ -23,7 +23,7 @@
 
     <div class="import-help">
       <strong>Required columns:</strong> name, email, phone, className, dateOfBirth (YYYY-MM-DD), gender (MALE/FEMALE)
-      <br><small>Download the template above for the correct format.</small>
+      <br><small>Download the template above for the correct format. Edunexify automatically generates each student's account ID — there is no Student ID column to fill in.</small>
     </div>
 
     <div class="import-help import-help--warning">
@@ -114,6 +114,30 @@
 
     <div class="result-banner result-banner--error" *ngIf="result.successful === 0">
       &#10007; No students were imported. Please fix the errors below and try again.
+    </div>
+
+    <div class="import-help import-help--warning" *ngIf="result.notice">
+      &#8505; {{ result.notice }}
+    </div>
+
+    <div class="error-table-wrapper" *ngIf="result.created.length > 0">
+      <h3 class="error-table__title">Created Accounts</h3>
+      <table class="error-table">
+        <thead>
+          <tr>
+            <th>Row</th>
+            <th>Name</th>
+            <th>Generated Student ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let created of result.created">
+            <td>{{ created.row }}</td>
+            <td>{{ created.name }}</td>
+            <td><strong>{{ created.generatedId }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="error-table-wrapper" *ngIf="result.errors.length > 0">

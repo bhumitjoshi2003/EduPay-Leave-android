@@ -4,12 +4,8 @@
     <!-- Identity -->
     <div class="rs-section">
       <p class="rs-section-label">Identity</p>
+      <p class="rs-section-hint">Edunexify automatically generates this student's account ID once you save.</p>
       <div class="rs-grid">
-        <div class="rs-field">
-          <label class="rs-label">Student ID <span class="rs-req">*</span></label>
-          <input type="text" formControlName="studentId" class="rs-input">
-          <span class="rs-err" *ngIf="studentForm.controls['studentId'].invalid && (studentForm.controls['studentId'].dirty || studentForm.controls['studentId'].touched)">Student ID is required.</span>
-        </div>
         <div class="rs-field">
           <label class="rs-label">Full Name <span class="rs-req">*</span></label>
           <input type="text" formControlName="name" class="rs-input">
