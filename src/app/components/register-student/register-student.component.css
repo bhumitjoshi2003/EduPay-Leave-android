@@ -20,6 +20,12 @@
   border-left: 3px solid #059669;
 }
 
+.rs-section-hint {
+  margin: -4px 0 12px;
+  font-size: 0.76rem;
+  color: #6b7280;
+}
+
 /* ── Grid — always single column on Android ───────────────────── */
 .rs-grid {
   display: grid;

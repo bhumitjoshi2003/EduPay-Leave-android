@@ -329,8 +329,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return classes[this.Role] ?? 'chip-student';
   }
 
+  private get isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 900;
+  }
+
   toggleSidebar(): void {
-    if (window.innerWidth <= 768) {
+    if (this.isMobile) {
       this.mobileSidebarOpen = !this.mobileSidebarOpen;
     } else {
       this.sidebarCollapsed = !this.sidebarCollapsed;
@@ -344,7 +348,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   closeSidebarOnMobile(): void {
-    if (window.innerWidth <= 768) {
+    if (this.isMobile) {
       this.mobileSidebarOpen = false;
       this.cdr.markForCheck();
     }

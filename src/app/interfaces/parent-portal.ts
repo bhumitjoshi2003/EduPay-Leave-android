@@ -40,12 +40,13 @@ export interface ParentDirectoryStats {
   unlinkedParents: number;
 }
 
+/** parentId is never supplied by the caller — Edunexify generates it (par_YYnnnnnn).
+ *  email is required (unlike before): it's the only way to deliver the account setup link,
+ *  since no temporary password is ever admin-typed or exposed (Option A onboarding). */
 export interface CreateParentRequest {
-  parentId: string;
   name: string;
-  email?: string;
+  email: string;
   phoneNumber: string;
-  temporaryPassword: string;
 }
 
 export interface LinkStudentRequest {

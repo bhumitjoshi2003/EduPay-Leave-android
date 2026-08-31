@@ -364,6 +364,11 @@ export const routes: Routes = [
         canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'PARENT_PORTAL' }
       },
       {
+        path: 'parent-bulk-import',
+        loadComponent: () => import('./components/parent-bulk-import/parent-bulk-import.component').then(m => m.ParentBulkImportComponent),
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'PARENT_PORTAL' }
+      },
+      {
         path: 'parent-dashboard',
         loadComponent: () => import('./components/parent-portal/parent-portal.component').then(m => m.ParentPortalComponent),
         canActivate: [roleGuard, featureGuard], data: { roles: ['PARENT'], featureKey: 'PARENT_PORTAL' }

@@ -8,6 +8,10 @@
       </div>
     </div>
     <div class="hero-actions" *ngIf="isAdmin">
+      <button type="button" class="hero-button hero-button--secondary" (click)="goToBulkImport()">
+        <mat-icon>upload_file</mat-icon>
+        Bulk Import
+      </button>
       <button type="button" class="hero-button" (click)="toggleCreatePanel()">
         <mat-icon>{{ showCreatePanel ? 'close' : 'person_add' }}</mat-icon>
         {{ showCreatePanel ? 'Close' : 'Add parent' }}
@@ -28,14 +32,16 @@
     <section class="panel create-drawer" *ngIf="showCreatePanel">
       <div class="section-heading">
         <div class="title-icon"><mat-icon>person_add</mat-icon></div>
-        <div><span class="eyebrow dark">NEW ACCOUNT</span><h2>Create parent or guardian</h2><p>Give the guardian separate credentials. Student accounts remain private.</p></div>
+        <div>
+          <span class="eyebrow dark">NEW ACCOUNT</span>
+          <h2>Create parent or guardian<button type="button" class="hint-toggle" (click)="toggleIdHint()" [attr.aria-expanded]="showIdHint" aria-label="How the account is created"><mat-icon>info</mat-icon></button></h2>
+          <p class="create-parent-hint" *ngIf="showIdHint">Parent ID is generated automatically. They'll receive an email to set their password.</p>
+        </div>
       </div>
       <form [formGroup]="createForm" (ngSubmit)="createParent()" class="form-grid">
-        <label>Parent ID<input formControlName="parentId" placeholder="e.g. PAR_1001"><small *ngIf="createForm.controls.parentId.touched && createForm.controls.parentId.invalid">Parent ID is required</small></label>
-        <label>Full name<input formControlName="name" placeholder="Parent or guardian name"><small *ngIf="createForm.controls.name.touched && createForm.controls.name.invalid">Full name is required</small></label>
-        <label>Phone number<input formControlName="phoneNumber" inputmode="tel" placeholder="Mobile number"><small *ngIf="createForm.controls.phoneNumber.touched && createForm.controls.phoneNumber.invalid">Enter a valid phone number</small></label>
-        <label><span class="field-label">Email <em>Optional</em></span><input formControlName="email" type="email" placeholder="name@example.com"><small *ngIf="createForm.controls.email.touched && createForm.controls.email.invalid">Enter a valid email address</small></label>
-        <label>Temporary password<input formControlName="temporaryPassword" type="password" placeholder="Minimum 8 characters"><small *ngIf="createForm.controls.temporaryPassword.touched && createForm.controls.temporaryPassword.invalid">Use at least 8 characters</small></label>
+        <label>Full name<input formControlName="name"><small *ngIf="createForm.controls.name.touched && createForm.controls.name.invalid">Full name is required</small></label>
+        <label>Phone number<input formControlName="phoneNumber" inputmode="tel"><small *ngIf="createForm.controls.phoneNumber.touched && createForm.controls.phoneNumber.invalid">Enter a valid phone number</small></label>
+        <label>Email<input formControlName="email" type="email"><small *ngIf="createForm.controls.email.touched && createForm.controls.email.invalid">A valid email is required — it's how the parent receives their account setup link</small></label>
         <div class="form-actions"><button class="text-button" type="button" (click)="toggleCreatePanel()">Cancel</button><button class="primary" type="submit" [disabled]="working"><mat-icon>person_add</mat-icon>{{ working ? 'Creating…' : 'Create account' }}</button></div>
       </form>
     </section>
@@ -112,9 +118,8 @@
   </ng-container>
 
   <ng-container *ngIf="!loading && !isAdmin && profile">
-    <section class="child-switcher" *ngIf="profile.children.length > 1">
-      <button type="button" *ngFor="let child of profile.children" (click)="selectChild(child)" [class.active]="selectedChild?.studentId === child.studentId"><span class="avatar">{{ child.studentName.charAt(0) }}</span><span><strong>{{ child.studentName }}</strong><small>Class {{ child.className }}{{ child.sectionName ? ' · ' + child.sectionName : '' }}</small></span></button>
-    </section>
+    <app-parent-child-context *ngIf="selectedChild" [studentId]="selectedChild.studentId"
+      (childSelected)="selectChild($event)"></app-parent-child-context>
     <section class="panel child-overview" *ngIf="selectedChild; else noChildren">
       <div class="student-hero"><span class="avatar student large">{{ selectedChild.studentName.charAt(0) }}</span><div><span class="eyebrow dark">{{ selectedChild.relationshipType }}</span><h2>{{ selectedChild.studentName }}</h2><p>{{ selectedChild.studentId }} · Class {{ selectedChild.className }}</p></div><span class="primary-badge" *ngIf="selectedChild.primaryGuardian">Primary guardian</span></div>
       <div class="access-grid">

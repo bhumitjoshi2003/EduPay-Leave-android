@@ -46,12 +46,12 @@
 .profile-badge {
   display: inline-flex; align-items: center; gap: 6px; margin-bottom: 7px; padding: 5px 9px;
   border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; color: #d8fffb; background: rgba(255, 255, 255, 0.1);
-  font-size: 0.61rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  font-size: 0.61rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; overflow-wrap: anywhere;
 }
-.profile-badge i { width: 6px; height: 6px; border-radius: 50%; background: #5eead4; box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.15); }
-.profile-name { margin: 0; color: #fff; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.4px; }
+.profile-badge i { width: 6px; height: 6px; border-radius: 50%; background: #5eead4; box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.15); flex: none; }
+.profile-name { margin: 0; color: #fff; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.4px; overflow-wrap: anywhere; }
 .profile-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 9px; }
-.profile-meta span { display: inline-flex; align-items: center; gap: 5px; color: #d5e9eb; font-size: 0.75rem; font-weight: 600; }
+.profile-meta span { display: inline-flex; align-items: center; gap: 5px; color: #d5e9eb; font-size: 0.75rem; font-weight: 600; overflow-wrap: anywhere; }
 .profile-meta mat-icon { width: 15px; height: 15px; font-size: 15px; }
 .profile-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .profile-btn {

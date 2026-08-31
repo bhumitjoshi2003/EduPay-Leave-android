@@ -130,6 +130,7 @@
 
       <section class="rc-section" *ngIf="reportCardData.weightedResult?.marksTable as mt">
         <div class="rc-sec-title">M A R K S &nbsp; T A B L E</div>
+        <div class="rc-marks-scroll">
         <table class="rc-table rc-marks-table">
           <thead>
             <tr>
@@ -156,6 +157,7 @@
             </tr>
           </tfoot>
         </table>
+        </div>
       </section>
 
       <div class="rc-two-col">
@@ -288,6 +290,7 @@
 
         <h3 class="rc-exam-heading">{{ exam.examName }}</h3>
 
+        <div class="rc-marks-scroll">
         <table class="rc-table">
           <thead>
             <tr>
@@ -335,6 +338,7 @@
             </tr>
           </tfoot>
         </table>
+        </div>
 
       </div>
 

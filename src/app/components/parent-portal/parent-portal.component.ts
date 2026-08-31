@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestro
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
 import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { AuthStateService } from '../../auth/auth-state.service';
 import {
@@ -24,7 +25,7 @@ import { AcademicSessionService } from '../../services/academic-session.service'
 @Component({
   selector: 'app-parent-portal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, ParentChildContextComponent],
   templateUrl: './parent-portal.component.html',
   styleUrl: './parent-portal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,6 +50,7 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
   loading = true;
   directoryBusy = false;
   showCreatePanel = false;
+  showIdHint = false;
   working = false;
   parents: ParentSummary[] = [];
   stats: ParentDirectoryStats | null = null;
@@ -71,11 +73,12 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
   studentSearchOpen = false;
 
   createForm = this.fb.nonNullable.group({
-    parentId: ['', [Validators.required, Validators.maxLength(50)]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
-    email: ['', Validators.email],
+    // Required (unlike before) — email is the only way Edunexify can deliver the account
+    // setup link, since no temporary password is ever admin-typed or exposed (Option A
+    // onboarding: the parent sets their own password via a secure emailed link).
+    email: ['', [Validators.required, Validators.email]],
     phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9+() -]{7,20}$/)]],
-    temporaryPassword: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   ngOnInit(): void {
@@ -185,11 +188,21 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard/parent-portal', parent.parentId]);
   }
 
+  goToBulkImport(): void {
+    this.router.navigate(['/dashboard/parent-bulk-import']);
+  }
+
   toggleCreatePanel(): void {
     this.showCreatePanel = !this.showCreatePanel;
     if (!this.showCreatePanel) {
-      this.createForm.reset({ parentId: '', name: '', email: '', phoneNumber: '', temporaryPassword: '' });
+      this.createForm.reset({ name: '', email: '', phoneNumber: '' });
+      this.showIdHint = false;
     }
+  }
+
+  toggleIdHint(): void {
+    this.showIdHint = !this.showIdHint;
+    this.cdr.markForCheck();
   }
 
   createParent(): void {
@@ -200,8 +213,9 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
     })).subscribe({
       next: profile => {
         this.showCreatePanel = false;
-        this.createForm.reset({ parentId: '', name: '', email: '', phoneNumber: '', temporaryPassword: '' });
-        this.toast.success('Parent account created', 'Now link one or more students.');
+        this.createForm.reset({ name: '', email: '', phoneNumber: '' });
+        this.toast.success('Parent account created',
+          `Edunexify ID: ${profile.parent.parentId}. An email has been sent so the parent can set their password.`);
         this.router.navigate(['/dashboard/parent-portal', profile.parent.parentId]);
       },
       error: error => this.toast.error('Could not create parent', error?.error?.message || error?.error || 'Please verify the details.'),

@@ -81,6 +81,8 @@ input:focus, select:focus { border-color: #0d9488; background: #fff; box-shadow:
 .permission-groups legend mat-icon { font-size: 15px; width: auto; height: auto; color: #0b9085; }
 .permission-groups label { display: flex; align-items: flex-start; gap: 8px; padding: 7px 5px; border-radius: 9px; }
 .permission-groups label:hover { background: #f3faf8; }
+.permission-groups label.is-disabled { opacity: 0.45; cursor: not-allowed; }
+.permission-groups label.is-disabled:hover { background: transparent; }
 .permission-groups label > span { display: flex; flex-direction: column; }
 .permission-groups label strong { font-size: 0.75rem; }
 .permission-groups label small { color: #94a3b8; font-size: 0.68rem; margin-top: 2px; }
