@@ -11,6 +11,8 @@ import { Capacitor } from '@capacitor/core';
 import { ToastService } from '../../services/toast.service';
 import { SchoolService } from '../../services/school.service';
 import { FeesCalculationService } from '../../services/fees-calculation.service';
+import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
+import { ChildAccess } from '../../interfaces/parent-portal';
 
 export interface ReceiptFeeLine {
   name: string;
@@ -20,7 +22,7 @@ export interface ReceiptFeeLine {
 @Component({
   selector: 'app-payment-details',
   templateUrl: './payment-details.component.html',
-  imports: [CommonModule],
+  imports: [CommonModule, ParentChildContextComponent],
   styleUrls: ['./payment-details.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -249,5 +251,12 @@ export class PaymentDetailsComponent implements OnInit, OnDestroy {
         this.toast.error('Error', 'Could not open share sheet.');
       }
     }
+  }
+
+  /** This page shows one specific payment record — there's nothing to "switch" it to for a
+   *  different child, so picking another child here takes the parent to that child's payment
+   *  history list instead, which is the sensible destination. */
+  onChildTabSelected(child: ChildAccess): void {
+    this.router.navigate(['/dashboard/payment-history', child.studentId]);
   }
 }

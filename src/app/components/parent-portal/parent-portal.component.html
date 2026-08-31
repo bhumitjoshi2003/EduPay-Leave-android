@@ -19,10 +19,10 @@
 
   <ng-container *ngIf="!loading && isAdmin">
     <section class="summary-grid" aria-label="Parent account summary">
-      <article><span class="summary-icon teal"><mat-icon>family_restroom</mat-icon></span><div><strong>{{ totalParents }}</strong><span>Total parents</span></div></article>
-      <article><span class="summary-icon green"><mat-icon>verified_user</mat-icon></span><div><strong>{{ activeParents }}</strong><span>Active accounts</span></div></article>
-      <article><span class="summary-icon blue"><mat-icon>school</mat-icon></span><div><strong>{{ linkedStudents }}</strong><span>Student links</span></div></article>
-      <article [class.needs-action]="unlinkedParents > 0"><span class="summary-icon amber"><mat-icon>link_off</mat-icon></span><div><strong>{{ unlinkedParents }}</strong><span>Need a student link</span></div></article>
+      <article><span class="summary-icon teal"><mat-icon>family_restroom</mat-icon></span><div><strong>{{ stats?.totalParents ?? 0 }}</strong><span>Total parents</span></div></article>
+      <article><span class="summary-icon green"><mat-icon>verified_user</mat-icon></span><div><strong>{{ stats?.activeParents ?? 0 }}</strong><span>Active accounts</span></div></article>
+      <article><span class="summary-icon blue"><mat-icon>school</mat-icon></span><div><strong>{{ stats?.linkedStudents ?? 0 }}</strong><span>Linked students</span></div></article>
+      <article [class.needs-action]="(stats?.unlinkedParents ?? 0) > 0"><span class="summary-icon amber"><mat-icon>link_off</mat-icon></span><div><strong>{{ stats?.unlinkedParents ?? 0 }}</strong><span>Without student links</span></div></article>
     </section>
 
     <section class="panel create-drawer" *ngIf="showCreatePanel">
@@ -34,95 +34,85 @@
         <label>Parent ID<input formControlName="parentId" placeholder="e.g. PAR_1001"><small *ngIf="createForm.controls.parentId.touched && createForm.controls.parentId.invalid">Parent ID is required</small></label>
         <label>Full name<input formControlName="name" placeholder="Parent or guardian name"><small *ngIf="createForm.controls.name.touched && createForm.controls.name.invalid">Full name is required</small></label>
         <label>Phone number<input formControlName="phoneNumber" inputmode="tel" placeholder="Mobile number"><small *ngIf="createForm.controls.phoneNumber.touched && createForm.controls.phoneNumber.invalid">Enter a valid phone number</small></label>
-        <label>Email <em>Optional</em><input formControlName="email" type="email" placeholder="name@example.com"><small *ngIf="createForm.controls.email.touched && createForm.controls.email.invalid">Enter a valid email address</small></label>
+        <label><span class="field-label">Email <em>Optional</em></span><input formControlName="email" type="email" placeholder="name@example.com"><small *ngIf="createForm.controls.email.touched && createForm.controls.email.invalid">Enter a valid email address</small></label>
         <label>Temporary password<input formControlName="temporaryPassword" type="password" placeholder="Minimum 8 characters"><small *ngIf="createForm.controls.temporaryPassword.touched && createForm.controls.temporaryPassword.invalid">Use at least 8 characters</small></label>
         <div class="form-actions"><button class="text-button" type="button" (click)="toggleCreatePanel()">Cancel</button><button class="primary" type="submit" [disabled]="working"><mat-icon>person_add</mat-icon>{{ working ? 'Creating…' : 'Create account' }}</button></div>
       </form>
     </section>
 
-    <section class="admin-workspace" [class.has-selection]="profile">
-      <aside class="panel directory-shell">
-        <div class="section-heading compact">
-          <div class="title-icon"><mat-icon>groups</mat-icon></div>
-          <div><h2>Parent directory</h2><p>{{ filteredParents.length }} of {{ parents.length }} accounts</p></div>
+    <section class="panel directory-panel">
+      <div class="section-heading">
+        <div class="title-icon"><mat-icon>groups</mat-icon></div>
+        <div><h2>Parent directory</h2><p>{{ totalElements }} account{{ totalElements === 1 ? '' : 's' }}<ng-container *ngIf="hasActiveFilters"> matching your filters</ng-container></p></div>
+        <span class="directory-busy" *ngIf="directoryBusy"><span class="spinner small"></span></span>
+      </div>
+
+      <div class="directory-filters">
+        <label class="search-field"><mat-icon>search</mat-icon><input aria-label="Search parents" [value]="searchTerm" (input)="updateDirectorySearch($event)" placeholder="Search name, ID or phone"></label>
+        <select aria-label="Filter by account status" [value]="statusFilter" (change)="updateStatusFilter($event)">
+          <option value="ALL">All statuses</option><option value="ACTIVE">Active</option><option value="DISABLED">Disabled</option>
+        </select>
+        <select aria-label="Filter by linked students" [value]="linkedFilter" (change)="updateLinkedFilter($event)">
+          <option value="ALL">All students</option><option value="LINKED">Linked</option><option value="UNLINKED">Unlinked</option>
+        </select>
+        <button type="button" class="text-button" *ngIf="hasActiveFilters" (click)="clearFilters()"><mat-icon>filter_alt_off</mat-icon>Clear filters</button>
+      </div>
+
+      <ng-container *ngIf="parents.length; else directoryEmpty">
+        <div class="directory-table-wrap">
+          <table class="directory-table">
+            <thead>
+              <tr><th>Parent / Guardian</th><th>Parent ID</th><th>Children</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let parent of parents" (click)="viewParent(parent)">
+                <td class="directory-name-cell"><span class="avatar">{{ parent.name.charAt(0) }}</span><strong>{{ parent.name }}</strong></td>
+                <td>{{ parent.parentId }}</td>
+                <td><span class="children-badge"><mat-icon>school</mat-icon>{{ parent.linkedChildren }}</span></td>
+                <td><span class="status-badge" [class.off]="!parent.active">{{ parent.active ? 'Active' : 'Disabled' }}</span></td>
+                <td class="directory-action-cell"><button type="button" class="row-view-btn" (click)="viewParent(parent)" [attr.aria-label]="'View ' + parent.name"><mat-icon>chevron_right</mat-icon></button></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="directory-tools">
-          <label class="search-field"><mat-icon>search</mat-icon><input aria-label="Search parents" [value]="directorySearch" (input)="updateDirectorySearch($event)" placeholder="Search name, ID or phone"></label>
-          <select aria-label="Filter parent accounts" [value]="directoryStatus" (change)="updateDirectoryStatus($event)">
-            <option value="ALL">All accounts</option><option value="ACTIVE">Active</option><option value="DISABLED">Disabled</option><option value="UNLINKED">Needs student link</option>
-          </select>
-        </div>
-        <div class="parent-list" *ngIf="pagedParents.length; else noParents">
-          <button type="button" class="parent-row" *ngFor="let parent of pagedParents" (click)="selectParent(parent)" [class.selected]="profile?.parent?.parentId === parent.parentId">
-            <span class="avatar">{{ parent.name.charAt(0) }}</span>
-            <span class="parent-copy"><strong>{{ parent.name }}</strong><small>{{ parent.parentId }} · {{ parent.linkedChildren }} student{{ parent.linkedChildren === 1 ? '' : 's' }}</small></span>
-            <span class="status" [class.off]="!parent.active">{{ parent.active ? 'Active' : 'Disabled' }}</span>
-            <mat-icon>chevron_right</mat-icon>
+
+        <div class="directory-mobile-list">
+          <button type="button" class="directory-card" *ngFor="let parent of parents" (click)="viewParent(parent)">
+            <div class="directory-card-top">
+              <span class="avatar">{{ parent.name.charAt(0) }}</span>
+              <div><strong>{{ parent.name }}</strong><small>{{ parent.parentId }}</small></div>
+              <span class="status-badge" [class.off]="!parent.active">{{ parent.active ? 'Active' : 'Disabled' }}</span>
+            </div>
+            <div class="directory-card-bottom"><span class="children-badge"><mat-icon>school</mat-icon>{{ parent.linkedChildren }}</span></div>
           </button>
         </div>
-        <div class="pagination" *ngIf="filteredParents.length > pageSize">
-          <button type="button" aria-label="Previous page" (click)="changeDirectoryPage(-1)" [disabled]="directoryPage === 1"><mat-icon>chevron_left</mat-icon></button>
-          <span>Page {{ directoryPage }} of {{ directoryPageCount }}</span>
-          <button type="button" aria-label="Next page" (click)="changeDirectoryPage(1)" [disabled]="directoryPage === directoryPageCount"><mat-icon>chevron_right</mat-icon></button>
+      </ng-container>
+
+      <ng-template #directoryEmpty>
+        <div class="empty" *ngIf="!hasActiveFilters">
+          <mat-icon>family_restroom</mat-icon>
+          <strong>Add your first parent</strong>
+          <span>Create a guardian account and link a student to get started.</span>
+          <button type="button" class="primary" (click)="toggleCreatePanel()"><mat-icon>person_add</mat-icon>Add parent</button>
         </div>
-        <ng-template #noParents><div class="empty small"><mat-icon>person_search</mat-icon><strong>No matching parents</strong><span>Try another search or filter.</span></div></ng-template>
-      </aside>
-
-      <main class="panel relationship-panel" *ngIf="profile; else selectParentPrompt">
-        <button type="button" class="mobile-back" (click)="backToDirectory()"><mat-icon>arrow_back</mat-icon>Parent directory</button>
-        <div class="relationship-head">
-          <div class="parent-identity"><span class="avatar large">{{ profile.parent.name.charAt(0) }}</span><div><span class="eyebrow dark">SELECTED GUARDIAN</span><h2>{{ profile.parent.name }}</h2><p>{{ profile.parent.parentId }} · {{ profile.parent.phoneNumber }}<ng-container *ngIf="profile.parent.email"> · {{ profile.parent.email }}</ng-container></p></div></div>
-          <button class="secondary" [class.danger-outline]="profile.parent.active" type="button" (click)="toggleParent(profile.parent)"><mat-icon>{{ profile.parent.active ? 'lock' : 'lock_open' }}</mat-icon>{{ profile.parent.active ? 'Disable login' : 'Restore login' }}</button>
+        <div class="empty" *ngIf="hasActiveFilters">
+          <mat-icon>person_search</mat-icon>
+          <strong>No parents found</strong>
+          <span>Try a different search or filter.</span>
+          <button type="button" class="text-button" (click)="clearFilters()">Clear filters</button>
         </div>
+      </ng-template>
 
-        <div class="profile-loader" *ngIf="profileLoading"><span class="spinner"></span>Refreshing guardian profile…</div>
-
-        <section class="linked-section">
-          <div class="subsection-heading">
-            <div><h3>Linked students</h3><p>{{ profile.children.length ? profile.children.length + ' student profile' + (profile.children.length === 1 ? '' : 's') + ' connected' : 'No students linked yet' }}</p></div>
-            <button type="button" class="compact-primary" (click)="startLinking()" *ngIf="!showAccessEditor"><mat-icon>add_link</mat-icon>Link student</button>
-          </div>
-          <div class="linked-grid" *ngIf="profile.children.length; else noLinkedChildren">
-            <article class="child-card" *ngFor="let child of profile.children" [class.editing]="editingChild?.relationshipId === child.relationshipId">
-              <div class="child-main"><span class="avatar student">{{ child.studentName.charAt(0) }}</span><div><strong>{{ child.studentName }}</strong><p>{{ child.studentId }} · Class {{ child.className }}{{ child.sectionName ? ' · ' + child.sectionName : '' }}</p><small>{{ child.relationshipType }}{{ child.primaryGuardian ? ' · Primary guardian' : '' }} · From {{ child.effectiveFrom | date:'mediumDate' }}</small></div></div>
-              <div class="permission-tags"><span *ngFor="let permission of permissionLabels(child)">{{ permission }}</span><span class="muted" *ngIf="!permissionLabels(child).length">No portal permissions</span></div>
-              <div class="child-actions"><button type="button" class="edit-action" (click)="editChild(child)"><mat-icon>edit</mat-icon>Edit access</button><button type="button" class="danger-action" (click)="unlink(child)"><mat-icon>link_off</mat-icon>Unlink</button></div>
-            </article>
-          </div>
-          <ng-template #noLinkedChildren><div class="empty linked-empty"><mat-icon>link</mat-icon><strong>No students connected</strong><span>Link a student and choose exactly what this guardian can access.</span><button type="button" class="compact-primary" (click)="startLinking()" *ngIf="!showAccessEditor"><mat-icon>add_link</mat-icon>Link first student</button></div></ng-template>
-        </section>
-
-        <form *ngIf="showAccessEditor" [formGroup]="linkForm" (ngSubmit)="linkStudent()" class="access-editor">
-          <div class="subsection-heading editor-title"><div><span class="step-number">{{ editingChild ? 'EDIT' : '01' }}</span><h3>{{ editingChild ? 'Update student access' : 'Link a student' }}</h3><p>{{ editingChild ? 'Adjust relationship details and permissions.' : 'Find the student by name or ID, then set guardian permissions.' }}</p></div><button type="button" class="text-button" (click)="cancelChildEdit()"><mat-icon>close</mat-icon>Cancel</button></div>
-          <div class="link-fields">
-            <label class="student-search">Student
-              <span class="input-with-icon"><mat-icon>search</mat-icon><input [value]="studentQuery" (input)="searchStudents($event)" [readonly]="!!editingChild" placeholder="Search student name or ID" autocomplete="off"></span>
-              <div class="student-results" *ngIf="studentSearchOpen">
-                <div class="searching" *ngIf="searchingStudents"><span class="spinner"></span>Searching students…</div>
-                <button type="button" *ngFor="let student of studentMatches" (click)="chooseStudent(student)"><span class="avatar student">{{ student.name.charAt(0) }}</span><span><strong>{{ student.name }}</strong><small>{{ student.studentId }} · Class {{ student.className }}{{ student.sectionName ? ' · ' + student.sectionName : '' }}</small></span><mat-icon>add_circle_outline</mat-icon></button>
-                <div class="no-results" *ngIf="!searchingStudents && !studentMatches.length">No active student found.</div>
-              </div>
-            </label>
-            <label>Relationship<select formControlName="relationshipType"><option value="PARENT">Parent</option><option value="MOTHER">Mother</option><option value="FATHER">Father</option><option value="GUARDIAN">Guardian</option></select></label>
-            <label>Access starts<input formControlName="effectiveFrom" type="date"></label>
-          </div>
-
-          <div class="permission-heading"><div><span class="step-number">02</span><h3>Choose access</h3><p>Only selected information will be visible for this student.</p></div><label class="select-all"><input type="checkbox" [checked]="allPermissionsSelected" (change)="setAllPermissions($any($event.target).checked)">Select all</label></div>
-          <div class="permission-groups">
-            <fieldset><legend><mat-icon>school</mat-icon>Academics</legend><label><input type="checkbox" formControlName="canViewAttendance"><span><strong>Attendance</strong><small>Daily and monthly status</small></span></label><label><input type="checkbox" formControlName="canViewResults"><span><strong>Results</strong><small>Marks and report cards</small></span></label><label><input type="checkbox" formControlName="canViewTimetable"><span><strong>Timetable</strong><small>Class schedule</small></span></label></fieldset>
-            <fieldset><legend><mat-icon>account_balance_wallet</mat-icon>Finance</legend><label><input type="checkbox" formControlName="canViewFees"><span><strong>View fees</strong><small>Dues and statements</small></span></label><label><input type="checkbox" formControlName="canPayFees"><span><strong>Make payments</strong><small>Online fee payment</small></span></label></fieldset>
-            <fieldset><legend><mat-icon>verified_user</mat-icon>Requests & safety</legend><label><input type="checkbox" formControlName="canManageLeave"><span><strong>Manage leave</strong><small>Apply and track leave</small></span></label><label><input type="checkbox" formControlName="pickupAuthorized"><span><strong>Pickup authorized</strong><small>Approved student pickup</small></span></label><label><input type="checkbox" formControlName="primaryGuardian"><span><strong>Primary guardian</strong><small>Main school contact</small></span></label></fieldset>
-          </div>
-          <div class="editor-actions"><span><mat-icon>shield</mat-icon>Access is isolated to this student and this school.</span><button class="primary" type="submit" [disabled]="working || linkForm.invalid"><mat-icon>{{ editingChild ? 'save' : 'link' }}</mat-icon>{{ working ? 'Saving…' : (editingChild ? 'Save access' : 'Link student') }}</button></div>
-        </form>
-      </main>
-
-      <ng-template #selectParentPrompt><main class="panel selection-placeholder"><div class="placeholder-art"><mat-icon>manage_accounts</mat-icon></div><h2>Select a parent</h2><p>Choose an account from the directory to manage linked students, permissions and login access.</p><button type="button" class="primary" (click)="toggleCreatePanel()"><mat-icon>person_add</mat-icon>Add a new parent</button></main></ng-template>
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button type="button" aria-label="Previous page" (click)="changeDirectoryPage(-1)" [disabled]="currentPage === 0"><mat-icon>chevron_left</mat-icon></button>
+        <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+        <button type="button" aria-label="Next page" (click)="changeDirectoryPage(1)" [disabled]="currentPage >= totalPages - 1"><mat-icon>chevron_right</mat-icon></button>
+      </div>
     </section>
   </ng-container>
 
   <ng-container *ngIf="!loading && !isAdmin && profile">
-    <section class="child-switcher" *ngIf="profile.children.length">
+    <section class="child-switcher" *ngIf="profile.children.length > 1">
       <button type="button" *ngFor="let child of profile.children" (click)="selectChild(child)" [class.active]="selectedChild?.studentId === child.studentId"><span class="avatar">{{ child.studentName.charAt(0) }}</span><span><strong>{{ child.studentName }}</strong><small>Class {{ child.className }}{{ child.sectionName ? ' · ' + child.sectionName : '' }}</small></span></button>
     </section>
     <section class="panel child-overview" *ngIf="selectedChild; else noChildren">
@@ -131,7 +121,10 @@
         <button type="button" *ngIf="selectedChild.canViewAttendance" (click)="openAttendance(selectedChild)"><mat-icon>fact_check</mat-icon><div><strong>Attendance</strong><span>View monthly attendance and daily status</span></div><mat-icon>chevron_right</mat-icon></button>
         <button type="button" *ngIf="selectedChild.canViewFees" (click)="openFees(selectedChild)"><mat-icon>account_balance_wallet</mat-icon><div><strong>Fees</strong><span>{{ selectedChild.canPayFees ? 'View dues and make payments' : 'View fee statements' }}</span></div><mat-icon>chevron_right</mat-icon></button>
         <button type="button" *ngIf="selectedChild.canViewFees" (click)="openPaymentHistory(selectedChild)"><mat-icon>receipt_long</mat-icon><div><strong>Payment history</strong><span>View payments and download receipts</span></div><mat-icon>chevron_right</mat-icon></button>
+        <button type="button" *ngIf="selectedChild.canViewFees" (click)="openFeeStructure(selectedChild)"><mat-icon>request_quote</mat-icon><div><strong>Fee structure</strong><span>Tuition, exam and other configured fees</span></div><mat-icon>chevron_right</mat-icon></button>
+        <button type="button" *ngIf="selectedChild.canViewFees" (click)="openBusFees(selectedChild)"><mat-icon>directions_bus</mat-icon><div><strong>Bus fees</strong><span>Transport fee schedule and applicable amount</span></div><mat-icon>chevron_right</mat-icon></button>
         <button type="button" *ngIf="selectedChild.canViewResults" (click)="openResults(selectedChild)"><mat-icon>workspace_premium</mat-icon><div><strong>Results</strong><span>Review marks and report cards</span></div><mat-icon>chevron_right</mat-icon></button>
+        <button type="button" *ngIf="selectedChild.canViewResults" (click)="openReportCard(selectedChild)"><mat-icon>school</mat-icon><div><strong>Report card</strong><span>View and download the printable report card</span></div><mat-icon>chevron_right</mat-icon></button>
         <button type="button" *ngIf="selectedChild.canManageLeave" (click)="openLeave(selectedChild)"><mat-icon>event_available</mat-icon><div><strong>Leave</strong><span>Apply for and track student leave</span></div><mat-icon>chevron_right</mat-icon></button>
         <button type="button" *ngIf="selectedChild.canViewTimetable" (click)="openTimetable(selectedChild)"><mat-icon>calendar_month</mat-icon><div><strong>Timetable</strong><span>See the current class schedule</span></div><mat-icon>chevron_right</mat-icon></button>
         <button type="button" (click)="openSchoolUpdates()"><mat-icon>campaign</mat-icon><div><strong>School updates</strong><span>Notices, events and holidays</span></div><mat-icon>chevron_right</mat-icon></button>

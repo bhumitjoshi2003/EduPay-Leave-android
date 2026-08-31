@@ -1,3 +1,6 @@
+export type ParentStatusFilter = 'ALL' | 'ACTIVE' | 'DISABLED';
+export type ParentLinkedFilter = 'ALL' | 'LINKED' | 'UNLINKED';
+
 export interface ParentSummary {
   parentId: string;
   name: string;
@@ -21,7 +24,6 @@ export interface ChildAccess {
   canViewResults: boolean;
   canViewTimetable: boolean;
   canManageLeave: boolean;
-  pickupAuthorized: boolean;
   effectiveFrom: string;
   effectiveUntil: string | null;
 }
@@ -29,6 +31,13 @@ export interface ChildAccess {
 export interface ParentProfile {
   parent: ParentSummary;
   children: ChildAccess[];
+}
+
+export interface ParentDirectoryStats {
+  totalParents: number;
+  activeParents: number;
+  linkedStudents: number;
+  unlinkedParents: number;
 }
 
 export interface CreateParentRequest {
@@ -49,7 +58,6 @@ export interface LinkStudentRequest {
   canViewResults: boolean;
   canViewTimetable: boolean;
   canManageLeave: boolean;
-  pickupAuthorized: boolean;
   effectiveFrom: string;
   effectiveUntil?: string | null;
 }

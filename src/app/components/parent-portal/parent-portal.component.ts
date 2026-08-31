@@ -2,17 +2,25 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import { AuthStateService } from '../../auth/auth-state.service';
-import { ChildAccess, ParentProfile, ParentSummary } from '../../interfaces/parent-portal';
+import {
+  ChildAccess, ParentDirectoryStats, ParentLinkedFilter, ParentProfile, ParentStatusFilter, ParentSummary,
+} from '../../interfaces/parent-portal';
 import { ParentPortalService } from '../../services/parent-portal.service';
 import { ToastService } from '../../services/toast.service';
-import { Router } from '@angular/router';
 import { StudentService } from '../../services/student.service';
 import { Student } from '../../interfaces/student';
+import { ParentChildContextService } from '../../services/parent-child-context.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
 
-type DirectoryStatus = 'ALL' | 'ACTIVE' | 'DISABLED' | 'UNLINKED';
-
+/**
+ * Serves two very different audiences at the same route, exactly as before the
+ * directory/detail split: for ADMIN this is the paginated parent directory only (selecting a
+ * row navigates to /dashboard/parent-portal/:parentId, a separate route/component — see
+ * ParentDetailComponent); for PARENT this remains their own read-only multi-child portal view.
+ */
 @Component({
   selector: 'app-parent-portal',
   standalone: true,
@@ -29,22 +37,34 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly childContext = inject(ParentChildContextService);
+  private readonly sessionService = inject(AcademicSessionService);
   private readonly destroy$ = new Subject<void>();
   private readonly studentSearch$ = new Subject<string>();
+  private readonly directorySearchInput$ = new Subject<string>();
+  private readonly directoryQuery$ = new Subject<void>();
   readonly isAdmin = this.authState.getUserRole() === 'ADMIN';
-  readonly pageSize = 5;
+  readonly pageSize = 20;
   loading = true;
-  working = false;
-  profileLoading = false;
+  directoryBusy = false;
   showCreatePanel = false;
-  showAccessEditor = false;
+  working = false;
   parents: ParentSummary[] = [];
+  stats: ParentDirectoryStats | null = null;
   profile: ParentProfile | null = null;
   selectedChild: ChildAccess | null = null;
-  editingChild: ChildAccess | null = null;
-  directorySearch = '';
-  directoryStatus: DirectoryStatus = 'ALL';
-  directoryPage = 1;
+
+  // Server-driven directory state, mirrored into the URL's query params so that navigating to
+  // a parent's detail page and back (or a plain browser Back) restores page/search/filters
+  // instead of resetting the admin to page 1.
+  searchTerm = '';
+  statusFilter: ParentStatusFilter = 'ALL';
+  linkedFilter: ParentLinkedFilter = 'ALL';
+  currentPage = 0;
+  totalElements = 0;
+  totalPages = 0;
+
   studentQuery = '';
   studentMatches: Student[] = [];
   searchingStudents = false;
@@ -58,16 +78,52 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
     temporaryPassword: ['', [Validators.required, Validators.minLength(8)]],
   });
 
-  linkForm = this.fb.nonNullable.group({
-    studentId: ['', Validators.required],
-    relationshipType: ['PARENT', Validators.required],
-    primaryGuardian: [true],
-    canViewAttendance: [true], canViewFees: [true], canPayFees: [true],
-    canViewResults: [true], canViewTimetable: [true], canManageLeave: [true], pickupAuthorized: [false],
-    effectiveFrom: [new Date().toISOString().slice(0, 10), Validators.required],
-  });
-
   ngOnInit(): void {
+    if (this.isAdmin) {
+      const params = this.route.snapshot.queryParamMap;
+      this.currentPage = Math.max(0, Number(params.get('page') ?? 0) || 0);
+      this.searchTerm = params.get('search') ?? '';
+      this.statusFilter = (params.get('status') as ParentStatusFilter) ?? 'ALL';
+      this.linkedFilter = (params.get('linked') as ParentLinkedFilter) ?? 'ALL';
+
+      this.directorySearchInput$.pipe(
+        debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$),
+      ).subscribe(term => {
+        this.searchTerm = term;
+        this.currentPage = 0;
+        this.syncUrl();
+        this.directoryQuery$.next();
+      });
+
+      // switchMap cancels a still-in-flight request if the admin changes page/search/filter
+      // again before it resolves, so a fast typist or rapid page-click never gets a stale
+      // response overwriting a newer one.
+      this.directoryQuery$.pipe(
+        tap(() => { this.directoryBusy = true; this.cdr.markForCheck(); }),
+        switchMap(() => this.parentService.listParents({
+          page: this.currentPage, size: this.pageSize, search: this.searchTerm,
+          status: this.statusFilter, linked: this.linkedFilter,
+        }).pipe(catchError(() => of(null)))),
+        takeUntil(this.destroy$),
+      ).subscribe(response => {
+        this.loading = false;
+        this.directoryBusy = false;
+        if (response) {
+          this.parents = response.content;
+          this.totalElements = response.totalElements;
+          this.totalPages = response.totalPages;
+        } else {
+          this.toast.error('Could not load parents', 'Please try again.');
+        }
+        this.cdr.markForCheck();
+      });
+
+      this.loadStats();
+      this.directoryQuery$.next();
+    } else {
+      this.loadMyProfile();
+    }
+
     this.studentSearch$.pipe(
       debounceTime(250), distinctUntilChanged(),
       tap(query => {
@@ -86,49 +142,32 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
       this.studentSearchOpen = this.studentQuery.trim().length >= 2;
       this.cdr.markForCheck();
     });
-    this.isAdmin ? this.loadParents() : this.loadMyProfile();
   }
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
-  get totalParents(): number { return this.parents.length; }
-  get activeParents(): number { return this.parents.filter(parent => parent.active).length; }
-  get linkedStudents(): number { return this.parents.reduce((total, parent) => total + parent.linkedChildren, 0); }
-  get unlinkedParents(): number { return this.parents.filter(parent => parent.linkedChildren === 0).length; }
-  get filteredParents(): ParentSummary[] {
-    const query = this.directorySearch.trim().toLowerCase();
-    return this.parents.filter(parent => {
-      const matchesSearch = !query || parent.name.toLowerCase().includes(query)
-        || parent.parentId.toLowerCase().includes(query)
-        || parent.phoneNumber.toLowerCase().includes(query)
-        || (parent.email ?? '').toLowerCase().includes(query);
-      const matchesStatus = this.directoryStatus === 'ALL'
-        || (this.directoryStatus === 'ACTIVE' && parent.active)
-        || (this.directoryStatus === 'DISABLED' && !parent.active)
-        || (this.directoryStatus === 'UNLINKED' && parent.linkedChildren === 0);
-      return matchesSearch && matchesStatus;
-    });
-  }
-  get directoryPageCount(): number { return Math.max(1, Math.ceil(this.filteredParents.length / this.pageSize)); }
-  get pagedParents(): ParentSummary[] {
-    const start = (this.directoryPage - 1) * this.pageSize;
-    return this.filteredParents.slice(start, start + this.pageSize);
-  }
-  get allPermissionsSelected(): boolean {
-    const value = this.linkForm.getRawValue();
-    return value.canViewAttendance && value.canViewFees && value.canPayFees && value.canViewResults
-      && value.canViewTimetable && value.canManageLeave && value.pickupAuthorized;
+  get hasActiveFilters(): boolean {
+    return !!this.searchTerm || this.statusFilter !== 'ALL' || this.linkedFilter !== 'ALL';
   }
 
-  loadParents(showLoader = true): void {
-    if (showLoader) this.loading = true;
-    this.parentService.listParents().pipe(takeUntil(this.destroy$), finalize(() => {
-      this.loading = false; this.cdr.markForCheck();
-    })).subscribe({
-      next: parents => {
-        this.parents = parents;
-        if (this.directoryPage > this.directoryPageCount) this.directoryPage = this.directoryPageCount;
+  /** Reflects page/search/status/linked into the URL without adding a history entry per keystroke or page click. */
+  private syncUrl(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: this.currentPage || null,
+        search: this.searchTerm || null,
+        status: this.statusFilter !== 'ALL' ? this.statusFilter : null,
+        linked: this.linkedFilter !== 'ALL' ? this.linkedFilter : null,
       },
-      error: () => this.toast.error('Could not load parents', 'Please try again.'),
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  loadStats(): void {
+    this.parentService.getDirectoryStats().pipe(takeUntil(this.destroy$)).subscribe({
+      next: stats => { this.stats = stats; this.cdr.markForCheck(); },
+      error: () => { /* Summary cards are supplementary — a failed fetch shouldn't block the directory. */ },
     });
   }
 
@@ -137,23 +176,14 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
     this.parentService.getMyProfile().pipe(takeUntil(this.destroy$), finalize(() => {
       this.loading = false; this.cdr.markForCheck();
     })).subscribe({
-      next: profile => { this.profile = profile; this.selectedChild = profile.children[0] ?? null; },
+      next: profile => { this.profile = profile; this.selectedChild = this.childContext.reconcile(profile); },
       error: () => this.toast.error('Could not load your children', 'Please contact the school if this continues.'),
     });
   }
 
-  selectParent(parent: ParentSummary): void {
-    this.profileLoading = true;
-    this.cancelChildEdit();
-    this.parentService.getParent(parent.parentId).pipe(takeUntil(this.destroy$), finalize(() => {
-      this.profileLoading = false; this.cdr.markForCheck();
-    })).subscribe({
-      next: profile => { this.profile = profile; this.selectedChild = profile.children[0] ?? null; },
-      error: () => this.toast.error('Could not open parent', 'Please try again.'),
-    });
+  viewParent(parent: ParentSummary): void {
+    this.router.navigate(['/dashboard/parent-portal', parent.parentId]);
   }
-
-  backToDirectory(): void { this.profile = null; this.cancelChildEdit(); }
 
   toggleCreatePanel(): void {
     this.showCreatePanel = !this.showCreatePanel;
@@ -169,182 +199,104 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
       this.working = false; this.cdr.markForCheck();
     })).subscribe({
       next: profile => {
-        this.profile = profile;
-        this.showAccessEditor = true;
         this.showCreatePanel = false;
         this.createForm.reset({ parentId: '', name: '', email: '', phoneNumber: '', temporaryPassword: '' });
         this.toast.success('Parent account created', 'Now link one or more students.');
-        this.loadParents(false);
+        this.router.navigate(['/dashboard/parent-portal', profile.parent.parentId]);
       },
       error: error => this.toast.error('Could not create parent', error?.error?.message || error?.error || 'Please verify the details.'),
     });
   }
 
   updateDirectorySearch(event: Event): void {
-    this.directorySearch = (event.target as HTMLInputElement).value;
-    this.directoryPage = 1;
+    this.directorySearchInput$.next((event.target as HTMLInputElement).value.trim());
   }
 
-  updateDirectoryStatus(event: Event): void {
-    this.directoryStatus = (event.target as HTMLSelectElement).value as DirectoryStatus;
-    this.directoryPage = 1;
+  updateStatusFilter(event: Event): void {
+    this.statusFilter = (event.target as HTMLSelectElement).value as ParentStatusFilter;
+    this.currentPage = 0;
+    this.syncUrl();
+    this.directoryQuery$.next();
+  }
+
+  updateLinkedFilter(event: Event): void {
+    this.linkedFilter = (event.target as HTMLSelectElement).value as ParentLinkedFilter;
+    this.currentPage = 0;
+    this.syncUrl();
+    this.directoryQuery$.next();
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = 'ALL';
+    this.linkedFilter = 'ALL';
+    this.currentPage = 0;
+    this.syncUrl();
+    this.directoryQuery$.next();
   }
 
   changeDirectoryPage(delta: number): void {
-    this.directoryPage = Math.min(this.directoryPageCount, Math.max(1, this.directoryPage + delta));
+    const next = this.currentPage + delta;
+    if (next < 0 || next >= this.totalPages) return;
+    this.currentPage = next;
+    this.syncUrl();
+    this.directoryQuery$.next();
   }
 
-  searchStudents(event: Event): void {
-    const query = (event.target as HTMLInputElement).value;
-    this.studentQuery = query;
-    this.linkForm.controls.studentId.setValue(query.trim());
-    this.studentSearchOpen = query.trim().length >= 2;
-    this.studentSearch$.next(query.trim());
-  }
-
-  chooseStudent(student: Student): void {
-    this.studentQuery = `${student.name} (${student.studentId})`;
-    this.linkForm.controls.studentId.setValue(student.studentId);
-    this.studentSearchOpen = false;
-  }
-
-  linkStudent(): void {
-    if (!this.profile || this.linkForm.invalid || this.working) { this.linkForm.markAllAsTouched(); return; }
-    const wasEditing = !!this.editingChild;
-    this.working = true;
-    this.parentService.linkStudent(this.profile.parent.parentId, this.linkForm.getRawValue()).pipe(
-      takeUntil(this.destroy$), finalize(() => { this.working = false; this.cdr.markForCheck(); })
-    ).subscribe({
-      next: profile => {
-        this.profile = profile; this.selectedChild = profile.children[0] ?? null;
-        this.cancelChildEdit();
-        this.toast.success(wasEditing ? 'Access updated' : 'Student linked', wasEditing
-          ? 'The guardian permissions have been saved.'
-          : 'The parent can now access this child.');
-        this.loadParents(false);
-      },
-      error: error => this.toast.error(wasEditing ? 'Could not update access' : 'Could not link student', error?.error?.message || error?.error || 'Please verify the student.'),
-    });
-  }
-
-  editChild(child: ChildAccess): void {
-    this.showAccessEditor = true;
-    this.editingChild = child;
-    this.studentQuery = `${child.studentName} (${child.studentId})`;
-    this.linkForm.setValue({
-      studentId: child.studentId, relationshipType: child.relationshipType,
-      primaryGuardian: child.primaryGuardian, canViewAttendance: child.canViewAttendance,
-      canViewFees: child.canViewFees, canPayFees: child.canPayFees,
-      canViewResults: child.canViewResults, canViewTimetable: child.canViewTimetable,
-      canManageLeave: child.canManageLeave, pickupAuthorized: child.pickupAuthorized,
-      effectiveFrom: child.effectiveFrom,
-    });
-    this.studentSearchOpen = false;
-  }
-
-  cancelChildEdit(): void {
-    this.showAccessEditor = false;
-    this.editingChild = null;
-    this.studentQuery = '';
-    this.studentMatches = [];
-    this.studentSearchOpen = false;
-    this.linkForm.reset({
-      studentId: '', relationshipType: 'PARENT', primaryGuardian: true,
-      canViewAttendance: true, canViewFees: true, canPayFees: true,
-      canViewResults: true, canViewTimetable: true, canManageLeave: true,
-      pickupAuthorized: false, effectiveFrom: new Date().toISOString().slice(0, 10),
-    });
-  }
-
-  startLinking(): void {
-    this.cancelChildEdit();
-    this.showAccessEditor = true;
-  }
-
-  setAllPermissions(selected: boolean): void {
-    this.linkForm.patchValue({
-      canViewAttendance: selected, canViewFees: selected, canPayFees: selected,
-      canViewResults: selected, canViewTimetable: selected,
-      canManageLeave: selected, pickupAuthorized: selected,
-    });
-  }
-
-  permissionLabels(child: ChildAccess): string[] {
-    const labels: string[] = [];
-    if (child.canViewAttendance) labels.push('Attendance');
-    if (child.canViewFees) labels.push('Fees');
-    if (child.canPayFees) labels.push('Payments');
-    if (child.canViewResults) labels.push('Results');
-    if (child.canViewTimetable) labels.push('Timetable');
-    if (child.canManageLeave) labels.push('Leave');
-    if (child.pickupAuthorized) labels.push('Pickup');
-    return labels;
-  }
-
-  async unlink(child: ChildAccess): Promise<void> {
-    if (!this.profile) return;
-    const confirmed = await this.toast.confirm({
-      title: 'Remove child access?',
-      message: `This will immediately remove ${this.profile.parent.name}'s access to ${child.studentName}.`,
-      confirmText: 'Remove access', cancelText: 'Cancel', danger: true, icon: 'danger'
-    });
-    if (!confirmed) return;
-    this.parentService.unlinkStudent(this.profile.parent.parentId, child.relationshipId)
-      .pipe(takeUntil(this.destroy$)).subscribe({
-        next: () => { this.toast.success('Access removed'); this.selectParent(this.profile!.parent); this.loadParents(false); },
-        error: () => this.toast.error('Could not remove access'),
-      });
-  }
-
-  async toggleParent(parent: ParentSummary): Promise<void> {
-    if (parent.active) {
-      const confirmed = await this.toast.confirm({
-        title: 'Disable parent login?',
-        message: `${parent.name} will no longer be able to sign in. Student links and permissions will be preserved.`,
-        confirmText: 'Disable login', cancelText: 'Cancel', danger: true, icon: 'warning'
-      });
-      if (!confirmed) return;
-    }
-    this.parentService.setActive(parent.parentId, !parent.active).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.toast.success(parent.active ? 'Parent access disabled' : 'Parent access restored');
-        if (this.profile?.parent.parentId === parent.parentId) {
-          this.profile = { ...this.profile, parent: { ...this.profile.parent, active: !parent.active } };
-        }
-        this.loadParents(false);
-        this.cdr.markForCheck();
-      },
-      error: () => this.toast.error('Could not update parent access'),
-    });
-  }
-
-  selectChild(child: ChildAccess): void { this.selectedChild = child; }
+  selectChild(child: ChildAccess): void { this.selectedChild = child; this.childContext.select(child); }
 
   openAttendance(child: ChildAccess): void {
+    this.childContext.select(child);
     this.router.navigate(['/dashboard/attendance-summary'], {
       queryParams: { studentId: child.studentId, className: child.className }
     });
   }
 
   openFees(child: ChildAccess): void {
+    this.childContext.select(child);
     this.router.navigate(['/dashboard/fees', child.studentId]);
   }
 
   openPaymentHistory(child: ChildAccess): void {
+    this.childContext.select(child);
     this.router.navigate(['/dashboard/payment-history', child.studentId]);
   }
 
   openResults(child: ChildAccess): void {
+    this.childContext.select(child);
     this.router.navigate(['/dashboard/my-results'], { queryParams: { studentId: child.studentId } });
   }
 
   openLeave(child: ChildAccess): void {
+    this.childContext.select(child);
     this.router.navigate(['/dashboard/apply-leave'], { queryParams: { studentId: child.studentId } });
+  }
+
+  openFeeStructure(child: ChildAccess): void {
+    this.childContext.select(child);
+    this.router.navigate(['/dashboard/fee-structure'], { queryParams: { studentId: child.studentId } });
+  }
+
+  openBusFees(child: ChildAccess): void {
+    this.childContext.select(child);
+    this.router.navigate(['/dashboard/bus-fees'], { queryParams: { studentId: child.studentId } });
+  }
+
+  openReportCard(child: ChildAccess): void {
+    this.childContext.select(child);
+    // report-card.component requires a session — it silently redirects to /dashboard without one.
+    this.sessionService.getCurrentSession().pipe(takeUntil(this.destroy$)).subscribe({
+      next: session => this.router.navigate(['/dashboard/report-card'], {
+        queryParams: { studentId: child.studentId, session: session.label }
+      }),
+      error: () => this.toast.error('Could not open report card', 'No active academic session found.'),
+    });
   }
 
   openSchoolUpdates(): void { this.router.navigate(['/dashboard/notice']); }
 
   openTimetable(child: ChildAccess): void {
+    this.childContext.select(child);
     this.router.navigate(['/dashboard/timetable'], {
       queryParams: { studentId: child.studentId, className: child.className }
     });

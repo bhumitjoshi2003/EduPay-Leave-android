@@ -1,15 +1,33 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CreateParentRequest, LinkStudentRequest, ParentProfile, ParentSummary } from '../interfaces/parent-portal';
+import { CreateParentRequest, LinkStudentRequest, ParentDirectoryStats, ParentProfile, ParentStatusFilter, ParentLinkedFilter, ParentSummary } from '../interfaces/parent-portal';
+import { PaginatedResponse } from './leave.service';
+
+export interface ParentDirectoryQuery {
+  page: number;
+  size: number;
+  search?: string;
+  status?: ParentStatusFilter;
+  linked?: ParentLinkedFilter;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ParentPortalService {
   private readonly baseUrl = `${environment.apiUrl}/parents`;
   constructor(private http: HttpClient) {}
 
-  listParents(): Observable<ParentSummary[]> { return this.http.get<ParentSummary[]>(this.baseUrl); }
+  listParents(query: ParentDirectoryQuery): Observable<PaginatedResponse<ParentSummary>> {
+    let params = new HttpParams().set('page', query.page).set('size', query.size);
+    if (query.search) params = params.set('search', query.search);
+    if (query.status && query.status !== 'ALL') params = params.set('status', query.status);
+    if (query.linked && query.linked !== 'ALL') params = params.set('linked', query.linked);
+    return this.http.get<PaginatedResponse<ParentSummary>>(this.baseUrl, { params });
+  }
+  getDirectoryStats(): Observable<ParentDirectoryStats> {
+    return this.http.get<ParentDirectoryStats>(`${this.baseUrl}/stats`);
+  }
   createParent(request: CreateParentRequest): Observable<ParentProfile> {
     return this.http.post<ParentProfile>(this.baseUrl, request);
   }
@@ -26,5 +44,9 @@ export class ParentPortalService {
   setActive(parentId: string, active: boolean): Observable<{ parentId: string; active: boolean }> {
     return this.http.patch<{ parentId: string; active: boolean }>(
       `${this.baseUrl}/${encodeURIComponent(parentId)}/status`, { active });
+  }
+  resetPassword(parentId: string, temporaryPassword: string): Observable<{ parentId: string; status: string }> {
+    return this.http.post<{ parentId: string; status: string }>(
+      `${this.baseUrl}/${encodeURIComponent(parentId)}/reset-password`, { temporaryPassword });
   }
 }

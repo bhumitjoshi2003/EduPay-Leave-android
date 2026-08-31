@@ -16,7 +16,7 @@ import { CheckoutQuote } from '../../interfaces/checkout-quote';
 import { MonthFeeBreakdown } from '../../interfaces/month-fee-breakdown';
 import { ManualPaymentRequest } from '../../interfaces/manual-payment-request';
 import { AuthStateService } from '../../auth/auth-state.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, forkJoin, of, takeUntil } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../auth/auth.service';
@@ -31,6 +31,8 @@ import { LoggerService } from '../../services/logger.service';
 import { SchoolService } from '../../services/school.service';
 import { take } from 'rxjs/operators';
 import { ParentPortalService } from '../../services/parent-portal.service';
+import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
+import { ChildAccess } from '../../interfaces/parent-portal';
 
 export interface FeeLineItem {
   name: string;
@@ -83,6 +85,7 @@ export interface MonthBreakdownDetails {
     MatFormFieldModule,
     MatInputModule,
     FeeBreakdownComponent,
+    ParentChildContextComponent,
   ],
   templateUrl: './fees.component.html',
   styleUrls: ['./fees.component.css'],
@@ -93,6 +96,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone,
     private feesService: FeesService,
@@ -104,7 +108,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private toast: ToastService,
     private schoolService: SchoolService,
-    private parentPortalService: ParentPortalService
+    private parentPortalService: ParentPortalService,
   ) {}
 
   comingSoonConfig = MODULE_MESSAGES.fees;
@@ -176,7 +180,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
   private initCalendarState(): void {
     const today = new Date();
     this.academicCurrentMonth = this.feesCalc.getAcademicMonth(
-      this.currentMonth
+      this.currentMonth,
     );
     this.currentAcademicYear = this.feesCalc.getAcademicYear(today);
     this.fetchSessions();
@@ -208,6 +212,24 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
+  onChildTabSelected(child: ChildAccess): void {
+    if (!child.canViewFees) {
+      this.toast.error('Fee access unavailable', 'Please contact the school administrator.');
+      return;
+    }
+    this.studentId = child.studentId;
+    this.studentName = child.studentName;
+    this.className = child.className;
+    this.parentCanPay = child.canPayFees;
+    this.selectedMonthsByYear = {};
+    this.selectedMonthDetails = null;
+    this.lastSelectedMonth = null;
+    this.totalAmountToPay = 0;
+    this.router.navigate(['/dashboard/fees', child.studentId], { replaceUrl: true });
+    this.fetchSessions();
+    this.cdr.markForCheck();
+  }
+
   fetchSessions(): void {
     this.feesService
       .getDistinctYearsByStudentId(this.studentId)
@@ -221,6 +243,8 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
             this.cdr.markForCheck();
             this.fetchFees();
           } else {
+            // No fee session is expected for a newly registered student until an admin
+            // generates charges. Avoid requesting fees/attendance with an empty session.
             this.session = '';
             this.months = [];
             this.feesLoaded = true;
@@ -297,7 +321,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     if (this.role === 'STUDENT') {
       const selectedYear = this.feesCalc.getSessionStartYear(this.session);
       const currentYear = this.feesCalc.getSessionStartYear(
-        this.currentAcademicYear
+        this.currentAcademicYear,
       );
 
       if (selectedYear > currentYear) {
@@ -307,10 +331,10 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
       }
 
       const currentAcademicMonth = this.feesCalc.getAcademicMonth(
-        new Date().getMonth() + 1
+        new Date().getMonth() + 1,
       );
       const currentMonthFee = this.months.find(
-        (month) => month.monthNumber === currentAcademicMonth
+        (month) => month.monthNumber === currentAcademicMonth,
       );
 
       this.unpaidCurrentMonthName =
@@ -323,7 +347,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
       // already captures this, without needing a client-computed late-fee figure.
       this.pastUnpaidMonthNames = this.months
         .filter(
-          (month) => !month.paid && month.monthNumber < currentAcademicMonth
+          (month) => !month.paid && month.monthNumber < currentAcademicMonth,
         )
         .map((m) => this.feesCalc.getMonthName(m.monthNumber));
     }
@@ -361,7 +385,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
           this.logger.error('Error fetching checkout quote:', error);
           this.toast.error(
             'Error',
-            'Could not calculate the payment amount. Please try again.'
+            'Could not calculate the payment amount. Please try again.',
           );
         },
       });
@@ -369,16 +393,16 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
 
   private applyCheckoutQuote(
     quote: CheckoutQuote,
-    selectedMonths: number[]
+    selectedMonths: number[],
   ): void {
     if (quote.unresolvedMonths?.length) {
       this.logger.error(
         'Checkout quote has unresolved months:',
-        quote.unresolvedMonths
+        quote.unresolvedMonths,
       );
       this.toast.error(
         'Error',
-        'The fee amount for one or more selected months could not be determined. Please contact the school office.'
+        'The fee amount for one or more selected months could not be determined. Please contact the school office.',
       );
     }
 
@@ -527,7 +551,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
             catchError((error) => {
               this.logger.error('Error fetching month fee breakdown:', error);
               return of(null);
-            })
+            }),
           ),
       })
         .pipe(takeUntil(this.destroy$))
@@ -582,7 +606,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
 
       this.toast.success(
         'Payment Successful!',
-        'Your payment has been processed successfully.'
+        'Your payment has been processed successfully.',
       );
       this.onPaymentProcessCompleted();
     });
@@ -610,7 +634,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     ) {
       this.toast.warning(
         'Warning',
-        'Please select months and enter the amount received.'
+        'Please select months and enter the amount received.',
       );
       return;
     }
@@ -659,7 +683,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
               this.cdr.detectChanges();
               this.toast.success(
                 'Marked as Paid!',
-                'The selected months have been marked as paid.'
+                'The selected months have been marked as paid.',
               );
             },
             error: (err) => {
@@ -674,7 +698,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
   isLate(month: MonthViewModel): boolean {
     const selectedYear = this.feesCalc.getSessionStartYear(this.session);
     const currentYear = this.feesCalc.getSessionStartYear(
-      this.currentAcademicYear
+      this.currentAcademicYear,
     );
 
     if (selectedYear > currentYear) return false;

@@ -16,12 +16,14 @@ import { Capacitor } from '@capacitor/core';
 import { SchoolService, SchoolClass } from '../../services/school.service';
 import { SectionService } from '../../services/section.service';
 import { Section } from '../../interfaces/section';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
+import { ChildAccess } from '../../interfaces/parent-portal';
 
 @Component({
   selector: 'app-timetable',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ParentChildContextComponent],
   templateUrl: './timetable.component.html',
   styleUrl: './timetable.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -89,7 +91,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
     private toast: ToastService,
     private schoolService: SchoolService,
     private sectionService: SectionService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -170,6 +173,22 @@ export class TimetableComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  onChildTabSelected(child: ChildAccess): void {
+    if (!child.canViewTimetable) {
+      this.toast.error('Timetable access unavailable', 'Please contact the school administrator.');
+      return;
+    }
+    this.userId = child.studentId;
+    this.selectedClass = child.className;
+    this.error = null;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { studentId: child.studentId, className: child.className },
+      replaceUrl: true,
+    });
+    this.loadClassTimetable();
   }
 
   isStudent(): boolean { return this.role === 'STUDENT'; }

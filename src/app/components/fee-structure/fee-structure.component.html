@@ -13,8 +13,15 @@
     <div class="fs-blob fs-blob-2"></div>
   </div>
 
+  <!-- Parent without fee-view permission for the selected child, or no child selected -->
+  <div class="fs-empty-state" *ngIf="accessDenied">
+    <div class="fs-empty-icon">🔒</div>
+    <p class="fs-empty-title">Fee structure unavailable</p>
+    <p class="fs-empty-sub">Open this page from the parent portal for a child you have fee-viewing access to.</p>
+  </div>
+
   <!-- Controls -->
-  <div class="fs-controls" *ngIf="!isLoading">
+  <div class="fs-controls" *ngIf="!isLoading && !accessDenied">
     <div class="fs-controls-row">
 
       <div class="fs-control-group" *ngIf="sessions.length > 0">
@@ -46,7 +53,7 @@
   </div>
 
   <!-- Add Fee Head Form -->
-  <div class="fs-fh-form" *ngIf="showFeeHeadForm && canEdit()">
+  <div class="fs-fh-form" *ngIf="!accessDenied && showFeeHeadForm && canEdit()">
     <h3 class="fs-fh-form-title">Add New Fee Head</h3>
     <div class="fs-fh-form-row">
       <div class="fs-fh-field">
@@ -76,7 +83,7 @@
   </div>
 
   <!-- Loading -->
-  <div class="fs-table-wrap" *ngIf="isLoading || rulesLoading">
+  <div class="fs-table-wrap" *ngIf="!accessDenied && (isLoading || rulesLoading)">
     <div class="fs-table-scroll">
       <table class="fs-table" aria-hidden="true">
         <thead>
@@ -96,21 +103,21 @@
   </div>
 
   <!-- No sessions -->
-  <div class="fs-empty-state" *ngIf="!isLoading && !rulesLoading && sessions.length === 0">
+  <div class="fs-empty-state" *ngIf="!accessDenied && !isLoading && !rulesLoading && sessions.length === 0">
     <div class="fs-empty-icon">📋</div>
     <p class="fs-empty-title">No academic sessions found</p>
     <p class="fs-empty-sub">Create a session in School Settings first.</p>
   </div>
 
   <!-- No fee heads -->
-  <div class="fs-empty-state" *ngIf="!isLoading && !rulesLoading && sessions.length > 0 && feeHeads.length === 0">
+  <div class="fs-empty-state" *ngIf="!accessDenied && !isLoading && !rulesLoading && sessions.length > 0 && feeHeads.length === 0">
     <div class="fs-empty-icon">📋</div>
     <p class="fs-empty-title">No fee heads configured</p>
     <p class="fs-empty-sub">Add fee heads using the button above to define your school's fee structure.</p>
   </div>
 
   <!-- Fee Head Edit Inline -->
-  <div class="fs-fh-form" *ngIf="editingFeeHeadId !== null && canEdit()">
+  <div class="fs-fh-form" *ngIf="!accessDenied && editingFeeHeadId !== null && canEdit()">
     <h3 class="fs-fh-form-title">Edit Fee Head</h3>
     <div class="fs-fh-form-row">
       <div class="fs-fh-field">
@@ -141,7 +148,7 @@
   </div>
 
   <!-- Mobile fee head actions (visible only on mobile where thead is hidden) -->
-  <div class="fs-mobile-heads" *ngIf="!isLoading && !rulesLoading && feeHeads.length > 0 && canEdit() && !isEditing">
+  <div class="fs-mobile-heads" *ngIf="!accessDenied && !isLoading && !rulesLoading && feeHeads.length > 0 && canEdit() && !isEditing">
     <div class="fs-mobile-heads-label">Fee Heads</div>
     <div class="fs-mobile-heads-list">
       <div class="fs-mobile-head-chip" *ngFor="let fh of feeHeads; trackBy: trackByFeeHead">
@@ -158,7 +165,7 @@
   </div>
 
   <!-- Fee Grid Table -->
-  <div class="fs-table-wrap" *ngIf="!isLoading && !rulesLoading && hasData() && feeHeads.length > 0">
+  <div class="fs-table-wrap" *ngIf="!accessDenied && !isLoading && !rulesLoading && hasData() && feeHeads.length > 0">
     <div class="fs-table-scroll">
       <table class="fs-table" aria-label="Fee structure table">
         <thead>
@@ -199,5 +206,6 @@
       </table>
     </div>
   </div>
+
 
 </div>

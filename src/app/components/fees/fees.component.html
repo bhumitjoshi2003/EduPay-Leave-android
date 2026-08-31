@@ -1,5 +1,6 @@
 <div *ngIf="showFeesModule; else comingSoonTemplate">
   <div class="pt-page">
+    <app-parent-child-context [studentId]="studentId" requiredPermission="canViewFees" (childSelected)="onChildTabSelected($event)"></app-parent-child-context>
     <!-- ── Hero ──────────────────────────────────────────────────────── -->
     <div class="pt-hero">
       <div class="pt-hero-left">
@@ -67,7 +68,7 @@
     <div class="pt-summary" *ngIf="role !== 'ADMIN' && totalAmountToPay > 0">
       <span class="pt-summary-label">Selected Total</span>
       <span class="pt-summary-amount">{{
-        totalAmountToPay | currency : "INR" : "symbol" : "1.0-0"
+        totalAmountToPay | currency: "INR" : "symbol" : "1.0-0"
       }}</span>
     </div>
 
@@ -82,14 +83,14 @@
           'pt-month--late': isLate(month) && !month.paid && !month.manuallyPaid,
           'pt-month--unpaid':
             !month.paid && !month.manuallyPaid && !isLate(month),
-          'pt-month--selected': month.selected
+          'pt-month--selected': month.selected,
         }"
         (click)="
           role !== 'ADMIN' && !month.paid && !month.manuallyPaid
             ? toggleMonthSelection(month)
             : role === 'ADMIN' && !month.paid && !month.manuallyPaid
-            ? toggleMonthSelection(month)
-            : null
+              ? toggleMonthSelection(month)
+              : null
         "
       >
         <!-- status icon -->
@@ -122,7 +123,7 @@
                since-refunded payment — must show what's still owed (remainingAmountDue), never
                the already-paid amount sitting next to a "Due"/"Overdue" chip. -->
           <ng-container *ngIf="month.paid || month.manuallyPaid">{{
-            netAmountPaid(month) | currency : "INR" : "symbol" : "1.0-0"
+            netAmountPaid(month) | currency: "INR" : "symbol" : "1.0-0"
           }}</ng-container>
           <ng-container
             *ngIf="
@@ -135,7 +136,7 @@
               !month.paid && !month.manuallyPaid && !month.amountUnavailable
             "
             >{{
-              remainingAmountDue(month) | currency : "INR" : "symbol" : "1.0-0"
+              remainingAmountDue(month) | currency: "INR" : "symbol" : "1.0-0"
             }}</ng-container
           >
         </span>
@@ -195,7 +196,7 @@
       <div class="pt-footer-total">
         <span class="pt-footer-label">Total to Pay</span>
         <span class="pt-footer-amount">{{
-          totalAmountToPay | currency : "INR" : "symbol" : "1.0-0"
+          totalAmountToPay | currency: "INR" : "symbol" : "1.0-0"
         }}</span>
       </div>
       <app-payment
@@ -213,7 +214,7 @@
         <div class="pt-footer-total">
           <span class="pt-footer-label">Total to Pay</span>
           <span class="pt-footer-amount">{{
-            totalAmountToPay | currency : "INR" : "symbol" : "1.0-0"
+            totalAmountToPay | currency: "INR" : "symbol" : "1.0-0"
           }}</span>
         </div>
         <!-- No due month selected yet: an active-looking payment form next to a ₹0 total is

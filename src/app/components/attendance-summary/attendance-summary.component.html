@@ -1,4 +1,5 @@
 <div class="as-page">
+  <app-parent-child-context *ngIf="role === 'PARENT'" [studentId]="selectedStudentId" requiredPermission="canViewAttendance" (childSelected)="onChildTabSelected($event)"></app-parent-child-context>
 
   <!-- ── Hero ─────────────────────────────────────────────────── -->
   <div class="as-hero no-print">

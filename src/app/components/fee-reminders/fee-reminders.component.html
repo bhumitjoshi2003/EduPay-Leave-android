@@ -201,12 +201,15 @@
                 [class.fr-remind-sent]="reminderStates.get(s.studentId) === 'sent'"
                 [class.fr-remind-sending]="reminderStates.get(s.studentId) === 'sending'"
                 [class.fr-remind-failed]="reminderStates.get(s.studentId) === 'failed'"
+                [class.fr-remind-skipped]="reminderStates.get(s.studentId) === 'skipped_not_active' || reminderStates.get(s.studentId) === 'skipped_no_email'"
                 [disabled]="!!sendingId || sendingBulk || reminderSent.has(s.studentId)"
                 (click)="sendReminder(s)"
                 [attr.aria-label]="'Send fee reminder to ' + s.studentName">
                 <ng-container [ngSwitch]="reminderStates.get(s.studentId)">
                   <ng-container *ngSwitchCase="'sending'">Sending…</ng-container>
                   <ng-container *ngSwitchCase="'sent'">✓ Sent</ng-container>
+                  <ng-container *ngSwitchCase="'skipped_not_active'">Not Active</ng-container>
+                  <ng-container *ngSwitchCase="'skipped_no_email'">No Email</ng-container>
                   <ng-container *ngSwitchCase="'failed'">✗ Failed</ng-container>
                   <ng-container *ngSwitchDefault>Remind</ng-container>
                 </ng-container>

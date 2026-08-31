@@ -10,15 +10,17 @@ import { LeaveRequest } from '../../interfaces/leave-request';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { PaginatedResponse } from '../../services/payment-history.service';
 import { Subject, takeUntil } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ParentPortalService } from '../../services/parent-portal.service';
+import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
+import { ChildAccess } from '../../interfaces/parent-portal';
 
 
 @Component({
   selector: 'app-apply-leave',
   templateUrl: './apply-leave.component.html',
   styleUrls: ['./apply-leave.component.css'],
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, ParentChildContextComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplyLeaveComponent implements OnInit, OnDestroy {
@@ -57,6 +59,7 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private route: ActivatedRoute,
+    private router: Router,
     private parentPortalService: ParentPortalService
   ) {
     this.leaveForm = this.fb.group({
@@ -172,6 +175,23 @@ export class ApplyLeaveComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  onChildTabSelected(child: ChildAccess): void {
+    if (!child.canManageLeave) {
+      this.toast.error('Leave access unavailable', 'Please contact the school administrator.');
+      return;
+    }
+    this.studentId = child.studentId;
+    this.studentName = child.studentName;
+    this.className = child.className;
+    this.currentPage = 0;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { studentId: child.studentId },
+      replaceUrl: true,
+    });
+    this.loadStudentLeaves();
   }
 
   nextPage(): void {

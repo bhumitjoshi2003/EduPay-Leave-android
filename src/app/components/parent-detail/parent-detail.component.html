@@ -1,0 +1,110 @@
+<div class="detail-page">
+  <button type="button" class="back-link" (click)="goBack()"><mat-icon>arrow_back</mat-icon><span>Parents</span></button>
+
+  <div class="loading-card" *ngIf="loading"><span class="spinner"></span> Loading parent…</div>
+
+  <ng-container *ngIf="!loading && profile">
+    <!-- ── Profile hero ─────────────────────────────────────────────── -->
+    <section class="profile-hero">
+      <div class="profile-avatar">{{ profile.parent.name.charAt(0) }}</div>
+      <div class="profile-hero-text">
+        <span class="profile-badge"><i></i>Parent profile</span>
+        <h1 class="profile-name">{{ profile.parent.name }}</h1>
+        <div class="profile-meta">
+          <span><mat-icon>badge</mat-icon>{{ profile.parent.parentId }}</span>
+          <span><mat-icon>{{ profile.parent.active ? 'verified_user' : 'block' }}</mat-icon>{{ profile.parent.active ? 'Active' : 'Disabled' }}</span>
+          <span><mat-icon>school</mat-icon>{{ profile.children.length }} linked student{{ profile.children.length === 1 ? '' : 's' }}</span>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <button type="button" class="profile-btn" [disabled]="working" (click)="toggleResetPassword()">
+          <mat-icon>key</mat-icon>Reset password
+        </button>
+        <button type="button" class="profile-btn" [class.profile-btn-danger]="profile.parent.active" [disabled]="working" (click)="toggleLogin()">
+          <mat-icon>{{ profile.parent.active ? 'lock' : 'lock_open' }}</mat-icon>{{ profile.parent.active ? 'Disable login' : 'Enable login' }}
+        </button>
+      </div>
+    </section>
+
+    <!-- ── Reset password drawer ───────────────────────────────────── -->
+    <section class="panel reset-drawer" *ngIf="showResetPassword">
+      <div class="section-heading">
+        <div class="title-icon"><mat-icon>key</mat-icon></div>
+        <div><h2>Reset temporary password</h2><p>{{ profile.parent.name }} will need to sign in with this password and set a new one.</p></div>
+      </div>
+      <label class="reset-field">
+        New temporary password
+        <input #pwInput type="password" placeholder="Minimum 8 characters" autocomplete="new-password"
+               [disabled]="resettingPassword" (input)="resetPasswordError = null">
+        <small class="field-error" *ngIf="resetPasswordError">{{ resetPasswordError }}</small>
+      </label>
+      <div class="form-actions">
+        <button type="button" class="text-button" [disabled]="resettingPassword" (click)="cancelResetPassword()">Cancel</button>
+        <button type="button" class="primary" [disabled]="resettingPassword" (click)="submitResetPassword(pwInput.value)">
+          {{ resettingPassword ? 'Resetting…' : 'Reset password' }}
+        </button>
+      </div>
+    </section>
+
+    <!-- ── Contact information ──────────────────────────────────────── -->
+    <section class="panel">
+      <div class="section-heading">
+        <div class="title-icon"><mat-icon>contact_phone</mat-icon></div>
+        <div><h2>Contact information</h2><p>How to reach this guardian</p></div>
+      </div>
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="detail-icon"><mat-icon>call</mat-icon></span>
+          <div class="detail-content"><span class="label">Phone</span><span class="value">{{ profile.parent.phoneNumber }}</span></div>
+        </div>
+        <div class="detail-item">
+          <span class="detail-icon"><mat-icon>mail_outline</mat-icon></span>
+          <div class="detail-content"><span class="label">Email</span><span class="value">{{ profile.parent.email || '—' }}</span></div>
+        </div>
+        <div class="detail-item">
+          <span class="detail-icon"><mat-icon>{{ profile.parent.active ? 'verified_user' : 'block' }}</mat-icon></span>
+          <div class="detail-content"><span class="label">Login status</span><span class="value">{{ profile.parent.active ? 'Active' : 'Disabled' }}</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Linked students ──────────────────────────────────────────── -->
+    <section class="panel">
+      <div class="section-heading">
+        <div class="title-icon"><mat-icon>family_restroom</mat-icon></div>
+        <div><h2>Linked students</h2><p>{{ profile.children.length ? profile.children.length + ' student profile' + (profile.children.length === 1 ? '' : 's') + ' connected' : 'No students linked yet' }}</p></div>
+        <button type="button" class="compact-primary" (click)="startLinking()" *ngIf="!showAccessEditor"><mat-icon>add_link</mat-icon>Link student</button>
+      </div>
+
+      <div class="linked-list" *ngIf="profile.children.length; else noLinkedChildren">
+        <article class="child-row" *ngFor="let child of profile.children" [class.editing]="editingChild?.relationshipId === child.relationshipId">
+          <div class="child-main">
+            <span class="avatar student">{{ child.studentName.charAt(0) }}</span>
+            <div>
+              <strong>{{ child.studentName }}</strong><span class="primary-chip" *ngIf="child.primaryGuardian">Primary</span>
+              <p>{{ child.studentId }} · Class {{ child.className }}{{ child.sectionName ? ' · ' + child.sectionName : '' }} · {{ child.relationshipType }}</p>
+            </div>
+          </div>
+          <div class="child-access" *ngIf="accessSummary(child) as access">
+            <span class="access-badge" [class.custom]="!access.standard">{{ access.label }}</span>
+            <details class="access-details" *ngIf="!access.standard">
+              <summary>What's granted</summary>
+              <span *ngFor="let item of access.granted">{{ item }}</span>
+              <span class="muted" *ngIf="!access.granted.length">No portal permissions</span>
+            </details>
+          </div>
+          <div class="child-actions"><button type="button" class="edit-action" (click)="editChild(child)"><mat-icon>edit</mat-icon>Edit access</button><button type="button" class="danger-action" (click)="unlink(child)"><mat-icon>link_off</mat-icon>Unlink</button></div>
+        </article>
+      </div>
+      <ng-template #noLinkedChildren><div class="empty linked-empty"><mat-icon>link</mat-icon><strong>No students connected</strong><span>Link a student and choose exactly what this guardian can access.</span><button type="button" class="compact-primary" (click)="startLinking()" *ngIf="!showAccessEditor"><mat-icon>add_link</mat-icon>Link first student</button></div></ng-template>
+
+      <app-parent-access-editor
+        *ngIf="showAccessEditor"
+        [parentId]="profile.parent.parentId"
+        [editingChild]="editingChild"
+        (saved)="onEditorSaved($event)"
+        (cancelled)="cancelEdit()">
+      </app-parent-access-editor>
+    </section>
+  </ng-container>
+</div>

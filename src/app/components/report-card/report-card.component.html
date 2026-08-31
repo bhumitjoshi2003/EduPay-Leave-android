@@ -1,4 +1,5 @@
 <div class="rc-page">
+  <app-parent-child-context *ngIf="!demoMode" [studentId]="studentId" requiredPermission="canViewResults" (childSelected)="onChildTabSelected($event)"></app-parent-child-context>
 
   <!-- ── Hero toolbar (screen-only, hidden on print) ───────────────── -->
   <div class="rc-hero no-print">

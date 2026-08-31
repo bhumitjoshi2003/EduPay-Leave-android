@@ -1,4 +1,5 @@
 <div class="al-page">
+  <app-parent-child-context [studentId]="studentId" requiredPermission="canManageLeave" (childSelected)="onChildTabSelected($event)"></app-parent-child-context>
 
   <!-- ── Hero ─────────────────────────────────────────────────────── -->
   <div class="al-hero">

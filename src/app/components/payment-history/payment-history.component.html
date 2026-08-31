@@ -1,4 +1,5 @@
 <div *ngIf="showFeesModule; else comingSoonTemplate">
+  <app-parent-child-context [studentId]="studentId" requiredPermission="canViewFees" (childSelected)="onChildTabSelected($event)"></app-parent-child-context>
   <div class="ph-page">
 
     <!-- ── Skeleton ───────────────────────────────────────────────── -->

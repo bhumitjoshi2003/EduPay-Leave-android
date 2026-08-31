@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { OverdueStudent } from '../interfaces/fee-reminder';
+import { BulkReminderResult, OverdueStudent, ReminderSendResult } from '../interfaces/fee-reminder';
 
 @Injectable({ providedIn: 'root' })
 export class FeeReminderService {
@@ -16,11 +16,11 @@ export class FeeReminderService {
     return this.http.get<OverdueStudent[]>(`${this.baseUrl}/overdue`, { params });
   }
 
-  sendReminder(studentId: string, session: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/reminders/send`, { studentId, session });
+  sendReminder(studentId: string, session: string): Observable<ReminderSendResult> {
+    return this.http.post<ReminderSendResult>(`${this.baseUrl}/reminders/send`, { studentId, session });
   }
 
-  sendBulkReminders(studentIds: string[], session: string): Observable<{ sent: number }> {
-    return this.http.post<{ sent: number }>(`${this.baseUrl}/reminders/send-bulk`, { studentIds, session });
+  sendBulkReminders(studentIds: string[], session: string): Observable<BulkReminderResult> {
+    return this.http.post<BulkReminderResult>(`${this.baseUrl}/reminders/send-bulk`, { studentIds, session });
   }
 }
