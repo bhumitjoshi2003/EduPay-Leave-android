@@ -89,23 +89,23 @@
 
         <ng-container *ngFor="let group of groupedDayEntries; trackBy: trackByPeriod">
 
-          <!-- Normal period: one subject — unchanged card shell/behavior -->
+          <!-- Normal period: one subject — header row matches the simultaneous card's layout -->
           <div *ngIf="group.entries.length === 1"
-            class="tt-period-card tt-sc-{{ getSubjectClass(group.entries[0].subjectName) }}"
+            class="tt-period-card tt-period-card--single tt-sc-{{ getSubjectClass(group.entries[0].subjectName) }}"
             [class.tt-card-clickable]="isAdmin()"
             (click)="isAdmin() && openEdit(group.entries[0])">
-            <div class="tt-icon-box">{{ getSubjectIcon(group.entries[0].subjectName) }}</div>
-            <div class="tt-card-info">
-              <span class="tt-section-badge" *ngIf="group.entries[0].sectionName && !selectedSectionId">§ {{ group.entries[0].sectionName }}</span>
-              <div class="tt-card-subject">{{ group.entries[0].subjectName }}</div>
-              <div class="tt-card-teacher">{{ group.entries[0].teacherName }}</div>
-            </div>
-            <div class="tt-card-right">
-              <div class="tt-card-time" *ngIf="showTimes && group.entries[0].startTime">
+            <div class="tt-period-header">
+              <span class="tt-card-period">Period {{ group.entries[0].periodNumber }}</span>
+              <span class="tt-card-time" *ngIf="showTimes && group.entries[0].startTime">
                 {{ group.entries[0].startTime }} – {{ group.entries[0].endTime }}
-              </div>
-              <div class="tt-card-period" *ngIf="!showTimes || !group.entries[0].startTime">
-                P {{ group.entries[0].periodNumber }}
+              </span>
+            </div>
+            <div class="tt-card-content">
+              <div class="tt-icon-box">{{ getSubjectIcon(group.entries[0].subjectName) }}</div>
+              <div class="tt-card-info">
+                <span class="tt-section-badge" *ngIf="group.entries[0].sectionName && !selectedSectionId">§ {{ group.entries[0].sectionName }}</span>
+                <div class="tt-card-subject">{{ group.entries[0].subjectName }}</div>
+                <div class="tt-card-teacher">{{ group.entries[0].teacherName }}</div>
               </div>
               <span class="tt-edit-hint no-print" *ngIf="isAdmin()">✎</span>
             </div>
@@ -178,18 +178,18 @@
       <div class="tt-card-list">
 
         <div *ngFor="let entry of teacherDayEntries; trackBy: trackByEntry"
-          class="tt-period-card tt-sc-{{ getSubjectClass(entry.subjectName) }}">
-          <div class="tt-icon-box">{{ getSubjectIcon(entry.subjectName) }}</div>
-          <div class="tt-card-info">
-            <span class="tt-class-badge">Class {{ entry.className }}<ng-container *ngIf="entry.sectionName"> – {{ entry.sectionName }}</ng-container></span>
-            <div class="tt-card-subject">{{ entry.subjectName }}</div>
-          </div>
-          <div class="tt-card-right">
-            <div class="tt-card-time" *ngIf="showTimes && entry.startTime">
+          class="tt-period-card tt-period-card--single tt-sc-{{ getSubjectClass(entry.subjectName) }}">
+          <div class="tt-period-header">
+            <span class="tt-card-period">Period {{ entry.periodNumber }}</span>
+            <span class="tt-card-time" *ngIf="showTimes && entry.startTime">
               {{ entry.startTime }} – {{ entry.endTime }}
-            </div>
-            <div class="tt-card-period" *ngIf="!showTimes || !entry.startTime">
-              P {{ entry.periodNumber }}
+            </span>
+          </div>
+          <div class="tt-card-content">
+            <div class="tt-icon-box">{{ getSubjectIcon(entry.subjectName) }}</div>
+            <div class="tt-card-info">
+              <span class="tt-class-badge">Class {{ entry.className }}<ng-container *ngIf="entry.sectionName"> – {{ entry.sectionName }}</ng-container></span>
+              <div class="tt-card-subject">{{ entry.subjectName }}</div>
             </div>
           </div>
         </div>
