@@ -408,6 +408,11 @@ export const routes: Routes = [
         loadComponent: () => import('./components/timetable/timetable.component').then(m => m.TimetableComponent),
         canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'PARENT'] }
       },
+      {
+        path: 'timetable-bulk-import',
+        loadComponent: () => import('./components/timetable-bulk-import/timetable-bulk-import.component').then(m => m.TimetableBulkImportComponent),
+        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'BULK_IMPORT' }
+      },
 
       // ── Open to all authenticated users ──────────────────────────────
       {

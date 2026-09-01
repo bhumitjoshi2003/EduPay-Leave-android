@@ -1,0 +1,101 @@
+<div class="tbi-page">
+
+  <div class="tbi-hero">
+    <div class="tbi-hero-left">
+      <button type="button" class="tbi-back-btn" (click)="goToTimetable()" aria-label="Back to timetable">&#8592;</button>
+      <div>
+        <h1 class="tbi-hero-title">Timetable Bulk Import</h1>
+        <p class="tbi-hero-sub">Upload a CSV to create many periods at once</p>
+      </div>
+    </div>
+    <button type="button" class="tbi-template-btn" (click)="downloadTemplate()" [disabled]="isDownloadingTemplate">
+      <span *ngIf="!isDownloadingTemplate">&#8595; Template</span>
+      <span *ngIf="isDownloadingTemplate">Downloading…</span>
+    </button>
+  </div>
+
+  <ng-container *ngIf="!result">
+
+    <p class="tbi-note">Columns: Class, Section (optional), Day, Period, Start Time, End Time (HH:mm), Subject, Teacher ID, Simultaneous Group (optional).</p>
+
+    <div class="tbi-drop-zone" [class.tbi-drop-zone--ready]="selectedFile"
+         (click)="onDropZoneClick()" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+      <input #fileInput type="file" accept=".csv" (change)="onFileSelected($event)" class="tbi-file-input">
+      <ng-container *ngIf="!selectedFile">
+        <div class="tbi-drop-icon">&#128196;</div>
+        <p class="tbi-drop-primary">Click to browse or drag &amp; drop</p>
+        <p class="tbi-drop-secondary">CSV files only</p>
+      </ng-container>
+      <ng-container *ngIf="selectedFile">
+        <div class="tbi-drop-icon tbi-drop-icon--ready">&#10003;</div>
+        <p class="tbi-drop-primary tbi-drop-primary--ready">{{ selectedFile.name }}</p>
+        <p class="tbi-drop-secondary">{{ (selectedFile.size / 1024).toFixed(1) }} KB &middot; Click to change file</p>
+      </ng-container>
+    </div>
+
+    <div class="tbi-error-banner" *ngIf="importError">&#9888; {{ importError }}</div>
+
+    <details class="tbi-details">
+      <summary>How this works</summary>
+      <ul>
+        <li>One row = one period slot for one class (or class + section).</li>
+        <li>A slot that's already assigned (same class/section/day/period) is skipped and reported as a failed row — it's never overwritten.</li>
+        <li>Two rows may share the exact same slot only if they carry the identical Simultaneous Group tag (e.g. "MATH_BIO") for a genuine elective split — any other match is treated as a conflict.</li>
+        <li>Class, Section and Teacher ID must match existing records exactly.</li>
+        <li>Nothing is created until you upload — review the results after import and fix failed rows in a re-upload if needed.</li>
+      </ul>
+    </details>
+
+    <div class="tbi-action-row">
+      <button type="button" class="tbi-import-btn" [disabled]="!selectedFile || isImporting" (click)="import()">
+        <span *ngIf="!isImporting">Import Timetable</span>
+        <span *ngIf="isImporting" class="tbi-loading"><span class="tbi-spinner"></span> Importing…</span>
+      </button>
+    </div>
+
+  </ng-container>
+
+  <ng-container *ngIf="result">
+
+    <div class="tbi-summary">
+      <div class="tbi-summary-card tbi-summary-card--total"><span class="tbi-summary-value">{{ result.totalRows }}</span><span class="tbi-summary-label">Total Rows</span></div>
+      <div class="tbi-summary-card tbi-summary-card--ok"><span class="tbi-summary-value">{{ result.successful }}</span><span class="tbi-summary-label">Created</span></div>
+      <div class="tbi-summary-card tbi-summary-card--bad"><span class="tbi-summary-value">{{ result.failed }}</span><span class="tbi-summary-label">Failed</span></div>
+    </div>
+
+    <div class="tbi-result-banner tbi-result-banner--ok" *ngIf="result.failed === 0">
+      &#10003; All {{ result.successful }} periods were created successfully.
+    </div>
+    <div class="tbi-result-banner tbi-result-banner--partial" *ngIf="result.failed > 0 && result.successful > 0">
+      &#9888; {{ result.successful }} period(s) created. {{ result.failed }} row(s) failed — see details below.
+    </div>
+    <div class="tbi-result-banner tbi-result-banner--error" *ngIf="result.successful === 0">
+      &#10007; No periods were created. Please fix the errors below and try again.
+    </div>
+
+    <div class="tbi-list-section" *ngIf="result.created.length > 0">
+      <h3 class="tbi-list-title tbi-list-title--ok">Created</h3>
+      <div class="tbi-row-card" *ngFor="let c of result.created">
+        <div class="tbi-row-main"><span class="tbi-row-badge">Row {{ c.row }}</span><strong>{{ c.label }}</strong></div>
+      </div>
+    </div>
+
+    <div class="tbi-list-section" *ngIf="result.errors.length > 0">
+      <h3 class="tbi-list-title tbi-list-title--bad">Failed Rows</h3>
+      <div class="tbi-row-card tbi-row-card--bad" *ngFor="let err of result.errors; trackBy: trackByRow">
+        <div class="tbi-row-main"><span class="tbi-row-badge">Row {{ err.row }}</span><strong>{{ err.label }}</strong></div>
+        <p class="tbi-row-reason">{{ err.reason }}</p>
+      </div>
+    </div>
+
+    <div class="tbi-action-row tbi-action-row--result">
+      <button *ngIf="result?.errors?.length" type="button" class="tbi-secondary-btn" (click)="downloadErrorCSV()">
+        &#8595; Download Error Report ({{ result!.errors.length }})
+      </button>
+      <button type="button" class="tbi-secondary-btn" (click)="reset()">Import Another File</button>
+      <button type="button" class="tbi-import-btn" (click)="goToTimetable()">Go to Timetable</button>
+    </div>
+
+  </ng-container>
+
+</div>

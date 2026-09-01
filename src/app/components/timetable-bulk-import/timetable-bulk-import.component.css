@@ -1,0 +1,117 @@
+:host { display: block; }
+
+.tbi-page { padding-bottom: 16px; color: #142238; }
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.tbi-hero {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: linear-gradient(135deg, #14532d 0%, #15803d 55%, #4ade80 100%);
+  border-radius: 18px; padding: 16px 18px; margin-bottom: 14px; color: #fff;
+}
+.tbi-hero-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.tbi-back-btn {
+  width: 34px; height: 34px; flex: none; border: 0; border-radius: 10px; background: rgba(255,255,255,0.2);
+  color: #fff; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.tbi-back-btn:hover { background: rgba(255,255,255,0.3); }
+.tbi-hero-title { margin: 0; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; line-height: 1.2; }
+.tbi-hero-sub { margin: 3px 0 0; font-size: 0.75rem; color: rgba(255,255,255,0.82); }
+.tbi-template-btn {
+  flex: none; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 10px; background: rgba(255,255,255,0.16);
+  color: #fff; padding: 9px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.tbi-template-btn:hover { background: rgba(255,255,255,0.28); }
+.tbi-template-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Upload stage ─────────────────────────────────────────────────── */
+.tbi-note { margin: 0 0 14px; font-size: 0.8rem; color: #536177; line-height: 1.5; }
+
+.tbi-drop-zone {
+  border: 2px dashed #b0bec5; border-radius: 14px; padding: 34px 18px; text-align: center; cursor: pointer;
+  background: #fafbfc; margin-bottom: 14px; transition: border-color 0.15s, background 0.15s;
+}
+.tbi-drop-zone:hover { border-color: #15803d; background: #f4faf6; }
+.tbi-drop-zone--ready { border-color: #2e7d32; background: #f1f8f1; }
+.tbi-file-input { display: none; }
+.tbi-drop-icon { font-size: 2.2rem; margin-bottom: 8px; }
+.tbi-drop-icon--ready { color: #2e7d32; }
+.tbi-drop-primary { margin: 0 0 4px; font-size: 0.95rem; font-weight: 700; color: #374151; }
+.tbi-drop-primary--ready { color: #1b5e20; }
+.tbi-drop-secondary { margin: 0; font-size: 0.76rem; color: #94a3b8; }
+
+.tbi-error-banner {
+  background: #fff3e0; border: 1px solid #ffcc80; border-radius: 10px; padding: 10px 14px;
+  font-size: 0.82rem; color: #e65100; margin-bottom: 14px;
+}
+
+.tbi-details { margin-bottom: 16px; font-size: 0.8rem; color: #475569; }
+.tbi-details summary { cursor: pointer; font-weight: 700; color: #15803d; padding: 4px 0; }
+.tbi-details ul { margin: 8px 0 0; padding-left: 18px; line-height: 1.6; }
+
+.tbi-action-row { display: flex; justify-content: flex-end; }
+.tbi-import-btn {
+  min-width: 160px; border: 0; border-radius: 10px; background: linear-gradient(135deg, #14532d, #1a7a3e);
+  color: #fff; padding: 11px 24px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+}
+.tbi-import-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.tbi-loading { display: inline-flex; align-items: center; gap: 8px; }
+.tbi-spinner {
+  width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-left-color: #fff;
+  border-radius: 50%; animation: tbi-spin 0.7s linear infinite;
+}
+@keyframes tbi-spin { to { transform: rotate(360deg); } }
+
+/* ── Results ──────────────────────────────────────────────────────── */
+.tbi-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.tbi-summary-card {
+  flex: 1; min-width: 100px; border-radius: 12px; padding: 14px 12px; text-align: center; border: 1px solid #e8ecf0;
+}
+.tbi-summary-value { display: block; font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+.tbi-summary-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.tbi-summary-card--total { background: #f4f7fc; }
+.tbi-summary-card--total .tbi-summary-value { color: #0d2b6b; }
+.tbi-summary-card--total .tbi-summary-label { color: #6b7a99; }
+.tbi-summary-card--ok { background: #f1f8f1; border-color: #c8e6c9; }
+.tbi-summary-card--ok .tbi-summary-value { color: #2e7d32; }
+.tbi-summary-card--ok .tbi-summary-label { color: #4caf50; }
+.tbi-summary-card--bad { background: #fff5f5; border-color: #ffcdd2; }
+.tbi-summary-card--bad .tbi-summary-value { color: #c62828; }
+.tbi-summary-card--bad .tbi-summary-label { color: #ef5350; }
+
+.tbi-result-banner { border-radius: 10px; padding: 11px 16px; font-size: 0.85rem; font-weight: 700; margin-bottom: 16px; }
+.tbi-result-banner--ok { background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; }
+.tbi-result-banner--partial { background: #fff8e1; border: 1px solid #ffe082; color: #e65100; }
+.tbi-result-banner--error { background: #ffebee; border: 1px solid #ef9a9a; color: #b71c1c; }
+
+.tbi-list-section { margin-bottom: 18px; }
+.tbi-list-title {
+  margin: 0 0 8px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.tbi-list-title--ok { color: #2e7d32; }
+.tbi-list-title--bad { color: #c62828; }
+
+.tbi-row-card {
+  border: 1px solid #e8ecf0; border-radius: 12px; background: #fff; padding: 10px 14px; margin-bottom: 8px;
+}
+.tbi-row-card--bad { border-color: #ffd7d7; background: #fffafa; }
+.tbi-row-main { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.86rem; color: #1e293b; }
+.tbi-row-badge {
+  flex: none; padding: 2px 8px; border-radius: 20px; background: #eef2f6; color: #64748b;
+  font-size: 0.68rem; font-weight: 700;
+}
+.tbi-row-reason { margin: 6px 0 0; font-size: 0.8rem; color: #c62828; }
+
+.tbi-action-row--result { gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.tbi-secondary-btn {
+  border: 1.5px solid #d0d7e2; border-radius: 10px; background: #fff; color: #374151;
+  padding: 10px 18px; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+}
+.tbi-secondary-btn:hover { background: #f4f7fc; }
+
+/* ── Mobile ───────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .tbi-hero { padding: 14px 14px 16px; }
+  .tbi-drop-zone { padding: 28px 14px; }
+  .tbi-action-row--result { flex-direction: column-reverse; }
+  .tbi-action-row--result button { width: 100%; }
+}

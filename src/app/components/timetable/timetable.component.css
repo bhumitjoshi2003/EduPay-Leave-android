@@ -36,6 +36,14 @@
 }
 .tt-hero-title { font-size: 1.25rem; font-weight: 800; margin: 0 0 2px; letter-spacing: -0.2px; }
 .tt-hero-sub   { font-size: 0.78rem; color: rgba(255,255,255,0.8); margin: 0; }
+.tt-bulk-import-btn {
+  position: relative; z-index: 1;
+  padding: 8px 16px; border-radius: 10px;
+  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3);
+  color: #fff; font-weight: 700; font-size: 0.82rem; cursor: pointer;
+  transition: background 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.tt-bulk-import-btn:hover { background: rgba(255,255,255,0.28); }
 .tt-print-btn {
   position: relative; z-index: 1;
   padding: 8px 18px; border-radius: 10px;
@@ -173,6 +181,41 @@
   box-shadow: 0 6px 18px rgba(0,0,0,0.09);
 }
 
+/* "+ Simultaneous" quiet action on a normal (single-subject) card, admin only */
+.tt-add-simul-btn {
+  position: absolute; bottom: 8px; right: 12px;
+  border: 0; background: transparent; color: #94a3b8;
+  font-size: 0.66rem; font-weight: 700; cursor: pointer; opacity: 0; transition: opacity 0.15s;
+  padding: 2px 4px;
+}
+.tt-period-card:hover .tt-add-simul-btn { opacity: 1; }
+.tt-add-simul-btn:hover { color: var(--card-accent, #15803d); text-decoration: underline; }
+
+/* Simultaneous period: multiple subjects at once (e.g. PCM/PCB electives) */
+.tt-period-card--multi {
+  flex-direction: column; align-items: stretch; gap: 8px;
+  border-left-color: #94a3b8; background: #f8fafc;
+}
+.tt-period-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2px;
+}
+.tt-period-header .tt-card-period { font-size: 0.8rem; color: #475569; }
+.tt-period-header .tt-card-time { font-size: 0.8rem; }
+.tt-simul-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border-radius: 10px; background: var(--card-bg, #fff); position: relative;
+}
+.tt-simul-row.tt-card-clickable { cursor: pointer; }
+.tt-simul-row.tt-card-clickable:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.tt-simul-row .tt-icon-box {
+  width: 34px; height: 34px; font-size: 1.15rem; border-radius: 9px; flex-shrink: 0;
+}
+.tt-simul-subject { font-weight: 800; color: var(--card-accent, #15803d); font-size: 0.9rem; }
+.tt-simul-teacher { color: #94a3b8; font-size: 0.78rem; font-weight: 500; }
+.tt-simul-row .tt-edit-hint { position: static; margin-left: auto; opacity: 0; }
+.tt-simul-row.tt-card-clickable:hover .tt-edit-hint { opacity: 1; }
+
 /* Edit hint on hover */
 .tt-edit-hint {
   position: absolute; top: 10px; right: 12px;
@@ -308,6 +351,8 @@
   transition: border-color 0.2s;
 }
 .tt-field-input:focus { border-color: #15803d; outline: none; }
+.tt-field-optional { text-transform: none; font-weight: 500; color: #94a3b8; letter-spacing: normal; }
+.tt-field-hint { font-size: 0.7rem; color: #94a3b8; line-height: 1.4; }
 .tt-modal-error {
   margin: 0; font-size: 0.82rem; font-weight: 600; color: #dc2626;
   background: #fef2f2; border: 1px solid #fecaca;

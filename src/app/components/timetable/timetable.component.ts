@@ -241,6 +241,22 @@ export class TimetableComponent implements OnInit, OnDestroy {
       .sort((a, b) => a.periodNumber - b.periodNumber);
   }
 
+  /** Clusters dayEntries sharing the same period number into one visual block — normally a
+   *  cluster has exactly one entry (today's only case); a cluster with more than one entry means
+   *  a legitimate simultaneous/elective assignment (see simultaneousGroup), rendered as stacked
+   *  subject/teacher rows under one "Period N" header instead of separate cards. */
+  get groupedDayEntries(): { periodNumber: number; entries: TimetableEntry[] }[] {
+    const map = new Map<number, TimetableEntry[]>();
+    for (const entry of this.dayEntries) {
+      const list = map.get(entry.periodNumber) ?? [];
+      list.push(entry);
+      map.set(entry.periodNumber, list);
+    }
+    return Array.from(map.entries())
+      .map(([periodNumber, entries]) => ({ periodNumber, entries }))
+      .sort((a, b) => a.periodNumber - b.periodNumber);
+  }
+
   get teacherDayEntries(): TimetableEntry[] {
     return this.teacherGrid[this.selectedDay] ?? [];
   }
@@ -392,6 +408,31 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  /** Pre-fills a new Add-Period form from an existing entry's slot (day/section/period/times),
+   *  leaving Subject/Teacher blank — the smallest way to let an admin create an intentional
+   *  simultaneous assignment without retyping the slot. If the existing entry already has a
+   *  Simultaneous Group tag it's carried over (both sides must share the identical tag); if not,
+   *  the admin needs to type a shared tag here (and it'll need adding to the existing entry too
+   *  via Edit, since a group requires both sides to carry it). */
+  openAddSimultaneous(existing: TimetableEntry): void {
+    if (!this.isAdmin()) return;
+    this.isEditMode = false;
+    this.modalForm = {
+      className: existing.className,
+      sectionId: existing.sectionId ?? null,
+      day: existing.day,
+      periodNumber: existing.periodNumber,
+      startTime: existing.startTime,
+      endTime: existing.endTime,
+      subjectName: '',
+      teacherId: '',
+      simultaneousGroup: existing.simultaneousGroup ?? '',
+    };
+    this.modalError = null;
+    this.showModal = true;
+    this.cdr.markForCheck();
+  }
+
   openEdit(entry: TimetableEntry): void {
     if (!this.isAdmin()) return;
     this.isEditMode = true;
@@ -443,8 +484,12 @@ export class TimetableComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.modalSaving = false;
         this.logger.error('Failed to save timetable entry:', err);
+        // The backend now returns a specific reason (slot conflict, group mismatch, teacher
+        // double-booking, etc.) as the plain-text 409 body — prefer it when present.
         this.modalError = err.status === 409
-          ? 'A subject is already scheduled for this period. Edit the existing one instead.'
+          ? (typeof err.error === 'string' && err.error
+              ? err.error
+              : 'A subject is already scheduled for this period. Edit the existing one instead.')
           : 'Failed to save. Please try again.';
         this.cdr.markForCheck();
       }
@@ -475,10 +520,15 @@ export class TimetableComponent implements OnInit, OnDestroy {
     });
   }
 
-  checkTimeConflict(day: string, startTime: string, endTime: string, excludeId?: number): boolean {
+  /** Local advisory warning only — the backend is the source of truth for what's actually
+   *  allowed. Entries sharing the same non-blank simultaneousGroup as the entry being
+   *  edited/added are intentionally excluded, since they're expected to share the same time. */
+  checkTimeConflict(day: string, startTime: string, endTime: string, excludeId?: number, group?: string | null): boolean {
     if (!startTime || !endTime) return false;
+    const normalizedGroup = group?.trim() || null;
     return this.entries
       .filter((e: TimetableEntry) => e.day === day && e.id !== excludeId)
+      .filter((e: TimetableEntry) => !(normalizedGroup && (e.simultaneousGroup?.trim() || null) === normalizedGroup))
       .some((e: TimetableEntry) => startTime < e.endTime && e.startTime < endTime);
   }
 
@@ -486,6 +536,10 @@ export class TimetableComponent implements OnInit, OnDestroy {
     const cls = this.selectedClass ?? '';
     const section = this.selectedSectionName ?? '';
     return section ? `Class ${cls} – Section ${section}` : `Class ${cls}`;
+  }
+
+  goToBulkImport(): void {
+    this.router.navigate(['/dashboard/timetable-bulk-import']);
   }
 
   printTimetable(): void {
@@ -512,4 +566,5 @@ export class TimetableComponent implements OnInit, OnDestroy {
   trackByEntry(_: number, e: TimetableEntry): string {
     return `${e.id ?? e.day + e.periodNumber}`;
   }
+  trackByPeriod(_: number, group: { periodNumber: number }): number { return group.periodNumber; }
 }

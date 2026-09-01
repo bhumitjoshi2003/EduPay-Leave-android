@@ -11,4 +11,8 @@ export interface TimetableEntry {
   subjectName: string;
   teacherId: string;
   teacherName?: string;
+  /** Null/undefined = a normal, single-occupant period. A shared, admin-defined value (e.g.
+   *  "MATH_BIO") tags this entry as one of several legitimate simultaneous/elective subject
+   *  assignments occupying the same class+section+day+period. */
+  simultaneousGroup?: string | null;
 }

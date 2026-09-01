@@ -4,6 +4,26 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { TimetableEntry } from '../interfaces/timetable';
 
+export interface TimetableBulkImportError {
+  row: number;
+  label: string;
+  reason: string;
+}
+
+export interface TimetableBulkImportSuccess {
+  row: number;
+  label: string;
+  entryId: number;
+}
+
+export interface TimetableBulkImportResult {
+  totalRows: number;
+  successful: number;
+  failed: number;
+  errors: TimetableBulkImportError[];
+  created: TimetableBulkImportSuccess[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class TimetableService {
   private baseUrl = `${environment.apiUrl}/timetable`;
@@ -38,5 +58,15 @@ export class TimetableService {
 
   deleteEntry(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  downloadBulkTemplate(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/bulk/template`, { responseType: 'blob' });
+  }
+
+  bulkImport(file: File): Observable<TimetableBulkImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<TimetableBulkImportResult>(`${this.baseUrl}/bulk`, formData);
   }
 }
