@@ -10,6 +10,9 @@
         <p class="tt-hero-sub">Weekly class &amp; teacher schedules</p>
       </div>
     </div>
+    <button type="button" class="tt-bulk-import-btn no-print" *ngIf="isAdmin()" (click)="goToBulkImport()">
+      &#8593; Bulk Import
+    </button>
     <div class="tt-blob tt-blob-1"></div>
     <div class="tt-blob tt-blob-2"></div>
   </div>

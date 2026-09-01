@@ -36,6 +36,14 @@
 }
 .tt-hero-title { font-size: 1.25rem; font-weight: 800; margin: 0 0 2px; letter-spacing: -0.2px; }
 .tt-hero-sub   { font-size: 0.78rem; color: rgba(255,255,255,0.8); margin: 0; }
+.tt-bulk-import-btn {
+  position: relative; z-index: 1;
+  padding: 8px 16px; border-radius: 10px;
+  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3);
+  color: #fff; font-weight: 700; font-size: 0.82rem; cursor: pointer;
+  transition: background 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.tt-bulk-import-btn:hover { background: rgba(255,255,255,0.28); }
 .tt-print-btn {
   position: relative; z-index: 1;
   padding: 8px 18px; border-radius: 10px;

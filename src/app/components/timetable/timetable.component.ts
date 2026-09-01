@@ -488,6 +488,10 @@ export class TimetableComponent implements OnInit, OnDestroy {
     return section ? `Class ${cls} – Section ${section}` : `Class ${cls}`;
   }
 
+  goToBulkImport(): void {
+    this.router.navigate(['/dashboard/timetable-bulk-import']);
+  }
+
   printTimetable(): void {
     if (Capacitor.isNativePlatform()) {
       this.toast.info('Print Not Available', 'Printing is not supported on the mobile app. Please use the web version at edunexify.co.in');
