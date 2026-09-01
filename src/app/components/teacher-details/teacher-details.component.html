@@ -68,9 +68,12 @@
             ><mat-icon>school</mat-icon
             >{{
               teacherDetails.classTeacher
-                ? "Class " + teacherDetails.classTeacher
+                ? classResponsibilityLabel
                 : "No class assigned"
             }}</span
+          >
+          <span class="td-hero-warning" *ngIf="legacySectionMissing"
+            ><mat-icon>warning_amber</mat-icon>Section assignment required</span
           >
         </div>
       </div>
@@ -242,21 +245,47 @@
           <div class="detail-content">
             <span class="label">Class responsibility</span>
             <span class="value" *ngIf="!isEditing">{{
-              teacherDetails.classTeacher
-                ? "Class " + teacherDetails.classTeacher
-                : "Not assigned"
+              classResponsibilityLabel
             }}</span>
+            <!-- Legacy assignment: the class has sections but none was ever chosen. -->
+            <span class="section-warning" *ngIf="!isEditing && legacySectionMissing">
+              <mat-icon>warning_amber</mat-icon>Section assignment required — this
+              class has sections. Use Edit to pick one.
+            </span>
             <select
               *ngIf="isEditing"
               name="classTeacher"
               [(ngModel)]="updatedDetails.classTeacher"
-              (change)="updateFieldValue('classTeacher', $event)"
+              (change)="onClassTeacherChange($event)"
             >
               <option value="">Not Assigned</option>
               <option *ngFor="let className of classList" [value]="className">
                 {{ className }}
               </option>
             </select>
+            <!-- Shown only when the selected class actually has sections configured. -->
+            <ng-container *ngIf="isEditing && sections.length > 0">
+              <span class="label section-sublabel">Section / group</span>
+              <select
+                name="classTeacherSectionId"
+                [(ngModel)]="updatedDetails.classTeacherSectionId"
+                required
+                #classSection="ngModel"
+                [class.invalid-field]="classSection.invalid && classSection.touched"
+              >
+                <option [ngValue]="null" disabled>Select section / group</option>
+                <option *ngFor="let section of sections" [ngValue]="section.id">
+                  {{ section.name }}
+                </option>
+              </select>
+              <span
+                class="section-warning"
+                *ngIf="updatedDetails.classTeacherSectionId == null"
+              >
+                <mat-icon>warning_amber</mat-icon>This class has sections — choose
+                the one this teacher is class teacher of.
+              </span>
+            </ng-container>
           </div>
         </div>
       </div>
