@@ -77,6 +77,11 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
   showModal = false;
   isEditMode = false;
+  /** True while the modal is adding a second subject to an existing period's slot (the
+   *  "+ Simultaneous" action) rather than creating an unrelated new period. */
+  isSimultaneousMode = false;
+  /** The existing entry being paired with, while isSimultaneousMode is true. */
+  simultaneousSourceId: number | null = null;
   modalForm: TimetableEntry = this.emptyForm();
   modalError: string | null = null;
   modalSaving = false;
@@ -400,6 +405,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
   openAddPeriod(): void {
     if (!this.isAdmin()) return;
     this.isEditMode = false;
+    this.isSimultaneousMode = false;
+    this.simultaneousSourceId = null;
     this.modalForm = this.emptyForm();
     this.modalForm.className = this.selectedClass;
     this.modalForm.sectionId = this.selectedSectionId;
@@ -409,17 +416,20 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  /** Pre-fills a new Add-Period form from an existing entry's slot (day/section/period/times),
-   *  leaving Subject/Teacher blank — the smallest way to let an admin create an intentional
-   *  simultaneous assignment without retyping the slot. If the existing entry already has a
-   *  Simultaneous Group tag it's carried over (both sides must share the identical tag); if not,
-   *  the admin needs to type a shared tag here (and it'll need adding to the existing entry too
-   *  via Edit, since a group requires both sides to carry it). */
+  /** Pre-fills a new form from an existing entry's slot (day/section/period/times), leaving
+   *  Subject/Teacher blank so the admin only has to pick the second subject. The Simultaneous
+   *  Group tag itself is never shown or typed here — saveEntry() calls a dedicated backend
+   *  action (TimetableService#addSimultaneous) that inherits the slot from `existing` server-side
+   *  and generates/reuses the tag automatically, so an admin who's never heard of "tags" can
+   *  still use this correctly. */
   openAddSimultaneous(existing: TimetableEntry): void {
     if (!this.isAdmin()) return;
     this.isEditMode = false;
+    this.isSimultaneousMode = true;
+    this.simultaneousSourceId = existing.id ?? null;
     this.modalForm = {
       className: existing.className,
+      sectionName: existing.sectionName,
       sectionId: existing.sectionId ?? null,
       day: existing.day,
       periodNumber: existing.periodNumber,
@@ -427,7 +437,6 @@ export class TimetableComponent implements OnInit, OnDestroy {
       endTime: existing.endTime,
       subjectName: '',
       teacherId: '',
-      simultaneousGroup: existing.simultaneousGroup ?? '',
     };
     this.modalError = null;
     this.showModal = true;
@@ -437,6 +446,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
   openEdit(entry: TimetableEntry): void {
     if (!this.isAdmin()) return;
     this.isEditMode = true;
+    this.isSimultaneousMode = false;
+    this.simultaneousSourceId = null;
     this.modalForm = { ...entry };
     this.modalError = null;
     this.showModal = true;
@@ -445,6 +456,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
   closeModal(): void {
     this.showModal = false;
+    this.isSimultaneousMode = false;
+    this.simultaneousSourceId = null;
     this.cdr.markForCheck();
   }
 
@@ -471,9 +484,11 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.modalSaving = true;
     this.cdr.markForCheck();
 
-    const save$ = this.isEditMode && this.modalForm.id != null
-      ? this.timetableService.updateEntry(this.modalForm.id, this.modalForm)
-      : this.timetableService.createEntry(this.modalForm);
+    const save$ = this.isSimultaneousMode && this.simultaneousSourceId != null
+      ? this.timetableService.addSimultaneous(this.simultaneousSourceId, this.modalForm.subjectName, this.modalForm.teacherId)
+      : this.isEditMode && this.modalForm.id != null
+        ? this.timetableService.updateEntry(this.modalForm.id, this.modalForm)
+        : this.timetableService.createEntry(this.modalForm);
 
     save$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
