@@ -318,8 +318,9 @@ export class TimetableComponent implements OnInit, OnDestroy {
       || n.includes('geography') || n.includes('civics')
       || n.includes('political'))                                            return 'sst';
     if (n.includes('general knowledge') || n === 'gk')                      return 'gk';
-    if (n.includes('economics') || n.includes('accountancy')
-      || n.includes('business'))                                             return 'commerce';
+    if (n.includes('economics'))                                             return 'economics';
+    if (n.includes('accountancy') || n.includes('accounting'))              return 'accountancy';
+    if (n.includes('business'))                                              return 'business';
     if (n.includes('sociology') || n.includes('psychology'))                return 'social';
     return 'default';
   }
