@@ -14,12 +14,14 @@ import {
   TeacherService,
 } from '../../services/teacher.service';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../../auth/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { environment } from '../../../environments/environment';
-import { SchoolService } from '../../services/school.service';
+import { SchoolClass, SchoolService } from '../../services/school.service';
+import { SectionService } from '../../services/section.service';
+import { Section } from '../../interfaces/section';
 import { MatIconModule } from '@angular/material/icon';
 import { TeacherExitRequest } from '../../interfaces/teacher';
 
@@ -30,6 +32,7 @@ interface TeacherDetails {
   phoneNumber?: string;
   dob?: string;
   classTeacher?: string | null;
+  classTeacherSectionId?: number | null;
   photoUrl?: string;
   status?: 'ACTIVE' | 'LEFT';
   leavingDate?: string;
@@ -68,6 +71,15 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   cpShowOldField = false;
 
   classList: string[] = [];
+  /** Full class records (name + id) — the id is what the section lookup needs. */
+  managedClasses: SchoolClass[] = [];
+  /** Active sections of the class currently shown/selected; empty means it has none. */
+  sections: Section[] = [];
+  /**
+   * True when the SAVED record is ambiguous: its class has sections configured but no
+   * section was ever assigned (a legacy assignment made before sections existed).
+   */
+  legacySectionMissing = false;
   readonly scheduleDays = [
     'MONDAY',
     'TUESDAY',
@@ -110,6 +122,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private schoolService: SchoolService,
+    private sectionService: SectionService,
   ) {}
 
   ngOnInit(): void {
@@ -126,12 +139,28 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         });
     }
-    this.schoolService
-      .getClasses()
+    // Class names drive the dropdown; the managed records supply the classId the
+    // section lookup needs. This races the teacher fetch below, so whichever finishes
+    // last triggers the section resolution.
+    forkJoin({
+      classes: this.schoolService.getClasses(),
+      managed: this.schoolService.getManagedClasses(),
+    })
       .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((classes) => {
-        this.classList = classes;
-        this.cdr.markForCheck();
+      .subscribe({
+        next: ({ classes, managed }) => {
+          this.classList = classes;
+          this.managedClasses = managed;
+          this.cdr.markForCheck();
+          if (this.teacherDetails) {
+            this.loadSectionsForClass(
+              this.teacherDetails.classTeacher ?? null,
+              true,
+            );
+          }
+        },
+        error: () =>
+          this.toast.error('Error', 'Failed to load the class list.'),
       });
     this.route.params
       .pipe(takeUntil(this.ngUnsubscribe))
@@ -156,6 +185,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
         next: (details) => {
           this.teacherDetails = details;
           this.updatedDetails = { ...details };
+          this.loadSectionsForClass(details.classTeacher ?? null, true);
           if (this.role === 'ADMIN') this.loadScheduleHistory();
           this.cdr.markForCheck();
         },
@@ -164,6 +194,84 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
           this.toast.error('Error', 'Failed to load teacher details.');
         },
       });
+  }
+
+  /**
+   * Loads the active sections of `className`. An empty result means the class has no
+   * sections, so the Section field stays hidden and the id stays null — exactly the
+   * shape the backend requires.
+   *
+   * @param isSavedRecord true when resolving the saved teacher's own class, which is
+   *   also when the legacy "class has sections but none assigned" flag is recomputed.
+   */
+  private loadSectionsForClass(
+    className: string | null,
+    isSavedRecord = false,
+  ): void {
+    this.sections = [];
+    if (isSavedRecord) this.legacySectionMissing = false;
+    if (!className) {
+      this.cdr.markForCheck();
+      return;
+    }
+    const schoolClass = this.managedClasses.find((c) => c.name === className);
+    // Managed classes may not have arrived yet — that subscription retries this.
+    if (!schoolClass) {
+      this.cdr.markForCheck();
+      return;
+    }
+    this.sectionService
+      .getSectionsForClass(schoolClass.id)
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe({
+        next: (sections) => {
+          // A slower response for a class the admin has since switched away from must
+          // not repopulate the dropdown.
+          const currentClass = isSavedRecord
+            ? (this.teacherDetails?.classTeacher ?? null)
+            : (this.updatedDetails?.classTeacher || null);
+          if (currentClass !== className) return;
+          this.sections = sections;
+          if (isSavedRecord) {
+            this.legacySectionMissing =
+              sections.length > 0 &&
+              (this.teacherDetails?.classTeacherSectionId ?? null) === null;
+          }
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.sections = [];
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  /**
+   * Class changed while editing: drop any previously chosen section (it belongs to the
+   * old class) and reload the list for the new one.
+   */
+  onClassTeacherChange(event: Event): void {
+    if (!this.updatedDetails) return;
+    const className = (event.target as HTMLSelectElement).value;
+    this.updatedDetails.classTeacher = className;
+    this.updatedDetails.classTeacherSectionId = null;
+    this.loadSectionsForClass(className || null);
+  }
+
+  /** Name of the saved record's section, for the read-only display. */
+  get savedSectionName(): string | null {
+    const sectionId = this.teacherDetails?.classTeacherSectionId ?? null;
+    if (sectionId === null) return null;
+    return this.sections.find((s) => s.id === sectionId)?.name ?? null;
+  }
+
+  /** Read-only label for the class responsibility, e.g. "Class 12 — Science". */
+  get classResponsibilityLabel(): string {
+    if (!this.teacherDetails?.classTeacher) return 'Not assigned';
+    const sectionName = this.savedSectionName;
+    return sectionName
+      ? `Class ${this.teacherDetails.classTeacher} — ${sectionName}`
+      : `Class ${this.teacherDetails.classTeacher}`;
   }
 
   loadScheduleHistory(): void {
@@ -272,6 +380,9 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
   cancelEditMode(): void {
     this.isEditing = false;
     this.updatedDetails = { ...this.teacherDetails! };
+    // Sections may have been reloaded for a different class during the edit — restore
+    // the ones belonging to the saved record.
+    this.loadSectionsForClass(this.teacherDetails?.classTeacher ?? null, true);
     this.toast.info('Cancelled', 'Edit mode cancelled. No changes saved.');
   }
 
@@ -305,6 +416,10 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
       if (controls['dob']?.errors?.['required'])
         errorMessages += '<li>Date of Birth is required.</li>';
 
+      if (controls['classTeacherSectionId']?.errors?.['required'])
+        errorMessages +=
+          '<li>This class has sections — choose the one this teacher is class teacher of.</li>';
+
       errorMessages += '</ul>';
 
       // 3. Show detailed toast
@@ -322,13 +437,24 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
       .then((confirmed) => {
         if (confirmed) {
           if (this.updatedDetails) {
+            const payload = {
+              ...this.updatedDetails,
+              // Belt-and-braces: a class with no sections must never carry a sectionId.
+              classTeacherSectionId:
+                this.sections.length > 0
+                  ? (this.updatedDetails.classTeacherSectionId ?? null)
+                  : null,
+            };
             this.teacherService
-              .updateTeacher(this.teacherId, this.updatedDetails)
+              .updateTeacher(this.teacherId, payload)
               .pipe(takeUntil(this.ngUnsubscribe))
               .subscribe({
-                next: (response) => {
-                  this.teacherDetails = { ...this.updatedDetails };
+                next: () => {
+                  this.updatedDetails = { ...payload };
+                  this.teacherDetails = { ...payload };
                   this.isEditing = false;
+                  // The ambiguity is resolved (or has moved to a new class) — recompute.
+                  this.loadSectionsForClass(payload.classTeacher ?? null, true);
                   this.cdr.markForCheck();
                   this.toast.success(
                     'Success!',
@@ -348,7 +474,7 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
       });
   }
 
-  updateFieldValue(field: 'name' | 'email' | 'phoneNumber' | 'dob' | 'classTeacher', event: Event): void {
+  updateFieldValue(field: 'name' | 'email' | 'phoneNumber' | 'dob', event: Event): void {
     if (this.updatedDetails) {
       this.updatedDetails[field] = (event.target as HTMLInputElement).value;
     }

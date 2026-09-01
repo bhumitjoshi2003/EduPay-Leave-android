@@ -68,6 +68,17 @@
             <option *ngFor="let className of classList" [value]="className">{{ className }}</option>
           </select>
         </div>
+        <!-- Shown only when the selected class actually has sections configured. -->
+        <div class="rt-field rt-field-full" *ngIf="sections.length > 0">
+          <label class="rt-label">Section / Group <span class="rt-req">*</span></label>
+          <select formControlName="classTeacherSectionId" class="rt-input rt-select">
+            <option [ngValue]="null" disabled>Select Section / Group</option>
+            <option *ngFor="let section of sections" [ngValue]="section.id">{{ section.name }}</option>
+          </select>
+          <span class="rt-err" *ngIf="sectionControl.invalid && (sectionControl.dirty || sectionControl.touched)">
+            This class has sections — choose the one this teacher is class teacher of.
+          </span>
+        </div>
       </div>
     </div>
 

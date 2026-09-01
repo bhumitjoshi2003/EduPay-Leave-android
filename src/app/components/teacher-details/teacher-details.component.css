@@ -431,6 +431,15 @@
   height: 15px;
   font-size: 15px;
 }
+/* Legacy class-teacher assignment missing its section — amber pill on the dark hero. */
+.td-hero-meta span.td-hero-warning {
+  padding: 2px 8px;
+  border: 1px solid rgba(255, 196, 87, 0.55);
+  border-radius: 999px;
+  color: #ffd88a;
+  background: rgba(255, 176, 32, 0.16);
+  font-size: 0.64rem;
+}
 .td-hero-actions {
   display: flex;
   max-width: 390px;
@@ -672,6 +681,25 @@
 .invalid-field {
   border-color: #dc3545 !important;
   background: #fff8f8 !important;
+}
+/* Inline hint for a class-teacher assignment that still needs a section. */
+.section-warning {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 4px;
+  color: #a8620a;
+  font-size: 0.68rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.section-warning mat-icon {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  font-size: 15px;
+}
+.section-sublabel {
+  margin-top: 4px;
 }
 .loading-message {
   padding: 60px 20px;
