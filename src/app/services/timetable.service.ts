@@ -60,6 +60,14 @@ export class TimetableService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
+  /** Adds a second subject to the same slot as entry `existingId` — the "+ Simultaneous"
+   *  action. Class/section/day/period/time are inherited server-side from the existing entry,
+   *  and the simultaneousGroup tag is generated/reused automatically — the caller only ever
+   *  supplies the new subject and teacher, never a tag. */
+  addSimultaneous(existingId: number, subjectName: string, teacherId: string): Observable<TimetableEntry> {
+    return this.http.post<TimetableEntry>(`${this.baseUrl}/${existingId}/simultaneous`, { subjectName, teacherId });
+  }
+
   downloadBulkTemplate(): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/bulk/template`, { responseType: 'blob' });
   }

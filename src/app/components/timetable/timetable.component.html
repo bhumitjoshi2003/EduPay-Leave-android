@@ -220,16 +220,18 @@
   [attr.aria-label]="isEditMode ? 'Edit period' : 'Add period'">
   <div class="tt-modal" (click)="$event.stopPropagation()">
 
-    <h3 class="tt-modal-title">{{ isEditMode ? 'Edit Period' : 'Add Period' }}</h3>
+    <h3 class="tt-modal-title">{{ isEditMode ? 'Edit Period' : (isSimultaneousMode ? 'Add Simultaneous Subject' : 'Add Period') }}</h3>
     <h3 class="tt-section-heading" *ngIf="selectedClass">{{ timetableHeading }}</h3>
 
     <div class="tt-modal-meta" *ngIf="modalForm.day">
-      {{ dayLabels[modalForm.day] }}<span *ngIf="modalForm.className"> · Class {{ modalForm.className }}</span><span *ngIf="modalForm.sectionName"> – {{ modalForm.sectionName }}</span>
+      {{ dayLabels[modalForm.day] }}<span *ngIf="modalForm.className"> · Class {{ modalForm.className }}</span><span *ngIf="modalForm.sectionName"> – {{ modalForm.sectionName }}</span><span *ngIf="isSimultaneousMode"> · Period {{ modalForm.periodNumber }} ({{ modalForm.startTime }}–{{ modalForm.endTime }})</span>
     </div>
+
+    <p class="tt-field-hint" *ngIf="isSimultaneousMode">Adding another subject to this same time slot — students split between this and the subject(s) already scheduled here (e.g. PCM/PCB electives). The day, period, and time are locked to match.</p>
 
     <div class="tt-modal-body">
 
-      <div class="tt-field" *ngIf="sections.length > 0">
+      <div class="tt-field" *ngIf="sections.length > 0 && !isSimultaneousMode">
         <label class="tt-field-label" for="modal-section">Section</label>
         <select id="modal-section" class="tt-field-input" [(ngModel)]="modalForm.sectionId">
           <option [ngValue]="null">-- No specific section --</option>
@@ -237,21 +239,21 @@
         </select>
       </div>
 
-      <div class="tt-field">
+      <div class="tt-field" *ngIf="!isSimultaneousMode">
         <label class="tt-field-label" for="modal-day">Day</label>
         <select id="modal-day" class="tt-field-input" [(ngModel)]="modalForm.day">
           <option *ngFor="let d of days; trackBy: trackByDay" [value]="d">{{ dayLabels[d] }}</option>
         </select>
       </div>
 
-      <div class="tt-field">
+      <div class="tt-field" *ngIf="!isSimultaneousMode">
         <label class="tt-field-label" for="modal-period">Period Number</label>
         <select id="modal-period" class="tt-field-input" [(ngModel)]="modalForm.periodNumber">
           <option *ngFor="let p of allPeriods" [value]="p">Period {{ p }}</option>
         </select>
       </div>
 
-      <div class="tt-field-row">
+      <div class="tt-field-row" *ngIf="!isSimultaneousMode">
         <div class="tt-field">
           <label class="tt-field-label" for="modal-start">Start Time</label>
           <input id="modal-start" type="time" class="tt-field-input" [(ngModel)]="modalForm.startTime">
@@ -262,7 +264,7 @@
         </div>
       </div>
 
-      <div class="tt-conflict-warn" *ngIf="checkTimeConflict(modalForm.day, modalForm.startTime, modalForm.endTime, modalForm.id, modalForm.simultaneousGroup)">
+      <div class="tt-conflict-warn" *ngIf="!isSimultaneousMode && checkTimeConflict(modalForm.day, modalForm.startTime, modalForm.endTime, modalForm.id, modalForm.simultaneousGroup)">
         ⚠ Another subject is already scheduled for this time slot.
       </div>
 
@@ -281,11 +283,9 @@
         </select>
       </div>
 
-      <div class="tt-field">
-        <label class="tt-field-label" for="modal-group">Simultaneous Group <span class="tt-field-optional">(optional)</span></label>
-        <input id="modal-group" type="text" class="tt-field-input" [(ngModel)]="modalForm.simultaneousGroup"
-          placeholder="e.g. MATH_BIO — leave blank for a normal period" autocomplete="off">
-        <small class="tt-field-hint">Give two subjects the same tag only when students genuinely split between them at the same time (e.g. PCM/PCB electives). Both entries must use the identical tag and time.</small>
+      <div class="tt-field" *ngIf="isEditMode && modalForm.simultaneousGroup">
+        <label class="tt-field-label">Simultaneous Period</label>
+        <small class="tt-field-hint">🔗 This period shares its time slot with another subject — added via "+ Simultaneous" and managed automatically. Delete and re-add via "+ Simultaneous" to change the pairing.</small>
       </div>
 
     </div>
@@ -299,7 +299,7 @@
       <div class="tt-modal-right-actions">
         <button class="tt-btn-cancel" (click)="closeModal()" [disabled]="modalSaving">Cancel</button>
         <button class="tt-btn-save" (click)="saveEntry()" [disabled]="modalSaving">
-          {{ modalSaving ? 'Saving…' : (isEditMode ? 'Update' : 'Add Period') }}
+          {{ modalSaving ? 'Saving…' : (isEditMode ? 'Update' : (isSimultaneousMode ? 'Add Subject' : 'Add Period')) }}
         </button>
       </div>
     </div>
