@@ -16,7 +16,7 @@
 
   <ng-container *ngIf="!result">
 
-    <p class="tbi-note">Columns: Class, Section (optional), Day, Period, Start Time, End Time (HH:mm), Subject, Teacher ID.</p>
+    <p class="tbi-note">Columns: Class, Section (optional), Day, Period, Start Time, End Time (HH:mm), Subject, Teacher ID, Simultaneous Group (optional).</p>
 
     <div class="tbi-drop-zone" [class.tbi-drop-zone--ready]="selectedFile"
          (click)="onDropZoneClick()" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
@@ -40,6 +40,7 @@
       <ul>
         <li>One row = one period slot for one class (or class + section).</li>
         <li>A slot that's already assigned (same class/section/day/period) is skipped and reported as a failed row — it's never overwritten.</li>
+        <li>Two rows may share the exact same slot only if they carry the identical Simultaneous Group tag (e.g. "MATH_BIO") for a genuine elective split — any other match is treated as a conflict.</li>
         <li>Class, Section and Teacher ID must match existing records exactly.</li>
         <li>Nothing is created until you upload — review the results after import and fix failed rows in a re-upload if needed.</li>
       </ul>

@@ -87,26 +87,54 @@
       <!-- Period cards -->
       <div class="tt-card-list">
 
-        <div *ngFor="let entry of dayEntries; trackBy: trackByEntry"
-          class="tt-period-card tt-sc-{{ getSubjectClass(entry.subjectName) }}"
-          [class.tt-card-clickable]="isAdmin()"
-          (click)="isAdmin() && openEdit(entry)">
-          <div class="tt-icon-box">{{ getSubjectIcon(entry.subjectName) }}</div>
-          <div class="tt-card-info">
-            <span class="tt-section-badge" *ngIf="entry.sectionName && !selectedSectionId">§ {{ entry.sectionName }}</span>
-            <div class="tt-card-subject">{{ entry.subjectName }}</div>
-            <div class="tt-card-teacher">{{ entry.teacherName }}</div>
-          </div>
-          <div class="tt-card-right">
-            <div class="tt-card-time" *ngIf="showTimes && entry.startTime">
-              {{ entry.startTime }} – {{ entry.endTime }}
+        <ng-container *ngFor="let group of groupedDayEntries; trackBy: trackByPeriod">
+
+          <!-- Normal period: one subject — unchanged card shell/behavior -->
+          <div *ngIf="group.entries.length === 1"
+            class="tt-period-card tt-sc-{{ getSubjectClass(group.entries[0].subjectName) }}"
+            [class.tt-card-clickable]="isAdmin()"
+            (click)="isAdmin() && openEdit(group.entries[0])">
+            <div class="tt-icon-box">{{ getSubjectIcon(group.entries[0].subjectName) }}</div>
+            <div class="tt-card-info">
+              <span class="tt-section-badge" *ngIf="group.entries[0].sectionName && !selectedSectionId">§ {{ group.entries[0].sectionName }}</span>
+              <div class="tt-card-subject">{{ group.entries[0].subjectName }}</div>
+              <div class="tt-card-teacher">{{ group.entries[0].teacherName }}</div>
             </div>
-            <div class="tt-card-period" *ngIf="!showTimes || !entry.startTime">
-              P {{ entry.periodNumber }}
+            <div class="tt-card-right">
+              <div class="tt-card-time" *ngIf="showTimes && group.entries[0].startTime">
+                {{ group.entries[0].startTime }} – {{ group.entries[0].endTime }}
+              </div>
+              <div class="tt-card-period" *ngIf="!showTimes || !group.entries[0].startTime">
+                P {{ group.entries[0].periodNumber }}
+              </div>
+              <span class="tt-edit-hint no-print" *ngIf="isAdmin()">✎</span>
             </div>
-            <span class="tt-edit-hint no-print" *ngIf="isAdmin()">✎</span>
+            <button type="button" class="tt-add-simul-btn no-print" *ngIf="isAdmin()"
+              (click)="$event.stopPropagation(); openAddSimultaneous(group.entries[0])"
+              title="Add a simultaneous subject to this period">+ Simultaneous</button>
           </div>
-        </div>
+
+          <!-- Simultaneous period: multiple subjects at once (e.g. PCM/PCB electives) -->
+          <div *ngIf="group.entries.length > 1" class="tt-period-card tt-period-card--multi">
+            <div class="tt-period-header">
+              <span class="tt-card-period">Period {{ group.periodNumber }}</span>
+              <span class="tt-card-time" *ngIf="showTimes && group.entries[0].startTime">
+                {{ group.entries[0].startTime }} – {{ group.entries[0].endTime }}
+              </span>
+            </div>
+            <div *ngFor="let entry of group.entries; trackBy: trackByEntry"
+              class="tt-simul-row tt-sc-{{ getSubjectClass(entry.subjectName) }}"
+              [class.tt-card-clickable]="isAdmin()"
+              (click)="isAdmin() && openEdit(entry)">
+              <span class="tt-icon-box">{{ getSubjectIcon(entry.subjectName) }}</span>
+              <span class="tt-section-badge" *ngIf="entry.sectionName && !selectedSectionId">§ {{ entry.sectionName }}</span>
+              <span class="tt-simul-subject">{{ entry.subjectName }}</span>
+              <span class="tt-simul-teacher">— {{ entry.teacherName }}</span>
+              <span class="tt-edit-hint no-print" *ngIf="isAdmin()">✎</span>
+            </div>
+          </div>
+
+        </ng-container>
 
         <div class="tt-day-empty" *ngIf="dayEntries.length === 0">
           <div class="tt-empty-icon">📭</div>
@@ -234,7 +262,7 @@
         </div>
       </div>
 
-      <div class="tt-conflict-warn" *ngIf="checkTimeConflict(modalForm.day, modalForm.startTime, modalForm.endTime, modalForm.id)">
+      <div class="tt-conflict-warn" *ngIf="checkTimeConflict(modalForm.day, modalForm.startTime, modalForm.endTime, modalForm.id, modalForm.simultaneousGroup)">
         ⚠ Another subject is already scheduled for this time slot.
       </div>
 
@@ -251,6 +279,13 @@
           <option value="">-- Select Teacher --</option>
           <option *ngFor="let t of teachers" [value]="t.teacherId">{{ t.name }}</option>
         </select>
+      </div>
+
+      <div class="tt-field">
+        <label class="tt-field-label" for="modal-group">Simultaneous Group <span class="tt-field-optional">(optional)</span></label>
+        <input id="modal-group" type="text" class="tt-field-input" [(ngModel)]="modalForm.simultaneousGroup"
+          placeholder="e.g. MATH_BIO — leave blank for a normal period" autocomplete="off">
+        <small class="tt-field-hint">Give two subjects the same tag only when students genuinely split between them at the same time (e.g. PCM/PCB electives). Both entries must use the identical tag and time.</small>
       </div>
 
     </div>
