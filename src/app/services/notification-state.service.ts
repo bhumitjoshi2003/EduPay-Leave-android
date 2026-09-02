@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, EMPTY, Subject, catchError, exhaustMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
 import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
@@ -10,7 +10,7 @@ export class NotificationStateService {
   private readonly refreshRequest = new Subject<void>();
 
   constructor(private api: NotificationService) {
-    this.refreshRequest.pipe(exhaustMap(() => this.api.getUnreadNotificationCount().pipe(
+    this.refreshRequest.pipe(switchMap(() => this.api.getUnreadNotificationCount().pipe(
       tap(count => this.unreadSubject.next(count)), catchError(() => EMPTY)
     ))).subscribe();
   }

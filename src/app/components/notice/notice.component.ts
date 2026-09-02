@@ -9,6 +9,7 @@ import { UserNotification } from '../../interfaces/user-notification';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
 import { SchoolService } from '../../services/school.service';
+import { NotificationStateService } from '../../services/notification-state.service';
 
 @Component({
   selector: 'app-notice',
@@ -61,7 +62,8 @@ export class NoticeComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
     private toast: ToastService,
-    private schoolService: SchoolService
+    private schoolService: SchoolService,
+    private notificationState: NotificationStateService
   ) { }
 
   ngOnInit(): void {
@@ -308,6 +310,7 @@ export class NoticeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.userNotifications = this.userNotifications.map(n => ({ ...n, isRead: true }));
+          this.notificationState.allRead();
           this.cdr.markForCheck();
         },
         error: (e) => {

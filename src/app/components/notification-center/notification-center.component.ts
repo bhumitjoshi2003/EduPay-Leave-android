@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, Subscription, firstValueFrom, takeUntil } from 'rxjs';
 import { UserNotification } from '../../interfaces/user-notification';
 import { NotificationService } from '../../services/notification.service';
 import { NotificationStateService } from '../../services/notification-state.service';
@@ -23,6 +23,7 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
   page = 0; readonly pageSize = 20; totalPages = 0; totalElements = 0;
   loading = false; loadingMore = false; error = false; unreadCount = 0;
   private readonly destroy$ = new Subject<void>();
+  private inboxRequest?: Subscription;
 
   constructor(private api: NotificationService, private state: NotificationStateService,
     private navigation: NotificationNavigationService, private toast: ToastService,
@@ -30,15 +31,15 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.state.unreadCount$.pipe(takeUntil(this.destroy$)).subscribe(count => { this.unreadCount = count; this.cdr.markForCheck(); });
-    this.state.changed$.pipe(takeUntil(this.destroy$)).subscribe(() => this.load(true));
     this.state.refreshUnread(); this.load(true);
   }
-  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
+  ngOnDestroy(): void { this.inboxRequest?.unsubscribe(); this.destroy$.next(); this.destroy$.complete(); }
 
   load(reset = false): void {
     if (reset) { this.page = 0; this.notifications = []; this.loading = true; } else this.loadingMore = true;
     this.error = false;
-    this.api.getUserNotifications(this.page, this.pageSize,
+    this.inboxRequest?.unsubscribe();
+    this.inboxRequest = this.api.getUserNotifications(this.page, this.pageSize,
       this.filter === 'UNREAD' ? false : undefined,
       this.category === 'ALL' ? undefined : this.category).pipe(takeUntil(this.destroy$)).subscribe({
       next: response => {
@@ -57,19 +58,35 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
   }
   async open(item: UserNotification): Promise<void> {
     const wasUnread = !item.isRead;
-    if (wasUnread) { item.isRead = true; this.state.notificationRead(true); this.cdr.markForCheck();
-      this.api.markNotificationAsRead(item.id).pipe(takeUntil(this.destroy$)).subscribe({ error: () => { item.isRead = false; this.state.refreshUnread(); this.toast.error('Could not mark notification as read'); this.cdr.markForCheck(); } }); }
+    if (wasUnread) {
+      item.isRead = true; this.state.notificationRead(true); this.cdr.markForCheck();
+      try {
+        await firstValueFrom(this.api.markNotificationAsRead(this.inboxId(item)));
+      } catch {
+        item.isRead = false; this.state.refreshUnread();
+        this.toast.error('Could not mark notification as read'); this.cdr.markForCheck();
+        return;
+      }
+    }
     await this.navigation.navigate(item);
   }
   markAllRead(): void {
     if (!this.unreadCount) return;
-    const unread = this.notifications.filter(n => !n.isRead); unread.forEach(n => n.isRead = true); this.state.allRead();
+    const previous = this.notifications;
+    const unread = previous.filter(n => !n.isRead); unread.forEach(n => n.isRead = true);
+    if (this.filter === 'UNREAD') { this.notifications = []; this.totalElements = 0; this.totalPages = 0; }
+    this.state.allRead(); this.cdr.markForCheck();
     this.api.markAllNotificationsAsRead().pipe(takeUntil(this.destroy$)).subscribe({
       next: () => this.toast.success('Notifications marked as read'),
-      error: () => { unread.forEach(n => n.isRead = false); this.state.refreshUnread(); this.toast.error('Could not mark all notifications as read'); this.cdr.markForCheck(); }
+      error: () => { unread.forEach(n => n.isRead = false); this.notifications = previous; this.state.refreshUnread(); this.toast.error('Could not mark all notifications as read'); this.cdr.markForCheck(); }
     });
   }
   icon(item: UserNotification): string { return ({ FEES_PAYMENTS: 'payments', LEAVE: 'event_available', ATTENDANCE: 'fact_check', ACADEMICS_RESULTS: 'school', NOTICE_ANNOUNCEMENT: 'campaign', EVENT_CALENDAR: 'event', ACCOUNT_SECURITY: 'security', SYSTEM_ADMIN: 'settings' } as Record<string,string>)[item.category ?? ''] ?? 'notifications'; }
+  categoryLabel(item: UserNotification): string {
+    return ({ FEES_PAYMENTS: 'Fees & payments', LEAVE: 'Leave', ATTENDANCE: 'Attendance', ACADEMICS_RESULTS: 'Results', NOTICE_ANNOUNCEMENT: 'Notice', EVENT_CALENDAR: 'Event', ACCOUNT_SECURITY: 'Security', SYSTEM_ADMIN: 'System' } as Record<string, string>)[item.category ?? ''] ?? 'General';
+  }
+  trackByInboxId(_: number, item: UserNotification): number { return this.inboxId(item); }
+  private inboxId(item: UserNotification): number { return item.inboxId ?? item.id; }
   relative(value: string): string {
     const seconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));
     if (seconds < 60) return 'Just now'; if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;

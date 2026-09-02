@@ -1,4 +1,7 @@
 export interface UserNotification {
+    /** Authoritative recipient inbox-row ID used by the mark-read endpoint. */
+    inboxId?: number;
+    /** @deprecated Compatibility alias for older API responses. */
     id: number;
     userId: string;
     title: string;

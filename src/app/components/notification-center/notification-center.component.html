@@ -1,21 +1,21 @@
 <main class="nc-shell">
   <header class="nc-header">
     <div><p class="nc-eyebrow">Inbox</p><h1>Notifications</h1><p>{{ unreadCount ? unreadCount + ' unread notification' + (unreadCount === 1 ? '' : 's') : 'You’re all caught up' }}</p></div>
-    <button class="nc-mark-all" type="button" (click)="markAllRead()" [disabled]="unreadCount === 0"><mat-icon>done_all</mat-icon> Mark all as read</button>
+    <button *ngIf="unreadCount" class="nc-mark-all" type="button" (click)="markAllRead()"><mat-icon>done_all</mat-icon> Mark all read</button>
   </header>
   <section class="nc-toolbar" aria-label="Notification filters">
     <div class="nc-tabs"><button [class.active]="filter === 'ALL'" (click)="setFilter('ALL')">All</button><button [class.active]="filter === 'UNREAD'" (click)="setFilter('UNREAD')">Unread <span *ngIf="unreadCount">{{ unreadCount }}</span></button></div>
-    <label>Category <select [ngModel]="category" (ngModelChange)="setCategory($event)"><option value="ALL">All categories</option><option *ngFor="let value of categories" [value]="value">{{ value.replace('_', ' ') | titlecase }}</option></select></label>
+    <label><span>Category</span><select [ngModel]="category" (ngModelChange)="setCategory($event)"><option value="ALL">All categories</option><option *ngFor="let value of categories" [value]="value">{{ value.replace('_', ' ') | titlecase }}</option></select></label>
   </section>
   <div class="nc-state" *ngIf="loading"><span class="nc-spinner"></span><p>Loading notifications…</p></div>
   <div class="nc-state nc-error" *ngIf="error && !loading"><mat-icon>cloud_off</mat-icon><h2>Notifications couldn’t be loaded</h2><p>Check your connection and try again.</p><button (click)="load(true)">Retry</button></div>
   <section class="nc-list" *ngIf="!loading && !error" aria-live="polite">
-    <button class="nc-row" *ngFor="let item of visibleNotifications" [class.unread]="!item.isRead" (click)="open(item)" [attr.aria-label]="(!item.isRead ? 'Unread: ' : '') + item.title">
+    <button class="nc-row" *ngFor="let item of visibleNotifications; trackBy: trackByInboxId" [class.unread]="!item.isRead" (click)="open(item)" [attr.aria-label]="(!item.isRead ? 'Unread: ' : '') + item.title">
       <span class="nc-icon"><mat-icon>{{ icon(item) }}</mat-icon></span>
-      <span class="nc-copy"><span class="nc-meta"><strong>{{ item.category || 'Notification' | titlecase }}</strong><time [attr.datetime]="item.createdAt">{{ relative(item.createdAt) }}</time></span><span class="nc-title">{{ item.title }}</span><span class="nc-message">{{ item.message }}</span></span>
-      <span class="nc-unread" *ngIf="!item.isRead"><span class="sr-only">Unread</span></span><mat-icon class="nc-arrow" *ngIf="item.actionRoute">chevron_right</mat-icon>
+      <span class="nc-copy"><span class="nc-meta"><strong>{{ categoryLabel(item) }}</strong><time [attr.datetime]="item.createdAt">{{ relative(item.createdAt) }}</time></span><span class="nc-title">{{ item.title }}</span><span class="nc-message">{{ item.message }}</span><span class="nc-read-label" *ngIf="!item.isRead"><i></i> Unread</span></span>
+      <mat-icon class="nc-arrow" *ngIf="item.actionRoute">chevron_right</mat-icon>
     </button>
-    <div class="nc-state" *ngIf="visibleNotifications.length === 0"><mat-icon>notifications_none</mat-icon><h2>No notifications here</h2><p>{{ filter === 'UNREAD' ? 'You have read everything in the loaded notifications.' : 'New updates will appear here.' }}</p></div>
+    <div class="nc-state" *ngIf="visibleNotifications.length === 0"><mat-icon>notifications_none</mat-icon><h2>{{ filter === 'UNREAD' ? 'You’re all caught up' : 'No notifications here' }}</h2><p>{{ filter === 'UNREAD' ? 'There are no unread notifications for this category.' : 'New updates will appear here.' }}</p></div>
     <button class="nc-load-more" *ngIf="page + 1 < totalPages" (click)="loadMore()" [disabled]="loadingMore">{{ loadingMore ? 'Loading…' : 'Load more' }}</button>
   </section>
 </main>

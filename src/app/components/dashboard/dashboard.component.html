@@ -483,11 +483,11 @@
 
       <mat-menu #notificationMenu="matMenu" xPosition="before" class="notification-menu">
         <div class="np-panel" (click)="$event.stopPropagation()">
-          <div class="np-head"><div><strong>Notifications</strong><span>{{ unreadNotificationCount }} unread</span></div><button type="button" (click)="markAllRecentRead($event)" [disabled]="unreadNotificationCount === 0">Mark all read</button></div>
+          <div class="np-head"><div><strong>Notifications</strong><span>{{ unreadNotificationCount ? unreadNotificationCount + ' unread' : 'You’re all caught up' }}</span></div><button *ngIf="unreadNotificationCount" type="button" (click)="markAllRecentRead($event)">Mark all read</button></div>
           <div class="np-loading" *ngIf="recentNotificationsLoading">Loading…</div>
           <div class="np-empty" *ngIf="!recentNotificationsLoading && recentNotifications.length === 0"><mat-icon>notifications_none</mat-icon><span>No notifications yet</span></div>
           <button class="np-item" *ngFor="let item of recentNotifications" [class.unread]="!item.isRead" (click)="openRecentNotification(item)">
-            <span class="np-icon"><mat-icon>{{ notificationIcon(item) }}</mat-icon></span><span class="np-copy"><span class="np-category">{{ item.category || 'Notification' | titlecase }}</span><strong>{{ item.title }}</strong><span class="np-message">{{ item.message }}</span><time>{{ notificationTime(item.createdAt) }}</time></span><i *ngIf="!item.isRead" aria-label="Unread"></i>
+            <span class="np-icon"><mat-icon>{{ notificationIcon(item) }}</mat-icon></span><span class="np-copy"><span class="np-category">{{ notificationCategory(item) }}</span><strong>{{ item.title }}</strong><span class="np-message">{{ item.message }}</span><time>{{ notificationTime(item.createdAt) }}<span *ngIf="!item.isRead"> · Unread</span></time></span><i *ngIf="!item.isRead" aria-hidden="true"></i>
           </button>
           <a class="np-view-all" routerLink="/dashboard/notifications">View all notifications <mat-icon>arrow_forward</mat-icon></a>
         </div>

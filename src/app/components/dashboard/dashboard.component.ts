@@ -15,7 +15,7 @@ import { NotificationService } from '../../services/notification.service';
 import { PushNotificationService } from '../../services/push-notification.service';
 import { SchoolService } from '../../services/school.service';
 import { TenantService } from '../../services/tenant.service';
-import { Subject, takeUntil, interval, Subscription } from 'rxjs';
+import { Subject, takeUntil, interval, Subscription, firstValueFrom } from 'rxjs';
 import { NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { Capacitor } from '@capacitor/core';
@@ -308,9 +308,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   async openRecentNotification(item: UserNotification): Promise<void> {
     if (!item.isRead) {
       item.isRead = true; this.notificationState.notificationRead(true);
-      this.notificationService.markNotificationAsRead(item.id).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
-        error: () => { item.isRead = false; this.notificationState.refreshUnread(); this.toast.error('Could not mark notification as read'); }
-      });
+      try {
+        await firstValueFrom(this.notificationService.markNotificationAsRead(item.inboxId ?? item.id));
+      } catch {
+        item.isRead = false; this.notificationState.refreshUnread();
+        this.toast.error('Could not mark notification as read'); this.cdr.markForCheck();
+        return;
+      }
     }
     await this.notificationNavigation.navigate(item);
   }
@@ -324,6 +328,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   notificationIcon(item: UserNotification): string {
     return ({ FEES_PAYMENTS: 'payments', LEAVE: 'event_available', ATTENDANCE: 'fact_check', ACADEMICS_RESULTS: 'school', NOTICE_ANNOUNCEMENT: 'campaign', EVENT_CALENDAR: 'event', ACCOUNT_SECURITY: 'security', SYSTEM_ADMIN: 'settings' } as Record<string,string>)[item.category ?? ''] ?? 'notifications';
+  }
+
+  notificationCategory(item: UserNotification): string {
+    return ({ FEES_PAYMENTS: 'Fees & payments', LEAVE: 'Leave', ATTENDANCE: 'Attendance', ACADEMICS_RESULTS: 'Results', NOTICE_ANNOUNCEMENT: 'Notice', EVENT_CALENDAR: 'Event', ACCOUNT_SECURITY: 'Security', SYSTEM_ADMIN: 'System' } as Record<string, string>)[item.category ?? ''] ?? 'General';
   }
 
   notificationTime(value: string): string {
