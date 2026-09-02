@@ -19,6 +19,7 @@ import { Section } from '../../interfaces/section';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
 import { ChildAccess } from '../../interfaces/parent-portal';
+import { TeacherClassGrantService } from '../../services/teacher-class-grant.service';
 
 @Component({
   selector: 'app-timetable',
@@ -62,6 +63,12 @@ export class TimetableComponent implements OnInit, OnDestroy {
   selectedSectionId: number | null = null;
   selectedDay = 'MONDAY';
   todayDay = '';
+  userName = '';
+
+  /** Distinct class+section combos a TEACHER already has a real relationship with (they
+   *  already teach it, or are its class-teacher) — the only options they may add a period
+   *  into. The backend enforces this independently; this only scopes what's offered. */
+  myClasses: { className: string; sectionId: number | null; sectionName: string | null }[] = [];
 
   showTimes: boolean = (typeof localStorage !== 'undefined')
     ? localStorage.getItem(this.TIMES_KEY) !== 'false'
@@ -86,6 +93,13 @@ export class TimetableComponent implements OnInit, OnDestroy {
   modalError: string | null = null;
   modalSaving = false;
 
+  /** Admin-only "Grant Teacher Access" modal — separate from the period modal above since its
+   *  fields are entirely different (just a teacher, against the already-selected class). */
+  showGrantModal = false;
+  grantTeacherId = '';
+  grantError: string | null = null;
+  grantSaving = false;
+
   constructor(
     private timetableService: TimetableService,
     private teacherService: TeacherService,
@@ -97,7 +111,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
     private schoolService: SchoolService,
     private sectionService: SectionService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private teacherClassGrantService: TeacherClassGrantService
   ) {}
 
   ngOnInit(): void {
@@ -105,6 +120,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.role = user?.role ?? '';
     this.userId = user?.userId ?? '';
     this.userClassName = user?.className ?? '';
+    this.userName = user?.name ?? '';
 
     const dayMap = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
     this.todayDay = dayMap[new Date().getDay()];
@@ -368,6 +384,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
         next: (data) => {
           this.teacherEntries = data;
           this.buildTeacherGrid(data);
+          this.buildMyClasses(data);
           this.isLoading = false;
           this.cdr.markForCheck();
         },
@@ -378,6 +395,48 @@ export class TimetableComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  /** Distinct class+section combos derived from the teacher's own existing periods, plus
+   *  their class-teacher assignment (if any) even when it has no periods logged yet. */
+  private buildMyClasses(entries: TimetableEntry[]): void {
+    const seen = new Set<string>();
+    const classes: { className: string; sectionId: number | null; sectionName: string | null }[] = [];
+    for (const e of entries) {
+      const key = `${e.className}::${e.sectionId ?? ''}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      classes.push({ className: e.className, sectionId: e.sectionId ?? null, sectionName: e.sectionName ?? null });
+    }
+    this.myClasses = classes;
+    this.cdr.markForCheck();
+
+    // seen/myClasses are shared across these two independent, order-agnostic lookups so
+    // neither one can add a class the other already added.
+    const addIfNew = (className: string, sectionId: number | null, sectionName: string | null) => {
+      const key = `${className}::${sectionId ?? ''}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      this.myClasses = [...this.myClasses, { className, sectionId, sectionName }];
+      this.cdr.markForCheck();
+    };
+
+    this.teacherService.getTeacher(this.userId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: teacher => {
+        if (!teacher.classTeacher) return;
+        addIfNew(teacher.classTeacher, teacher.classTeacherSectionId ?? null, null);
+      },
+      error: () => { /* non-critical — self-add just won't offer this class if the lookup fails */ }
+    });
+
+    this.teacherClassGrantService.getForTeacher(this.userId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: grants => {
+        for (const g of grants) {
+          addIfNew(g.className, g.sectionId, g.sectionName);
+        }
+      },
+      error: () => { /* non-critical — self-add just won't offer admin-granted classes if this fails */ }
+    });
   }
 
   private loadTeachers(): void {
@@ -414,6 +473,45 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.modalError = null;
     this.showModal = true;
     this.cdr.markForCheck();
+  }
+
+  /** TEACHER self-service: opens a fresh Add Period form scoped to a class/section the teacher
+   *  already has a real relationship with (see myClasses). teacherId is forced to themselves —
+   *  never shown as a choice — and the backend re-enforces both independently. If the slot
+   *  turns out to already be occupied, saveEntry()'s error handler offers to add this as a
+   *  simultaneous subject instead of just failing. */
+  openAddPeriodAsTeacher(): void {
+    if (!this.isTeacher() || this.myClasses.length === 0) return;
+    this.isEditMode = false;
+    this.isSimultaneousMode = false;
+    this.simultaneousSourceId = null;
+    this.modalForm = this.emptyForm();
+    this.modalForm.day = this.selectedDay;
+    this.modalForm.teacherId = this.userId;
+    this.modalForm.teacherName = this.userName;
+    const first = this.myClasses[0];
+    this.modalForm.className = first.className;
+    this.modalForm.sectionId = first.sectionId;
+    this.modalForm.sectionName = first.sectionName;
+    this.modalError = null;
+    this.showModal = true;
+    this.cdr.markForCheck();
+  }
+
+  myClassKey(c: { className: string; sectionId: number | null }): string {
+    return `${c.className}::${c.sectionId ?? ''}`;
+  }
+
+  get selectedMyClassKey(): string {
+    return `${this.modalForm.className}::${this.modalForm.sectionId ?? ''}`;
+  }
+
+  onMyClassSelect(key: string): void {
+    const match = this.myClasses.find(c => this.myClassKey(c) === key);
+    if (!match) return;
+    this.modalForm.className = match.className;
+    this.modalForm.sectionId = match.sectionId;
+    this.modalForm.sectionName = match.sectionName;
   }
 
   /** Pre-fills a new form from an existing entry's slot (day/section/period/times), leaving
@@ -461,6 +559,52 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  /** Admin-only: authorizes a teacher to self-serve periods for the currently selected
+   *  class/section, even one with no periods logged yet and that isn't their class-teacher
+   *  assignment. See TeacherClassGrantService (backend) for what this actually grants. */
+  openGrantModal(): void {
+    if (!this.isAdmin() || !this.selectedClass) return;
+    this.grantTeacherId = '';
+    this.grantError = null;
+    this.showGrantModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closeGrantModal(): void {
+    this.showGrantModal = false;
+    this.cdr.markForCheck();
+  }
+
+  saveGrant(): void {
+    this.grantError = null;
+    if (!this.grantTeacherId) {
+      this.grantError = 'Please select a teacher.'; return;
+    }
+
+    this.grantSaving = true;
+    this.cdr.markForCheck();
+
+    this.teacherClassGrantService.create({
+      teacherId: this.grantTeacherId,
+      className: this.selectedClass,
+      sectionId: this.selectedSectionId
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.grantSaving = false;
+        this.showGrantModal = false;
+        this.toast.success('Access granted!');
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.grantSaving = false;
+        this.grantError = typeof err.error === 'string' && err.error
+          ? err.error
+          : 'Failed to grant access. Please try again.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
   onTeacherSelect(): void {
     const teacher = this.teachers.find(t => t.teacherId === this.modalForm.teacherId);
     this.modalForm.teacherName = teacher?.name ?? '';
@@ -494,22 +638,65 @@ export class TimetableComponent implements OnInit, OnDestroy {
       next: () => {
         this.modalSaving = false;
         this.showModal = false;
-        this.loadClassTimetable();
+        if (this.isTeacher()) {
+          this.loadTeacherTimetable();
+        } else {
+          this.loadClassTimetable();
+        }
         this.toast.success('Saved!');
       },
       error: (err) => {
         this.modalSaving = false;
         this.logger.error('Failed to save timetable entry:', err);
+
+        // A teacher's first attempt at a brand-new period landing on an already-occupied slot:
+        // offer to add it as a simultaneous subject instead of a dead-end conflict message —
+        // they never see slot/tag mechanics either way.
+        if (this.isTeacher() && !this.isEditMode && !this.isSimultaneousMode && err.status === 409) {
+          this.offerSimultaneousRecovery();
+          return;
+        }
+
         // The backend now returns a specific reason (slot conflict, group mismatch, teacher
         // double-booking, etc.) as the plain-text 409 body — prefer it when present.
         this.modalError = err.status === 409
           ? (typeof err.error === 'string' && err.error
               ? err.error
               : 'A subject is already scheduled for this period. Edit the existing one instead.')
-          : 'Failed to save. Please try again.';
+          : err.status === 403
+            ? (typeof err.error === 'string' && err.error ? err.error : 'You are not allowed to do that.')
+            : 'Failed to save. Please try again.';
         this.cdr.markForCheck();
       }
     });
+  }
+
+  /** Looks up what's already occupying the slot the teacher just tried to save into, and — if
+   *  found — switches the modal into isSimultaneousMode against it so a retry pairs alongside
+   *  the existing subject instead of failing again the same way. */
+  private offerSimultaneousRecovery(): void {
+    this.timetableService.getClassTimetable(this.modalForm.className, this.modalForm.sectionId)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: (dayEntries) => {
+          const clash = dayEntries.find(e => e.day === this.modalForm.day && e.periodNumber === this.modalForm.periodNumber);
+          if (clash) {
+            this.isSimultaneousMode = true;
+            this.simultaneousSourceId = clash.id ?? null;
+            this.modalForm.startTime = clash.startTime;
+            this.modalForm.endTime = clash.endTime;
+            this.modalForm.sectionName = clash.sectionName;
+            this.modalError = `Period ${clash.periodNumber} is already used by ${clash.subjectName}`
+              + `${clash.teacherName ? ' (' + clash.teacherName + ')' : ''}. Click "Add Subject" below to add yours alongside it.`;
+          } else {
+            this.modalError = 'A subject is already scheduled for this period.';
+          }
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.modalError = 'A subject is already scheduled for this period.';
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   deleteEntry(): void {

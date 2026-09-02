@@ -127,9 +127,11 @@
               [class.tt-card-clickable]="isAdmin()"
               (click)="isAdmin() && openEdit(entry)">
               <span class="tt-icon-box">{{ getSubjectIcon(entry.subjectName) }}</span>
-              <span class="tt-section-badge" *ngIf="entry.sectionName && !selectedSectionId">§ {{ entry.sectionName }}</span>
-              <span class="tt-simul-subject">{{ entry.subjectName }}</span>
-              <span class="tt-simul-teacher">— {{ entry.teacherName }}</span>
+              <span class="tt-simul-info">
+                <span class="tt-section-badge" *ngIf="entry.sectionName && !selectedSectionId">§ {{ entry.sectionName }}</span>
+                <span class="tt-simul-subject">{{ entry.subjectName }}</span>
+                <span class="tt-simul-teacher">{{ entry.teacherName }}</span>
+              </span>
               <span class="tt-edit-hint no-print" *ngIf="isAdmin()">✎</span>
             </div>
           </div>
@@ -147,6 +149,12 @@
       <!-- Add period (admin only) -->
       <button class="tt-add-btn no-print" *ngIf="isAdmin()" (click)="openAddPeriod()">
         ＋ Add Period for {{ dayLabels[selectedDay] }}
+      </button>
+
+      <!-- Let a teacher self-serve periods for this class, even ones with no existing periods
+           or class-teacher connection to it yet (see the modal's own explanation). -->
+      <button class="tt-grant-btn no-print" *ngIf="isAdmin()" (click)="openGrantModal()">
+        👤+ Grant a teacher access to Class {{ selectedClass }}<ng-container *ngIf="selectedSectionName"> – {{ selectedSectionName }}</ng-container>
       </button>
 
     </ng-container>
@@ -209,6 +217,13 @@
       </div>
     </ng-template>
 
+    <!-- Self-service: add a period you teach yourself, e.g. a gap the admin hasn't filled in
+         yet. Only offered once we know at least one class/section this teacher is connected
+         to (see myClasses) — the backend independently enforces the same scope either way. -->
+    <button class="tt-add-btn no-print" *ngIf="myClasses.length > 0" (click)="openAddPeriodAsTeacher()">
+      ＋ Add Period for {{ dayLabels[selectedDay] }}
+    </button>
+
   </ng-container>
 
 </div>
@@ -231,7 +246,18 @@
 
     <div class="tt-modal-body">
 
-      <div class="tt-field" *ngIf="sections.length > 0 && !isSimultaneousMode">
+      <div class="tt-field" *ngIf="isTeacher() && !isSimultaneousMode">
+        <label class="tt-field-label" for="modal-my-class">Class</label>
+        <select id="modal-my-class" class="tt-field-input" [ngModel]="selectedMyClassKey"
+          (ngModelChange)="onMyClassSelect($event)">
+          <option *ngFor="let c of myClasses" [value]="myClassKey(c)">
+            Class {{ c.className }}<ng-container *ngIf="c.sectionName"> – {{ c.sectionName }}</ng-container>
+          </option>
+        </select>
+        <small class="tt-field-hint">Only classes/sections you already teach or are the class-teacher of.</small>
+      </div>
+
+      <div class="tt-field" *ngIf="sections.length > 0 && !isSimultaneousMode && !isTeacher()">
         <label class="tt-field-label" for="modal-section">Section</label>
         <select id="modal-section" class="tt-field-input" [(ngModel)]="modalForm.sectionId">
           <option [ngValue]="null">-- No specific section --</option>
@@ -274,13 +300,18 @@
           placeholder="e.g. Mathematics" autocomplete="off">
       </div>
 
-      <div class="tt-field">
+      <div class="tt-field" *ngIf="!isTeacher()">
         <label class="tt-field-label" for="modal-teacher">Teacher</label>
         <select id="modal-teacher" class="tt-field-input" [(ngModel)]="modalForm.teacherId"
           (ngModelChange)="onTeacherSelect()">
           <option value="">-- Select Teacher --</option>
           <option *ngFor="let t of teachers" [value]="t.teacherId">{{ t.name }}</option>
         </select>
+      </div>
+
+      <div class="tt-field" *ngIf="isTeacher()">
+        <label class="tt-field-label">Teacher</label>
+        <p class="tt-field-hint" style="margin:0;">👤 You ({{ userName }}) — periods you add yourself are always assigned to you.</p>
       </div>
 
       <div class="tt-field" *ngIf="isEditMode && modalForm.simultaneousGroup">
@@ -300,6 +331,47 @@
         <button class="tt-btn-cancel" (click)="closeModal()" [disabled]="modalSaving">Cancel</button>
         <button class="tt-btn-save" (click)="saveEntry()" [disabled]="modalSaving">
           {{ modalSaving ? 'Saving…' : (isEditMode ? 'Update' : (isSimultaneousMode ? 'Add Subject' : 'Add Period')) }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     GRANT TEACHER ACCESS MODAL (admin only)
+══════════════════════════════════════════════════════════ -->
+<div class="tt-overlay" *ngIf="showGrantModal" (click)="closeGrantModal()" role="dialog" aria-modal="true"
+  aria-label="Grant a teacher access to this class">
+  <div class="tt-modal" (click)="$event.stopPropagation()">
+
+    <h3 class="tt-modal-title">Grant Teacher Access</h3>
+
+    <div class="tt-modal-meta">
+      Class {{ selectedClass }}<span *ngIf="selectedSectionName"> – {{ selectedSectionName }}</span>
+    </div>
+
+    <p class="tt-field-hint">Lets this teacher add their own periods for this class going forward — for
+      example, a class they genuinely teach but that has no periods logged yet and isn't their
+      class-teacher assignment. This only grants self-service access; it doesn't create a period itself.</p>
+
+    <div class="tt-modal-body">
+      <div class="tt-field">
+        <label class="tt-field-label" for="grant-teacher">Teacher</label>
+        <select id="grant-teacher" class="tt-field-input" [(ngModel)]="grantTeacherId">
+          <option value="">-- Select Teacher --</option>
+          <option *ngFor="let t of teachers" [value]="t.teacherId">{{ t.name }}</option>
+        </select>
+      </div>
+    </div>
+
+    <p class="tt-modal-error" *ngIf="grantError" role="alert">{{ grantError }}</p>
+
+    <div class="tt-modal-actions">
+      <div class="tt-modal-right-actions">
+        <button class="tt-btn-cancel" (click)="closeGrantModal()" [disabled]="grantSaving">Cancel</button>
+        <button class="tt-btn-save" (click)="saveGrant()" [disabled]="grantSaving">
+          {{ grantSaving ? 'Saving…' : 'Grant Access' }}
         </button>
       </div>
     </div>
