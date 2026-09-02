@@ -30,6 +30,11 @@ export const routes: Routes = [
     loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
     canActivate: [authGuard],
     children: [
+      {
+        path: 'notifications',
+        loadComponent: () => import('./components/notification-center/notification-center.component').then(m => m.NotificationCenterComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'PARENT'] }
+      },
       // ── Student routes ────────────────────────────────────────────────
       {
         path: 'fees',

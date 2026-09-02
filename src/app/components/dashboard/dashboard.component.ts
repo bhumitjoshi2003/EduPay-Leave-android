@@ -24,6 +24,10 @@ import { AiCopilotComponent } from '../ai-copilot/ai-copilot.component';
 import { ParentPortalService } from '../../services/parent-portal.service';
 import { ParentChildContextService } from '../../services/parent-child-context.service';
 import { ChildAccess } from '../../interfaces/parent-portal';
+import { UserNotification } from '../../interfaces/user-notification';
+import { NotificationStateService } from '../../services/notification-state.service';
+import { NotificationNavigationService } from '../../services/notification-navigation.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -51,6 +55,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   Class: string = '';
   ClassTeacher: string = '';
   unreadNotificationCount: number = 0;
+  recentNotifications: UserNotification[] = [];
+  recentNotificationsLoading = false;
   showMoreMenu: boolean = false;
   showUpdateBanner = false;
   latestAppVersion = '';
@@ -73,13 +79,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
     public tenantService: TenantService,
     private parentPortalService: ParentPortalService,
     private childContext: ParentChildContextService,
+    private notificationState: NotificationStateService,
+    private notificationNavigation: NotificationNavigationService,
+    private toast: ToastService,
     private cdr: ChangeDetectorRef,
     private logger: LoggerService
   ) { }
 
   ngOnInit() {
+    void this.pushNotificationService.init();
     this.getDetails();
     this.handleInitialNavigation();
+    this.notificationState.unreadCount$.pipe(takeUntil(this.ngUnsubscribe)).subscribe(count => {
+      this.unreadNotificationCount = count; this.cdr.markForCheck();
+    });
     this.fetchUnreadCount();
     this.initParentChildContext();
     // Re-fetch on every navigation (catches mark-all-read from notice board)
@@ -107,6 +120,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private onVisibilityChange(): void {
     if (document.visibilityState === 'visible') {
+      this.fetchUnreadCount();
       this.authStateService.loadCurrentUser()
         .then(() => this.cdr.markForCheck())
         .catch(() => {});
@@ -280,16 +294,43 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   fetchUnreadCount(): void {
     if (this.Role === 'SUPER_ADMIN') return;
-    this.notificationService.getUnreadNotificationCount()
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe({
-        next: (count) => { this.unreadNotificationCount = count; this.cdr.markForCheck(); },
-        error: (e) => this.logger.error('Error fetching unread count:', e),
-      });
+    this.notificationState.refreshUnread();
   }
 
-  navigateToNoticeBoard(): void {
-    this.router.navigate(['/dashboard/notice']);
+  loadRecentNotifications(): void {
+    this.recentNotificationsLoading = true;
+    this.notificationService.getUserNotifications(0, 5).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+      next: page => { this.recentNotifications = page.content; this.recentNotificationsLoading = false; this.cdr.markForCheck(); },
+      error: () => { this.recentNotificationsLoading = false; this.cdr.markForCheck(); }
+    });
+  }
+
+  async openRecentNotification(item: UserNotification): Promise<void> {
+    if (!item.isRead) {
+      item.isRead = true; this.notificationState.notificationRead(true);
+      this.notificationService.markNotificationAsRead(item.id).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+        error: () => { item.isRead = false; this.notificationState.refreshUnread(); this.toast.error('Could not mark notification as read'); }
+      });
+    }
+    await this.notificationNavigation.navigate(item);
+  }
+
+  markAllRecentRead(event: Event): void {
+    event.stopPropagation();
+    if (!this.unreadNotificationCount) return;
+    this.recentNotifications.forEach(item => item.isRead = true); this.notificationState.allRead();
+    this.notificationService.markAllNotificationsAsRead().pipe(takeUntil(this.ngUnsubscribe)).subscribe({ error: () => this.notificationState.refreshUnread() });
+  }
+
+  notificationIcon(item: UserNotification): string {
+    return ({ FEES_PAYMENTS: 'payments', LEAVE: 'event_available', ATTENDANCE: 'fact_check', ACADEMICS_RESULTS: 'school', NOTICE_ANNOUNCEMENT: 'campaign', EVENT_CALENDAR: 'event', ACCOUNT_SECURITY: 'security', SYSTEM_ADMIN: 'settings' } as Record<string,string>)[item.category ?? ''] ?? 'notifications';
+  }
+
+  notificationTime(value: string): string {
+    const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
+    if (minutes < 1) return 'Just now'; if (minutes < 60) return `${minutes} min ago`;
+    if (minutes < 1440) return `${Math.floor(minutes / 60)} hr ago`;
+    return minutes < 2880 ? 'Yesterday' : `${Math.floor(minutes / 1440)} days ago`;
   }
 
   navigateToStudentSearch(): void {

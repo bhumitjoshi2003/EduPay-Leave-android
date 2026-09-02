@@ -5,12 +5,20 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { environment } from '../../environments/environment';
 import { LoggerService } from './logger.service';
+import { AuthStateService } from '../auth/auth-state.service';
+import { NotificationStateService } from './notification-state.service';
+import { NotificationNavigationService, NotificationAction } from './notification-navigation.service';
+import { NotificationService } from './notification.service';
+import { ToastService } from './toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class PushNotificationService {
   private readonly tokenKey = 'fcm_token';
+  private readonly pendingActionKey = 'edunexify.pending-notification-action';
 
-  constructor(private http: HttpClient, private logger: LoggerService) {}
+  constructor(private http: HttpClient, private logger: LoggerService, private auth: AuthStateService,
+    private state: NotificationStateService, private navigation: NotificationNavigationService,
+    private notifications: NotificationService, private toast: ToastService) {}
 
   async init(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
@@ -48,13 +56,44 @@ export class PushNotificationService {
     // Notification received while app is open — no action needed, Notice Board updates on next visit
     await PushNotifications.addListener('pushNotificationReceived', (notification) => {
       this.logger.log('Push received (foreground):', notification.title);
+      this.state.refreshUnread();
+      this.toast.info(notification.title || 'New notification', notification.body || 'Open Notifications to view the update.');
     });
 
-    // User tapped a notification — navigate to notice board
-    await PushNotifications.addListener('pushNotificationActionPerformed', () => {
-      window.location.href = '/dashboard/notice';
+    await PushNotifications.addListener('pushNotificationActionPerformed', event => {
+      void this.handleAction(event.notification.data ?? {});
     });
+
+    await this.continuePendingAction();
   }
+
+  async continuePendingAction(): Promise<void> {
+    if (!this.auth.isLoggedIn()) return;
+    const raw = localStorage.getItem(this.pendingActionKey);
+    if (!raw) return;
+    localStorage.removeItem(this.pendingActionKey);
+    try { await this.handleAction(JSON.parse(raw)); } catch { /* malformed/expired action */ }
+  }
+
+  private async handleAction(data: Record<string, unknown>): Promise<void> {
+    const action: NotificationAction = {
+      actionRoute: this.string(data['actionRoute']), sourceEntityType: this.string(data['sourceEntityType']),
+      sourceEntityId: this.string(data['sourceEntityId']), actionMetadata: this.string(data['actionMetadata'])
+    };
+    if (!this.auth.isLoggedIn()) {
+      localStorage.setItem(this.pendingActionKey, JSON.stringify(action));
+      return;
+    }
+    const notificationId = Number(data['notificationId']);
+    if (Number.isSafeInteger(notificationId) && notificationId > 0) {
+      this.notifications.markNotificationAsRead(notificationId).subscribe({ next: () => this.state.refreshUnread(), error: () => this.state.refreshUnread() });
+    }
+    if (!(await this.navigation.navigate(action)) && !action.actionRoute) {
+      await this.navigation.navigate({ actionRoute: '/dashboard/notifications' });
+    }
+  }
+
+  private string(value: unknown): string | undefined { return typeof value === 'string' && value.trim() ? value : undefined; }
 
   private registerToken(token: string): void {
     this.http.post(`${environment.apiUrl}/users/device-token`, { token }, { responseType: 'text' })
@@ -82,6 +121,7 @@ export class PushNotificationService {
       this.logger.error('[PushNotification] Failed to clear device token:', e);
     } finally {
       localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.pendingActionKey);
     }
 
     if (Capacitor.isNativePlatform()) {

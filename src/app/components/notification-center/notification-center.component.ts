@@ -1,0 +1,79 @@
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
+import { UserNotification } from '../../interfaces/user-notification';
+import { NotificationService } from '../../services/notification.service';
+import { NotificationStateService } from '../../services/notification-state.service';
+import { NotificationNavigationService } from '../../services/notification-navigation.service';
+import { ToastService } from '../../services/toast.service';
+
+type InboxFilter = 'ALL' | 'UNREAD';
+
+@Component({ selector: 'app-notification-center', standalone: true,
+  imports: [CommonModule, MatIconModule, FormsModule], templateUrl: './notification-center.component.html',
+  styleUrl: './notification-center.component.css', changeDetection: ChangeDetectionStrategy.OnPush })
+export class NotificationCenterComponent implements OnInit, OnDestroy {
+  notifications: UserNotification[] = [];
+  filter: InboxFilter = 'ALL';
+  category = 'ALL';
+  readonly categories = ['ACCOUNT_SECURITY', 'ATTENDANCE', 'LEAVE', 'FEES_PAYMENTS',
+    'ACADEMICS_RESULTS', 'NOTICE_ANNOUNCEMENT', 'EVENT_CALENDAR', 'SYSTEM_ADMIN'];
+  page = 0; readonly pageSize = 20; totalPages = 0; totalElements = 0;
+  loading = false; loadingMore = false; error = false; unreadCount = 0;
+  private readonly destroy$ = new Subject<void>();
+
+  constructor(private api: NotificationService, private state: NotificationStateService,
+    private navigation: NotificationNavigationService, private toast: ToastService,
+    private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    this.state.unreadCount$.pipe(takeUntil(this.destroy$)).subscribe(count => { this.unreadCount = count; this.cdr.markForCheck(); });
+    this.state.changed$.pipe(takeUntil(this.destroy$)).subscribe(() => this.load(true));
+    this.state.refreshUnread(); this.load(true);
+  }
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
+
+  load(reset = false): void {
+    if (reset) { this.page = 0; this.notifications = []; this.loading = true; } else this.loadingMore = true;
+    this.error = false;
+    this.api.getUserNotifications(this.page, this.pageSize,
+      this.filter === 'UNREAD' ? false : undefined,
+      this.category === 'ALL' ? undefined : this.category).pipe(takeUntil(this.destroy$)).subscribe({
+      next: response => {
+        this.notifications = reset ? response.content : [...this.notifications, ...response.content];
+        this.totalPages = response.totalPages; this.totalElements = response.totalElements;
+        this.loading = false; this.loadingMore = false; this.cdr.markForCheck();
+      },
+      error: () => { this.loading = false; this.loadingMore = false; this.error = true; this.cdr.markForCheck(); }
+    });
+  }
+  loadMore(): void { if (!this.loadingMore && this.page + 1 < this.totalPages) { this.page++; this.load(); } }
+  setFilter(value: InboxFilter): void { if (this.filter !== value) { this.filter = value; this.load(true); } }
+  setCategory(value: string): void { if (this.category !== value) { this.category = value; this.load(true); } }
+  get visibleNotifications(): UserNotification[] {
+    return this.notifications;
+  }
+  async open(item: UserNotification): Promise<void> {
+    const wasUnread = !item.isRead;
+    if (wasUnread) { item.isRead = true; this.state.notificationRead(true); this.cdr.markForCheck();
+      this.api.markNotificationAsRead(item.id).pipe(takeUntil(this.destroy$)).subscribe({ error: () => { item.isRead = false; this.state.refreshUnread(); this.toast.error('Could not mark notification as read'); this.cdr.markForCheck(); } }); }
+    await this.navigation.navigate(item);
+  }
+  markAllRead(): void {
+    if (!this.unreadCount) return;
+    const unread = this.notifications.filter(n => !n.isRead); unread.forEach(n => n.isRead = true); this.state.allRead();
+    this.api.markAllNotificationsAsRead().pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => this.toast.success('Notifications marked as read'),
+      error: () => { unread.forEach(n => n.isRead = false); this.state.refreshUnread(); this.toast.error('Could not mark all notifications as read'); this.cdr.markForCheck(); }
+    });
+  }
+  icon(item: UserNotification): string { return ({ FEES_PAYMENTS: 'payments', LEAVE: 'event_available', ATTENDANCE: 'fact_check', ACADEMICS_RESULTS: 'school', NOTICE_ANNOUNCEMENT: 'campaign', EVENT_CALENDAR: 'event', ACCOUNT_SECURITY: 'security', SYSTEM_ADMIN: 'settings' } as Record<string,string>)[item.category ?? ''] ?? 'notifications'; }
+  relative(value: string): string {
+    const seconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));
+    if (seconds < 60) return 'Just now'; if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hr ago`; if (seconds < 172800) return 'Yesterday';
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`; return new Date(value).toLocaleDateString();
+  }
+}
