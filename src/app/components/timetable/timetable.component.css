@@ -223,8 +223,15 @@
 .tt-simul-row .tt-icon-box {
   width: 34px; height: 34px; font-size: 1.15rem; border-radius: 9px; flex-shrink: 0;
 }
-.tt-simul-subject { font-weight: 800; color: var(--card-accent, #15803d); font-size: 0.9rem; }
-.tt-simul-teacher { color: #94a3b8; font-size: 0.78rem; font-weight: 500; }
+/* Section badge, subject, and teacher stack vertically (like the single-subject card) instead
+   of cramming into one row — on narrow screens a long subject/teacher name has its own line to
+   wrap into, rather than breaking mid-row right against the icon. */
+.tt-simul-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.tt-simul-subject {
+  font-weight: 800; color: var(--card-accent, #15803d); font-size: 0.9rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tt-simul-teacher { color: #94a3b8; font-size: 0.78rem; font-weight: 500; margin-top: 2px; }
 .tt-simul-row .tt-edit-hint { position: static; margin-left: auto; opacity: 0; }
 .tt-simul-row.tt-card-clickable:hover .tt-edit-hint { opacity: 1; }
 
@@ -236,6 +243,18 @@
   opacity: 0; transition: opacity 0.15s;
 }
 .tt-period-card.tt-card-clickable:hover .tt-edit-hint { opacity: 1; }
+
+/* Touch devices have no hover, so these hover-revealed affordances ("+ Simultaneous" and the
+   ✎ edit hint) would otherwise be invisible and undiscoverable — show them at full opacity by
+   default there. Desktop/trackpad users keep the hover-fade behavior unchanged. */
+@media (hover: none) {
+  .tt-add-simul-btn,
+  .tt-edit-hint,
+  .tt-simul-row .tt-edit-hint,
+  .tt-period-card--single .tt-edit-hint {
+    opacity: 1;
+  }
+}
 
 /* Icon box */
 .tt-icon-box {
@@ -321,6 +340,17 @@
   transition: all 0.15s;
 }
 .tt-add-btn:hover { background: #dcfce7; border-color: #15803d; }
+
+.tt-grant-btn {
+  width: 100%; padding: 10px;
+  border: 1px dashed #cbd5e1; border-radius: 12px;
+  background: transparent; color: #64748b;
+  font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s;
+}
+.tt-grant-btn:hover { background: #f8fafc; border-color: #94a3b8; color: #475569; }
 
 /* ══════════════════════════════════════════════════════════════
    MODAL
