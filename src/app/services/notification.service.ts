@@ -51,12 +51,18 @@ export class NotificationService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  getUserNotifications(page = 0, size = 20): Observable<PagedResponse<UserNotification>> {
-    const params = new HttpParams()
+  getUserNotifications(page = 0, size = 20, isRead?: boolean, category?: string): Observable<PagedResponse<UserNotification>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sort', 'createdAt,desc');
+    if (isRead !== undefined) params = params.set('isRead', String(isRead));
+    if (category) params = params.set('category', category);
     return this.http.get<PagedResponse<UserNotification>>(`${this.apiUrl}/user`, { params });
+  }
+
+  markNotificationAsRead(inboxId: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/user/${inboxId}/read`, {});
   }
 
   getUnreadNotificationCount(): Observable<number> {
