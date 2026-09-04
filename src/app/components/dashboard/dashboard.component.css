@@ -328,17 +328,35 @@
 .np-head { padding: 14px 16px; z-index: 2; }
 .np-head button { border-radius: 8px; padding: 7px; font-size: .76rem; }
 .np-item { min-width: 0; padding: 12px 14px; }
-.np-item.unread { box-shadow: inset 3px 0 #299a98; }
+.np-item { --np-accent: #177f81; --np-tint: #e2f2f1; transition: background-color 180ms ease, box-shadow 180ms ease; }
+.np-item.unread { background: color-mix(in srgb, var(--np-tint) 48%, #fff); box-shadow: inset 3px 0 var(--np-accent); }
+.np-item:active { background: color-mix(in srgb, var(--np-tint) 62%, #fff); }
+.np-item:focus-visible { outline: 2px solid var(--np-accent); outline-offset: -2px; }
+.np-item[data-category='LEAVE'] { --np-accent: #7c5ab8; --np-tint: #f0ebfa; }
+.np-item[data-category='ATTENDANCE'] { --np-accent: #16836d; --np-tint: #e5f5f0; }
+.np-item[data-category='FEES_PAYMENTS'] { --np-accent: #b56a18; --np-tint: #fbf1e4; }
+.np-item[data-category='ACADEMICS_RESULTS'] { --np-accent: #356db3; --np-tint: #e9f1fb; }
+.np-item[data-category='NOTICE_ANNOUNCEMENT'] { --np-accent: #b0445d; --np-tint: #faeaf0; }
+.np-item[data-category='EVENT_CALENDAR'] { --np-accent: #51713a; --np-tint: #edf5e8; }
+.np-item[data-category='ACCOUNT_SECURITY'], .np-item[data-category='SYSTEM_ADMIN'] { --np-accent: #536b85; --np-tint: #edf2f7; }
+.np-item .np-icon { color: var(--np-accent); background: var(--np-tint); border: 1px solid color-mix(in srgb, var(--np-accent) 12%, transparent); }
+.np-item .np-category { color: var(--np-accent); letter-spacing: .065em; }
 .np-copy { flex: 1; max-width: 100%; overflow: hidden; padding-right: 8px; }
 .np-copy strong { line-height: 1.25; }
 .np-item.unread .np-copy strong { color: #123440; font-weight: 800; }
 .np-message { display: -webkit-box; white-space: normal; line-height: 1.35; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-.np-copy time span { color: #257d80; font-weight: 700; }
+.np-copy time span { color: var(--np-accent); font-weight: 700; }
+.np-item > i { background: var(--np-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--np-accent) 13%, transparent); }
 .np-view-all { min-height: 46px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 2; }
+.np-view-all { transition: background-color 180ms ease, color 180ms ease; }
+.np-view-all:hover, .np-view-all:focus-visible { background: #edf8f7; color: #0f6f72; outline: none; }
 @media (max-width: 600px) {
   :host ::ng-deep .notification-menu.mat-mdc-menu-panel { width: calc(100vw - 16px) !important; max-width: calc(100vw - 16px) !important; border-radius: 15px !important; }
   .np-panel { width: 100%; max-height: calc(100dvh - 72px - env(safe-area-inset-bottom, 0px)); }
   .np-item { min-height: 82px; padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .np-item, .np-view-all { transition: none; }
 }
 
 /* ══ Profile pill ══ */

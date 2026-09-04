@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
-import { Subject, Subscription, firstValueFrom, takeUntil } from 'rxjs';
+import { Subject, Subscription, catchError, firstValueFrom, map, of, switchMap, takeUntil } from 'rxjs';
 import { UserNotification } from '../../interfaces/user-notification';
 import { NotificationService } from '../../services/notification.service';
 import { NotificationStateService } from '../../services/notification-state.service';
@@ -10,6 +10,7 @@ import { NotificationNavigationService } from '../../services/notification-navig
 import { ToastService } from '../../services/toast.service';
 
 type InboxFilter = 'ALL' | 'UNREAD';
+interface InboxRequest { page: number; reset: boolean; isRead?: boolean; category?: string; }
 
 @Component({ selector: 'app-notification-center', standalone: true,
   imports: [CommonModule, MatIconModule, FormsModule], templateUrl: './notification-center.component.html',
@@ -23,6 +24,7 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
   page = 0; readonly pageSize = 20; totalPages = 0; totalElements = 0;
   loading = false; loadingMore = false; error = false; unreadCount = 0;
   private readonly destroy$ = new Subject<void>();
+  private readonly loadRequest$ = new Subject<InboxRequest>();
   private inboxRequest?: Subscription;
 
   constructor(private api: NotificationService, private state: NotificationStateService,
@@ -31,6 +33,27 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.state.unreadCount$.pipe(takeUntil(this.destroy$)).subscribe(count => { this.unreadCount = count; this.cdr.markForCheck(); });
+    this.inboxRequest = this.loadRequest$.pipe(
+      switchMap(request => this.api.getUserNotifications(
+        request.page, this.pageSize, request.isRead, request.category
+      ).pipe(
+        map(response => ({ request, response, failed: false as const })),
+        catchError(() => of({ request, response: null, failed: true as const }))
+      )),
+      takeUntil(this.destroy$)
+    ).subscribe(result => {
+      if (result.failed) {
+        this.loading = false; this.loadingMore = false; this.error = true;
+      } else {
+        this.notifications = result.request.reset
+          ? result.response.content
+          : [...this.notifications, ...result.response.content];
+        this.totalPages = result.response.totalPages;
+        this.totalElements = result.response.totalElements;
+        this.loading = false; this.loadingMore = false; this.error = false;
+      }
+      this.cdr.markForCheck();
+    });
     this.state.refreshUnread(); this.load(true);
   }
   ngOnDestroy(): void { this.inboxRequest?.unsubscribe(); this.destroy$.next(); this.destroy$.complete(); }
@@ -38,16 +61,11 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
   load(reset = false): void {
     if (reset) { this.page = 0; this.notifications = []; this.loading = true; } else this.loadingMore = true;
     this.error = false;
-    this.inboxRequest?.unsubscribe();
-    this.inboxRequest = this.api.getUserNotifications(this.page, this.pageSize,
-      this.filter === 'UNREAD' ? false : undefined,
-      this.category === 'ALL' ? undefined : this.category).pipe(takeUntil(this.destroy$)).subscribe({
-      next: response => {
-        this.notifications = reset ? response.content : [...this.notifications, ...response.content];
-        this.totalPages = response.totalPages; this.totalElements = response.totalElements;
-        this.loading = false; this.loadingMore = false; this.cdr.markForCheck();
-      },
-      error: () => { this.loading = false; this.loadingMore = false; this.error = true; this.cdr.markForCheck(); }
+    this.loadRequest$.next({
+      page: this.page,
+      reset,
+      isRead: this.filter === 'UNREAD' ? false : undefined,
+      category: this.category === 'ALL' ? undefined : this.category
     });
   }
   loadMore(): void { if (!this.loadingMore && this.page + 1 < this.totalPages) { this.page++; this.load(); } }
@@ -85,7 +103,7 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
   categoryLabel(item: UserNotification): string {
     return ({ FEES_PAYMENTS: 'Fees & payments', LEAVE: 'Leave', ATTENDANCE: 'Attendance', ACADEMICS_RESULTS: 'Results', NOTICE_ANNOUNCEMENT: 'Notice', EVENT_CALENDAR: 'Event', ACCOUNT_SECURITY: 'Security', SYSTEM_ADMIN: 'System' } as Record<string, string>)[item.category ?? ''] ?? 'General';
   }
-  trackByInboxId(_: number, item: UserNotification): number { return this.inboxId(item); }
+  trackByInboxId = (_: number, item: UserNotification): number => this.inboxId(item);
   private inboxId(item: UserNotification): number { return item.inboxId ?? item.id; }
   relative(value: string): string {
     const seconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));

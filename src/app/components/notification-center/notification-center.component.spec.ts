@@ -10,14 +10,15 @@ describe('NotificationCenterComponent', () => {
     pageable: { pageNumber: 0, pageSize: 20 }
   });
 
-  function setup() {
-    const unread$ = new BehaviorSubject(3);
+  function setup(unreadCount = 3) {
+    const unread$ = new BehaviorSubject(unreadCount);
     const changed$ = new Subject<void>();
     const api = jasmine.createSpyObj('NotificationService', [
       'getUserNotifications', 'getUnreadNotificationCount',
       'markNotificationAsRead', 'markAllNotificationsAsRead'
     ]);
-    api.getUnreadNotificationCount.and.returnValue(of(3));
+    api.getUnreadNotificationCount.and.returnValue(of(unreadCount));
+    api.getUserNotifications.and.returnValue(of(page()));
     api.markNotificationAsRead.and.returnValue(of(void 0));
     api.markAllNotificationsAsRead.and.returnValue(of(void 0));
     const state = {
@@ -35,9 +36,9 @@ describe('NotificationCenterComponent', () => {
   }
 
   it('requests combined unread and category filters from page zero', () => {
-    const { component, api } = setup();
+    const { component, api } = setup(0);
     api.getUserNotifications.and.returnValue(of(page()));
-    component.load(true);
+    component.ngOnInit();
     component.setFilter('UNREAD');
     component.setCategory('ATTENDANCE');
 
@@ -49,7 +50,7 @@ describe('NotificationCenterComponent', () => {
     const oldRequest = new Subject<PagedResponse<UserNotification>>();
     const latestRequest = new Subject<PagedResponse<UserNotification>>();
     api.getUserNotifications.and.returnValues(oldRequest, latestRequest);
-    component.load(true);
+    component.ngOnInit();
     component.setCategory('LEAVE');
 
     const latest = { inboxId: 22, id: 22, userId: 's1', title: 'Leave', message: 'Approved',
@@ -58,6 +59,49 @@ describe('NotificationCenterComponent', () => {
     oldRequest.next(page([{ ...latest, inboxId: 11, id: 11, category: 'ATTENDANCE' }]));
 
     expect(component.notifications).toEqual([latest]);
+    component.ngOnDestroy();
+  });
+
+  it('renders returned read rows in All even when the unread count is zero', () => {
+    const { component, api } = setup(0);
+    const read = { inboxId: 31, id: 31, userId: 's1', title: 'Leave Applied', message: 'Submitted',
+      type: 'LEAVE', isRead: true, createdAt: new Date().toISOString(), category: 'LEAVE' };
+    api.getUserNotifications.and.returnValue(of(page([read])));
+
+    component.ngOnInit();
+
+    expect(api.getUserNotifications).toHaveBeenCalledOnceWith(0, 20, undefined, undefined);
+    expect(component.visibleNotifications).toEqual([read]);
+    component.ngOnDestroy();
+  });
+
+  it('sends the exact All/Unread and Leave filter combinations', () => {
+    const { component, api } = setup();
+    component.ngOnInit();
+    component.setCategory('LEAVE');
+    expect(api.getUserNotifications.calls.mostRecent().args).toEqual([0, 20, undefined, 'LEAVE']);
+
+    component.setFilter('UNREAD');
+    expect(api.getUserNotifications.calls.mostRecent().args).toEqual([0, 20, false, 'LEAVE']);
+    component.ngOnDestroy();
+  });
+
+  it('appends load-more rows without wiping the first page', () => {
+    const { component, api } = setup();
+    const first = { inboxId: 1, id: 1, userId: 's1', title: 'First', message: 'First page',
+      type: 'NOTICE', isRead: true, createdAt: new Date().toISOString(), category: 'NOTICE_ANNOUNCEMENT' };
+    const second = { ...first, inboxId: 2, id: 2, title: 'Second', message: 'Second page' };
+    api.getUserNotifications.and.returnValues(
+      of({ ...page([first]), totalPages: 2 }),
+      of({ ...page([second]), pageable: { pageNumber: 1, pageSize: 20 } })
+    );
+    component.ngOnInit();
+
+    component.loadMore();
+
+    expect(api.getUserNotifications.calls.mostRecent().args).toEqual([1, 20, undefined, undefined]);
+    expect(component.notifications).toEqual([first, second]);
+    component.ngOnDestroy();
   });
 
   it('uses the explicit inbox ID and completes mark-read before navigating', async () => {
