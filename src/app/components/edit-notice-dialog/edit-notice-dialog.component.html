@@ -1,0 +1,30 @@
+<div class="ned-root">
+  <div class="ned-header">
+    <h2 class="ned-title">Edit Notice</h2>
+    <button class="ned-close" mat-icon-button (click)="cancel()" aria-label="Close" title="Close" [disabled]="submitting">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="ned-body">
+    <div class="ned-field">
+      <label class="ned-label" for="ned-title">Title</label>
+      <input id="ned-title" class="ned-input" type="text" [(ngModel)]="title" placeholder="Notice title" [disabled]="submitting">
+    </div>
+
+    <div class="ned-field">
+      <label class="ned-label" for="ned-message">Message</label>
+      <textarea id="ned-message" class="ned-textarea" rows="7" [(ngModel)]="message"
+        placeholder="Notice message" [disabled]="submitting"></textarea>
+    </div>
+
+    <p class="ned-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+  </div>
+
+  <div class="ned-footer">
+    <button mat-stroked-button class="ned-btn-cancel" (click)="cancel()" [disabled]="submitting">Cancel</button>
+    <button mat-flat-button class="ned-btn-save" (click)="save()" [disabled]="submitting">
+      {{ submitting ? 'Saving…' : 'Save' }}
+    </button>
+  </div>
+</div>

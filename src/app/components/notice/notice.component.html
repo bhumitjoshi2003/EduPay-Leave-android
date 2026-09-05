@@ -187,67 +187,65 @@
           <span class="nb-count-chip">{{ noticesTotalElements }}</span>
         </div>
 
-        <div *ngIf="allNotices.length === 0" class="nb-empty-admin">
+        <!-- Loading state while changing pages — replaces the list, not stacked with it -->
+        <div class="nb-notices-skeleton" *ngIf="loadingNotices" aria-busy="true" aria-label="Loading notices">
+          <div class="nb-skeleton-item" *ngFor="let placeholder of [1, 2, 3]">
+            <span class="nb-skeleton-strip nb-shimmer"></span>
+            <span class="nb-skeleton-body">
+              <i class="nb-skeleton-line short nb-shimmer"></i>
+              <i class="nb-skeleton-line nb-shimmer"></i>
+              <i class="nb-skeleton-line nb-shimmer"></i>
+            </span>
+          </div>
+        </div>
+
+        <div *ngIf="!loadingNotices && allNotices.length === 0" class="nb-empty-admin">
           <span>📭</span>
           <p>No notices posted yet. Use the form to create one.</p>
         </div>
 
-        <div class="nb-admin-notice-list">
+        <div class="nb-admin-notice-list" *ngIf="!loadingNotices && allNotices.length > 0">
           <div *ngFor="let notice of allNotices; let i = index; trackBy: trackById"
             class="nb-admin-notice-item" [style.--accent]="getNoticeAccent(i)">
 
-            <!-- View mode -->
-            <ng-container *ngIf="editingId !== notice.id">
-              <div class="nb-ani-strip"></div>
-              <div class="nb-ani-body">
-                <div class="nb-ani-top">
-                  <div class="nb-ani-left">
-                    <span class="nb-ani-icon">{{ getNoticeIcon(notice.title) }}</span>
-                    <div>
-                      <h4 class="nb-ani-title">{{ notice.title }}</h4>
-                      <div class="nb-ani-meta">
-                        <span class="nb-audience-tag">{{ formatAudience(notice.audience) }}</span>
-                        <span class="nb-ani-date">{{ formatDate(notice.createdAt!) }}</span>
-                      </div>
+            <div class="nb-ani-strip"></div>
+            <div class="nb-ani-body">
+              <div class="nb-ani-top">
+                <div class="nb-ani-left">
+                  <span class="nb-ani-icon">{{ getNoticeIcon(notice.title) }}</span>
+                  <div>
+                    <h4 class="nb-ani-title">{{ notice.title }}</h4>
+                    <div class="nb-ani-meta">
+                      <span class="nb-audience-tag">{{ formatAudience(notice.audience) }}</span>
+                      <span class="nb-ani-date">{{ formatDate(notice.createdAt!) }}</span>
                     </div>
                   </div>
-                  <div class="nb-ani-actions">
-                    <button class="nb-btn-edit" (click)="startEdit(notice)" title="Edit">✎ Edit</button>
-                    <button class="nb-btn-delete" (click)="deleteNotice(notice.id!)" title="Delete">✕</button>
-                  </div>
                 </div>
-                <p class="nb-ani-msg" appTruncationCheck (truncated)="onTruncated(notice.id, $event)">{{ notice.message }}</p>
-                <button *ngIf="notice.id != null && truncatedIds.has(notice.id)" class="nb-read-more"
-                  type="button" (click)="openDetail(notice.title, notice.message, formatAudience(notice.audience))">
-                  Read more
-                </button>
-                <div *ngIf="notice.createdBy" class="nb-ani-by">Posted by {{ notice.createdBy }}</div>
-              </div>
-            </ng-container>
-
-            <!-- Edit mode -->
-            <ng-container *ngIf="editingId === notice.id">
-              <div class="nb-ani-strip"></div>
-              <div class="nb-ani-body nb-edit-body">
-                <p class="nb-edit-label">Editing notice</p>
-                <input class="nb-input" type="text" [(ngModel)]="editForm.title" placeholder="Title">
-                <textarea class="nb-textarea" [(ngModel)]="editForm.message" rows="3" placeholder="Message"></textarea>
-                <div class="nb-edit-actions">
-                  <button class="nb-btn-save" (click)="saveEdit()">✓ Save</button>
-                  <button class="nb-btn-cancel" (click)="cancelEdit()">✕ Cancel</button>
+                <div class="nb-ani-actions">
+                  <button class="nb-btn-edit" (click)="openEditDialog(notice)" title="Edit">✎ Edit</button>
+                  <button class="nb-btn-delete" (click)="deleteNotice(notice.id!)" title="Delete">✕</button>
                 </div>
               </div>
-            </ng-container>
+              <p class="nb-ani-msg" appTruncationCheck (truncated)="onTruncated(notice.id, $event)">{{ notice.message }}</p>
+              <button *ngIf="notice.id != null && truncatedIds.has(notice.id)" class="nb-read-more"
+                type="button" (click)="openDetail(notice.title, notice.message, formatAudience(notice.audience))">
+                Read more
+              </button>
+              <div *ngIf="notice.createdBy" class="nb-ani-by">Posted by {{ notice.createdBy }}</div>
+            </div>
 
           </div>
         </div>
-      </div>
 
-      <!-- Load more — admin -->
-      <div class="nb-load-more-wrap" *ngIf="!noticesLast">
-        <button class="nb-load-more-btn" (click)="loadMoreNotices()" [disabled]="loadingMoreNotices">
-          {{ loadingMoreNotices ? 'Loading…' : 'Load more notices' }}
-        </button>
+        <!-- Pagination — belongs to this panel: below the scrollable list,
+             outside it, so scrolling notices never scrolls this away. -->
+        <div class="nb-pagination" *ngIf="noticesTotalPages > 1">
+          <button class="nb-page-btn" type="button" (click)="goToPreviousNoticesPage()"
+            [disabled]="loadingNotices || noticesPage === 0">← Previous</button>
+          <span class="nb-page-indicator">Page {{ noticesPage + 1 }} of {{ noticesTotalPages }}</span>
+          <button class="nb-page-btn" type="button" (click)="goToNextNoticesPage()"
+            [disabled]="loadingNotices || noticesPage + 1 >= noticesTotalPages">Next →</button>
+        </div>
       </div>
 
     </div>

@@ -13,6 +13,7 @@ import { SchoolService } from '../../services/school.service';
 import { NotificationStateService } from '../../services/notification-state.service';
 import { TruncationCheckDirective } from '../../directives/truncation-check.directive';
 import { NoticeDetailDialogComponent } from '../notice-detail-dialog/notice-detail-dialog.component';
+import { EditNoticeDialogComponent } from '../edit-notice-dialog/edit-notice-dialog.component';
 
 @Component({
   selector: 'app-notice',
@@ -27,12 +28,14 @@ export class NoticeComponent implements OnInit, OnDestroy {
 
   role = '';
 
-  // Admin: full list of posted notices
+  // Admin: current page of posted notices — server-side paginated, never
+  // accumulated. Only one page of notices is ever held in the browser.
   allNotices: Notification[] = [];
-  noticesTotalElements = 0;
+  readonly noticesPageSize = 10;
   noticesPage = 0;
-  noticesLast = true;
-  loadingMoreNotices = false;
+  noticesTotalPages = 0;
+  noticesTotalElements = 0;
+  loadingNotices = false;
 
   // Student / Teacher: personal notifications
   userNotifications: UserNotification[] = [];
@@ -49,10 +52,6 @@ export class NoticeComponent implements OnInit, OnDestroy {
     targetAudience: '',
     deliveryMode: 'BOTH',
   };
-
-  // Inline edit state (admin)
-  editingId: number | null = null;
-  editForm = { title: '', message: '', type: 'NOTICE', audience: '' };
 
   submitting = false;
   loading = false;
@@ -112,55 +111,59 @@ export class NoticeComponent implements OnInit, OnDestroy {
   // ── Data loading ─────────────────────────────────────────────────────
 
   loadData(): void {
+    if (this.isAdmin) {
+      this.loadNotices(0);
+      return;
+    }
     this.loading = true;
     this.cdr.markForCheck();
-    if (this.isAdmin) {
-      this.noticesPage = 0;
-      this.notificationService.getAllNotifications(0)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (res) => {
-            this.allNotices = res.content;
-            this.noticesTotalElements = res.totalElements;
-            this.noticesLast = res.last;
-            this.loading = false;
-            this.cdr.markForCheck();
-          },
-          error: (e) => { this.logger.error('Error loading notices:', e); this.loading = false; this.cdr.markForCheck(); },
-        });
-    } else {
-      this.userPage = 0;
-      this.notificationService.getUserNotifications(0)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (res) => {
-            this.userNotifications = res.content;
-            this.userTotalElements = res.totalElements;
-            this.userLast = res.last;
-            this.loading = false;
-            this.cdr.markForCheck();
-          },
-          error: (e) => { this.logger.error('Error loading notifications:', e); this.loading = false; this.cdr.markForCheck(); },
-        });
-    }
-  }
-
-  loadMoreNotices(): void {
-    if (this.noticesLast || this.loadingMoreNotices) return;
-    this.loadingMoreNotices = true;
-    this.cdr.markForCheck();
-    this.notificationService.getAllNotifications(this.noticesPage + 1)
+    this.userPage = 0;
+    this.notificationService.getUserNotifications(0)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
-          this.allNotices = [...this.allNotices, ...res.content];
-          this.noticesPage = res.pageable.pageNumber;
-          this.noticesLast = res.last;
-          this.loadingMoreNotices = false;
+          this.userNotifications = res.content;
+          this.userTotalElements = res.totalElements;
+          this.userLast = res.last;
+          this.loading = false;
           this.cdr.markForCheck();
         },
-        error: (e) => { this.logger.error('Error loading more notices:', e); this.loadingMoreNotices = false; this.cdr.markForCheck(); },
+        error: (e) => { this.logger.error('Error loading notifications:', e); this.loading = false; this.cdr.markForCheck(); },
       });
+  }
+
+  /** Loads exactly one page of the admin's posted-notices list — server-side
+   *  pageable, never accumulated. Replaces allNotices rather than appending. */
+  loadNotices(page: number): void {
+    if (this.loadingNotices) return;
+    this.loadingNotices = true;
+    this.cdr.markForCheck();
+    this.notificationService.getAllNotifications(page, this.noticesPageSize)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.allNotices = res.content;
+          this.noticesPage = res.pageable.pageNumber;
+          this.noticesTotalPages = res.totalPages;
+          this.noticesTotalElements = res.totalElements;
+          this.loadingNotices = false;
+          this.cdr.markForCheck();
+        },
+        error: (e) => {
+          this.logger.error('Error loading notices:', e);
+          this.loadingNotices = false;
+          this.toast.error('Error', 'Failed to load notices.');
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  goToPreviousNoticesPage(): void {
+    if (this.noticesPage > 0) this.loadNotices(this.noticesPage - 1);
+  }
+
+  goToNextNoticesPage(): void {
+    if (this.noticesPage + 1 < this.noticesTotalPages) this.loadNotices(this.noticesPage + 1);
   }
 
   loadMoreUserNotifications(): void {
@@ -234,7 +237,8 @@ export class NoticeComponent implements OnInit, OnDestroy {
             this.submitting = false;
             this.form = { title: '', subject: '', body: '', targetAudience: '', deliveryMode: 'BOTH' };
             this.toast.success('Notice Posted!', 'The notice has been sent successfully.');
-            this.loadData();
+            // Newly created notices sort first (createdAt desc) — return to page 0 so it's visible.
+            this.loadNotices(0);
           },
           error: (e) => {
             this.submitting = false;
@@ -248,40 +252,31 @@ export class NoticeComponent implements OnInit, OnDestroy {
 
   // ── Admin: edit notice ───────────────────────────────────────────────
 
-  startEdit(notice: Notification): void {
-    this.editingId = notice.id!;
-    this.editForm = {
-      title: notice.title,
-      message: notice.message,
-      type: notice.type,
-      audience: notice.audience ?? '',
-    };
-    this.cdr.markForCheck();
-  }
-
-  cancelEdit(): void {
-    this.editingId = null;
-    this.cdr.markForCheck();
-  }
-
-  saveEdit(): void {
-    if (!this.editForm.title.trim() || !this.editForm.message.trim()) {
-      this.toast.warning('Incomplete', 'Title and message are required.');
-      return;
-    }
-    this.notificationService.updateNotification(this.editingId!, this.editForm as Notification)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.editingId = null;
-          this.toast.success('Updated');
-          this.loadData();
-        },
-        error: (e) => {
-          this.logger.error('Error updating notice:', e);
-          this.toast.error('Error', 'Failed to update the notice.');
-        },
-      });
+  /** Opens the Edit Notice dialog rather than an inline editor — the card list
+   *  is a narrow, scrollable area and can't reliably fit a form plus its
+   *  Save/Cancel actions without clipping them. The dialog owns the save call
+   *  itself, so a failed save keeps the dialog open with the error visible. */
+  openEditDialog(notice: Notification): void {
+    const ref = this.dialog.open(EditNoticeDialogComponent, {
+      panelClass: 'edu-dialog',
+      maxWidth: '560px',
+      width: '92vw',
+      autoFocus: false,
+      data: {
+        id: notice.id!,
+        title: notice.title,
+        message: notice.message,
+        type: notice.type,
+        audience: notice.audience ?? '',
+      },
+    });
+    ref.afterClosed().pipe(takeUntil(this.destroy$)).subscribe((saved) => {
+      if (!saved) return;
+      this.toast.success('Updated');
+      // Refetch the page the admin is already on — editing doesn't change
+      // sort order or item count, so there's no reason to reset to page 0.
+      this.loadNotices(this.noticesPage);
+    });
   }
 
   // ── Admin: delete notice ─────────────────────────────────────────────
@@ -299,9 +294,11 @@ export class NoticeComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            this.allNotices = this.allNotices.filter(n => n.id !== id);
             this.toast.success('Deleted');
-            this.cdr.markForCheck();
+            // Deleting the last item on a page (other than the first) leaves it
+            // empty — step back one page rather than showing a stranded blank page.
+            const wasOnlyItemOnPage = this.allNotices.length === 1 && this.noticesPage > 0;
+            this.loadNotices(wasOnlyItemOnPage ? this.noticesPage - 1 : this.noticesPage);
           },
           error: (e) => {
             this.logger.error('Error deleting notice:', e);

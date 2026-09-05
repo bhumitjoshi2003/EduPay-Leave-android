@@ -1,0 +1,64 @@
+:host { display: block; }
+
+.ned-root { display: flex; flex-direction: column; max-height: min(80vh, 640px); }
+
+.ned-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 20px 16px 14px 22px;
+  border-bottom: 1px solid var(--edu-border, #e2e8f0);
+}
+.ned-title {
+  margin: 0; color: var(--edu-navy, #0f172a); font-size: 1.15rem; font-weight: 800;
+}
+.ned-close { flex: none; color: #64748b; }
+
+.ned-body { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 16px; }
+
+.ned-field { display: flex; flex-direction: column; gap: 6px; }
+.ned-label { font-size: 0.78rem; font-weight: 700; color: #475569; }
+
+.ned-input, .ned-textarea {
+  border: 1.5px solid var(--edu-border, #e2e8f0);
+  border-radius: var(--edu-radius-md, 12px);
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #1a2a3a;
+  resize: vertical;
+}
+.ned-input:focus, .ned-textarea:focus {
+  outline: none;
+  border-color: var(--edu-teal-dark, #0f766e);
+}
+.ned-input:disabled, .ned-textarea:disabled { background: #f8fafc; color: #94a3b8; }
+.ned-textarea { min-height: 120px; line-height: 1.55; }
+
+.ned-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--edu-radius-md, 12px);
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.ned-footer {
+  display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--edu-border, #e2e8f0);
+}
+.ned-btn-cancel { border-radius: var(--edu-radius-md, 12px) !important; }
+.ned-btn-save {
+  border-radius: var(--edu-radius-md, 12px) !important;
+  background-color: var(--edu-teal-dark, #0f766e) !important;
+  color: #fff !important; font-weight: 650 !important;
+}
+.ned-btn-save:disabled { opacity: 0.65 !important; }
+
+@media (max-width: 600px) {
+  .ned-root { max-height: 84vh; }
+  .ned-header { padding: 16px 12px 12px 18px; }
+  .ned-body { padding: 14px 18px; }
+  .ned-footer { padding: 12px 18px; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
+}

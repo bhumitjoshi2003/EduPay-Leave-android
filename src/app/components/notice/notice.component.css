@@ -486,13 +486,20 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: 680px;
+  /* Scales with the viewport instead of a flat number, so the panel doesn't
+     leave a tall empty gap on a short window or get pushed further down than
+     necessary on a tall one; never below 320px so at least 2-3 cards are
+     visible before it needs to scroll. Cards themselves never shrink to fit
+     this box (flex-shrink: 0 below) — once content exceeds it, the box
+     scrolls internally and the pagination controls stay outside it. */
+  max-height: max(320px, calc(100vh - 360px));
   overflow-y: auto;
   padding-right: 4px;
 }
 
 .nb-admin-notice-item {
   display: flex;
+  flex-shrink: 0;
   border-radius: 14px;
   border: 1px solid #eef4f8;
   background: #fafcfe;
@@ -678,11 +685,9 @@
 }
 .nb-btn-post:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Edit / Delete / Save / Cancel buttons */
+/* Edit / Delete buttons */
 .nb-btn-edit,
-.nb-btn-delete,
-.nb-btn-save,
-.nb-btn-cancel {
+.nb-btn-delete {
   padding: 5px 14px;
   border: none;
   border-radius: 7px;
@@ -696,10 +701,6 @@
 .nb-btn-edit:hover   { background: #d0eaf5; transform: translateY(-1px); }
 .nb-btn-delete { background: #fde8e8; color: #c0392b; }
 .nb-btn-delete:hover { background: #fbd1d1; transform: translateY(-1px); }
-.nb-btn-save   { background: #1f6f8b; color: #fff; }
-.nb-btn-save:hover   { opacity: 0.85; }
-.nb-btn-cancel { background: #f0f0f0; color: #555; }
-.nb-btn-cancel:hover { background: #e0e0e0; }
 
 /* Audience tag */
 .nb-audience-tag {
@@ -713,24 +714,6 @@
   letter-spacing: 0.3px;
 }
 
-/* Edit body */
-.nb-edit-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.nb-edit-label {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1f6f8b;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-.nb-edit-actions {
-  display: flex;
-  gap: 8px;
-}
 
 /* ─────────────────────────────────────────────────────────────────
    Responsive
@@ -789,3 +772,70 @@
 }
 .nb-load-more-btn:hover:not(:disabled) { background: #e2e8f0; }
 .nb-load-more-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Admin pagination ────────────────────────────────────────────── */
+.nb-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 2px 2px;
+  border-top: 1px solid #eef2f6;
+  margin-top: 6px;
+}
+.nb-page-btn {
+  padding: 9px 18px;
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.83rem;
+  font-weight: 650;
+  color: #334155;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.nb-page-btn:hover:not(:disabled) { background: #e2e8f0; }
+.nb-page-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.nb-page-indicator {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* ── Admin notices — loading skeleton ───────────────────────────────
+   Mirrors .nb-admin-notice-item's shape so the page transition doesn't
+   flash empty-state -> loading -> content; it goes straight to a stable
+   list-shaped placeholder of the same height class. */
+.nb-notices-skeleton { display: flex; flex-direction: column; gap: 14px; }
+.nb-skeleton-item {
+  display: flex;
+  flex-shrink: 0;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid #eef4f8;
+  background: #fafcfe;
+}
+.nb-skeleton-strip { width: 5px; border-radius: 3px; flex-shrink: 0; }
+.nb-skeleton-body { flex: 1; display: flex; flex-direction: column; gap: 9px; padding-top: 2px; }
+.nb-skeleton-line { display: block; height: 10px; border-radius: 999px; }
+.nb-skeleton-line.short { width: 45%; }
+.nb-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: #e7edef;
+}
+.nb-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent);
+  animation: nb-shimmer 1.35s ease-in-out infinite;
+}
+@keyframes nb-shimmer { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .nb-shimmer::after { animation: none; display: none; }
+}
