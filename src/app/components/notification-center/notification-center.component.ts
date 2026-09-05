@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { Subject, Subscription, catchError, firstValueFrom, map, of, switchMap, takeUntil } from 'rxjs';
 import { UserNotification } from '../../interfaces/user-notification';
@@ -8,12 +9,14 @@ import { NotificationService } from '../../services/notification.service';
 import { NotificationStateService } from '../../services/notification-state.service';
 import { NotificationNavigationService } from '../../services/notification-navigation.service';
 import { ToastService } from '../../services/toast.service';
+import { TruncationCheckDirective } from '../../directives/truncation-check.directive';
+import { NoticeDetailDialogComponent } from '../notice-detail-dialog/notice-detail-dialog.component';
 
 type InboxFilter = 'ALL' | 'UNREAD';
 interface InboxRequest { page: number; reset: boolean; isRead?: boolean; category?: string; }
 
 @Component({ selector: 'app-notification-center', standalone: true,
-  imports: [CommonModule, MatIconModule, FormsModule], templateUrl: './notification-center.component.html',
+  imports: [CommonModule, MatIconModule, FormsModule, TruncationCheckDirective], templateUrl: './notification-center.component.html',
   styleUrl: './notification-center.component.css', changeDetection: ChangeDetectionStrategy.OnPush })
 export class NotificationCenterComponent implements OnInit, OnDestroy {
   notifications: UserNotification[] = [];
@@ -27,9 +30,14 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
   private readonly loadRequest$ = new Subject<InboxRequest>();
   private inboxRequest?: Subscription;
 
+  /** Inbox IDs whose message is actually clamp-truncated, determined by real
+   *  overflow measurement (TruncationCheckDirective), not a character-count
+   *  guess. Drives whether "Read more" renders at all. */
+  readonly truncatedIds = new Set<number>();
+
   constructor(private api: NotificationService, private state: NotificationStateService,
     private navigation: NotificationNavigationService, private toast: ToastService,
-    private cdr: ChangeDetectorRef) {}
+    private cdr: ChangeDetectorRef, private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.state.unreadCount$.pipe(takeUntil(this.destroy$)).subscribe(count => { this.unreadCount = count; this.cdr.markForCheck(); });
@@ -104,7 +112,21 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
     return ({ FEES_PAYMENTS: 'Fees & payments', LEAVE: 'Leave', ATTENDANCE: 'Attendance', ACADEMICS_RESULTS: 'Results', NOTICE_ANNOUNCEMENT: 'Notice', EVENT_CALENDAR: 'Event', ACCOUNT_SECURITY: 'Security', SYSTEM_ADMIN: 'System' } as Record<string, string>)[item.category ?? ''] ?? 'General';
   }
   trackByInboxId = (_: number, item: UserNotification): number => this.inboxId(item);
-  private inboxId(item: UserNotification): number { return item.inboxId ?? item.id; }
+  inboxId(item: UserNotification): number { return item.inboxId ?? item.id; }
+  onTruncated(id: number, isTruncated: boolean): void {
+    const changed = isTruncated ? !this.truncatedIds.has(id) : this.truncatedIds.has(id);
+    if (isTruncated) this.truncatedIds.add(id); else this.truncatedIds.delete(id);
+    if (changed) this.cdr.markForCheck();
+  }
+  openDetail(item: UserNotification): void {
+    this.dialog.open(NoticeDetailDialogComponent, {
+      panelClass: 'edu-dialog',
+      maxWidth: '92vw',
+      width: '480px',
+      autoFocus: false,
+      data: { title: item.title, message: item.message, meta: this.categoryLabel(item) }
+    });
+  }
   relative(value: string): string {
     const seconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));
     if (seconds < 60) return 'Just now'; if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;

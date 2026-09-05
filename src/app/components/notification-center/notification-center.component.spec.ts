@@ -31,7 +31,8 @@ describe('NotificationCenterComponent', () => {
     navigation.navigate.and.resolveTo(true);
     const toast = jasmine.createSpyObj('ToastService', ['success', 'error']);
     const cdr = jasmine.createSpyObj('ChangeDetectorRef', ['markForCheck']);
-    const component = new NotificationCenterComponent(api, state as any, navigation, toast, cdr);
+    const dialog = jasmine.createSpyObj('MatDialog', ['open']);
+    const component = new NotificationCenterComponent(api, state as any, navigation, toast, cdr, dialog);
     return { component, api, state, navigation };
   }
 

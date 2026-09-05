@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { NotificationService } from '../../services/notification.service';
 import { AuthStateService } from '../../auth/auth-state.service';
@@ -10,11 +11,13 @@ import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
 import { SchoolService } from '../../services/school.service';
 import { NotificationStateService } from '../../services/notification-state.service';
+import { TruncationCheckDirective } from '../../directives/truncation-check.directive';
+import { NoticeDetailDialogComponent } from '../notice-detail-dialog/notice-detail-dialog.component';
 
 @Component({
   selector: 'app-notice',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TruncationCheckDirective],
   templateUrl: './notice.component.html',
   styleUrl: './notice.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,6 +59,11 @@ export class NoticeComponent implements OnInit, OnDestroy {
 
   classList: string[] = [];
 
+  /** IDs of notices/notifications whose message is actually clamp-truncated,
+   *  determined by real overflow measurement (TruncationCheckDirective), not
+   *  a character-count guess. Drives whether "Read more" renders at all. */
+  truncatedIds = new Set<number>();
+
   constructor(
     private notificationService: NotificationService,
     private authStateService: AuthStateService,
@@ -63,7 +71,8 @@ export class NoticeComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private toast: ToastService,
     private schoolService: SchoolService,
-    private notificationState: NotificationStateService
+    private notificationState: NotificationStateService,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -339,6 +348,23 @@ export class NoticeComponent implements OnInit, OnDestroy {
   }
 
   trackById(_: number, item: { id?: number }): number { return item.id ?? 0; }
+
+  onTruncated(id: number | undefined, isTruncated: boolean): void {
+    if (id == null) return;
+    const changed = isTruncated ? !this.truncatedIds.has(id) : this.truncatedIds.has(id);
+    if (isTruncated) this.truncatedIds.add(id); else this.truncatedIds.delete(id);
+    if (changed) this.cdr.markForCheck();
+  }
+
+  openDetail(title: string, message: string, meta?: string): void {
+    this.dialog.open(NoticeDetailDialogComponent, {
+      panelClass: 'edu-dialog',
+      maxWidth: '92vw',
+      width: '480px',
+      autoFocus: false,
+      data: { title, message, meta }
+    });
+  }
 
   getNoticeAccent(index: number): string {
     const palette = ['#6366f1', '#0891b2', '#059669', '#d97706', '#dc2626', '#7c3aed', '#db2777', '#0284c7'];

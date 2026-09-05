@@ -85,7 +85,11 @@
           <h3 class="nb-card-title">{{ n.title }}</h3>
 
           <!-- Message -->
-          <p class="nb-card-msg">{{ n.message }}</p>
+          <p class="nb-card-msg" appTruncationCheck (truncated)="onTruncated(n.id, $event)">{{ n.message }}</p>
+          <button *ngIf="n.id != null && truncatedIds.has(n.id)" class="nb-read-more"
+            type="button" (click)="openDetail(n.title, n.message, formatDate(n.createdAt))">
+            Read more
+          </button>
 
         </div>
       </div>
@@ -212,7 +216,11 @@
                     <button class="nb-btn-delete" (click)="deleteNotice(notice.id!)" title="Delete">✕</button>
                   </div>
                 </div>
-                <p class="nb-ani-msg">{{ notice.message }}</p>
+                <p class="nb-ani-msg" appTruncationCheck (truncated)="onTruncated(notice.id, $event)">{{ notice.message }}</p>
+                <button *ngIf="notice.id != null && truncatedIds.has(notice.id)" class="nb-read-more"
+                  type="button" (click)="openDetail(notice.title, notice.message, formatAudience(notice.audience))">
+                  Read more
+                </button>
                 <div *ngIf="notice.createdBy" class="nb-ani-by">Posted by {{ notice.createdBy }}</div>
               </div>
             </ng-container>

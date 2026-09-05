@@ -14,11 +14,18 @@
   </section>
   <div class="nc-state nc-error" *ngIf="error && !loading"><mat-icon>cloud_off</mat-icon><h2>Notifications couldn’t be loaded</h2><p>Check your connection and try again.</p><button (click)="load(true)">Retry</button></div>
   <section class="nc-list" *ngIf="!loading && !error" aria-live="polite">
-    <button class="nc-row" *ngFor="let item of visibleNotifications; trackBy: trackByInboxId" [class.unread]="!item.isRead" [attr.data-category]="item.category || 'GENERAL'" (click)="open(item)" [attr.aria-label]="(!item.isRead ? 'Unread: ' : '') + item.title">
+    <div class="nc-row" *ngFor="let item of visibleNotifications; trackBy: trackByInboxId" [class.unread]="!item.isRead" [attr.data-category]="item.category || 'GENERAL'" role="button" tabindex="0" (click)="open(item)" (keydown.enter)="open(item)" (keydown.space)="$event.preventDefault(); open(item)" [attr.aria-label]="(!item.isRead ? 'Unread: ' : '') + item.title">
       <span class="nc-icon"><mat-icon>{{ icon(item) }}</mat-icon></span>
-      <span class="nc-copy"><span class="nc-meta"><strong>{{ categoryLabel(item) }}</strong><time [attr.datetime]="item.createdAt">{{ relative(item.createdAt) }}</time></span><span class="nc-title">{{ item.title }}</span><span class="nc-message">{{ item.message }}</span><span class="nc-read-label" *ngIf="!item.isRead"><i></i> Unread</span></span>
+      <span class="nc-copy">
+        <span class="nc-meta"><strong>{{ categoryLabel(item) }}</strong><time [attr.datetime]="item.createdAt">{{ relative(item.createdAt) }}</time></span>
+        <span class="nc-title">{{ item.title }}</span>
+        <span class="nc-message" appTruncationCheck (truncated)="onTruncated(inboxId(item), $event)">{{ item.message }}</span>
+        <button *ngIf="truncatedIds.has(inboxId(item))" class="nc-read-more" type="button"
+          (click)="$event.stopPropagation(); openDetail(item)">Read more</button>
+        <span class="nc-read-label" *ngIf="!item.isRead"><i></i> Unread</span>
+      </span>
       <mat-icon class="nc-arrow" *ngIf="item.actionRoute">chevron_right</mat-icon>
-    </button>
+    </div>
     <div class="nc-state nc-empty" *ngIf="visibleNotifications.length === 0"><span class="nc-empty-icon"><mat-icon>{{ filter === 'UNREAD' ? 'mark_email_read' : 'notifications_none' }}</mat-icon></span><h2>{{ filter === 'UNREAD' ? 'You’re all caught up' : (category === 'ALL' ? 'No notifications yet' : 'No ' + category.replace('_', ' ').toLowerCase() + ' notifications') }}</h2><p>{{ filter === 'UNREAD' ? 'No unread notifications for this selection.' : (category === 'ALL' ? 'We’ll keep you posted when something needs your attention.' : 'Updates from this category will appear here.') }}</p></div>
     <button class="nc-load-more" *ngIf="page + 1 < totalPages" (click)="loadMore()" [disabled]="loadingMore">{{ loadingMore ? 'Loading…' : 'Load more' }}</button>
   </section>

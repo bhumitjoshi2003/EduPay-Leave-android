@@ -313,8 +313,25 @@
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
   flex: 1;
 }
+
+.nb-read-more {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--edu-teal-dark, #0f766e);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.nb-read-more:hover,
+.nb-read-more:focus-visible { text-decoration: underline; }
 
 /* ─────────────────────────────────────────────────────────────────
    ADMIN — Hero
@@ -549,9 +566,11 @@
   color: #555;
   line-height: 1.55;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .nb-ani-by {

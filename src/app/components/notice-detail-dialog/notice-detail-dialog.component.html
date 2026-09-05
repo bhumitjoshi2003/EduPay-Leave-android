@@ -1,0 +1,17 @@
+<div class="ndd-root">
+  <div class="ndd-header">
+    <div class="ndd-header-text">
+      <span class="ndd-eyebrow" *ngIf="data.meta">{{ data.meta }}</span>
+      <h2 class="ndd-title">{{ data.title }}</h2>
+    </div>
+    <button class="ndd-close" mat-icon-button (click)="close()" aria-label="Close" title="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="ndd-body">
+    <p class="ndd-message">{{ data.message }}</p>
+  </div>
+  <div class="ndd-footer">
+    <button mat-flat-button class="ndd-btn-close" (click)="close()">Close</button>
+  </div>
+</div>
