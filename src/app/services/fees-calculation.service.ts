@@ -19,12 +19,6 @@ export class FeesCalculationService {
     return ((calendarMonth - this.startMonth + 12) % 12) + 1;
   }
 
-  getAcademicYear(date: Date): string {
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    return month >= this.startMonth ? `${year}-${year + 1}` : `${year - 1}-${year}`;
-  }
-
   getSessionStartYear(session: string): number {
     return parseInt(session.substring(0, 4));
   }

@@ -134,6 +134,7 @@
   box-sizing: border-box;
 }
 .sa-date-input:focus { border-color: #059669; }
+.sa-session-hint { font-size: 0.72rem; color: #94a3b8; }
 
 .sa-mark-btn {
   padding: 12px 22px;

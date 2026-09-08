@@ -9,7 +9,7 @@ import { Teacher } from '../../interfaces/teacher';
 import { TenantService } from '../../services/tenant.service';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
-import { SchoolService } from '../../services/school.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
 
 @Component({
   selector: 'app-staff-attendance',
@@ -39,6 +39,7 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
   individualYear: number;
   selectedSession = '';
   sessionOptions: string[] = [];
+  loadingSessions = false;
   individualSummary: TeacherAttendanceSummary | null = null;
   individualSessionSummary: TeacherAttendanceSessionSummary | null = null;
   loadingIndividual = false;
@@ -73,7 +74,7 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
     public tenantService: TenantService,
     private logger: LoggerService,
     private toast: ToastService,
-    private schoolService: SchoolService,
+    private academicSessionService: AcademicSessionService,
     private cdr: ChangeDetectorRef
   ) {
     const now = new Date();
@@ -230,20 +231,28 @@ export class StaffAttendanceComponent implements OnInit, OnDestroy {
     return this.groupRecords(this.individualSummary?.records ?? []);
   }
 
+  /** Sources session choices from the backend's real AcademicSession records — never a
+   *  locally-guessed "YYYY-YYYY" range — so the label sent to getTeacherSessionSummary
+   *  always matches a session the backend actually recognizes. Defaults to whichever
+   *  session the backend marks current; falls back to the most recent one if none is
+   *  marked current, and to an empty selection if the school has no sessions configured. */
   private loadSessionOptions(): void {
-    this.schoolService.getSettings().pipe(takeUntil(this.destroy$)).subscribe({
-      next: settings => {
-        const now = new Date();
-        const startMonth = settings.academicYearStartMonth || 4;
-        const currentStartYear = now.getMonth() + 1 >= startMonth ? now.getFullYear() : now.getFullYear() - 1;
-        this.sessionOptions = Array.from({ length: 6 }, (_, i) => `${currentStartYear - i}-${currentStartYear - i + 1}`);
-        this.selectedSession = this.sessionOptions[0];
+    this.loadingSessions = true;
+    this.cdr.markForCheck();
+    this.academicSessionService.getAllSessions().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (sessions) => {
+        this.sessionOptions = sessions.map(s => s.label);
+        const current = sessions.find(s => s.current);
+        this.selectedSession = current ? current.label : (this.sessionOptions[0] ?? '');
+        this.loadingSessions = false;
         this.cdr.markForCheck();
       },
-      error: () => {
-        const year = new Date().getFullYear();
-        this.sessionOptions = Array.from({ length: 6 }, (_, i) => `${year - i}-${year - i + 1}`);
-        this.selectedSession = this.sessionOptions[0];
+      error: (err) => {
+        this.logger.error('Failed to load academic sessions', err);
+        this.toast.error('Error', 'Failed to load academic sessions.');
+        this.sessionOptions = [];
+        this.selectedSession = '';
+        this.loadingSessions = false;
         this.cdr.markForCheck();
       }
     });

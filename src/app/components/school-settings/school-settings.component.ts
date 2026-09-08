@@ -763,8 +763,25 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  setCurrentSession(sessionId: number): void {
-    this.academicSessionService.setCurrentSession(sessionId).pipe(takeUntil(this.destroy$)).subscribe({
+  async setCurrentSession(session: AcademicSession): Promise<void> {
+    const activeSession = this.sessions.find(s => s.current);
+    const fromHtml = activeSession
+      ? `<strong>${activeSession.label}</strong> (${this.formatSessionRange(activeSession)})`
+      : '<em>none set</em>';
+
+    const confirmed = await this.toast.confirm({
+      title: `Set ${session.label} as the current session?`,
+      html: `<p>Current session: ${fromHtml}</p>` +
+            `<p>Activating: <strong>${session.label}</strong> (${this.formatSessionRange(session)})</p>` +
+            `<p>This controls which academic session the school treats as current — it's the session ` +
+            `new fee structures, exams, invoices, and other session-scoped screens default to across the app.</p>`,
+      confirmText: 'Set as Current',
+      cancelText: 'Cancel',
+      icon: 'question',
+    });
+    if (!confirmed) return;
+
+    this.academicSessionService.setCurrentSession(session.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.toast.success('Updated', 'Current session updated.');
         this.loadSessions();
@@ -774,6 +791,11 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
         this.toast.error('Error', 'Failed to update current session.');
       }
     });
+  }
+
+  private formatSessionRange(session: AcademicSession): string {
+    const format = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    return `${format(session.startDate)} – ${format(session.endDate)}`;
   }
 
   async deleteSession(session: AcademicSession): Promise<void> {

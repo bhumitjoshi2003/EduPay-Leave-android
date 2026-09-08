@@ -29,6 +29,7 @@ import { FeesCalculationService } from '../../services/fees-calculation.service'
 import { FeeBreakdownComponent } from './fee-breakdown.component';
 import { LoggerService } from '../../services/logger.service';
 import { SchoolService } from '../../services/school.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
 import { take } from 'rxjs/operators';
 import { ParentPortalService } from '../../services/parent-portal.service';
 import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
@@ -108,6 +109,7 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private toast: ToastService,
     private schoolService: SchoolService,
+    private academicSessionService: AcademicSessionService,
     private parentPortalService: ParentPortalService,
   ) {}
 
@@ -164,7 +166,12 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     if (this.role === 'STUDENT') this.getStudentId();
     if (this.role === 'PARENT') this.loadParentChildAccess();
 
-    // Load school settings first so academic year calculations use the correct start month
+    // Load school settings first — academicYearStartMonth is still needed here, but only to
+    // order/label calendar months WITHIN whatever session turns out to be current (see
+    // FeesCalculationService.getAcademicMonth/getMonthName), never to decide which session
+    // that is. Kept sequential (settings before initCalendarState, exactly as before) so
+    // academicCurrentMonth is always computed with the correct start month, never a
+    // momentarily-default one from a race between this call and the session lookup below.
     this.schoolService
       .getSettings()
       .pipe(take(1), takeUntil(this.destroy$))
@@ -177,13 +184,29 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
       });
   }
 
+  /** Sources "what's the current academic session" from the backend's authoritative
+   * AcademicSession record — never guessed client-side from today's date. If the school has
+   * no current session configured, currentAcademicYear is left blank rather than fabricated;
+   * checkAndDisplayFeeWarnings/isLate degrade to treating the viewed session as current in
+   * that case (see their comments), and the fee grid itself still loads either way. */
   private initCalendarState(): void {
-    const today = new Date();
     this.academicCurrentMonth = this.feesCalc.getAcademicMonth(
       this.currentMonth,
     );
-    this.currentAcademicYear = this.feesCalc.getAcademicYear(today);
-    this.fetchSessions();
+    this.academicSessionService
+      .getCurrentSession()
+      .pipe(take(1), takeUntil(this.destroy$))
+      .subscribe({
+        next: (session) => {
+          this.currentAcademicYear = session.label;
+          this.fetchSessions();
+        },
+        error: (err) => {
+          this.logger.error('Failed to load current academic session', err);
+          this.currentAcademicYear = '';
+          this.fetchSessions();
+        },
+      });
   }
 
   ngOnDestroy(): void {
@@ -317,6 +340,13 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
     };
   }
 
+  /** selectedYear/currentYear here only ever gate WHICH warnings are shown (display), never
+   * an amount — the late fee itself always comes from the backend checkout quote
+   * (recalculateTotals/applyCheckoutQuote). currentAcademicYear is the backend's authoritative
+   * current AcademicSession label (set in initCalendarState); getSessionStartYear('') is NaN,
+   * so if no current session is configured, both comparisons below are false and this falls
+   * through to treating the viewed session as current — a deliberate, safe default, not an
+   * oversight. */
   checkAndDisplayFeeWarnings(): void {
     if (this.role === 'STUDENT') {
       const selectedYear = this.feesCalc.getSessionStartYear(this.session);
@@ -695,6 +725,9 @@ export class PaymentTrackerComponent implements OnInit, OnDestroy {
       });
   }
 
+  /** Display-only "late" styling gate — never affects the actual late fee amount charged
+   * (that's always the backend checkout quote). See checkAndDisplayFeeWarnings for the same
+   * currentAcademicYear/no-current-session fallback reasoning. */
   isLate(month: MonthViewModel): boolean {
     const selectedYear = this.feesCalc.getSessionStartYear(this.session);
     const currentYear = this.feesCalc.getSessionStartYear(
