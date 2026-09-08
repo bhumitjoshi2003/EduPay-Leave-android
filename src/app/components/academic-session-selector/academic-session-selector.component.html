@@ -1,0 +1,14 @@
+<div class="ass-card">
+  <div class="ass-icon">📅</div>
+  <div class="ass-body">
+    <label class="ass-label" for="ass-select">Academic Session</label>
+    <div class="ass-row">
+      <select id="ass-select" class="ass-select" [ngModel]="selectedId" (ngModelChange)="select($event)" [disabled]="disabled || loading">
+        <option [ngValue]="null">{{ loading ? 'Loading sessions…' : 'Select a session' }}</option>
+        <option *ngFor="let s of sessions" [ngValue]="s.id">{{ s.label }}</option>
+      </select>
+      <span class="ass-pill" [ngClass]="pillClass(kind(selectedSession))" *ngIf="selectedSession">{{ kind(selectedSession) }}</span>
+    </div>
+  </div>
+</div>
+<p class="ass-error" role="alert" *ngIf="error">{{ error }}</p>

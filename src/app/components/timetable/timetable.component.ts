@@ -3,13 +3,13 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, forkJoin, takeUntil } from 'rxjs';
+import { Subject, takeUntil, switchMap, catchError, EMPTY } from 'rxjs';
 import { TimetableService } from '../../services/timetable.service';
 import { TeacherService } from '../../services/teacher.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { StudentService } from '../../services/student.service';
 import { LoggerService } from '../../services/logger.service';
-import { TimetableEntry } from '../../interfaces/timetable';
+import { TimetableEntry, TimetableEntryRequest } from '../../interfaces/timetable';
 import { Teacher } from '../../interfaces/teacher';
 import { ToastService } from '../../services/toast.service';
 import { Capacitor } from '@capacitor/core';
@@ -21,10 +21,13 @@ import { ParentChildContextComponent } from '../parent-child-context/parent-chil
 import { ChildAccess } from '../../interfaces/parent-portal';
 import { TeacherClassGrantService } from '../../services/teacher-class-grant.service';
 
+import { AcademicSession } from '../../interfaces/academic-session';
+import { AcademicSessionSelectorComponent, writableSession, apiMessage } from '../academic-session-selector/academic-session-selector.component';
+
 @Component({
   selector: 'app-timetable',
   standalone: true,
-  imports: [CommonModule, FormsModule, ParentChildContextComponent],
+  imports: [CommonModule, FormsModule, ParentChildContextComponent, AcademicSessionSelectorComponent],
   templateUrl: './timetable.component.html',
   styleUrl: './timetable.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -56,10 +59,24 @@ export class TimetableComponent implements OnInit, OnDestroy {
   dayLetter: Record<string, string> = TimetableComponent.DAY_LETTER;
   allPeriods: number[] = Array.from({ length: 8 }, (_, i) => i + 1);
 
-  classList: string[] = [];
   managedClasses: SchoolClass[] = [];
   sections: Section[] = [];
   selectedClass = '';
+  selectedClassId: number | null = null;
+  selectedSession: AcademicSession | null = null;
+  sectionsLoaded = false;
+  private selectionChanged$ = new Subject<void>();
+  private classRead$ = new Subject<{ className: string; sectionId: number | null; studentId: string | null; academicSessionId?: number } | null>();
+  private destroyed = false;
+  get initialSessionId(): number | null { return Number(this.route.snapshot.queryParamMap.get('academicSessionId')) || null; }
+  canManage(): boolean { return this.role === 'ADMIN'; }
+  canWrite(): boolean { return this.canManage() && writableSession(this.selectedSession); }
+  canAdd(): boolean { return this.canWrite() && !!this.selectedClassId && this.sectionsLoaded && (this.sections.length ? this.sections.some(s => s.id === this.selectedSectionId) : this.selectedSectionId == null); }
+  onSessionSelected(session: AcademicSession | null): void {
+    this.classRead$.next(null);
+    this.selectedSession = session; this.showModal = false; this.showGrantModal = false;
+    this.entries = []; this.isLoading = false; this.loadClassTimetable(); this.cdr.markForCheck();
+  }
   selectedSectionId: number | null = null;
   selectedDay = 'MONDAY';
   todayDay = '';
@@ -68,7 +85,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
   /** Distinct class+section combos a TEACHER already has a real relationship with (they
    *  already teach it, or are its class-teacher) — the only options they may add a period
    *  into. The backend enforces this independently; this only scopes what's offered. */
-  myClasses: { className: string; sectionId: number | null; sectionName: string | null }[] = [];
+  myClasses: { classId?: number; className: string; sectionId: number | null; sectionName: string | null }[] = [];
 
   showTimes: boolean = (typeof localStorage !== 'undefined')
     ? localStorage.getItem(this.TIMES_KEY) !== 'false'
@@ -113,7 +130,19 @@ export class TimetableComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private teacherClassGrantService: TeacherClassGrantService
-  ) {}
+  ) {
+    this.classRead$.pipe(
+      switchMap(query => query ? this.timetableService.getClassTimetable(
+        query.className, query.sectionId, query.studentId, query.academicSessionId
+      ).pipe(catchError(err => {
+        this.error = apiMessage(err); this.isLoading = false; this.cdr.markForCheck();
+        return EMPTY;
+      })) : EMPTY),
+      takeUntil(this.destroy$)
+    ).subscribe(data => {
+      this.entries = data; this.isLoading = false; this.cdr.markForCheck();
+    });
+  }
 
   ngOnInit(): void {
     const user = this.authStateService.getUser();
@@ -141,26 +170,25 @@ export class TimetableComponent implements OnInit, OnDestroy {
     });
 
     if (this.isAdmin()) {
-      // Load class list + managed classes in parallel so section lookup has IDs
-      forkJoin({
-        classes: this.schoolService.getClasses(),
-        managed: this.schoolService.getManagedClasses()
-      }).pipe(takeUntil(this.destroy$)).subscribe({
-        next: ({ classes, managed }) => {
-          this.classList = classes;
+      this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+        next: managed => {
           this.managedClasses = managed;
-          if (classes.length > 0 && !this.selectedClass) {
-            this.selectedClass = classes[0];
+          if (managed.length && !this.selectedClassId) {
+            this.selectedClassId = managed[0].id;
             this.onClassChange();
           }
           this.cdr.markForCheck();
-        }
+        },
+        error: err => { this.error = apiMessage(err); this.cdr.markForCheck(); }
       });
-      this.loadTeachers();
+      if (this.canManage()) this.loadTeachers();
     }
 
     if (this.isTeacher()) {
-      this.loadTeacherTimetable();
+      this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+        next: classes => { this.managedClasses = classes; this.loadTeacherTimetable(); },
+        error: err => { this.logger.error('Failed to load canonical class choices', err); this.loadTeacherTimetable(); }
+      });
     }
 
     if (this.isStudent()) {
@@ -192,6 +220,9 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
+    this.selectionChanged$.next(); this.selectionChanged$.complete();
+    this.classRead$.next(null); this.classRead$.complete();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -225,6 +256,9 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   onClassChange(): void {
+    this.selectionChanged$.next(); this.classRead$.next(null);
+    this.selectedClass = this.managedClasses.find(c => c.id === this.selectedClassId)?.name ?? '';
+    this.showModal = false; this.sectionsLoaded = false; this.isLoading = false;
     this.sections = [];
     this.selectedSectionId = null;
     this.entries = [];
@@ -237,16 +271,17 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   private loadSectionsForClass(className: string, then?: () => void): void {
-    const cls = this.managedClasses.find(c => c.name === className);
+    const cls = this.managedClasses.find(c => c.id === this.selectedClassId);
     if (!cls) { then?.(); return; }
     this.sectionService.getSectionsForClass(cls.id)
-      .pipe(takeUntil(this.destroy$)).subscribe({
+      .pipe(takeUntil(this.selectionChanged$), takeUntil(this.destroy$)).subscribe({
         next: (secs) => {
-          this.sections = secs;
+          this.sections = secs.filter(s => s.active);
+          this.sectionsLoaded = true;
           this.cdr.markForCheck();
           then?.();
         },
-        error: () => { this.sections = []; then?.(); }
+        error: err => { this.sections = []; this.sectionsLoaded = false; this.error = apiMessage(err); this.cdr.markForCheck(); }
       });
   }
 
@@ -349,30 +384,19 @@ export class TimetableComponent implements OnInit, OnDestroy {
   // ── Data loading ─────────────────────────────────────────────────
 
   loadClassTimetable(): void {
-    if (!this.selectedClass) return;
+    this.classRead$.next(null);
+    if (!this.selectedClass || (this.canManage() && !this.selectedSession)) return;
     this.isLoading = true;
     this.error = null;
     this.entries = [];
     this.cdr.markForCheck();
 
-    this.timetableService.getClassTimetable(
-      this.selectedClass,
-      this.selectedSectionId,
-      this.isParent() ? this.userId : null
-    )
-      .pipe(takeUntil(this.destroy$)).subscribe({
-        next: (data) => {
-          this.entries = data;
-          this.isLoading = false;
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          this.logger.error('Failed to load timetable:', err);
-          this.error = 'Failed to load timetable. Please try again.';
-          this.isLoading = false;
-          this.cdr.markForCheck();
-        }
-      });
+    this.classRead$.next({
+      className: this.selectedClass,
+      sectionId: this.selectedSectionId,
+      studentId: this.isParent() ? this.userId : null,
+      academicSessionId: this.canManage() ? this.selectedSession!.id : undefined
+    });
   }
 
   private loadTeacherTimetable(): void {
@@ -401,12 +425,12 @@ export class TimetableComponent implements OnInit, OnDestroy {
    *  their class-teacher assignment (if any) even when it has no periods logged yet. */
   private buildMyClasses(entries: TimetableEntry[]): void {
     const seen = new Set<string>();
-    const classes: { className: string; sectionId: number | null; sectionName: string | null }[] = [];
+    const classes: { classId?: number; className: string; sectionId: number | null; sectionName: string | null }[] = [];
     for (const e of entries) {
       const key = `${e.className}::${e.sectionId ?? ''}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      classes.push({ className: e.className, sectionId: e.sectionId ?? null, sectionName: e.sectionName ?? null });
+      classes.push({ classId: e.classId, className: e.className, sectionId: e.sectionId ?? null, sectionName: e.sectionName ?? null });
     }
     this.myClasses = classes;
     this.cdr.markForCheck();
@@ -417,7 +441,10 @@ export class TimetableComponent implements OnInit, OnDestroy {
       const key = `${className}::${sectionId ?? ''}`;
       if (seen.has(key)) return;
       seen.add(key);
-      this.myClasses = [...this.myClasses, { className, sectionId, sectionName }];
+      // These legacy live/grant DTOs expose only a name; resolve once against canonical school classes.
+      const classId = this.managedClasses.find(c => c.name === className)?.id;
+      if (!classId) return;
+      this.myClasses = [...this.myClasses, { classId, className, sectionId, sectionName }];
       this.cdr.markForCheck();
     };
 
@@ -462,11 +489,13 @@ export class TimetableComponent implements OnInit, OnDestroy {
   // ── Modal ────────────────────────────────────────────────────────
 
   openAddPeriod(): void {
-    if (!this.isAdmin()) return;
+    if (!this.canAdd()) return;
     this.isEditMode = false;
     this.isSimultaneousMode = false;
     this.simultaneousSourceId = null;
     this.modalForm = this.emptyForm();
+    this.modalForm.classId = this.selectedClassId!;
+    this.modalForm.academicSessionId = this.selectedSession!.id;
     this.modalForm.className = this.selectedClass;
     this.modalForm.sectionId = this.selectedSectionId;
     this.modalForm.day = this.selectedDay;
@@ -490,6 +519,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.modalForm.teacherId = this.userId;
     this.modalForm.teacherName = this.userName;
     const first = this.myClasses[0];
+    this.modalForm.classId = first.classId;
     this.modalForm.className = first.className;
     this.modalForm.sectionId = first.sectionId;
     this.modalForm.sectionName = first.sectionName;
@@ -509,6 +539,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
   onMyClassSelect(key: string): void {
     const match = this.myClasses.find(c => this.myClassKey(c) === key);
     if (!match) return;
+    this.modalForm.classId = match.classId;
     this.modalForm.className = match.className;
     this.modalForm.sectionId = match.sectionId;
     this.modalForm.sectionName = match.sectionName;
@@ -521,11 +552,13 @@ export class TimetableComponent implements OnInit, OnDestroy {
    *  and generates/reuses the tag automatically, so an admin who's never heard of "tags" can
    *  still use this correctly. */
   openAddSimultaneous(existing: TimetableEntry): void {
-    if (!this.isAdmin()) return;
+    if (!this.canWrite()) return;
     this.isEditMode = false;
     this.isSimultaneousMode = true;
     this.simultaneousSourceId = existing.id ?? null;
     this.modalForm = {
+      classId: existing.classId,
+      academicSessionId: existing.academicSessionId,
       className: existing.className,
       sectionName: existing.sectionName,
       sectionId: existing.sectionId ?? null,
@@ -542,7 +575,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   openEdit(entry: TimetableEntry): void {
-    if (!this.isAdmin()) return;
+    if (!this.canWrite()) return;
     this.isEditMode = true;
     this.isSimultaneousMode = false;
     this.simultaneousSourceId = null;
@@ -563,7 +596,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
    *  class/section, even one with no periods logged yet and that isn't their class-teacher
    *  assignment. See TeacherClassGrantService (backend) for what this actually grants. */
   openGrantModal(): void {
-    if (!this.isAdmin() || !this.selectedClass) return;
+    if (!this.canAdd() || !this.selectedSession?.current) return;
     this.grantTeacherId = '';
     this.grantError = null;
     this.showGrantModal = true;
@@ -576,6 +609,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   saveGrant(): void {
+    if (!this.canAdd() || !this.selectedSession?.current || this.grantSaving) return;
     this.grantError = null;
     if (!this.grantTeacherId) {
       this.grantError = 'Please select a teacher.'; return;
@@ -611,7 +645,17 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   saveEntry(): void {
+    if (this.modalSaving) return;
     this.modalError = null;
+    if ((!this.isTeacher() && !this.canWrite()) || !this.modalForm.classId) {
+      this.modalError = 'Select a writable session and a valid class.'; return;
+    }
+    if (this.canManage() && this.modalForm.academicSessionId !== this.selectedSession?.id) {
+      this.modalError = 'Session changed. Reopen this period.'; return;
+    }
+    if (this.canManage() && (!this.sectionsLoaded || (this.sections.length ? !this.sections.some(s => s.id === this.modalForm.sectionId) : this.modalForm.sectionId != null))) {
+      this.modalError = 'Select a valid section for this class.'; return;
+    }
     if (!this.modalForm.subjectName?.trim()) {
       this.modalError = 'Subject name is required.'; return;
     }
@@ -628,11 +672,18 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.modalSaving = true;
     this.cdr.markForCheck();
 
+    const form = this.modalForm;
+    const body: TimetableEntryRequest = {
+      ...(this.canManage() ? { academicSessionId: this.selectedSession!.id } : {}),
+      classId: form.classId!, sectionId: form.sectionId ?? null, day: form.day,
+      periodNumber: form.periodNumber, startTime: form.startTime, endTime: form.endTime,
+      subjectName: form.subjectName, teacherId: form.teacherId
+    };
     const save$ = this.isSimultaneousMode && this.simultaneousSourceId != null
-      ? this.timetableService.addSimultaneous(this.simultaneousSourceId, this.modalForm.subjectName, this.modalForm.teacherId)
+      ? this.timetableService.addSimultaneous(this.simultaneousSourceId, this.modalForm.subjectName, this.modalForm.teacherId, this.canManage() ? this.selectedSession!.id : undefined)
       : this.isEditMode && this.modalForm.id != null
-        ? this.timetableService.updateEntry(this.modalForm.id, this.modalForm)
-        : this.timetableService.createEntry(this.modalForm);
+        ? this.timetableService.updateEntry(this.modalForm.id, body)
+        : this.timetableService.createEntry(body);
 
     save$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
@@ -653,19 +704,13 @@ export class TimetableComponent implements OnInit, OnDestroy {
         // offer to add it as a simultaneous subject instead of a dead-end conflict message —
         // they never see slot/tag mechanics either way.
         if (this.isTeacher() && !this.isEditMode && !this.isSimultaneousMode && err.status === 409) {
-          this.offerSimultaneousRecovery();
+          this.offerSimultaneousRecovery(apiMessage(err));
           return;
         }
 
         // The backend now returns a specific reason (slot conflict, group mismatch, teacher
         // double-booking, etc.) as the plain-text 409 body — prefer it when present.
-        this.modalError = err.status === 409
-          ? (typeof err.error === 'string' && err.error
-              ? err.error
-              : 'A subject is already scheduled for this period. Edit the existing one instead.')
-          : err.status === 403
-            ? (typeof err.error === 'string' && err.error ? err.error : 'You are not allowed to do that.')
-            : 'Failed to save. Please try again.';
+        this.modalError = apiMessage(err);
         this.cdr.markForCheck();
       }
     });
@@ -674,7 +719,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
   /** Looks up what's already occupying the slot the teacher just tried to save into, and — if
    *  found — switches the modal into isSimultaneousMode against it so a retry pairs alongside
    *  the existing subject instead of failing again the same way. */
-  private offerSimultaneousRecovery(): void {
+  private offerSimultaneousRecovery(originalMessage: string): void {
     this.timetableService.getClassTimetable(this.modalForm.className, this.modalForm.sectionId)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (dayEntries) => {
@@ -685,39 +730,47 @@ export class TimetableComponent implements OnInit, OnDestroy {
             this.modalForm.startTime = clash.startTime;
             this.modalForm.endTime = clash.endTime;
             this.modalForm.sectionName = clash.sectionName;
-            this.modalError = `Period ${clash.periodNumber} is already used by ${clash.subjectName}`
+            this.modalError = originalMessage + ` Period ${clash.periodNumber} is already used by ${clash.subjectName}`
               + `${clash.teacherName ? ' (' + clash.teacherName + ')' : ''}. Click "Add Subject" below to add yours alongside it.`;
           } else {
-            this.modalError = 'A subject is already scheduled for this period.';
+            this.modalError = originalMessage;
           }
           this.cdr.markForCheck();
         },
         error: () => {
-          this.modalError = 'A subject is already scheduled for this period.';
+          this.modalError = originalMessage;
           this.cdr.markForCheck();
         }
       });
   }
 
   deleteEntry(): void {
-    if (!this.modalForm.id) return;
+    if (!this.canWrite() || !this.modalForm.id || this.modalSaving) return;
+    const id = this.modalForm.id;
+    const sessionId = this.selectedSession!.id;
     this.toast.confirm({
       title: 'Delete this period?',
       message: `${this.modalForm.subjectName} — ${this.dayLabels[this.modalForm.day]} Period ${this.modalForm.periodNumber}`,
       confirmText: 'Yes, delete',
       danger: true
     }).then(confirmed => {
-      if (!confirmed) return;
-      this.timetableService.deleteEntry(this.modalForm.id!)
+      if (!confirmed || this.destroyed || !this.canWrite() || this.selectedSession?.id !== sessionId) return;
+      this.modalSaving = true;
+      this.cdr.markForCheck();
+      this.timetableService.deleteEntry(id, sessionId)
         .pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
+            this.modalSaving = false;
             this.showModal = false;
             this.loadClassTimetable();
             this.toast.success('Deleted');
+            this.cdr.markForCheck();
           },
           error: (err) => {
+            this.modalSaving = false;
+            this.cdr.markForCheck();
             this.logger.error('Failed to delete entry:', err);
-            this.toast.error('Error', 'Failed to delete. Please try again.');
+            this.toast.error('Error', apiMessage(err));
           }
         });
     });
@@ -742,7 +795,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   goToBulkImport(): void {
-    this.router.navigate(['/dashboard/timetable-bulk-import']);
+    if (!this.canWrite()) return;
+    this.router.navigate(['/dashboard/timetable-bulk-import'], { queryParams: { academicSessionId: this.selectedSession!.id } });
   }
 
   printTimetable(): void {

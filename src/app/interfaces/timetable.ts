@@ -1,5 +1,6 @@
 export interface TimetableEntry {
   id?: number;
+  academicSessionId?: number;
   className: string;
   classId?: number;
   sectionId?: number | null;
@@ -15,4 +16,17 @@ export interface TimetableEntry {
    *  "MATH_BIO") tags this entry as one of several legitimate simultaneous/elective subject
    *  assignments occupying the same class+section+day+period. */
   simultaneousGroup?: string | null;
+}
+
+/** Exact create/update body; display names and simultaneous tags are response-only. */
+export interface TimetableEntryRequest {
+  academicSessionId?: number;
+  classId: number;
+  sectionId: number | null;
+  day: string;
+  periodNumber: number;
+  startTime: string;
+  endTime: string;
+  subjectName: string;
+  teacherId: string;
 }

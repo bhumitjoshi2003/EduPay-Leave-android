@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, firstValueFrom } from 'rxjs';
 import { SchoolService, SchoolSettings, SchoolEntitlementSummary, PlanDetail, SubscriptionHistoryItem, SchoolFeature } from '../../services/school.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { TenantService } from '../../services/tenant.service';
@@ -763,27 +763,65 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Phase G: "Make Current" now shows the class-teacher activation impact BEFORE confirming,
+   *  since the session switch itself is the deliberate activation event — see
+   *  AcademicSessionActivationService (backend) for why this is one atomic action rather than a
+   *  separate mandatory step. {@code configuredCount} (not becomingLive/changing/clearing alone)
+   *  is what actually tells us whether the target has zero/unusable configuration — those counts
+   *  alone can't distinguish "nothing configured" from "configured but already matches live." */
   async setCurrentSession(session: AcademicSession): Promise<void> {
     const activeSession = this.sessions.find(s => s.current);
     const fromHtml = activeSession
       ? `<strong>${activeSession.label}</strong> (${this.formatSessionRange(activeSession)})`
       : '<em>none set</em>';
 
+    let preview;
+    try {
+      preview = await firstValueFrom(this.academicSessionService.getActivationPreview(session.id));
+    } catch (e) {
+      this.logger.error('Failed to load class-teacher activation preview', e);
+      this.toast.error('Error', 'Failed to check the class-teacher activation impact. Please try again.');
+      return;
+    }
+
+    const configuredCount = preview.configuredCount ?? 0;
+    const noUsableConfiguration = configuredCount === 0
+      || (preview.ineligibleTeacher + preview.invalidClassOrSection) === configuredCount;
+    const showsClearingWarning = noUsableConfiguration && preview.clearing > 0;
+    const warningHtml = showsClearingWarning
+      ? `<p style="color:#92400e;"><strong>Warning:</strong> This session has no usable class-teacher ` +
+        `responsibilities configured. Making it current will remove the existing live class-teacher ` +
+        `assignment${preview.clearing === 1 ? '' : 's'} (${preview.clearing}).</p>`
+      : '';
+
     const confirmed = await this.toast.confirm({
-      title: `Set ${session.label} as the current session?`,
+      title: `Make ${session.label} Current?`,
       html: `<p>Current session: ${fromHtml}</p>` +
             `<p>Activating: <strong>${session.label}</strong> (${this.formatSessionRange(session)})</p>` +
-            `<p>This controls which academic session the school treats as current — it's the session ` +
-            `new fee structures, exams, invoices, and other session-scoped screens default to across the app.</p>`,
-      confirmText: 'Set as Current',
+            `<p>This will:</p>` +
+            `<ul style="text-align:left; margin:4px 0 12px;">` +
+              `<li>make ${session.label} the school's current academic session</li>` +
+              `<li>make its timetable the operational/current timetable</li>` +
+              `<li>activate its configured class-teacher responsibilities</li>` +
+            `</ul>` +
+            `<p><strong>Class-teacher preview:</strong> Unchanged ${preview.unchanged}, ` +
+            `Becoming live ${preview.becomingLive}, Changing ${preview.changing}, Removed ${preview.clearing}.</p>` +
+            warningHtml,
+      confirmText: 'Confirm & Make Current',
       cancelText: 'Cancel',
-      icon: 'question',
+      icon: showsClearingWarning ? 'warning' : 'question',
+      danger: showsClearingWarning,
     });
     if (!confirmed) return;
 
     this.academicSessionService.setCurrentSession(session.id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.toast.success('Updated', 'Current session updated.');
+      next: (outcome) => {
+        if (outcome.activationPerformed && outcome.activation) {
+          this.toast.success('Updated', `${session.label} is now current. Class-teacher access updated: ` +
+            `${outcome.activation.applied} granted, ${outcome.activation.cleared} cleared.`);
+        } else {
+          this.toast.success('Updated', `${session.label} is already the current session.`);
+        }
         this.loadSessions();
       },
       error: (e) => {

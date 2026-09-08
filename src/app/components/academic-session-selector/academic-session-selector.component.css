@@ -1,0 +1,64 @@
+/* Mirrors the timetable page's own card language (.tt-controls / .tt-day-selector):
+   white rounded card, soft shadow, uppercase micro-label — so this sits visually as part
+   of the same page rather than a bolted-on dev control. */
+:host { display: block; margin: 0 0 14px; }
+
+.ass-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.ass-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 12px;
+  background: #eef2ff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+}
+
+.ass-body { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1; }
+
+.ass-label {
+  font-size: 0.7rem; font-weight: 700; color: #64748b;
+  text-transform: uppercase; letter-spacing: 0.4px;
+}
+
+.ass-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.ass-select {
+  padding: 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 9px;
+  font-size: 0.88rem; font-weight: 600; background: #f8fafc; color: #334155;
+  min-width: 200px; max-width: 100%; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.ass-select:focus { border-color: #4f46e5; outline: none; }
+.ass-select:disabled { cursor: not-allowed; opacity: 0.65; }
+
+/* Status pill — same shape/weight as the dashboard's role/status chips, one accent per
+   session kind so CURRENT reads unmistakably "safe to use" at a glance. */
+.ass-pill {
+  display: inline-flex; align-items: center; min-height: 22px;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 0.66rem; font-weight: 800; letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.ass-pill-current    { color: #047857; background: #dcfce7; }
+.ass-pill-future,
+.ass-pill-noncurrent  { color: #92400e; background: #fef3c7; }
+.ass-pill-historical  { color: #475569; background: #f1f5f9; }
+
+.ass-error {
+  color: #dc2626; font-weight: 600; font-size: 0.82rem;
+  background: #fef2f2; border: 1px solid #fecaca;
+  border-radius: 10px; padding: 8px 14px; margin: 8px 0 0;
+}
+
+@media (max-width: 560px) {
+  .ass-card { flex-wrap: wrap; }
+  .ass-select { min-width: 0; flex: 1; }
+}

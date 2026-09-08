@@ -1,18 +1,28 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { saveAs } from 'file-saver';
 import { TimetableService, TimetableBulkImportResult, TimetableBulkImportError } from '../../services/timetable.service';
+
+import { Subject, takeUntil } from 'rxjs';
+import { AcademicSession } from '../../interfaces/academic-session';
+import { AcademicSessionSelectorComponent, writableSession, apiMessage } from '../academic-session-selector/academic-session-selector.component';
 
 @Component({
   selector: 'app-timetable-bulk-import',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AcademicSessionSelectorComponent],
   templateUrl: './timetable-bulk-import.component.html',
   styleUrl: './timetable-bulk-import.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TimetableBulkImportComponent {
+export class TimetableBulkImportComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
+  selectedSession: AcademicSession | null = null;
+  get initialSessionId(): number | null { return Number(this.route.snapshot.queryParamMap.get('academicSessionId')) || null; }
+  canImport(): boolean { return writableSession(this.selectedSession) && !this.isImporting; }
+  sessionSelected(session: AcademicSession | null): void { this.selectedSession = session; this.result = null; this.importError = ''; this.cdr.markForCheck(); }
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   selectedFile: File | null = null;
@@ -24,6 +34,7 @@ export class TimetableBulkImportComponent {
   constructor(
     private timetableService: TimetableService,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -66,7 +77,7 @@ export class TimetableBulkImportComponent {
   downloadTemplate(): void {
     this.isDownloadingTemplate = true;
     this.cdr.markForCheck();
-    this.timetableService.downloadBulkTemplate().subscribe({
+    this.timetableService.downloadBulkTemplate().pipe(takeUntil(this.destroy$)).subscribe({
       next: (blob) => {
         saveAs(blob, 'timetable_import_template.csv');
         this.isDownloadingTemplate = false;
@@ -81,20 +92,20 @@ export class TimetableBulkImportComponent {
   }
 
   import(): void {
-    if (!this.selectedFile) return;
+    if (!this.selectedFile || !this.canImport()) return;
     this.isImporting = true;
     this.importError = '';
     this.result = null;
     this.cdr.markForCheck();
 
-    this.timetableService.bulkImport(this.selectedFile).subscribe({
+    this.timetableService.bulkImport(this.selectedFile, this.selectedSession!.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (result) => {
         this.result = result;
         this.isImporting = false;
         this.cdr.markForCheck();
       },
-      error: () => {
-        this.importError = 'Import failed. Please check the file format and try again.';
+      error: err => {
+        this.importError = apiMessage(err);
         this.isImporting = false;
         this.cdr.markForCheck();
       },
@@ -110,7 +121,7 @@ export class TimetableBulkImportComponent {
   }
 
   goToTimetable(): void {
-    this.router.navigate(['/dashboard/timetable']);
+    this.router.navigate(['/dashboard/timetable'], { queryParams: { academicSessionId: this.selectedSession?.id } });
   }
 
   downloadErrorCSV(): void {

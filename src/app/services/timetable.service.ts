@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { TimetableEntry } from '../interfaces/timetable';
+import { TimetableEntry, TimetableEntryRequest } from '../interfaces/timetable';
 
 export interface TimetableBulkImportError {
   row: number;
@@ -17,6 +17,7 @@ export interface TimetableBulkImportSuccess {
 }
 
 export interface TimetableBulkImportResult {
+  academicSessionId: number;
   totalRows: number;
   successful: number;
   failed: number;
@@ -30,8 +31,9 @@ export class TimetableService {
 
   constructor(private http: HttpClient) {}
 
-  getClassTimetable(className: string, sectionId?: number | null, studentId?: string | null): Observable<TimetableEntry[]> {
+  getClassTimetable(className: string, sectionId?: number | null, studentId?: string | null, academicSessionId?: number): Observable<TimetableEntry[]> {
     let params = new HttpParams();
+    if (academicSessionId != null) params = params.set('academicSessionId', academicSessionId);
     if (sectionId != null) {
       params = params.set('sectionId', sectionId.toString());
     }
@@ -44,37 +46,37 @@ export class TimetableService {
     );
   }
 
-  getTeacherTimetable(teacherId: string): Observable<TimetableEntry[]> {
-    return this.http.get<TimetableEntry[]>(`${this.baseUrl}/teacher/${teacherId}`);
+  getTeacherTimetable(teacherId: string, academicSessionId?: number): Observable<TimetableEntry[]> {
+    return this.http.get<TimetableEntry[]>(`${this.baseUrl}/teacher/${encodeURIComponent(teacherId)}`, { params: academicSessionId == null ? {} : { academicSessionId } });
   }
 
-  createEntry(entry: TimetableEntry): Observable<TimetableEntry> {
+  createEntry(entry: TimetableEntryRequest): Observable<TimetableEntry> {
     return this.http.post<TimetableEntry>(this.baseUrl, entry);
   }
 
-  updateEntry(id: number, entry: TimetableEntry): Observable<TimetableEntry> {
+  updateEntry(id: number, entry: TimetableEntryRequest): Observable<TimetableEntry> {
     return this.http.put<TimetableEntry>(`${this.baseUrl}/${id}`, entry);
   }
 
-  deleteEntry(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  deleteEntry(id: number, academicSessionId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { params: { academicSessionId } });
   }
 
   /** Adds a second subject to the same slot as entry `existingId` — the "+ Simultaneous"
    *  action. Class/section/day/period/time are inherited server-side from the existing entry,
    *  and the simultaneousGroup tag is generated/reused automatically — the caller only ever
    *  supplies the new subject and teacher, never a tag. */
-  addSimultaneous(existingId: number, subjectName: string, teacherId: string): Observable<TimetableEntry> {
-    return this.http.post<TimetableEntry>(`${this.baseUrl}/${existingId}/simultaneous`, { subjectName, teacherId });
+  addSimultaneous(existingId: number, subjectName: string, teacherId: string, academicSessionId?: number): Observable<TimetableEntry> {
+    return this.http.post<TimetableEntry>(`${this.baseUrl}/${existingId}/simultaneous`, { subjectName, teacherId, academicSessionId });
   }
 
   downloadBulkTemplate(): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/bulk/template`, { responseType: 'blob' });
   }
 
-  bulkImport(file: File): Observable<TimetableBulkImportResult> {
+  bulkImport(file: File, academicSessionId: number): Observable<TimetableBulkImportResult> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<TimetableBulkImportResult>(`${this.baseUrl}/bulk`, formData);
+    return this.http.post<TimetableBulkImportResult>(`${this.baseUrl}/bulk`, formData, { params: { academicSessionId } });
   }
 }

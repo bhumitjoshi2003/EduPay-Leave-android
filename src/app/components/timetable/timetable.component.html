@@ -1,3 +1,5 @@
+<app-academic-session-selector class="no-print" *ngIf="canManage()" [initialId]="initialSessionId" [disabled]="modalSaving || (!isTeacher() && !canWrite())" (selected)="onSessionSelected($event)" />
+<p class="no-print" *ngIf="canManage() && !canWrite()">Select a current or future session to configure the timetable. Historical sessions are read-only.</p>
 <div class="tt-page">
   <app-parent-child-context *ngIf="isParent()" [studentId]="userId" requiredPermission="canViewTimetable" (childSelected)="onChildTabSelected($event)"></app-parent-child-context>
 
@@ -10,7 +12,7 @@
         <p class="tt-hero-sub">Weekly class &amp; teacher schedules</p>
       </div>
     </div>
-    <button type="button" class="tt-bulk-import-btn no-print" *ngIf="isAdmin()" (click)="goToBulkImport()">
+    <button type="button" class="tt-bulk-import-btn no-print" *ngIf="canManage()" [disabled]="!canWrite()" (click)="goToBulkImport()">
       &#8593; Bulk Import
     </button>
     <div class="tt-blob tt-blob-1"></div>
@@ -21,15 +23,15 @@
   <div class="tt-controls no-print" *ngIf="isAdmin()">
     <div class="tt-control-group">
       <label class="tt-clabel" for="tt-class-sel">Class</label>
-      <select id="tt-class-sel" class="tt-select" [(ngModel)]="selectedClass"
+      <select id="tt-class-sel" [disabled]="modalSaving" class="tt-select" [(ngModel)]="selectedClassId"
         (ngModelChange)="onClassChange()">
-        <option value="">-- Choose Class --</option>
-        <option *ngFor="let c of classList" [value]="c">Class {{ c }}</option>
+        <option [ngValue]="null">-- Choose Class --</option>
+        <option *ngFor="let c of managedClasses" [ngValue]="c.id">Class {{ c.name }}</option>
       </select>
     </div>
     <div class="tt-control-group" *ngIf="sections.length > 0">
       <label class="tt-clabel" for="tt-section-sel">Section</label>
-      <select id="tt-section-sel" class="tt-select" [(ngModel)]="selectedSectionId"
+      <select id="tt-section-sel" [disabled]="modalSaving" class="tt-select" [(ngModel)]="selectedSectionId"
         (ngModelChange)="onSectionChange()">
         <option [ngValue]="null">All Sections</option>
         <option *ngFor="let s of sections" [ngValue]="s.id">{{ s.name }}</option>
@@ -92,8 +94,8 @@
           <!-- Normal period: one subject — header row matches the simultaneous card's layout -->
           <div *ngIf="group.entries.length === 1"
             class="tt-period-card tt-period-card--single tt-sc-{{ getSubjectClass(group.entries[0].subjectName) }}"
-            [class.tt-card-clickable]="isAdmin()"
-            (click)="isAdmin() && openEdit(group.entries[0])">
+            [class.tt-card-clickable]="canWrite()"
+            (click)="canWrite() && openEdit(group.entries[0])">
             <div class="tt-period-header">
               <span class="tt-card-period">Period {{ group.entries[0].periodNumber }}</span>
               <span class="tt-card-time" *ngIf="showTimes && group.entries[0].startTime">
@@ -103,13 +105,13 @@
             <div class="tt-card-content">
               <div class="tt-icon-box">{{ getSubjectIcon(group.entries[0].subjectName) }}</div>
               <div class="tt-card-info">
-                <span class="tt-section-badge" *ngIf="group.entries[0].sectionName && !selectedSectionId">§ {{ group.entries[0].sectionName }}</span>
+                <span class="tt-section-badge" *ngIf="group.entries[0].sectionName && !selectedSectionId">{{ group.entries[0].sectionName }}</span>
                 <div class="tt-card-subject">{{ group.entries[0].subjectName }}</div>
                 <div class="tt-card-teacher">{{ group.entries[0].teacherName }}</div>
               </div>
-              <span class="tt-edit-hint no-print" *ngIf="isAdmin()">✎</span>
+              <span class="tt-edit-hint no-print" *ngIf="canWrite()">✎</span>
             </div>
-            <button type="button" class="tt-add-simul-btn no-print" *ngIf="isAdmin()"
+            <button type="button" class="tt-add-simul-btn no-print" *ngIf="canManage()" [disabled]="!canWrite()"
               (click)="$event.stopPropagation(); openAddSimultaneous(group.entries[0])"
               title="Add a simultaneous subject to this period">+ Simultaneous</button>
           </div>
@@ -124,15 +126,15 @@
             </div>
             <div *ngFor="let entry of group.entries; trackBy: trackByEntry"
               class="tt-simul-row tt-sc-{{ getSubjectClass(entry.subjectName) }}"
-              [class.tt-card-clickable]="isAdmin()"
-              (click)="isAdmin() && openEdit(entry)">
+              [class.tt-card-clickable]="canWrite()"
+              (click)="canWrite() && openEdit(entry)">
               <span class="tt-icon-box">{{ getSubjectIcon(entry.subjectName) }}</span>
               <span class="tt-simul-info">
-                <span class="tt-section-badge" *ngIf="entry.sectionName && !selectedSectionId">§ {{ entry.sectionName }}</span>
+                <span class="tt-section-badge" *ngIf="entry.sectionName && !selectedSectionId">{{ entry.sectionName }}</span>
                 <span class="tt-simul-subject">{{ entry.subjectName }}</span>
                 <span class="tt-simul-teacher">{{ entry.teacherName }}</span>
               </span>
-              <span class="tt-edit-hint no-print" *ngIf="isAdmin()">✎</span>
+              <span class="tt-edit-hint no-print" *ngIf="canWrite()">✎</span>
             </div>
           </div>
 
@@ -147,13 +149,13 @@
       </div>
 
       <!-- Add period (admin only) -->
-      <button class="tt-add-btn no-print" *ngIf="isAdmin()" (click)="openAddPeriod()">
+      <button class="tt-add-btn no-print" *ngIf="canManage()" [disabled]="!canAdd()" (click)="openAddPeriod()">
         ＋ Add Period for {{ dayLabels[selectedDay] }}
       </button>
 
       <!-- Let a teacher self-serve periods for this class, even ones with no existing periods
            or class-teacher connection to it yet (see the modal's own explanation). -->
-      <button class="tt-grant-btn no-print" *ngIf="isAdmin()" (click)="openGrantModal()">
+      <button class="tt-grant-btn no-print" *ngIf="canManage() && selectedSession?.current" [disabled]="!canAdd()" (click)="openGrantModal()">
         👤+ Grant a teacher access to Class {{ selectedClass }}<ng-container *ngIf="selectedSectionName"> – {{ selectedSectionName }}</ng-container>
       </button>
 
@@ -260,7 +262,7 @@
       <div class="tt-field" *ngIf="sections.length > 0 && !isSimultaneousMode && !isTeacher()">
         <label class="tt-field-label" for="modal-section">Section</label>
         <select id="modal-section" class="tt-field-input" [(ngModel)]="modalForm.sectionId">
-          <option [ngValue]="null">-- No specific section --</option>
+          <option [ngValue]="null">-- Select a section --</option>
           <option *ngFor="let s of sections" [ngValue]="s.id">{{ s.name }}</option>
         </select>
       </div>
@@ -324,12 +326,12 @@
     <p class="tt-modal-error" *ngIf="modalError" role="alert">{{ modalError }}</p>
 
     <div class="tt-modal-actions">
-      <button class="tt-btn-delete" *ngIf="isEditMode" (click)="deleteEntry()" [disabled]="modalSaving">
+      <button class="tt-btn-delete" *ngIf="isEditMode" (click)="deleteEntry()" [disabled]="modalSaving || (!isTeacher() && !canWrite())">
         Delete
       </button>
       <div class="tt-modal-right-actions">
-        <button class="tt-btn-cancel" (click)="closeModal()" [disabled]="modalSaving">Cancel</button>
-        <button class="tt-btn-save" (click)="saveEntry()" [disabled]="modalSaving">
+        <button class="tt-btn-cancel" (click)="closeModal()" [disabled]="modalSaving || (!isTeacher() && !canWrite())">Cancel</button>
+        <button class="tt-btn-save" (click)="saveEntry()" [disabled]="modalSaving || (!isTeacher() && !canWrite())">
           {{ modalSaving ? 'Saving…' : (isEditMode ? 'Update' : (isSimultaneousMode ? 'Add Subject' : 'Add Period')) }}
         </button>
       </div>

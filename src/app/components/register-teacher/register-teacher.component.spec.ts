@@ -21,8 +21,9 @@ describe('RegisterTeacherComponent', () => {
     authService = jasmine.createSpyObj('AuthService', ['register']);
     const authState = jasmine.createSpyObj('AuthStateService', ['getUserRole']);
     authState.getUserRole.and.returnValue('ADMIN');
-    const schoolService = jasmine.createSpyObj('SchoolService', ['getClasses']);
+    const schoolService = jasmine.createSpyObj('SchoolService', ['getClasses', 'getManagedClasses']);
     schoolService.getClasses.and.returnValue(of([]));
+    schoolService.getManagedClasses.and.returnValue(of([]));
     toast = jasmine.createSpyObj('ToastService', ['error', 'success']);
     const router = jasmine.createSpyObj('Router', ['navigate']);
 
