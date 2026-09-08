@@ -10,18 +10,98 @@ interface StudentDTO {
   sectionId?: number | null;
 }
 
+/** E2 year-end decision actions — mirrors backend StudentYearEndDecision.Action exactly. */
 export type PromotionAction = 'PROMOTE' | 'DETAIN' | 'PASS_OUT';
 
-export interface PromotionPreviewGroup {
-  className: string;
-  students: { studentId: string; name: string; }[];
+/** Whether a proposed target enrollment would be effective immediately or only once its
+ *  academic session actually starts. Mirrors backend StudentEnrollmentStatus (the only two
+ *  values a year-end preview/decision can ever propose). */
+export type PromotionTargetStatus = 'ACTIVE' | 'PLANNED';
+
+/** Machine-readable outcome code for one submitted decision. The first three are successful
+ *  mutations; the rest mean nothing was changed for that student. */
+export type PromotionOutcomeCode =
+  | 'PROMOTED' | 'DETAINED' | 'PASSED_OUT'
+  | 'ALREADY_APPLIED' | 'CONFLICT' | 'INVALID_SOURCE' | 'VALIDATION_ERROR';
+
+export interface PromotionIssue {
+  code: string;
+  message: string;
 }
 
-export interface PromotionResult {
-  promoted: number;
-  detained: number;
-  passedOut: number;
-  errors: { studentId: string; reason: string; }[];
+/** One student's authoritative, backend-computed preview row for a source/target session
+ *  pair. Every ID here is real and must be sent back verbatim in the matching decision —
+ *  never re-derived from displayed names or from the student's live projection. */
+export interface PromotionCandidate {
+  studentId: string;
+  studentName: string | null;
+  sourceEnrollmentId: number;
+  sourceSessionId: number;
+  sourceClassId: number | null;
+  sourceClassName: string | null;
+  sourceSectionId: number | null;
+  sourceSectionName: string | null;
+  availableDecisions: PromotionAction[];
+  recommendedDecision: PromotionAction;
+  promoteTargetClassId: number | null;
+  promoteTargetClassName: string | null;
+  detainTargetClassId: number | null;
+  detainTargetClassName: string | null;
+  promoteTargetSectionRequired: boolean;
+  proposedPromoteTargetSectionId: number | null;
+  proposedDetainTargetSectionId: number | null;
+  proposedTargetStatus: PromotionTargetStatus;
+  errors: PromotionIssue[];
+  warnings: PromotionIssue[];
+  /** 'NOT_APPLIED' (ready for a decision), 'CONFLICT', or 'ALREADY_APPLIED:<ACTION>'. */
+  appliedDecisionState: string;
+}
+
+export interface PromotionUncoveredStudent {
+  studentId: string;
+  studentName: string | null;
+  code: string;
+  message: string;
+}
+
+export interface PromotionPreviewDTO {
+  sourceSessionId: number;
+  targetSessionId: number;
+  valid: boolean;
+  errors: PromotionIssue[];
+  candidates: PromotionCandidate[];
+  uncoveredStudents: PromotionUncoveredStudent[];
+}
+
+export interface PromotionDecisionPayload {
+  studentId: string;
+  action: PromotionAction;
+  expectedSourceEnrollmentId: number;
+  expectedSourceClassId: number;
+  targetClassId?: number | null;
+  targetSectionId?: number | null;
+}
+
+export interface PromotionExecuteRequest {
+  sourceSessionId: number;
+  targetSessionId: number;
+  decisions: PromotionDecisionPayload[];
+}
+
+export interface PromotionStudentOutcome {
+  studentId: string;
+  code: PromotionOutcomeCode;
+  message: string;
+  sourceEnrollmentId: number | null;
+  targetEnrollmentId: number | null;
+  targetEnrollmentStatus: PromotionTargetStatus | null;
+  lifecycleFinalizationPending: boolean;
+}
+
+export interface PromotionResultDTO {
+  submitted: number;
+  summary: Record<string, number>;
+  outcomes: PromotionStudentOutcome[];
 }
 
 export interface BulkImportError {
@@ -103,14 +183,29 @@ export class StudentService {
     return this.http.post<{ photoUrl: string }>(`${this.baseUrl}/${studentId}/photo`, formData);
   }
 
-  getPromotionPreview(): Observable<PromotionPreviewGroup[]> {
-    return this.http.get<PromotionPreviewGroup[]>(`${this.baseUrl}/promotion/preview`);
+  /** E2 backend-authoritative preview for one explicit source/target academic session pair.
+   *  classId/studentId are optional server-side filters (canonical IDs only). */
+  getPromotionPreview(
+    sourceSessionId: number, targetSessionId: number,
+    classId?: number | null, studentId?: string | null
+  ): Observable<PromotionPreviewDTO> {
+    let params = new HttpParams()
+      .set('sourceSessionId', sourceSessionId)
+      .set('targetSessionId', targetSessionId);
+    if (classId != null) params = params.set('classId', classId);
+    if (studentId) params = params.set('studentId', studentId);
+    return this.http.get<PromotionPreviewDTO>(`${this.baseUrl}/promotion/preview`, { params });
   }
 
-  executePromotion(decisions: { studentId: string; action: PromotionAction }[]): Observable<PromotionResult> {
-    return this.http.post<PromotionResult>(`${this.baseUrl}/promotion/execute`, { decisions });
+  /** E2 batch execute — every field in each decision must come from the loaded preview
+   *  (expectedSourceEnrollmentId/expectedSourceClassId prove the decision still matches
+   *  authoritative history), never reconstructed from current Student state. */
+  executePromotion(request: PromotionExecuteRequest): Observable<PromotionResultDTO> {
+    return this.http.post<PromotionResultDTO>(`${this.baseUrl}/promotion/execute`, request);
   }
 
+  /** Maintenance-only cleanup for section assignments left over from before section-aware
+   *  promotion existed. Not part of the E2 preview/execute contract — safe to run any time. */
   fixOrphanedSections(): Observable<{ affected: number; message: string }> {
     return this.http.post<{ affected: number; message: string }>(
       `${this.baseUrl}/promotion/fix-orphaned-sections`, {}
