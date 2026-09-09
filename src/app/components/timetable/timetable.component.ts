@@ -81,6 +81,19 @@ export class TimetableComponent implements OnInit, OnDestroy {
     });
   }
 
+  pendingCorrectionsCount(): number {
+    return this.corrections.filter(c => c.status === 'PENDING').length;
+  }
+
+  existingCorrectionFor(timetableEntryId: number): TimetableCorrection | undefined {
+    return this.corrections.find(c => c.timetableEntryId === timetableEntryId && c.status === 'PENDING');
+  }
+
+  initials(name: string | null | undefined): string {
+    const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+    return (((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')) || '?').toUpperCase();
+  }
+
   role = '';
   userId = '';
   userClassName = '';
@@ -753,7 +766,6 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
         if (this.isTeacher() && err.error?.code === 'SAME_SUBJECT_ASSIGNED_TO_ANOTHER_TEACHER') {
           this.correctionTargetId = err.error.timetableEntryId;
-          this.modalError = err.error.message;
           this.cdr.markForCheck();
           return;
         }

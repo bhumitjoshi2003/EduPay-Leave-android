@@ -162,24 +162,51 @@
     </ng-container>
   </ng-container>
 
-  <section class="tt-corrections no-print" *ngIf="isTeacher() || canManage()">
-    <h3>{{ isTeacher() ? 'My Correction Requests' : 'Timetable Correction Requests' }}</h3>
-    <button type="button" class="tt-btn-cancel" (click)="loadCorrections()" [disabled]="correctionBusy">Refresh requests</button>
-    <p role="alert" *ngIf="correctionsError">{{ correctionsError }}</p>
-    <p *ngIf="!corrections.length && !correctionsError">No {{ canManage() ? 'pending ' : '' }}correction requests.</p>
-    <article *ngFor="let correction of corrections" class="tt-correction-row">
-      <ng-container *ngIf="correction.entry as entry; else deletedCorrectionEntry">
-        <strong>{{ entry.subjectName }} · Class {{ entry.className }} {{ entry.sectionName || '' }}</strong>
-        <p>{{ dayLabels[entry.day] }} · Period {{ entry.periodNumber }} · {{ entry.startTime }}–{{ entry.endTime }}</p>
-        <p>Currently assigned: {{ entry.teacherName || 'Unassigned' }}</p>
-      </ng-container>
-      <ng-template #deletedCorrectionEntry><strong>Timetable entry deleted</strong></ng-template>
-      <p>Requested by {{ correction.requestedTeacherName }} · {{ correction.status | titlecase }}</p>
-      <p *ngIf="correction.reason">{{ correction.reason }}</p>
-      <ng-container *ngIf="canManage() && correction.status === 'PENDING'">
-        <button type="button" class="tt-btn-save" [disabled]="correctionBusy || !correction.entry" (click)="reviewCorrection(correction, 'approve')">Approve</button>
-        <button type="button" class="tt-btn-delete" [disabled]="correctionBusy" (click)="reviewCorrection(correction, 'reject')">Reject</button>
-      </ng-container>
+  <section class="tt-corr-panel no-print" *ngIf="isTeacher() || canManage()">
+    <header class="tt-corr-header">
+      <span class="tt-corr-header-icon">✓</span>
+      <h3 class="tt-corr-title">{{ isTeacher() ? 'My Corrections' : 'Timetable Corrections' }}</h3>
+      <span class="tt-corr-count" [class.tt-corr-count-active]="pendingCorrectionsCount() > 0">{{ pendingCorrectionsCount() }} Pending</span>
+      <button type="button" class="tt-corr-refresh" (click)="loadCorrections()" [disabled]="correctionBusy" title="Refresh" aria-label="Refresh corrections">↻</button>
+    </header>
+
+    <p class="tt-modal-error" role="alert" *ngIf="correctionsError">{{ correctionsError }}</p>
+
+    <div class="tt-day-empty tt-corr-empty" *ngIf="!corrections.length && !correctionsError">
+      <div class="tt-empty-icon">✓</div>
+      <p class="tt-corr-empty-title">All caught up</p>
+      <p class="tt-corr-empty-sub">{{ isTeacher() ? "You haven't requested any corrections." : 'No pending timetable corrections.' }}</p>
+    </div>
+
+    <article *ngFor="let correction of corrections" class="tt-corr-row">
+      <div [class]="'tt-corr-icon tt-sc-' + (correction.entry ? getSubjectClass(correction.entry.subjectName) : 'default')">
+        {{ correction.entry ? getSubjectIcon(correction.entry.subjectName) : '🗑️' }}
+      </div>
+      <div class="tt-corr-info">
+        <ng-container *ngIf="correction.entry as entry; else corrDeleted">
+          <div class="tt-corr-meta">
+            <span class="tt-class-badge">Class {{ entry.className }}{{ entry.sectionName ? ' · ' + entry.sectionName : '' }}</span>
+            <span class="tt-corr-slot">{{ dayLabels[entry.day] }} · Period {{ entry.periodNumber }}</span>
+          </div>
+          <p class="tt-corr-subject">{{ entry.subjectName }}</p>
+        </ng-container>
+        <ng-template #corrDeleted><p class="tt-corr-subject tt-corr-subject-muted">Period removed</p></ng-template>
+        <div class="tt-corr-transfer">
+          <span class="tt-corr-avatar">{{ initials(correction.expectedTeacherName) }}</span>
+          <span class="tt-corr-name">{{ correction.expectedTeacherName }}</span>
+          <span class="tt-corr-arrow" aria-hidden="true">→</span>
+          <span class="tt-corr-avatar tt-corr-avatar-to">{{ initials(correction.requestedTeacherName) }}</span>
+          <span class="tt-corr-name">{{ correction.requestedTeacherName }}</span>
+        </div>
+        <p class="tt-corr-reason" *ngIf="correction.reason">“{{ correction.reason }}”</p>
+      </div>
+      <div class="tt-corr-side">
+        <span class="tt-corr-status tt-corr-status-{{ correction.status.toLowerCase() }}">{{ correction.status | titlecase }}</span>
+        <div class="tt-corr-actions" *ngIf="canManage() && correction.status === 'PENDING'">
+          <button type="button" class="tt-corr-btn tt-corr-btn-reject" [disabled]="correctionBusy" (click)="reviewCorrection(correction, 'reject')">Reject</button>
+          <button type="button" class="tt-corr-btn tt-corr-btn-approve" [disabled]="correctionBusy || !correction.entry" (click)="reviewCorrection(correction, 'approve')">Approve</button>
+        </div>
+      </div>
     </article>
   </section>
 
@@ -347,12 +374,19 @@
 
     <p class="tt-modal-error" *ngIf="modalError" role="alert">{{ modalError }}</p>
 
+    <div *ngIf="correctionTargetId" class="tt-conflict-warn tt-corr-conflict">
+      <ng-container *ngIf="existingCorrectionFor(correctionTargetId) as existing; else tt_askCorrection">
+        <span class="tt-corr-conflict-text">Correction requested</span>
+        <span class="tt-corr-status tt-corr-status-{{ existing.status.toLowerCase() }}">{{ existing.status | titlecase }}</span>
+      </ng-container>
+      <ng-template #tt_askCorrection>
+        <span class="tt-corr-conflict-text">{{ modalForm.subjectName }} is already assigned to another teacher.</span>
+        <input class="tt-field-input tt-corr-conflict-input" maxlength="500" placeholder="Add a note (optional)" [(ngModel)]="correctionReason">
+        <button type="button" class="tt-btn-save tt-corr-conflict-btn" [disabled]="correctionBusy" (click)="requestCorrection()">Request Correction</button>
+      </ng-template>
+    </div>
+
     <div class="tt-modal-actions">
-      <div *ngIf="correctionTargetId" class="tt-field">
-        <label for="correction-reason">Reason (optional)</label>
-        <input id="correction-reason" class="tt-field-input" maxlength="500" [(ngModel)]="correctionReason">
-        <button type="button" class="tt-btn-save" [disabled]="correctionBusy" (click)="requestCorrection()">Request Correction</button>
-      </div>
       <button class="tt-btn-delete" *ngIf="isEditMode && canEditEntry(modalForm)" (click)="deleteEntry()" [disabled]="modalSaving || (!isTeacher() && !canWrite())">
         Delete
       </button>
