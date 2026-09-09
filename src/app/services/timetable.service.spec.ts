@@ -50,11 +50,6 @@ describe('G1 endpoint contracts', () => {
     const req = http.expectOne(`${base}/timetable/10?academicSessionId=42`);
     expect(req.request.method).toBe('DELETE'); req.flush(null);
   });
-  it('uses exact simultaneous DTO and inherits slot IDs on the server', () => {
-    timetable.addSimultaneous(10, 'Biology', 'T2', 42).subscribe();
-    const req = http.expectOne(`${base}/timetable/10/simultaneous`);
-    expect(req.request.body).toEqual({ academicSessionId: 42, subjectName: 'Biology', teacherId: 'T2' }); req.flush({});
-  });
   it('uploads CSV unchanged with explicit session outside CSV', () => {
     const file = new File(['Class,Section'], 'timetable.csv');
     timetable.bulkImport(file, 42).subscribe();

@@ -1,5 +1,5 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { TimetableComponent } from './timetable.component';
 import { TimetableService } from '../../services/timetable.service';
 import { TeacherService } from '../../services/teacher.service';
@@ -32,23 +32,21 @@ describe('TEACHER edit flow (rendered template)', () => {
   const mathEntry: any = {
     id: 501, academicSessionId: 1, classId: 11, className: '11', sectionId: 3, sectionName: 'Science',
     day: 'WEDNESDAY', periodNumber: 3, startTime: '09:15', endTime: '09:50', subjectName: 'Mathematics',
-    teacherId: 'T1', teacherName: 'Teacher One', simultaneousGroup: null
+    teacherId: 'T1', teacherName: 'Teacher One'
   };
   const otherTeacherEntry: any = {
     id: 502, academicSessionId: 1, classId: 11, className: '11', sectionId: 3, sectionName: 'Science',
     day: 'WEDNESDAY', periodNumber: 4, startTime: '09:50', endTime: '10:25', subjectName: 'Biology',
-    teacherId: 'T2', teacherName: 'Teacher Two', simultaneousGroup: null
+    teacherId: 'T2', teacherName: 'Teacher Two'
   };
 
   async function setup(entries: any[] = [mathEntry]) {
     api = jasmine.createSpyObj('TimetableService', [
-      'getTeacherTimetable', 'getCorrections', 'requestCorrection', 'reviewCorrection',
-      'updateEntry', 'deleteEntry', 'createEntry', 'addSimultaneous', 'getClassTimetable'
+      'getTeacherTimetable', 'updateEntry', 'deleteEntry', 'createEntry', 'getClassTimetable'
     ]);
     api.getTeacherTimetable.and.returnValue(of(entries));
-    api.getCorrections.and.returnValue(of([]));
-    api.requestCorrection.and.returnValue(of({}));
     api.updateEntry.and.returnValue(of({}));
+    api.createEntry.and.returnValue(of({}));
     toast = { success: jasmine.createSpy(), confirm: jasmine.createSpy().and.resolveTo(true) };
 
     await TestBed.configureTestingModule({
@@ -146,41 +144,59 @@ describe('TEACHER edit flow (rendered template)', () => {
     expect(c.showModal).toBeFalse();
   });
 
-  it('8. a same-subject conflict still offers Request Correction, phrased plainly', async () => {
-    await setup();
-    api.createEntry.and.returnValue(throwError(() => ({ status: 409, error: {
-      code: 'SAME_SUBJECT_ASSIGNED_TO_ANOTHER_TEACHER', timetableEntryId: 502,
-      message: 'Biology is already scheduled for this period and is assigned to another teacher.'
-    }})));
+  it('8. adding a period into a slot another teacher already occupies still succeeds, with no conflict UI', async () => {
+    // The NEW product rule: the timetable never rejects a row for colliding with another row —
+    // same class/day/period/time, any subject, any teacher. There is no correction-request flow
+    // and no conflict panel left to render.
+    await setup([mathEntry, otherTeacherEntry]);
     c.openAddPeriodAsTeacher();
     fixture.detectChanges();
-    c.modalForm.subjectName = 'Biology';
-    c.modalForm.day = 'TUESDAY';
-    c.modalForm.periodNumber = 4;
-    c.modalForm.startTime = '10:00';
-    c.modalForm.endTime = '10:35';
+    c.modalForm.subjectName = 'Physics';
+    c.modalForm.day = otherTeacherEntry.day;
+    c.modalForm.periodNumber = otherTeacherEntry.periodNumber;
+    c.modalForm.startTime = otherTeacherEntry.startTime;
+    c.modalForm.endTime = otherTeacherEntry.endTime;
     c.saveEntry();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(c.correctionTargetId).toBe(502);
-    const conflictText: HTMLElement = fixture.nativeElement.querySelector('.tt-corr-conflict-text');
-    expect(conflictText.textContent).toContain('Biology is already assigned to another teacher.');
-    const requestBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.tt-corr-conflict-btn');
-    expect(requestBtn).not.toBeNull();
-    expect(requestBtn.textContent).toContain('Request Correction');
-
-    requestBtn.click();
-    expect(api.requestCorrection).toHaveBeenCalledWith(502, undefined);
+    expect(c.modalError).toBeNull();
+    expect(api.createEntry).toHaveBeenCalledWith(jasmine.objectContaining({ subjectName: 'Physics', teacherId: 'T1' }));
+    expect(fixture.nativeElement.querySelector('.tt-corr-conflict')).toBeNull();
   });
 
-  it('9. editing one\'s own entry never invokes the correction-request flow', async () => {
-    await setup();
-    await clickEdit('Mathematics');
-    expect(c.correctionTargetId).toBeNull();
+  it('9. Class 11 – Commerce: Add Period submits with a valid classId, no "unable to determine" error', async () => {
+    // Regression for a reported bug: a teacher whose own timetable entry (for whatever reason)
+    // carries no classId used to leave modalForm.classId undefined after selecting that exact
+    // class from the dropdown, producing "Unable to determine the class for this period" on an
+    // otherwise ordinary Add Period. buildMyClasses() now re-resolves classId from
+    // managedClasses whenever the entry's own classId is missing.
+    const commerceEntryMissingClassId: any = {
+      id: 601, academicSessionId: 1, classId: undefined, className: '11', sectionId: 7, sectionName: 'Commerce',
+      day: 'MONDAY', periodNumber: 1, startTime: '08:00', endTime: '08:40', subjectName: 'Accountancy',
+      teacherId: 'T1', teacherName: 'Teacher One'
+    };
+    await setup([commerceEntryMissingClassId]);
+
+    c.openAddPeriodAsTeacher();
+    fixture.detectChanges();
+    const classSelect: HTMLSelectElement = fixture.nativeElement.querySelector('#modal-my-class');
+    classSelect.value = c.myClassKey({ className: '11', sectionId: 7 });
+    classSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(c.modalForm.classId).toBe(11);
+
+    c.modalForm.day = 'FRIDAY';
+    c.modalForm.periodNumber = 5;
+    c.modalForm.startTime = '11:00';
+    c.modalForm.endTime = '11:40';
+    c.modalForm.subjectName = 'Maths';
     c.saveEntry();
-    expect(api.requestCorrection).not.toHaveBeenCalled();
-    expect(fixture.nativeElement.querySelector('.tt-corr-conflict')).toBeNull();
+    fixture.detectChanges();
+
+    expect(c.modalError).toBeNull();
+    expect(api.createEntry).toHaveBeenCalledWith(jasmine.objectContaining({ classId: 11, sectionId: 7, subjectName: 'Maths' }));
   });
 });

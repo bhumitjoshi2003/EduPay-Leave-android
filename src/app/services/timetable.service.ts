@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { TimetableEntry, TimetableEntryRequest, TimetableCorrection } from '../interfaces/timetable';
+import { TimetableEntry, TimetableEntryRequest } from '../interfaces/timetable';
 
 export interface TimetableBulkImportError {
   row: number;
@@ -50,16 +50,6 @@ export class TimetableService {
     return this.http.get<TimetableEntry[]>(`${this.baseUrl}/teacher/${encodeURIComponent(teacherId)}`, { params: academicSessionId == null ? {} : { academicSessionId } });
   }
 
-  getCorrections(): Observable<TimetableCorrection[]> {
-    return this.http.get<TimetableCorrection[]>(`${this.baseUrl}/corrections`);
-  }
-  requestCorrection(timetableEntryId: number, reason?: string): Observable<TimetableCorrection> {
-    return this.http.post<TimetableCorrection>(`${this.baseUrl}/corrections`, { timetableEntryId, reason });
-  }
-  reviewCorrection(id: number, decision: 'approve' | 'reject'): Observable<TimetableCorrection> {
-    return this.http.post<TimetableCorrection>(`${this.baseUrl}/corrections/${id}/${decision}`, {});
-  }
-
   createEntry(entry: TimetableEntryRequest): Observable<TimetableEntry> {
     return this.http.post<TimetableEntry>(this.baseUrl, entry);
   }
@@ -70,14 +60,6 @@ export class TimetableService {
 
   deleteEntry(id: number, academicSessionId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, { params: { academicSessionId } });
-  }
-
-  /** Adds a second subject to the same slot as entry `existingId` — the "+ Simultaneous"
-   *  action. Class/section/day/period/time are inherited server-side from the existing entry,
-   *  and the simultaneousGroup tag is generated/reused automatically — the caller only ever
-   *  supplies the new subject and teacher, never a tag. */
-  addSimultaneous(existingId: number, subjectName: string, teacherId: string, academicSessionId?: number): Observable<TimetableEntry> {
-    return this.http.post<TimetableEntry>(`${this.baseUrl}/${existingId}/simultaneous`, { subjectName, teacherId, academicSessionId });
   }
 
   downloadBulkTemplate(): Observable<Blob> {

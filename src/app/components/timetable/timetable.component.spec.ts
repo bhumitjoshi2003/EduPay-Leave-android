@@ -1,4 +1,4 @@
-import { of, Subject, throwError } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { TimetableComponent } from './timetable.component';
 import { AcademicSession } from '../../interfaces/academic-session';
 import { sessionKind, writableSession } from '../academic-session-selector/academic-session-selector.component';
@@ -11,9 +11,8 @@ describe('G1 timetable screen', () => {
   let api: any;
   let toast: any;
   beforeEach(() => {
-    api = jasmine.createSpyObj('TimetableService', ['createEntry', 'updateEntry', 'deleteEntry', 'addSimultaneous', 'getClassTimetable', 'getTeacherTimetable', 'getCorrections', 'requestCorrection', 'reviewCorrection']);
-    for (const key of ['createEntry', 'updateEntry', 'deleteEntry', 'addSimultaneous']) api[key].and.returnValue(of({}));
-    api.getCorrections.and.returnValue(of([])); api.requestCorrection.and.returnValue(of({})); api.reviewCorrection.and.returnValue(of({}));
+    api = jasmine.createSpyObj('TimetableService', ['createEntry', 'updateEntry', 'deleteEntry', 'getClassTimetable', 'getTeacherTimetable']);
+    for (const key of ['createEntry', 'updateEntry', 'deleteEntry']) api[key].and.returnValue(of({}));
     api.getClassTimetable.and.returnValue(of([])); api.getTeacherTimetable.and.returnValue(of([]));
     toast = { success: jasmine.createSpy(), confirm: jasmine.createSpy().and.resolveTo(true) };
     c = new TimetableComponent(api, { getTeacher: () => of({}) } as any, {} as any, {} as any, { error: () => {} } as any, { markForCheck: () => {} } as any, toast, {} as any, {} as any, { snapshot: { queryParamMap: { get: () => null } } } as any, {} as any, { getForTeacher: () => of([]) } as any);
@@ -28,11 +27,11 @@ describe('G1 timetable screen', () => {
     expect(api.createEntry).not.toHaveBeenCalled();
   });
   it('does not expose ADMIN writes to SUB_ADMIN', () => { c.role = 'SUB_ADMIN'; expect(c.canWrite()).toBeFalse(); c.saveEntry(); expect(api.createEntry).not.toHaveBeenCalled(); });
-  it('creates with canonical IDs and strips display names and group tags', () => {
-    c.modalForm.simultaneousGroup = 'preserve-on-server'; c.saveEntry();
+  it('creates with canonical IDs and strips display names', () => {
+    c.saveEntry();
     const body = api.createEntry.calls.mostRecent().args[0];
     expect(body.academicSessionId).toBe(1); expect(body.classId).toBe(8); expect(body.sectionId).toBeNull();
-    expect(body.className).toBeUndefined(); expect(body.simultaneousGroup).toBeUndefined();
+    expect(body.className).toBeUndefined();
   });
   it('creates explicitly in a future session', () => { c.selectedSession = future; c.modalForm.academicSessionId = 2; c.saveEntry(); expect(api.createEntry.calls.mostRecent().args[0].academicSessionId).toBe(2); });
   it('requires a canonical section when the class has sections', () => {
@@ -41,9 +40,17 @@ describe('G1 timetable screen', () => {
   });
   it('fails closed when section lookup fails', () => { c.sectionsLoaded = false; c.saveEntry(); expect(api.createEntry).not.toHaveBeenCalled(); });
   it('retains IDs on edit and sends them to update', () => { const entry = { ...c.modalForm }; c.openEdit(entry); c.saveEntry(); expect(api.updateEntry.calls.mostRecent().args[0]).toBe(10); expect(api.updateEntry.calls.mostRecent().args[1].classId).toBe(8); });
-  it('sends explicit selected session on simultaneous assignment', () => {
-    c.openAddSimultaneous(c.modalForm); c.modalForm.subjectName = 'Biology'; c.modalForm.teacherId = 'T2'; c.saveEntry();
-    expect(api.addSimultaneous).toHaveBeenCalledWith(10, 'Biology', 'T2', 1);
+  it('creates a new period without first checking for an existing occupant of the slot', () => {
+    // The NEW product rule: the timetable never rejects (or even checks for) a colliding row —
+    // any number of entries may share the same slot. Proven by createEntry being dispatched with
+    // no preceding getClassTimetable lookup (a post-save refresh afterward is normal/expected —
+    // this only asserts nothing runs BEFORE the create request itself).
+    const pending = new Subject<any>();
+    api.createEntry.and.returnValue(pending);
+    c.saveEntry();
+    expect(api.createEntry).toHaveBeenCalled();
+    expect(api.getClassTimetable).not.toHaveBeenCalled();
+    pending.next({}); pending.complete();
   });
   it('deletes only after confirmation with captured session', async () => { c.deleteEntry(); await Promise.resolve(); expect(api.deleteEntry).toHaveBeenCalledWith(10, 1); });
   it('does not delete when session changes during confirmation', async () => { c.deleteEntry(); c.selectedSession = future; await Promise.resolve(); expect(api.deleteEntry).not.toHaveBeenCalled(); });
@@ -78,34 +85,30 @@ describe('G1 timetable screen', () => {
     c.openEdit(c.modalForm); c.deleteEntry(); await Promise.resolve();
     expect(c.showModal).toBeFalse(); expect(api.deleteEntry).not.toHaveBeenCalled();
   });
-  it('offers correction for structured ownership conflict without simultaneous recovery', () => {
+
+  // ── Class-11-Commerce "Unable to determine the class" regression ──────────────────────────
+  it('resolves classId defensively from managedClasses when a teacher entry is missing it', () => {
+    // Root cause: buildMyClasses() used to trust entry.classId verbatim; if a teacher's own
+    // existing entry ever carried no classId, the myClasses option built from it silently
+    // carried classId: undefined, so selecting that exact class in Add Period left
+    // modalForm.classId undefined and saveEntry() rejected it with a generic, unhelpful error.
     c.role = 'TEACHER'; c.userId = 'T1';
-    api.createEntry.and.returnValue(throwError(() => ({ status: 409, error: {
-      code: 'SAME_SUBJECT_ASSIGNED_TO_ANOTHER_TEACHER', timetableEntryId: 22,
-      message: 'Biology is already scheduled for this period and is assigned to another teacher.'
-    }})));
-    c.saveEntry(); expect(c.correctionTargetId).toBe(22); expect(c.isSimultaneousMode).toBeFalse();
-    expect(api.getClassTimetable).not.toHaveBeenCalled();
-    c.correctionReason = ' I teach Biology '; c.requestCorrection();
-    expect(api.requestCorrection).toHaveBeenCalledWith(22, 'I teach Biology');
-    expect(api.getCorrections).toHaveBeenCalled();
-  });
-  it('preserves different-subject simultaneous recovery', () => {
-    c.role = 'TEACHER'; c.userId = 'T1';
-    api.createEntry.and.returnValue(throwError(() => ({ status: 409, error: 'Period is assigned' })));
-    api.getClassTimetable.and.returnValue(of([{ ...c.modalForm, subjectName: 'Biology' }]));
-    c.saveEntry(); expect(c.isSimultaneousMode).toBeTrue(); expect(c.correctionTargetId).toBeNull();
-  });
-  it('does not allow SUB_ADMIN to review corrections', () => {
-    c.role = 'SUB_ADMIN'; c.reviewCorrection({ id: 1 } as any, 'approve'); expect(api.reviewCorrection).not.toHaveBeenCalled();
-  });
-  it('admin review refreshes correction requests and timetable', () => {
-    c.reviewCorrection({ id: 4 } as any, 'approve'); expect(api.reviewCorrection).toHaveBeenCalledWith(4, 'approve');
-    expect(api.getCorrections).toHaveBeenCalled(); expect(api.getClassTimetable).toHaveBeenCalled();
-  });
-  it('shows review errors without reporting success', () => {
-    api.reviewCorrection.and.returnValue(throwError(() => ({ error: { message: 'Entry changed' } })));
-    c.reviewCorrection({ id: 4 } as any, 'approve'); expect(c.correctionsError).toBe('Entry changed');
-    expect(toast.success).not.toHaveBeenCalled(); expect(c.correctionBusy).toBeFalse();
+    c.managedClasses = [{ id: 11, name: '11', displayOrder: 1, active: true, streamEligible: false } as any];
+    (c as any).buildMyClasses([
+      { id: 501, classId: undefined as any, className: '11', sectionId: 3, sectionName: 'Commerce',
+        day: 'FRIDAY', periodNumber: 2, startTime: '09:00', endTime: '09:40', subjectName: 'Accountancy', teacherId: 'T1' },
+    ]);
+    expect(c.myClasses).toEqual([{ classId: 11, className: '11', sectionId: 3, sectionName: 'Commerce' }]);
+
+    c.openAddPeriodAsTeacher();
+    c.onMyClassSelect(c.myClassKey({ className: '11', sectionId: 3 }));
+    c.modalForm.day = 'FRIDAY'; c.modalForm.periodNumber = 5;
+    c.modalForm.startTime = '11:00'; c.modalForm.endTime = '11:40';
+    c.modalForm.subjectName = 'Maths';
+
+    c.saveEntry();
+
+    expect(c.modalError).toBeNull();
+    expect(api.createEntry).toHaveBeenCalledWith(jasmine.objectContaining({ classId: 11, sectionId: 3 }));
   });
 });

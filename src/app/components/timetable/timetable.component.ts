@@ -9,7 +9,7 @@ import { TeacherService } from '../../services/teacher.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { StudentService } from '../../services/student.service';
 import { LoggerService } from '../../services/logger.service';
-import { TimetableEntry, TimetableEntryRequest, TimetableCorrection } from '../../interfaces/timetable';
+import { TimetableEntry, TimetableEntryRequest } from '../../interfaces/timetable';
 import { Teacher } from '../../interfaces/teacher';
 import { ToastService } from '../../services/toast.service';
 import { Capacitor } from '@capacitor/core';
@@ -36,62 +36,9 @@ export class TimetableComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private readonly TIMES_KEY = 'tt_showTimes';
 
-  corrections: TimetableCorrection[] = [];
-  correctionsError: string | null = null;
-  correctionTargetId: number | null = null;
-  correctionReason = '';
-  correctionBusy = false;
-
   canEditEntry(entry: TimetableEntry): boolean {
     return this.canWrite() || (this.isTeacher() && entry.teacherId === this.userId
       && !!entry.academicSessionId && this.teacherEntries.some(e => e.id === entry.id));
-  }
-
-  loadCorrections(): void {
-    if (!this.isTeacher() && !this.canManage()) return;
-    this.timetableService.getCorrections().pipe(takeUntil(this.destroy$)).subscribe({
-      next: rows => { this.corrections = rows; this.correctionsError = null; this.cdr.markForCheck(); },
-      error: err => { this.correctionsError = apiMessage(err); this.cdr.markForCheck(); }
-    });
-  }
-
-  requestCorrection(): void {
-    if (!this.isTeacher() || !this.correctionTargetId || this.correctionBusy) return;
-    this.correctionBusy = true;
-    this.timetableService.requestCorrection(this.correctionTargetId, this.correctionReason.trim() || undefined)
-      .pipe(takeUntil(this.destroy$)).subscribe({
-        next: () => {
-          this.correctionBusy = false; this.showModal = false; this.correctionTargetId = null;
-          this.toast.success('Correction requested'); this.loadCorrections(); this.cdr.markForCheck();
-        },
-        error: err => { this.correctionBusy = false; this.modalError = apiMessage(err); this.cdr.markForCheck(); }
-      });
-  }
-
-  reviewCorrection(row: TimetableCorrection, decision: 'approve' | 'reject'): void {
-    if (!this.canManage() || this.correctionBusy) return;
-    this.correctionBusy = true;
-    this.timetableService.reviewCorrection(row.id, decision).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.correctionBusy = false; this.loadCorrections(); this.loadClassTimetable();
-        this.toast.success(decision === 'approve' ? 'Correction approved' : 'Correction rejected');
-        this.cdr.markForCheck();
-      },
-      error: err => { this.correctionBusy = false; this.correctionsError = apiMessage(err); this.cdr.markForCheck(); }
-    });
-  }
-
-  pendingCorrectionsCount(): number {
-    return this.corrections.filter(c => c.status === 'PENDING').length;
-  }
-
-  existingCorrectionFor(timetableEntryId: number): TimetableCorrection | undefined {
-    return this.corrections.find(c => c.timetableEntryId === timetableEntryId && c.status === 'PENDING');
-  }
-
-  initials(name: string | null | undefined): string {
-    const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
-    return (((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')) || '?').toUpperCase();
   }
 
   role = '';
@@ -159,11 +106,6 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
   showModal = false;
   isEditMode = false;
-  /** True while the modal is adding a second subject to an existing period's slot (the
-   *  "+ Simultaneous" action) rather than creating an unrelated new period. */
-  isSimultaneousMode = false;
-  /** The existing entry being paired with, while isSimultaneousMode is true. */
-  simultaneousSourceId: number | null = null;
   modalForm: TimetableEntry = this.emptyForm();
   modalError: string | null = null;
   modalSaving = false;
@@ -208,7 +150,6 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.userId = user?.userId ?? '';
     this.userClassName = user?.className ?? '';
     this.userName = user?.name ?? '';
-    this.loadCorrections();
 
     const dayMap = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
     this.todayDay = dayMap[new Date().getDay()];
@@ -356,10 +297,10 @@ export class TimetableComponent implements OnInit, OnDestroy {
       .sort((a, b) => a.periodNumber - b.periodNumber);
   }
 
-  /** Clusters dayEntries sharing the same period number into one visual block — normally a
-   *  cluster has exactly one entry (today's only case); a cluster with more than one entry means
-   *  a legitimate simultaneous/elective assignment (see simultaneousGroup), rendered as stacked
-   *  subject/teacher rows under one "Period N" header instead of separate cards. */
+  /** Clusters dayEntries sharing the same period number into one visual block — any number of
+   *  independent entries may share a slot (the timetable never rejects a row for colliding with
+   *  another), rendered as stacked subject/teacher rows under one "Period N" header instead of
+   *  separate cards. */
   get groupedDayEntries(): { periodNumber: number; entries: TimetableEntry[] }[] {
     const map = new Map<number, TimetableEntry[]>();
     for (const entry of this.dayEntries) {
@@ -481,7 +422,13 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   /** Distinct class+section combos derived from the teacher's own existing periods, plus
-   *  their class-teacher assignment (if any) even when it has no periods logged yet. */
+   *  their class-teacher assignment (if any) even when it has no periods logged yet.
+   *
+   *  classId is always re-resolved against the canonical managedClasses list rather than
+   *  trusted blindly from the entry: a teacher's own timetable entry is expected to already
+   *  carry its own classId, but if it ever doesn't (a legacy/edge-case row), falling back here
+   *  is what prevents "Unable to determine the class for this period" on an otherwise ordinary
+   *  Add Period — the same defense openEdit() already applies when populating the edit form. */
   private buildMyClasses(entries: TimetableEntry[]): void {
     const seen = new Set<string>();
     const classes: { classId?: number; className: string; sectionId: number | null; sectionName: string | null }[] = [];
@@ -489,7 +436,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
       const key = `${e.className}::${e.sectionId ?? ''}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      classes.push({ classId: e.classId, className: e.className, sectionId: e.sectionId ?? null, sectionName: e.sectionName ?? null });
+      const classId = e.classId ?? this.managedClasses.find(c => c.name === e.className)?.id;
+      classes.push({ classId, className: e.className, sectionId: e.sectionId ?? null, sectionName: e.sectionName ?? null });
     }
     this.myClasses = classes;
     this.cdr.markForCheck();
@@ -550,8 +498,6 @@ export class TimetableComponent implements OnInit, OnDestroy {
   openAddPeriod(): void {
     if (!this.canAdd()) return;
     this.isEditMode = false;
-    this.isSimultaneousMode = false;
-    this.simultaneousSourceId = null;
     this.modalForm = this.emptyForm();
     this.modalForm.classId = this.selectedClassId!;
     this.modalForm.academicSessionId = this.selectedSession!.id;
@@ -565,15 +511,12 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
   /** TEACHER self-service: opens a fresh Add Period form scoped to a class/section the teacher
    *  already has a real relationship with (see myClasses). teacherId is forced to themselves —
-   *  never shown as a choice — and the backend re-enforces both independently. If the slot
-   *  turns out to already be occupied, saveEntry()'s error handler offers to add this as a
-   *  simultaneous subject instead of just failing. */
+   *  never shown as a choice — and the backend re-enforces both independently. It does not
+   *  matter whether 0, 1, or many other rows already exist in the chosen slot — the timetable
+   *  never rejects a row for colliding with another. */
   openAddPeriodAsTeacher(): void {
-    this.correctionTargetId = null; this.correctionReason = '';
     if (!this.isTeacher() || this.myClasses.length === 0) return;
     this.isEditMode = false;
-    this.isSimultaneousMode = false;
-    this.simultaneousSourceId = null;
     this.modalForm = this.emptyForm();
     this.modalForm.day = this.selectedDay;
     this.modalForm.teacherId = this.userId;
@@ -605,41 +548,9 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.modalForm.sectionName = match.sectionName;
   }
 
-  /** Pre-fills a new form from an existing entry's slot (day/section/period/times), leaving
-   *  Subject/Teacher blank so the admin only has to pick the second subject. The Simultaneous
-   *  Group tag itself is never shown or typed here — saveEntry() calls a dedicated backend
-   *  action (TimetableService#addSimultaneous) that inherits the slot from `existing` server-side
-   *  and generates/reuses the tag automatically, so an admin who's never heard of "tags" can
-   *  still use this correctly. */
-  openAddSimultaneous(existing: TimetableEntry): void {
-    if (!this.canWrite()) return;
-    this.isEditMode = false;
-    this.isSimultaneousMode = true;
-    this.simultaneousSourceId = existing.id ?? null;
-    this.modalForm = {
-      classId: existing.classId,
-      academicSessionId: existing.academicSessionId,
-      className: existing.className,
-      sectionName: existing.sectionName,
-      sectionId: existing.sectionId ?? null,
-      day: existing.day,
-      periodNumber: existing.periodNumber,
-      startTime: existing.startTime,
-      endTime: existing.endTime,
-      subjectName: '',
-      teacherId: '',
-    };
-    this.modalError = null;
-    this.showModal = true;
-    this.cdr.markForCheck();
-  }
-
   openEdit(entry: TimetableEntry): void {
     if (!this.canEditEntry(entry)) return;
-    this.correctionTargetId = null;
     this.isEditMode = true;
-    this.isSimultaneousMode = false;
-    this.simultaneousSourceId = null;
     this.modalForm = { ...entry };
     // Defense in depth: a teacher's own entry should always carry its own classId, but if it
     // ever doesn't, resolve it from myClasses (built from this same loaded dataset) rather than
@@ -656,9 +567,6 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
   closeModal(): void {
     this.showModal = false;
-    this.correctionTargetId = null;
-    this.isSimultaneousMode = false;
-    this.simultaneousSourceId = null;
     this.cdr.markForCheck();
   }
 
@@ -715,9 +623,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   saveEntry(): void {
-    if (this.modalSaving || this.correctionBusy) return;
+    if (this.modalSaving) return;
     if (this.isEditMode && !this.canEditEntry(this.modalForm)) return;
-    this.correctionTargetId = null;
     this.modalError = null;
     if (this.isTeacher()) {
       // Teachers never pick a session — the current session is always resolved server-side —
@@ -758,11 +665,9 @@ export class TimetableComponent implements OnInit, OnDestroy {
       periodNumber: form.periodNumber, startTime: form.startTime, endTime: form.endTime,
       subjectName: form.subjectName, teacherId: this.isTeacher() ? this.userId : form.teacherId
     };
-    const save$ = this.isSimultaneousMode && this.simultaneousSourceId != null
-      ? this.timetableService.addSimultaneous(this.simultaneousSourceId, this.modalForm.subjectName, this.modalForm.teacherId, this.canManage() ? this.selectedSession!.id : undefined)
-      : this.isEditMode && this.modalForm.id != null
-        ? this.timetableService.updateEntry(this.modalForm.id, body)
-        : this.timetableService.createEntry(body);
+    const save$ = this.isEditMode && this.modalForm.id != null
+      ? this.timetableService.updateEntry(this.modalForm.id, body)
+      : this.timetableService.createEntry(body);
 
     save$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
@@ -778,55 +683,10 @@ export class TimetableComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.modalSaving = false;
         this.logger.error('Failed to save timetable entry:', err);
-
-        if (this.isTeacher() && err.error?.code === 'SAME_SUBJECT_ASSIGNED_TO_ANOTHER_TEACHER') {
-          this.correctionTargetId = err.error.timetableEntryId;
-          this.cdr.markForCheck();
-          return;
-        }
-
-        // A teacher's first attempt at a brand-new period landing on an already-occupied slot:
-        // offer to add it as a simultaneous subject instead of a dead-end conflict message —
-        // they never see slot/tag mechanics either way.
-        if (this.isTeacher() && !this.isEditMode && !this.isSimultaneousMode && err.status === 409) {
-          this.offerSimultaneousRecovery(apiMessage(err));
-          return;
-        }
-
-        // The backend now returns a specific reason (slot conflict, group mismatch, teacher
-        // double-booking, etc.) as the plain-text 409 body — prefer it when present.
         this.modalError = apiMessage(err);
         this.cdr.markForCheck();
       }
     });
-  }
-
-  /** Looks up what's already occupying the slot the teacher just tried to save into, and — if
-   *  found — switches the modal into isSimultaneousMode against it so a retry pairs alongside
-   *  the existing subject instead of failing again the same way. */
-  private offerSimultaneousRecovery(originalMessage: string): void {
-    this.timetableService.getClassTimetable(this.modalForm.className, this.modalForm.sectionId)
-      .pipe(takeUntil(this.destroy$)).subscribe({
-        next: (dayEntries) => {
-          const clash = dayEntries.find(e => e.day === this.modalForm.day && e.periodNumber === this.modalForm.periodNumber);
-          if (clash) {
-            this.isSimultaneousMode = true;
-            this.simultaneousSourceId = clash.id ?? null;
-            this.modalForm.startTime = clash.startTime;
-            this.modalForm.endTime = clash.endTime;
-            this.modalForm.sectionName = clash.sectionName;
-            this.modalError = originalMessage + ` Period ${clash.periodNumber} is already used by ${clash.subjectName}`
-              + `${clash.teacherName ? ' (' + clash.teacherName + ')' : ''}. Click "Add Subject" below to add yours alongside it.`;
-          } else {
-            this.modalError = originalMessage;
-          }
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.modalError = originalMessage;
-          this.cdr.markForCheck();
-        }
-      });
   }
 
   deleteEntry(): void {
@@ -859,18 +719,6 @@ export class TimetableComponent implements OnInit, OnDestroy {
           }
         });
     });
-  }
-
-  /** Local advisory warning only — the backend is the source of truth for what's actually
-   *  allowed. Entries sharing the same non-blank simultaneousGroup as the entry being
-   *  edited/added are intentionally excluded, since they're expected to share the same time. */
-  checkTimeConflict(day: string, startTime: string, endTime: string, excludeId?: number, group?: string | null): boolean {
-    if (!startTime || !endTime) return false;
-    const normalizedGroup = group?.trim() || null;
-    return this.entries
-      .filter((e: TimetableEntry) => e.day === day && e.id !== excludeId)
-      .filter((e: TimetableEntry) => !(normalizedGroup && (e.simultaneousGroup?.trim() || null) === normalizedGroup))
-      .some((e: TimetableEntry) => startTime < e.endTime && e.startTime < endTime);
   }
 
   get timetableHeading(): string {
