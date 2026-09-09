@@ -305,7 +305,6 @@
             Class {{ c.className }}<ng-container *ngIf="c.sectionName"> – {{ c.sectionName }}</ng-container>
           </option>
         </select>
-        <small class="tt-field-hint">Only classes/sections you already teach or are the class-teacher of.</small>
       </div>
 
       <div class="tt-field" *ngIf="sections.length > 0 && !isSimultaneousMode && !isTeacher()">
@@ -367,7 +366,7 @@
 
       <div class="tt-field" *ngIf="isEditMode && modalForm.simultaneousGroup">
         <label class="tt-field-label">Simultaneous Period</label>
-        <small class="tt-field-hint">🔗 This period shares its time slot with another subject — added via "+ Simultaneous" and managed automatically. Delete and re-add via "+ Simultaneous" to change the pairing.</small>
+        <span class="tt-section-badge" title="Shares this time slot with another subject. Delete and re-add via &quot;+ Simultaneous&quot; to change the pairing.">🔗 Linked</span>
       </div>
 
     </div>

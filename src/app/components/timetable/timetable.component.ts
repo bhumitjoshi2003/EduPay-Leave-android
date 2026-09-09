@@ -641,6 +641,14 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.isSimultaneousMode = false;
     this.simultaneousSourceId = null;
     this.modalForm = { ...entry };
+    // Defense in depth: a teacher's own entry should always carry its own classId, but if it
+    // ever doesn't, resolve it from myClasses (built from this same loaded dataset) rather than
+    // silently failing validation on save.
+    if (this.isTeacher() && this.modalForm.classId == null) {
+      const match = this.myClasses.find(c =>
+        c.className === entry.className && (c.sectionId ?? null) === (entry.sectionId ?? null));
+      if (match?.classId != null) this.modalForm.classId = match.classId;
+    }
     this.modalError = null;
     this.showModal = true;
     this.cdr.markForCheck();
@@ -711,7 +719,14 @@ export class TimetableComponent implements OnInit, OnDestroy {
     if (this.isEditMode && !this.canEditEntry(this.modalForm)) return;
     this.correctionTargetId = null;
     this.modalError = null;
-    if ((!this.isTeacher() && !this.canWrite()) || !this.modalForm.classId) {
+    if (this.isTeacher()) {
+      // Teachers never pick a session — the current session is always resolved server-side —
+      // so their validation error must never mention "session" at all. Nullish (not falsy) so a
+      // genuinely valid class id of 0 is never mistaken for "no class selected".
+      if (this.modalForm.classId == null) {
+        this.modalError = 'Unable to determine the class for this period. Close and reopen it.'; return;
+      }
+    } else if (!this.canWrite() || this.modalForm.classId == null) {
       this.modalError = 'Select a writable session and a valid class.'; return;
     }
     if (this.canManage() && this.modalForm.academicSessionId !== this.selectedSession?.id) {
