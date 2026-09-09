@@ -30,3 +30,16 @@ export interface TimetableEntryRequest {
   subjectName: string;
   teacherId: string;
 }
+
+export interface TimetableCorrection {
+  id: number;
+  timetableEntryId: number | null;
+  academicSessionId: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  reason: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  requestedTeacherName: string;
+  expectedTeacherName: string;
+  entry: TimetableEntry | null;
+}

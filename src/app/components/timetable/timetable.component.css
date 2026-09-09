@@ -480,3 +480,8 @@
   font-weight: 600;
   margin-bottom: 12px;
 }
+
+.tt-corrections { margin: 1rem 0; padding: 1rem; border: 1px solid #dce3ec; border-radius: 12px; background: #fff; }
+.tt-correction-row { padding: 1rem 0; border-top: 1px solid #e5e7eb; margin-top: .75rem; }
+.tt-correction-row p { margin: .4rem 0; }
+.tt-correction-row button { margin-right: .5rem; }

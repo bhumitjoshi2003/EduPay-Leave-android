@@ -9,7 +9,7 @@ import { TeacherService } from '../../services/teacher.service';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { StudentService } from '../../services/student.service';
 import { LoggerService } from '../../services/logger.service';
-import { TimetableEntry, TimetableEntryRequest } from '../../interfaces/timetable';
+import { TimetableEntry, TimetableEntryRequest, TimetableCorrection } from '../../interfaces/timetable';
 import { Teacher } from '../../interfaces/teacher';
 import { ToastService } from '../../services/toast.service';
 import { Capacitor } from '@capacitor/core';
@@ -35,6 +35,51 @@ import { AcademicSessionSelectorComponent, writableSession, apiMessage } from '.
 export class TimetableComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private readonly TIMES_KEY = 'tt_showTimes';
+
+  corrections: TimetableCorrection[] = [];
+  correctionsError: string | null = null;
+  correctionTargetId: number | null = null;
+  correctionReason = '';
+  correctionBusy = false;
+
+  canEditEntry(entry: TimetableEntry): boolean {
+    return this.canWrite() || (this.isTeacher() && entry.teacherId === this.userId
+      && !!entry.academicSessionId && this.teacherEntries.some(e => e.id === entry.id));
+  }
+
+  loadCorrections(): void {
+    if (!this.isTeacher() && !this.canManage()) return;
+    this.timetableService.getCorrections().pipe(takeUntil(this.destroy$)).subscribe({
+      next: rows => { this.corrections = rows; this.correctionsError = null; this.cdr.markForCheck(); },
+      error: err => { this.correctionsError = apiMessage(err); this.cdr.markForCheck(); }
+    });
+  }
+
+  requestCorrection(): void {
+    if (!this.isTeacher() || !this.correctionTargetId || this.correctionBusy) return;
+    this.correctionBusy = true;
+    this.timetableService.requestCorrection(this.correctionTargetId, this.correctionReason.trim() || undefined)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.correctionBusy = false; this.showModal = false; this.correctionTargetId = null;
+          this.toast.success('Correction requested'); this.loadCorrections(); this.cdr.markForCheck();
+        },
+        error: err => { this.correctionBusy = false; this.modalError = apiMessage(err); this.cdr.markForCheck(); }
+      });
+  }
+
+  reviewCorrection(row: TimetableCorrection, decision: 'approve' | 'reject'): void {
+    if (!this.canManage() || this.correctionBusy) return;
+    this.correctionBusy = true;
+    this.timetableService.reviewCorrection(row.id, decision).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.correctionBusy = false; this.loadCorrections(); this.loadClassTimetable();
+        this.toast.success(decision === 'approve' ? 'Correction approved' : 'Correction rejected');
+        this.cdr.markForCheck();
+      },
+      error: err => { this.correctionBusy = false; this.correctionsError = apiMessage(err); this.cdr.markForCheck(); }
+    });
+  }
 
   role = '';
   userId = '';
@@ -150,6 +195,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
     this.userId = user?.userId ?? '';
     this.userClassName = user?.className ?? '';
     this.userName = user?.name ?? '';
+    this.loadCorrections();
 
     const dayMap = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
     this.todayDay = dayMap[new Date().getDay()];
@@ -510,6 +556,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
    *  turns out to already be occupied, saveEntry()'s error handler offers to add this as a
    *  simultaneous subject instead of just failing. */
   openAddPeriodAsTeacher(): void {
+    this.correctionTargetId = null; this.correctionReason = '';
     if (!this.isTeacher() || this.myClasses.length === 0) return;
     this.isEditMode = false;
     this.isSimultaneousMode = false;
@@ -575,7 +622,8 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   openEdit(entry: TimetableEntry): void {
-    if (!this.canWrite()) return;
+    if (!this.canEditEntry(entry)) return;
+    this.correctionTargetId = null;
     this.isEditMode = true;
     this.isSimultaneousMode = false;
     this.simultaneousSourceId = null;
@@ -587,6 +635,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
   closeModal(): void {
     this.showModal = false;
+    this.correctionTargetId = null;
     this.isSimultaneousMode = false;
     this.simultaneousSourceId = null;
     this.cdr.markForCheck();
@@ -645,7 +694,9 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   saveEntry(): void {
-    if (this.modalSaving) return;
+    if (this.modalSaving || this.correctionBusy) return;
+    if (this.isEditMode && !this.canEditEntry(this.modalForm)) return;
+    this.correctionTargetId = null;
     this.modalError = null;
     if ((!this.isTeacher() && !this.canWrite()) || !this.modalForm.classId) {
       this.modalError = 'Select a writable session and a valid class.'; return;
@@ -674,10 +725,10 @@ export class TimetableComponent implements OnInit, OnDestroy {
 
     const form = this.modalForm;
     const body: TimetableEntryRequest = {
-      ...(this.canManage() ? { academicSessionId: this.selectedSession!.id } : {}),
+      ...(this.canManage() ? { academicSessionId: this.selectedSession!.id } : this.isEditMode ? { academicSessionId: form.academicSessionId } : {}),
       classId: form.classId!, sectionId: form.sectionId ?? null, day: form.day,
       periodNumber: form.periodNumber, startTime: form.startTime, endTime: form.endTime,
-      subjectName: form.subjectName, teacherId: form.teacherId
+      subjectName: form.subjectName, teacherId: this.isTeacher() ? this.userId : form.teacherId
     };
     const save$ = this.isSimultaneousMode && this.simultaneousSourceId != null
       ? this.timetableService.addSimultaneous(this.simultaneousSourceId, this.modalForm.subjectName, this.modalForm.teacherId, this.canManage() ? this.selectedSession!.id : undefined)
@@ -699,6 +750,13 @@ export class TimetableComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.modalSaving = false;
         this.logger.error('Failed to save timetable entry:', err);
+
+        if (this.isTeacher() && err.error?.code === 'SAME_SUBJECT_ASSIGNED_TO_ANOTHER_TEACHER') {
+          this.correctionTargetId = err.error.timetableEntryId;
+          this.modalError = err.error.message;
+          this.cdr.markForCheck();
+          return;
+        }
 
         // A teacher's first attempt at a brand-new period landing on an already-occupied slot:
         // offer to add it as a simultaneous subject instead of a dead-end conflict message —
@@ -745,16 +803,16 @@ export class TimetableComponent implements OnInit, OnDestroy {
   }
 
   deleteEntry(): void {
-    if (!this.canWrite() || !this.modalForm.id || this.modalSaving) return;
+    if (!this.canEditEntry(this.modalForm) || !this.modalForm.id || this.modalSaving) return;
     const id = this.modalForm.id;
-    const sessionId = this.selectedSession!.id;
+    const sessionId = this.modalForm.academicSessionId!;
     this.toast.confirm({
       title: 'Delete this period?',
       message: `${this.modalForm.subjectName} — ${this.dayLabels[this.modalForm.day]} Period ${this.modalForm.periodNumber}`,
       confirmText: 'Yes, delete',
       danger: true
     }).then(confirmed => {
-      if (!confirmed || this.destroyed || !this.canWrite() || this.selectedSession?.id !== sessionId) return;
+      if (!confirmed || this.destroyed || !this.canEditEntry(this.modalForm) || this.modalForm.id !== id || (this.canManage() && this.selectedSession?.id !== sessionId)) return;
       this.modalSaving = true;
       this.cdr.markForCheck();
       this.timetableService.deleteEntry(id, sessionId)
@@ -762,7 +820,7 @@ export class TimetableComponent implements OnInit, OnDestroy {
           next: () => {
             this.modalSaving = false;
             this.showModal = false;
-            this.loadClassTimetable();
+            if (this.isTeacher()) this.loadTeacherTimetable(); else this.loadClassTimetable();
             this.toast.success('Deleted');
             this.cdr.markForCheck();
           },

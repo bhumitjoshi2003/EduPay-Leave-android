@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { TimetableEntry, TimetableEntryRequest } from '../interfaces/timetable';
+import { TimetableEntry, TimetableEntryRequest, TimetableCorrection } from '../interfaces/timetable';
 
 export interface TimetableBulkImportError {
   row: number;
@@ -48,6 +48,16 @@ export class TimetableService {
 
   getTeacherTimetable(teacherId: string, academicSessionId?: number): Observable<TimetableEntry[]> {
     return this.http.get<TimetableEntry[]>(`${this.baseUrl}/teacher/${encodeURIComponent(teacherId)}`, { params: academicSessionId == null ? {} : { academicSessionId } });
+  }
+
+  getCorrections(): Observable<TimetableCorrection[]> {
+    return this.http.get<TimetableCorrection[]>(`${this.baseUrl}/corrections`);
+  }
+  requestCorrection(timetableEntryId: number, reason?: string): Observable<TimetableCorrection> {
+    return this.http.post<TimetableCorrection>(`${this.baseUrl}/corrections`, { timetableEntryId, reason });
+  }
+  reviewCorrection(id: number, decision: 'approve' | 'reject'): Observable<TimetableCorrection> {
+    return this.http.post<TimetableCorrection>(`${this.baseUrl}/corrections/${id}/${decision}`, {});
   }
 
   createEntry(entry: TimetableEntryRequest): Observable<TimetableEntry> {

@@ -162,6 +162,27 @@
     </ng-container>
   </ng-container>
 
+  <section class="tt-corrections no-print" *ngIf="isTeacher() || canManage()">
+    <h3>{{ isTeacher() ? 'My Correction Requests' : 'Timetable Correction Requests' }}</h3>
+    <button type="button" class="tt-btn-cancel" (click)="loadCorrections()" [disabled]="correctionBusy">Refresh requests</button>
+    <p role="alert" *ngIf="correctionsError">{{ correctionsError }}</p>
+    <p *ngIf="!corrections.length && !correctionsError">No {{ canManage() ? 'pending ' : '' }}correction requests.</p>
+    <article *ngFor="let correction of corrections" class="tt-correction-row">
+      <ng-container *ngIf="correction.entry as entry; else deletedCorrectionEntry">
+        <strong>{{ entry.subjectName }} · Class {{ entry.className }} {{ entry.sectionName || '' }}</strong>
+        <p>{{ dayLabels[entry.day] }} · Period {{ entry.periodNumber }} · {{ entry.startTime }}–{{ entry.endTime }}</p>
+        <p>Currently assigned: {{ entry.teacherName || 'Unassigned' }}</p>
+      </ng-container>
+      <ng-template #deletedCorrectionEntry><strong>Timetable entry deleted</strong></ng-template>
+      <p>Requested by {{ correction.requestedTeacherName }} · {{ correction.status | titlecase }}</p>
+      <p *ngIf="correction.reason">{{ correction.reason }}</p>
+      <ng-container *ngIf="canManage() && correction.status === 'PENDING'">
+        <button type="button" class="tt-btn-save" [disabled]="correctionBusy || !correction.entry" (click)="reviewCorrection(correction, 'approve')">Approve</button>
+        <button type="button" class="tt-btn-delete" [disabled]="correctionBusy" (click)="reviewCorrection(correction, 'reject')">Reject</button>
+      </ng-container>
+    </article>
+  </section>
+
   <!-- ══════════════════════════════════════════════════════════
        TEACHER VIEW
   ══════════════════════════════════════════════════════════ -->
@@ -189,6 +210,7 @@
 
         <div *ngFor="let entry of teacherDayEntries; trackBy: trackByEntry"
           class="tt-period-card tt-period-card--single tt-sc-{{ getSubjectClass(entry.subjectName) }}">
+          <button type="button" class="tt-btn-cancel no-print" *ngIf="canEditEntry(entry)" (click)="openEdit(entry)">Edit / Delete</button>
           <div class="tt-period-header">
             <span class="tt-card-period">Period {{ entry.periodNumber }}</span>
             <span class="tt-card-time" *ngIf="showTimes && entry.startTime">
@@ -326,12 +348,17 @@
     <p class="tt-modal-error" *ngIf="modalError" role="alert">{{ modalError }}</p>
 
     <div class="tt-modal-actions">
-      <button class="tt-btn-delete" *ngIf="isEditMode" (click)="deleteEntry()" [disabled]="modalSaving || (!isTeacher() && !canWrite())">
+      <div *ngIf="correctionTargetId" class="tt-field">
+        <label for="correction-reason">Reason (optional)</label>
+        <input id="correction-reason" class="tt-field-input" maxlength="500" [(ngModel)]="correctionReason">
+        <button type="button" class="tt-btn-save" [disabled]="correctionBusy" (click)="requestCorrection()">Request Correction</button>
+      </div>
+      <button class="tt-btn-delete" *ngIf="isEditMode && canEditEntry(modalForm)" (click)="deleteEntry()" [disabled]="modalSaving || (!isTeacher() && !canWrite())">
         Delete
       </button>
       <div class="tt-modal-right-actions">
         <button class="tt-btn-cancel" (click)="closeModal()" [disabled]="modalSaving || (!isTeacher() && !canWrite())">Cancel</button>
-        <button class="tt-btn-save" (click)="saveEntry()" [disabled]="modalSaving || (!isTeacher() && !canWrite())">
+        <button class="tt-btn-save" *ngIf="!correctionTargetId" (click)="saveEntry()" [disabled]="modalSaving || (!isTeacher() && !canWrite())">
           {{ modalSaving ? 'Saving…' : (isEditMode ? 'Update' : (isSimultaneousMode ? 'Add Subject' : 'Add Period')) }}
         </button>
       </div>
