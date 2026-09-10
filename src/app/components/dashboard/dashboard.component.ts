@@ -107,6 +107,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.checkForAppUpdate();
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
     document.addEventListener('visibilitychange', this.onVisibilityChange);
+    this.onOnline = this.onOnline.bind(this);
+    window.addEventListener('online', this.onOnline);
   }
 
   ngOnDestroy(): void {
@@ -116,11 +118,36 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.pollingIntervalSubscription.unsubscribe();
     }
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    window.removeEventListener('online', this.onOnline);
   }
 
+  /** Re-verifies the session when the app/tab becomes visible again — the main defense against
+   *  a teacher leaving Edunexify backgrounded for hours: the access token has very likely
+   *  expired by then, so this silently exercises the refresh flow. loadCurrentUser() never
+   *  treats a transient/network failure as a logout (see AuthStateService), so if Wi-Fi hasn't
+   *  reconnected yet this is a harmless no-op that leaves the current session exactly as it
+   *  was — no forced logout, no navigation away from whatever page is open. */
   private onVisibilityChange(): void {
     if (document.visibilityState === 'visible') {
       this.fetchUnreadCount();
+      this.authStateService.loadCurrentUser()
+        .then(() => this.cdr.markForCheck())
+        .catch(() => {});
+    }
+  }
+
+  /** A single, event-driven retry when the browser/WebView reports connectivity is back — never
+   *  polling, since it only ever fires in response to the platform's own `online` event.
+   *  Covers two cases the visibility handler alone wouldn't: (1) the app was already visible
+   *  throughout a brief outage, so onVisibilityChange never re-fired; (2) an already-
+   *  AUTHENTICATED session whose access token quietly expired while offline — without this,
+   *  that session would only get refreshed on whatever the user's next action happens to be
+   *  (the interceptor handles that transparently regardless, so this is a latency/robustness
+   *  improvement, not a correctness requirement). Only skipped when the session is a CONFIRMED
+   *  rejection (isUnauthenticated()) — retrying there would silently attempt to resurrect a
+   *  session the server already definitively rejected, without new credentials. */
+  private onOnline(): void {
+    if (!this.authStateService.isUnauthenticated()) {
       this.authStateService.loadCurrentUser()
         .then(() => this.cdr.markForCheck())
         .catch(() => {});

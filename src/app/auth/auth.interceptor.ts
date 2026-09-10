@@ -14,12 +14,27 @@ import { AuthStateService } from './auth-state.service';
 import { TenantService } from '../services/tenant.service';
 import { ToastService } from '../services/toast.service';
 import { environment } from '../../environments/environment';
+import { classifyAuthFailure } from './auth-failure-classifier';
+import { saveIntendedRoute } from './redirect-url.util';
 
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take, tap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthInterceptor implements HttpInterceptor {
+
+  /** Guard-free top-level routes in app.routes.ts (home, reset-password, verify-rc) — the
+   *  only routes usable with zero session. An anonymous visitor's failed silent-refresh here
+   *  is expected (there is no session to refresh) and must never hijack navigation away from
+   *  the page they're legitimately allowed to be on. Update this list if app.routes.ts's
+   *  guard-free routes change. */
+  private static readonly PUBLIC_ROUTES = ['/home', '/reset-password', '/verify-rc'];
+
+  private isPublicRoute(): boolean {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname;
+    return AuthInterceptor.PUBLIC_ROUTES.some(publicPath => path === publicPath || path.startsWith(publicPath + '/'));
+  }
 
   private isRefreshing = false;
   /**
@@ -134,14 +149,28 @@ export class AuthInterceptor implements HttpInterceptor {
           return next.handle(request);
         }),
         catchError((refreshError) => {
-          // Refresh token itself is expired/invalid → unblock queued requests with error,
-          // then log out. Use error() so queued filter(done => done === true) never emits
-          // and the error propagates correctly to each waiting request.
+          // Either way there is nothing left to retry queued requests with — release them
+          // with an error (never let them hang) via error(), which bypasses
+          // filter(done => done === true) and propagates immediately to each waiter.
           this.isRefreshing = false;
-          this.refreshDone$.error(new HttpErrorResponse({ status: 401, statusText: 'Token refresh failed' }));
+          this.refreshDone$.error(refreshError);
           this.refreshDone$ = new BehaviorSubject<boolean>(false);
-          this.authStateService.clearUser();
-          this.router.navigate(['/home']);
+
+          if (classifyAuthFailure(refreshError) === 'AUTHORITATIVE') {
+            // The server actually looked at the refresh token and rejected it (401/403) —
+            // this session is really over.
+            this.authStateService.clearUser();
+            // Only hijack navigation away from a protected route — an anonymous visitor
+            // legitimately on a public route (e.g. reset-password) has no session to lose.
+            if (!this.isPublicRoute()) {
+              saveIntendedRoute(typeof window !== 'undefined' ? window.location.pathname + window.location.search : null);
+              this.router.navigate(['/home']);
+            }
+          }
+          // TRANSIENT (network down, timeout, 502/503/504, etc.): the server was never
+          // meaningfully consulted. Do NOT clear auth and do NOT navigate — a transport
+          // failure is not proof the credentials are invalid. The caller's own request fails
+          // this one time; a later request, tab-resume, or `online` event can retry.
           return throwError(() => refreshError);
         })
       );

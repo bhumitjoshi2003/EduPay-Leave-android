@@ -2,6 +2,18 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { classifyAuthFailure } from './auth-failure-classifier';
+
+/**
+ * CHECKING: we do not yet know whether an existing session is valid — this is NOT logged out,
+ * it is "no verdict yet" (the initial value, before the first loadCurrentUser() resolves, and
+ * the value a transient/network failure on that very first check leaves behind).
+ * AUTHENTICATED: a successful /auth/me (directly, or after a silent refresh) has established
+ * the current user.
+ * UNAUTHENTICATED: the server has definitively rejected the session (401/403) — safe to treat
+ * as a real logout.
+ */
+export type AuthStatus = 'CHECKING' | 'AUTHENTICATED' | 'UNAUTHENTICATED';
 
 export interface UserInfo {
   userId: string;
@@ -29,33 +41,74 @@ export interface UserInfo {
 })
 export class AuthStateService {
   private user: UserInfo | null = null;
+  private status: AuthStatus = 'CHECKING';
   private readonly apiUrl = `${environment.apiUrl}/auth`;
 
   constructor(private http: HttpClient) {}
 
+  /**
+   * Establishes (or re-verifies) the current session via /auth/me — which, through
+   * AuthInterceptor, transparently attempts a silent refresh if the access token has expired.
+   * This promise ALWAYS resolves (never rejects), so app bootstrap can never hang on it, even
+   * with no network at all.
+   *
+   * Only an AUTHORITATIVE failure (see classifyAuthFailure) ever clears an existing session —
+   * a TRANSIENT failure (network down, timeout, temporary 5xx) leaves whatever user/status this
+   * service already had completely untouched. This is what lets a valid session survive the app
+   * being backgrounded, a flaky Wi-Fi reconnect, or a brief outage: the worst a transient
+   * failure can do is fail to CONFIRM the session this time, never disprove it.
+   */
   async loadCurrentUser(): Promise<void> {
     try {
       const userInfo = await firstValueFrom(
         this.http.get<UserInfo>(`${this.apiUrl}/me`, { withCredentials: true })
       );
       this.user = userInfo;
+      this.status = 'AUTHENTICATED';
     } catch (err) {
-      // Expected on app start when no valid session exists (e.g. first visit, expired token)
-      console.warn('[AuthStateService] Could not load current user — treating as logged out:', err);
-      this.user = null;
+      if (classifyAuthFailure(err) === 'AUTHORITATIVE') {
+        console.warn('[AuthStateService] Session rejected by server — treating as logged out:', err);
+        this.user = null;
+        this.status = 'UNAUTHENTICATED';
+      } else {
+        // Transient — we still don't know either way. Deliberately do NOT touch this.user or
+        // this.status: if we were already AUTHENTICATED, we stay AUTHENTICATED; if this is the
+        // very first check (still CHECKING) it simply remains CHECKING for a later retry.
+        console.warn('[AuthStateService] Could not verify session (network/transient) — keeping existing state:', err);
+      }
     }
   }
 
   setUser(userInfo: UserInfo): void {
     this.user = userInfo;
+    this.status = 'AUTHENTICATED';
   }
 
   getUser(): UserInfo | null {
     return this.user;
   }
 
+  getStatus(): AuthStatus {
+    return this.status;
+  }
+
+  isChecking(): boolean {
+    return this.status === 'CHECKING';
+  }
+
+  isAuthenticated(): boolean {
+    return this.status === 'AUTHENTICATED';
+  }
+
+  isUnauthenticated(): boolean {
+    return this.status === 'UNAUTHENTICATED';
+  }
+
+  /** A definitive logout — the session is confirmed gone (server-rejected refresh, explicit
+   *  logout, or a tenant/session mismatch). Never call this for a merely transient failure. */
   clearUser(): void {
     this.user = null;
+    this.status = 'UNAUTHENTICATED';
   }
 
   getUserRole(): string {

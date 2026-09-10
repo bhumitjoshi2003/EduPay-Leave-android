@@ -11,6 +11,7 @@ import { DemoService } from '../../services/demo.service';
 import { Subject, takeUntil, timeout, TimeoutError } from 'rxjs';
 
 import { ToastService } from '../../services/toast.service';
+import { consumeIntendedRoute, clearIntendedRoute } from '../../auth/redirect-url.util';
 
 @Component({
   selector: 'app-home',
@@ -58,9 +59,19 @@ export class HomeComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
+    // Bootstrap/AuthStateService is the authoritative source of truth for whether a session
+    // exists — this component only ever reacts to an ALREADY-settled isLoggedIn(), it never
+    // itself decides or repairs auth state. Honors a saved redirectUrl (set by a guard, or by
+    // AuthInterceptor before an authoritative logout) so a user who ends up here mid-session —
+    // then recovers, whether by logging back in or simply because a later check confirms the
+    // session was fine all along — returns to the page they were using, not always /dashboard.
     if (this.authStateService.isLoggedIn()) {
       this.authenticated = true;
-      this.router.navigate([this.authStateService.mustChangePassword() ? '/change-initial-password' : '/dashboard']);
+      if (this.authStateService.mustChangePassword()) {
+        this.router.navigate(['/change-initial-password']);
+      } else {
+        this.router.navigateByUrl(consumeIntendedRoute());
+      }
     }
   }
 
@@ -126,14 +137,12 @@ export class HomeComponent implements OnInit, OnDestroy {
           // First-login (or admin-reset) accounts land on the mandatory password-change
           // page instead of the dashboard — enforced server-side too (JwtAuthFilter).
           if (response.mustChangePassword) {
-            localStorage.removeItem('redirectUrl');
+            clearIntendedRoute();
             this.router.navigateByUrl('/change-initial-password');
             return;
           }
 
-          const redirectUrl = localStorage.getItem('redirectUrl') || '/dashboard';
-          localStorage.removeItem('redirectUrl');
-          this.router.navigateByUrl(redirectUrl);
+          this.router.navigateByUrl(consumeIntendedRoute());
         });
       },
       error: (error) => {

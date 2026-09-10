@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthStateService, UserInfo } from './auth-state.service';
+import { clearIntendedRoute } from './redirect-url.util';
 
 interface ChangePasswordRequest {
   userId: string;
@@ -51,7 +52,7 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true, responseType: 'text' }).pipe(
       tap(() => {
         this.authStateService.clearUser();
-        localStorage.removeItem('redirectUrl');
+        clearIntendedRoute();
       })
     );
   }
