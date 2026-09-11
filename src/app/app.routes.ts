@@ -31,8 +31,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'wisdom/manage', loadComponent: () => import('./components/wisdom/wisdom-admin.component').then(m => m.WisdomAdminComponent), canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN','SUB_ADMIN'], featureKey: 'WISDOM' } },
-      { path: 'wisdom/gita', loadComponent: () => import('./components/wisdom/wisdom-library.component').then(m => m.WisdomLibraryComponent), canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN','SUB_ADMIN','TEACHER','STUDENT','PARENT'], featureKey: 'WISDOM' } },
-      { path: 'wisdom/gita/:id', loadComponent: () => import('./components/wisdom/wisdom-library.component').then(m => m.WisdomLibraryComponent), canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN','SUB_ADMIN','TEACHER','STUDENT','PARENT'], featureKey: 'WISDOM' } },
       {
         path: 'notifications',
         loadComponent: () => import('./components/notification-center/notification-center.component').then(m => m.NotificationCenterComponent),

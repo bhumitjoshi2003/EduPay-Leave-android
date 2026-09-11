@@ -1,30 +1,110 @@
-<main class="wisdom-page admin-page">
- <a routerLink="/dashboard">← Dashboard</a><header><span class="eyebrow">Wisdom · School editorial desk</span><h1>Make room for a brighter day.</h1><p>Daily encouragement. Deeper weekly reflection. You choose what your school reads.</p></header>
- <p *ngIf="loading" role="status">Loading your editorial desk…</p><p *ngIf="error" role="alert">The editorial desk could not be loaded. <button (click)="reload()">Try again</button></p>
- <p *ngIf="status" class="quiet">School date: {{ status.today }} · {{ status.timezone }}. Dates below use this timezone.</p>
- <div class="admin-grid">
- <section class="panel"><span class="eyebrow">01 · Thought of the Day</span><h2>{{ thoughtId ? 'Edit your thought' : 'Write a little encouragement' }}</h2>
- <form [formGroup]="thoughtForm" (ngSubmit)="saveThought()"><label for="thought-body">Thought (up to 300 characters)</label><textarea id="thought-body" formControlName="body" maxlength="300" rows="3"></textarea><label for="thought-audience">Audience</label><select id="thought-audience" formControlName="audience"><option *ngFor="let a of audiences" [value]="a">{{ a }}</option></select><label class="check"><input type="checkbox" formControlName="active">Available for new schedules</label><p class="quiet">Existing schedules remain in place when a thought is archived.</p><div class="actions"><button [disabled]="thoughtForm.invalid || busy">Save thought</button><button type="button" class="secondary" (click)="newThought()">New thought</button></div></form>
- <h3>Thought library</h3><p class="quiet">Curated thoughts rotate automatically. Copy one to customize it for your school.</p>
- <article class="list-row" *ngFor="let t of thoughts?.content"><p>{{ t.body }}</p><span class="quiet">{{ t.schoolId === null ? 'Edunexify curated' : 'School custom' }} · {{ t.audience }}{{ t.active ? '' : ' · Archived' }}</span><div class="actions"><button class="secondary" [disabled]="!t.active" (click)="selectThought(t)">Select for schedule</button><button class="secondary" (click)="editThought(t)">{{ t.schoolId === null ? 'Customize a copy' : 'Edit' }}</button></div></article>
- <nav *ngIf="thoughts as p" aria-label="Thought library pages"><button [disabled]="p.first || loading" (click)="move('thoughts',-1)">Previous</button><span>{{ p.number+1 }} / {{ p.totalPages || 1 }}</span><button [disabled]="p.last || loading" (click)="move('thoughts',1)">Next</button></nav>
+<main class="wz-page admin-page">
+ <a class="wz-back" routerLink="/dashboard">← Dashboard</a>
+ <div class="wz-admin-header">
+  <span class="wz-admin-header-blob2" aria-hidden="true"></span>
+  <div class="wz-admin-header-inner">
+   <p class="wz-admin-eyebrow-dot">Wisdom</p>
+   <h1>School Editorial Desk</h1>
+   <p>Curate daily thoughts and schedule them for your school community.</p>
+  </div>
+  <span class="wz-status-line" *ngIf="status" [title]="status.timezone"><i></i>Today · <span class="wz-status-line-value">{{ status.today | date:'d MMM yyyy' }}</span></span>
+ </div>
+ <p *ngIf="loading" role="status">Loading your editorial desk…</p>
+ <p *ngIf="error" role="alert">The editorial desk could not be loaded. <button class="wz-btn wz-btn--ghost" (click)="reload()">Try again</button></p>
+
+ <section *ngIf="!loading && !error">
+  <div class="wz-thoughts-layout">
+   <div class="wz-panel">
+    <div class="wz-editor-toggle-row">
+     <h2 class="wz-panel-title">Thought library</h2>
+     <button type="button" class="wz-btn wz-btn--accent" (click)="showThoughtEditor ? closeThoughtEditor() : openThoughtEditor()">{{ showThoughtEditor ? 'Close' : '+ New thought' }}</button>
+    </div>
+    <p class="wz-quiet">Curated thoughts rotate automatically. Copy one to customize it for your school.</p>
+
+    <div class="wz-editor-card" *ngIf="showThoughtEditor">
+     <h4>{{ thoughtId ? 'Edit your thought' : 'Write a little encouragement' }}</h4>
+     <form [formGroup]="thoughtForm" (ngSubmit)="saveThought()" class="wz-compact-form">
+      <label for="thought-body">Thought</label>
+      <textarea id="thought-body" formControlName="body" maxlength="300" rows="3"></textarea>
+      <span class="wz-char-count">{{ thoughtForm.controls.body.value.length }} / 300</span>
+      <label for="thought-audience">Audience</label>
+      <select id="thought-audience" formControlName="audience"><option *ngFor="let a of audiences" [value]="a">{{ a }}</option></select>
+      <label class="wz-toggle-row" style="margin-top:16px">
+       <span class="wz-toggle"><input type="checkbox" formControlName="active"><span class="wz-toggle-track"></span></span>
+       Available for new schedules
+      </label>
+      <p class="wz-quiet" style="margin:8px 0 0">Existing schedules remain in place when a thought is archived.</p>
+      <div class="wz-form-actions">
+       <button type="submit" class="wz-btn wz-btn--primary" [disabled]="thoughtForm.invalid || busy">Save Thought</button>
+       <button type="button" class="wz-btn wz-btn--ghost" (click)="newThought()">Cancel</button>
+      </div>
+     </form>
+    </div>
+
+    <div class="wz-filter-chips" role="group" aria-label="Filter by audience">
+     <button type="button" *ngFor="let f of audienceFilters" class="wz-chip-btn" [class.active]="thoughtAudienceFilter===f" (click)="setAudienceFilter(f)">{{ f === 'ALL' ? 'All' : f }}</button>
+    </div>
+    <p class="wz-empty" *ngIf="!pagedThoughts.length">No thoughts match these filters.</p>
+    <div class="wz-thought-grid" *ngIf="pagedThoughts.length">
+     <article class="wz-thought-row" [ngClass]="audienceAccentClass(t.audience)" *ngFor="let t of pagedThoughts">
+      <p class="wz-thought-text">{{ t.body }}</p>
+      <div class="wz-thought-meta">
+       <span class="wz-chip" [class.wz-chip--archived]="!t.active">{{ t.audience }}</span>
+       <span class="wz-quiet">{{ t.schoolId === null ? 'Edunexify curated' : 'School custom' }}{{ t.active ? '' : ' · Archived' }}</span>
+      </div>
+      <div class="wz-thought-actions">
+       <button type="button" class="wz-btn wz-btn--use wz-btn--sm" [disabled]="!t.active" (click)="selectThought(t)">Use for schedule</button>
+       <button type="button" class="wz-btn wz-btn--customize wz-btn--sm" (click)="openThoughtEditor(t)">{{ t.schoolId === null ? 'Customize' : 'Edit' }}</button>
+      </div>
+     </article>
+    </div>
+    <nav class="wz-pagination" aria-label="Thought library pages" *ngIf="filteredThoughts.length">
+     <button type="button" class="wz-btn wz-btn--ghost wz-btn--sm" [disabled]="thoughtPage===0" (click)="moveThoughtPage(-1)">Previous</button>
+     <span class="wz-quiet">Page {{ thoughtPage+1 }} of {{ thoughtTotalPages }}</span>
+     <button type="button" class="wz-btn wz-btn--ghost wz-btn--sm" [disabled]="thoughtPage>=thoughtTotalPages-1" (click)="moveThoughtPage(1)">Next</button>
+    </nav>
+   </div>
+
+   <aside class="wz-panel wz-calendar-panel">
+    <h3 class="wz-panel-title">Daily calendar</h3>
+
+    <div class="wz-cal-head">
+     <span class="wz-quiet" style="font-weight:700">Pick a date</span>
+     <div class="wz-cal-nav">
+      <button type="button" class="wz-cal-nav-btn" (click)="prevCalendarMonth()" aria-label="Previous month">‹</button>
+      <span class="wz-cal-month-label">{{ calendarMonthLabel }}</span>
+      <button type="button" class="wz-cal-nav-btn" (click)="nextCalendarMonth()" aria-label="Next month">›</button>
+     </div>
+    </div>
+    <div class="wz-cal-weekdays"><span *ngFor="let wd of ['S','M','T','W','T','F','S']">{{ wd }}</span></div>
+    <div class="wz-cal-grid">
+     <button type="button" *ngFor="let cell of calendarCells" class="wz-cal-cell"
+       [disabled]="cell.day===null" [class.is-past]="cell.isPast" [class.is-today]="cell.isToday"
+       [class.is-selected]="cell.isSelected" (click)="selectCalendarDate(cell)">
+      <span>{{ cell.day }}</span>
+      <span class="wz-cal-dot" *ngIf="cell.hasOverride"></span>
+     </button>
+    </div>
+
+    <form [formGroup]="overrideForm" (ngSubmit)="saveOverride()" class="wz-compact-form" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--wz-border)">
+     <p class="wz-selected-hint">{{ selectedThoughtText ? '"' + selectedThoughtText + '"' : (overrideForm.controls.thoughtId.value ? 'Selected thought #' + overrideForm.controls.thoughtId.value : 'Select a thought from the library or save a new one.') }}</p>
+     <p class="wz-quiet">Scheduling for <strong style="color:var(--wz-ink)">{{ overrideForm.controls.displayDate.value | date:'longDate' }}</strong></p>
+     <input type="hidden" formControlName="displayDate">
+     <label for="override-audience">Schedule audience</label>
+     <select id="override-audience" formControlName="audience"><option *ngFor="let a of audiences" [value]="a">{{ a }}</option></select>
+     <div class="wz-form-actions"><button type="submit" class="wz-btn wz-btn--ink" style="flex:1" [disabled]="overrideForm.invalid || busy">Save / replace override</button></div>
+    </form>
+    <h4 class="wz-panel-subtitle">Today &amp; upcoming</h4>
+    <p class="wz-empty" *ngIf="!overrides?.content?.length">No overrides. Daily inspiration is already taken care of.</p>
+    <article class="wz-override-row" *ngFor="let o of overrides?.content">
+     <div style="display:flex;align-items:center;gap:10px;min-width:0">
+      <span class="wz-override-badge"><span class="wz-month">{{ overrideMonthShort(o.displayDate) }}</span><span class="wz-day">{{ overrideDay(o.displayDate) }}</span></span>
+      <div style="min-width:0"><span class="wz-chip" [ngClass]="audienceAccentClass(o.audience)">{{ o.audience }}</span><p class="wz-quiet" style="margin:4px 0 0">Thought #{{ o.thoughtId }}</p></div>
+     </div>
+     <button type="button" class="wz-btn wz-btn--ghost wz-btn--sm" [disabled]="busy" (click)="removeOverride(o)">Remove</button>
+    </article>
+    <nav class="wz-pagination" *ngIf="overrides as p" aria-label="Override pages"><button type="button" class="wz-btn wz-btn--ghost wz-btn--sm" [disabled]="p.first || loading" (click)="move('overrides',-1)">Previous</button><span class="wz-quiet">{{ p.number+1 }} / {{ p.totalPages || 1 }}</span><button type="button" class="wz-btn wz-btn--ghost wz-btn--sm" [disabled]="p.last || loading" (click)="move('overrides',1)">Next</button></nav>
+   </aside>
+  </div>
  </section>
- <section class="panel"><span class="eyebrow">Daily calendar</span><h2>Choose a thought for a day</h2><p>Specific-audience overrides take priority over Everyone. Unscheduled days use curated thoughts automatically.</p><form [formGroup]="overrideForm" (ngSubmit)="saveOverride()"><p class="quiet">{{ overrideForm.controls.thoughtId.value ? 'Selected thought #' + overrideForm.controls.thoughtId.value : 'Select a thought from the library or save a new one.' }}</p><label for="thought-date">Date</label><input id="thought-date" type="date" formControlName="displayDate" [min]="status?.today || ''"><label for="override-audience">Schedule audience</label><select id="override-audience" formControlName="audience"><option *ngFor="let a of audiences" [value]="a">{{ a }}</option></select><button [disabled]="overrideForm.invalid || busy">Save / replace override</button></form>
- <h3>Today &amp; upcoming</h3><p *ngIf="!overrides?.content?.length" class="empty">No overrides. Daily inspiration is already taken care of.</p><article class="list-row" *ngFor="let o of overrides?.content"><strong>{{ o.displayDate | date:'mediumDate' }} · {{ o.audience }}</strong><p>Thought #{{ o.thoughtId }}</p><button class="secondary" [disabled]="busy" (click)="removeOverride(o)">Remove override</button></article><nav *ngIf="overrides as p" aria-label="Override pages"><button [disabled]="p.first || loading" (click)="move('overrides',-1)">Previous</button><span>{{ p.number+1 }} / {{ p.totalPages || 1 }}</span><button [disabled]="p.last || loading" (click)="move('overrides',1)">Next</button></nav>
- </section></div>
- <section class="panel"><span class="eyebrow">02 · Gita for Life</span><h2>A teaching with intention</h2><p *ngIf="status && !status.upcomingScheduled" class="notice">No upcoming teaching is scheduled. Previously published teachings remain available.</p>
- <div class="admin-grid"><div><h3>Choose verified scripture</h3><form [formGroup]="sourceForm" (ngSubmit)="searchVerses()"><label for="verse-query">Theme or reference</label><input id="verse-query" formControlName="q" maxlength="200" placeholder="anger, duty, or 2.47"><button>Search verified source</button></form>
- <p *ngIf="!verses?.content?.length" class="empty">No verified verses found. Ask a super admin to import verified scripture.</p>
- <article *ngFor="let v of verses?.content" class="list-row"><strong>Bhagavad Gita {{ v.chapter }}.{{ v.verse }}</strong><p>{{ v.themes }}</p><div class="actions"><button class="secondary" [disabled]="aiBusy" (click)="selectVerse(v)">Use this verse</button></div></article><nav *ngIf="verses as p" aria-label="Scripture pages"><button [disabled]="p.first || loading" (click)="move('verses',-1)">Previous</button><span>{{ p.number+1 }} / {{ p.totalPages || 1 }}</span><button [disabled]="p.last || loading" (click)="move('verses',1)">Next</button></nav>
- <section *ngIf="selectedScripture as v" class="source-preview"><h3>Bhagavad Gita {{ v.chapter }}.{{ v.verse }}</h3><p class="sanskrit" lang="sa">{{ v.sanskrit }}</p><p class="transliteration">{{ v.transliteration }}</p><p>{{ v.translation }}</p><small>{{ v.sourceName }} · {{ v.sourceVersion }} · {{ v.license }}</small></section>
- <form *ngIf="aiEnabled" [formGroup]="suggestForm" (ngSubmit)="suggestVerses()"><label for="suggest-theme">AI-assisted verse suggestion</label><input id="suggest-theme" formControlName="theme" maxlength="500" placeholder="e.g. anger and self-control"><button [disabled]="suggestForm.invalid || suggestBusy">{{ suggestBusy ? 'Searching…' : 'Suggest verses' }}</button><p class="quiet">Ranks only verses already in your verified library above — never invents a chapter or verse.</p></form>
- <p *ngIf="suggestions && !suggestions.length" class="empty">No verified verses matched that theme yet. Add more verses, or search manually above.</p>
- <article *ngFor="let s of suggestions" class="list-row"><strong>Bhagavad Gita {{ s.scripture.chapter }}.{{ s.scripture.verse }}</strong><p>{{ s.rationale }}</p><button class="secondary" (click)="useSuggestion(s)">Use this verse</button></article>
- <form *ngIf="aiEnabled" [formGroup]="themeForm" (ngSubmit)="draft()"><label for="ai-theme">Optional AI editorial assistance</label><input id="ai-theme" formControlName="theme" maxlength="500" placeholder="e.g. anger and self-control"><button [disabled]="!selectedScripture || themeForm.invalid || aiBusy || busy">{{ aiBusy ? 'Drafting…' : 'Suggest editorial text' }}</button><p class="quiet">Suggestions require your review. Scripture and publication settings are never generated.</p></form>
- </div><div><h3>{{ teachingId ? 'Edit teaching draft' : 'Prepare a teaching' }}</h3><form [formGroup]="teachingForm" (ngSubmit)="saveTeaching()"><label for="gita-title">Title / theme</label><input id="gita-title" formControlName="title" maxlength="160"><label for="gita-meaning">Simple Meaning</label><textarea id="gita-meaning" formControlName="simpleMeaning" rows="4" maxlength="4000"></textarea><label for="gita-understanding">Understanding &amp; Example</label><textarea id="gita-understanding" formControlName="understanding" rows="8" maxlength="12000"></textarea><label for="gita-lesson">Lesson for Life</label><textarea id="gita-lesson" formControlName="lesson" rows="3" maxlength="2000"></textarea><div class="actions"><button [disabled]="teachingForm.invalid || busy || aiBusy">Save draft</button><button type="button" class="secondary" [disabled]="aiBusy" (click)="newTeaching()">New teaching</button></div><p class="quiet">Saving a draft never publishes it. Review the saved preview before approving publication.</p></form></div></div>
- <h3>Drafts, schedules &amp; published teachings</h3><form [formGroup]="dateForm"><label for="publication-date">Publication date (Monday suggested; any date allowed)</label><input id="publication-date" type="date" formControlName="date" [min]="status?.today || ''"><label for="publication-time">Publication time (optional — defaults to school-local midnight)</label><input id="publication-time" type="time" formControlName="time"></form>
- <article class="list-row" *ngFor="let t of teachings?.content"><span class="eyebrow">{{ t.status }}{{ t.publicationDate ? ' · ' + t.publicationDate : '' }}</span><h3>{{ t.title }}</h3><p>Bhagavad Gita {{ t.scripture.chapter }}.{{ t.scripture.verse }}</p><div class="actions"><button class="secondary" (click)="preview=t">Review full teaching</button><button *ngIf="t.status==='DRAFT'" class="secondary" [disabled]="aiBusy" (click)="editTeaching(t)">Edit</button><button *ngIf="t.status==='DRAFT'" [disabled]="busy || dateForm.invalid" (click)="schedule(t)">Approve publication</button><button *ngIf="t.status==='SCHEDULED'" class="secondary" [disabled]="busy" (click)="cancel(t)">Cancel schedule</button><a *ngIf="t.status==='PUBLISHED'" [routerLink]="['/dashboard/wisdom/gita',t.id]">Open published page</a></div></article>
- <p *ngIf="!teachings?.content?.length" class="empty">Prepare one teaching when you are ready. There is no minimum queue.</p><nav *ngIf="teachings as p" aria-label="Teaching management pages"><button [disabled]="p.first || loading" (click)="move('teachings',-1)">Previous</button><span>{{ p.number+1 }} / {{ p.totalPages || 1 }}</span><button [disabled]="p.last || loading" (click)="move('teachings',1)">Next</button></nav>
- </section>
- <article *ngIf="preview as t" class="reading"><span class="eyebrow">Admin preview · {{ t.status }}</span><h1>{{ t.title }}</h1><p>Bhagavad Gita {{ t.scripture.chapter }}.{{ t.scripture.verse }}</p><h2>Original Sanskrit Shloka</h2><p class="sanskrit" lang="sa">{{ t.scripture.sanskrit }}</p><h2>Transliteration</h2><p>{{ t.scripture.transliteration }}</p><h2>Simple Meaning</h2><p>{{ t.simpleMeaning }}</p><h2>Understanding &amp; Example</h2><p>{{ t.understanding }}</p><h2>Lesson for Life</h2><p>{{ t.lesson }}</p><button class="secondary" (click)="preview=undefined">Close preview</button></article>
 </main>
