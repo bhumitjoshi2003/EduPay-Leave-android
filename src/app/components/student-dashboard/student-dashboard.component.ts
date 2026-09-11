@@ -1,3 +1,4 @@
+import { WisdomCardsComponent } from '../wisdom/wisdom-cards.component';
 import {
   ChangeDetectionStrategy, ChangeDetectorRef,
   Component, OnDestroy, OnInit
@@ -16,7 +17,7 @@ import { LoggerService } from '../../services/logger.service';
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule],
+  imports: [WisdomCardsComponent, CommonModule, RouterLink, MatIconModule],
   templateUrl: './student-dashboard.component.html',
   styleUrl: './student-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

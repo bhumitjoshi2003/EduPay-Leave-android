@@ -1,3 +1,4 @@
+import { WisdomCardsComponent } from '../wisdom/wisdom-cards.component';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -25,7 +26,7 @@ import { AcademicSessionService } from '../../services/academic-session.service'
 @Component({
   selector: 'app-parent-portal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, ParentChildContextComponent],
+  imports: [WisdomCardsComponent, CommonModule, ReactiveFormsModule, MatIconModule, ParentChildContextComponent],
   templateUrl: './parent-portal.component.html',
   styleUrl: './parent-portal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +47,7 @@ export class ParentPortalComponent implements OnInit, OnDestroy {
   private readonly directorySearchInput$ = new Subject<string>();
   private readonly directoryQuery$ = new Subject<void>();
   readonly isAdmin = this.authState.getUserRole() === 'ADMIN';
+  hasFeature(featureKey: string): boolean { return this.authState.hasFeature(featureKey); }
   readonly pageSize = 20;
   loading = true;
   directoryBusy = false;

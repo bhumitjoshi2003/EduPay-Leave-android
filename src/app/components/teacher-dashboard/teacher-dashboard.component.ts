@@ -1,3 +1,4 @@
+import { WisdomCardsComponent } from '../wisdom/wisdom-cards.component';
 import {
   ChangeDetectionStrategy, ChangeDetectorRef,
   Component, OnDestroy, OnInit
@@ -22,7 +23,7 @@ import { TeacherLeave } from '../../interfaces/teacher-leave';
 @Component({
   selector: 'app-teacher-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule],
+  imports: [WisdomCardsComponent, CommonModule, RouterLink, MatIconModule],
   templateUrl: './teacher-dashboard.component.html',
   styleUrl: './teacher-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

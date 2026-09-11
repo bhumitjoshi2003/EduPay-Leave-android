@@ -1,3 +1,4 @@
+import { WisdomCardsComponent } from '../wisdom/wisdom-cards.component';
 import {
   ChangeDetectionStrategy, ChangeDetectorRef,
   Component, OnDestroy, OnInit
@@ -20,7 +21,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule],
+  imports: [WisdomCardsComponent, CommonModule, RouterLink, MatIconModule],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
