@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { FeeHead } from '../interfaces/fee-head';
 
@@ -12,8 +13,9 @@ export class FeeHeadService {
 
   constructor(private http: HttpClient) {}
 
-  getActiveFeeHeads(): Observable<FeeHead[]> {
-    return this.http.get<FeeHead[]>(this.apiUrl);
+  getActiveFeeHeads(studentId?: string): Observable<FeeHead[]> {
+    const params = studentId ? new HttpParams().set('studentId', studentId) : undefined;
+    return this.http.get<FeeHead[]>(this.apiUrl, { params });
   }
 
   getAllFeeHeads(): Observable<FeeHead[]> {

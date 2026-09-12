@@ -33,6 +33,7 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
 
   // Set for STUDENT (self) and PARENT (selected child, permission-checked); left blank for ADMIN.
   subjectStudentId = '';
+  subjectClassName = '';
   accessDenied = false;
 
   // Grid: feeGrid[className][feeHeadId] = amount in rupees
@@ -81,16 +82,26 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
       this.subjectStudentId = requestedStudentId;
       this.parentPortalService.getMyProfile().pipe(takeUntil(this.destroy$)).subscribe({
         next: profile => {
-          const allowed = profile.children.some(child => child.studentId === this.subjectStudentId && child.canViewFees);
+          const child = profile.children.find(child => child.studentId === this.subjectStudentId);
+          const allowed = !!child?.canViewFees;
           if (!allowed) {
             this.subjectStudentId = '';
             this.accessDenied = true;
             this.toast.error('Fee structure access unavailable', 'Please contact the school administrator.');
             this.cdr.markForCheck();
+            return;
           }
+          this.subjectClassName = child!.className;
+          this.loadInitialData();
         },
-        error: () => this.toast.error('Could not verify fee structure access')
+        error: () => {
+          this.accessDenied = true;
+          this.isLoading = false;
+          this.toast.error('Could not verify fee structure access');
+          this.cdr.markForCheck();
+        }
       });
+      return;
     } else if (role === 'STUDENT') {
       this.subjectStudentId = this.authStateService.getUserId();
     }
@@ -102,11 +113,11 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
     forkJoin({
       sessions: this.sessionService.getAllSessions(),
       classes: this.schoolService.getClasses(),
-      feeHeads: this.feeHeadService.getActiveFeeHeads(),
+      feeHeads: this.feeHeadService.getActiveFeeHeads(this.subjectStudentId || undefined),
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({ sessions, classes, feeHeads }) => {
         this.sessions = sessions;
-        this.classes = classes;
+        this.classes = this.subjectClassName ? classes.filter(c => c === this.subjectClassName) : classes;
         this.feeHeads = feeHeads;
         const current = sessions.find(s => s.current);
         if (current) {
@@ -134,7 +145,10 @@ export class FeeStructureComponent implements OnInit, OnDestroy {
     this.isLoading = false;
     this.cdr.markForCheck();
 
-    this.feeRuleService.getRulesBySession(this.currentSession.id)
+    const rules$ = this.subjectClassName
+      ? this.feeRuleService.getRulesBySessionAndClass(this.currentSession.id, this.subjectClassName, this.subjectStudentId)
+      : this.feeRuleService.getRulesBySession(this.currentSession.id);
+    rules$
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (rules) => {
           this.buildGrid(rules);

@@ -69,6 +69,10 @@ describe('TEACHER edit flow (rendered template)', () => {
     c = fixture.componentInstance;
     fixture.detectChanges();
     await fixture.whenStable();
+    // The real page intentionally opens on today's working day. These fixtures are all
+    // Wednesday rows, so select their day explicitly instead of making the regression suite
+    // depend on which weekday CI happens to run.
+    if (entries.length) c.onDaySelect(entries[0].day);
     fixture.detectChanges();
   }
 

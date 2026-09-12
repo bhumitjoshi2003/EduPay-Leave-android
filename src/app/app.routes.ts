@@ -261,7 +261,7 @@ export const routes: Routes = [
       {
         path: 'fee-structure',
         loadComponent: () => import('./components/fee-structure/fee-structure.component').then(m => m.FeeStructureComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'ADMIN'], featureKey: 'FEE_MANAGEMENT' }
+        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT', 'ADMIN', 'PARENT'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
         path: 'bus-fees',

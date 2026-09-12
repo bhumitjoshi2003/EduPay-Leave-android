@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { FeeStructureRule } from '../interfaces/fee-rule';
 
@@ -16,8 +17,9 @@ export class FeeRuleService {
     return this.http.get<FeeStructureRule[]>(`${this.apiUrl}/session/${sessionId}`);
   }
 
-  getRulesBySessionAndClass(sessionId: number, className: string): Observable<FeeStructureRule[]> {
-    return this.http.get<FeeStructureRule[]>(`${this.apiUrl}/session/${sessionId}/class/${className}`);
+  getRulesBySessionAndClass(sessionId: number, className: string, studentId?: string): Observable<FeeStructureRule[]> {
+    const params = studentId ? new HttpParams().set('studentId', studentId) : undefined;
+    return this.http.get<FeeStructureRule[]>(`${this.apiUrl}/session/${sessionId}/class/${className}`, { params });
   }
 
   saveRulesForClass(sessionId: number, className: string, rules: FeeStructureRule[]): Observable<FeeStructureRule[]> {
