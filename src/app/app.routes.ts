@@ -286,26 +286,6 @@ export const routes: Routes = [
         canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
       },
       {
-        path: 'invoice-management',
-        loadComponent: () => import('./components/invoice-management/invoice-management.component').then(m => m.InvoiceManagementComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
-      },
-      {
-        path: 'invoice-detail/:invoiceId',
-        loadComponent: () => import('./components/invoice-detail/invoice-detail.component').then(m => m.InvoiceDetailComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN', 'STUDENT'], featureKey: 'FEE_MANAGEMENT' }
-      },
-      {
-        path: 'student-fees',
-        loadComponent: () => import('./components/student-fee-overview/student-fee-overview.component').then(m => m.StudentFeeOverviewComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['STUDENT'], featureKey: 'FEE_MANAGEMENT' }
-      },
-      {
-        path: 'student-fees/:studentId',
-        loadComponent: () => import('./components/student-fee-overview/student-fee-overview.component').then(m => m.StudentFeeOverviewComponent),
-        canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
-      },
-      {
         path: 'fee-recalculation',
         loadComponent: () => import('./components/fee-recalculation/fee-recalculation.component').then(m => m.FeeRecalculationComponent),
         canActivate: [roleGuard, featureGuard], data: { roles: ['ADMIN'], featureKey: 'FEE_MANAGEMENT' }
