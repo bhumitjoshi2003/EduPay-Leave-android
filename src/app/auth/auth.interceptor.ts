@@ -16,6 +16,8 @@ import { ToastService } from '../services/toast.service';
 import { environment } from '../../environments/environment';
 import { classifyAuthFailure } from './auth-failure-classifier';
 import { saveIntendedRoute } from './redirect-url.util';
+import { ObservabilityService } from '../core/observability.service';
+import { newRequestId, REQUEST_ID_HEADER, validRequestId } from '../core/request-id';
 
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take, tap } from 'rxjs/operators';
@@ -63,6 +65,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     // Only attach credentials to our own API — not to third-party URLs (e.g. Razorpay CDN)
     const isOwnApi = request.url.startsWith(environment.apiUrl);
+    const requestId = validRequestId(request.headers.get(REQUEST_ID_HEADER)) ?? newRequestId();
 
     // Attach credentials + X-School-Slug header so the backend TenantValidationFilter
     // can validate that the stored school slug matches the JWT's schoolId.
@@ -73,7 +76,7 @@ export class AuthInterceptor implements HttpInterceptor {
       const slug = this.tenantService.slug;
       clonedReq = request.clone({
         withCredentials: true,
-        ...(slug ? { setHeaders: { 'X-School-Slug': slug } } : {}),
+        setHeaders: { ...(slug ? { 'X-School-Slug': slug } : {}), [REQUEST_ID_HEADER]: requestId },
       });
     } else {
       clonedReq = request;
@@ -81,6 +84,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(clonedReq).pipe(
       catchError((error: HttpErrorResponse) => {
+        if (isOwnApi) this.injector.get(ObservabilityService).reportHttpFailure(error, request.method, requestId);
         // 401 = missing/expired/invalid token → attempt refresh (once)
         // 403 = valid token but wrong role, OR resource limit exceeded
         if (error.status === 401 && !isAuthUrl) {
