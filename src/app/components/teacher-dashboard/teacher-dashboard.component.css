@@ -877,6 +877,135 @@
     border-bottom: 0;
   }
 }
+/* Today's Classes */
+.td-today-panel {
+  margin-bottom: 18px;
+}
+.td-today-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+.td-today-title-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border-radius: 11px;
+  color: #0f766e;
+  background: #e0f7f3;
+}
+.td-today-title-icon mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+.td-today-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.td-today-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfcfd;
+}
+.td-today-row.is-now {
+  border-color: #99d8d4;
+  background: #f2faf9;
+  box-shadow: 0 6px 16px rgba(15, 118, 110, 0.08);
+}
+.td-today-badge {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 12px;
+  color: #64748b;
+  background: #eef2f6;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.td-today-badge.is-now {
+  color: #fff;
+  background: #0f766e;
+}
+.td-today-time {
+  flex: 0 0 auto;
+  min-width: 108px;
+  color: #526278;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.td-today-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.td-today-copy strong,
+.td-today-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.td-today-copy strong {
+  font-size: 0.78rem;
+}
+.td-today-copy small {
+  margin-top: 2px;
+  color: #8b97a8;
+  font-size: 0.63rem;
+}
+.td-today-error {
+  display: flex;
+  min-height: 74px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 14px;
+  border-radius: 12px;
+  color: #b91c1c;
+  background: #fef2f2;
+  font-size: 0.72rem;
+  text-align: center;
+}
+.td-today-retry {
+  padding: 6px 12px;
+  border: 1px solid #f3b4b4;
+  border-radius: 9px;
+  color: #b91c1c;
+  background: #fff;
+  font-size: 0.68rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  .td-today-row {
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+  .td-today-time {
+    min-width: 0;
+    order: 3;
+    flex-basis: 100%;
+    margin-top: 2px;
+  }
+  .td-today-copy strong,
+  .td-today-copy small {
+    white-space: normal;
+  }
+  .td-today-error {
+    flex-direction: column;
+  }
+}
 /* Personal attendance card */
 .td-attendance-panel {
   position: relative;

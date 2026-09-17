@@ -90,6 +90,88 @@
       </div>
     </section>
 
+    <section class="td-panel td-today-panel">
+      <div class="td-heading">
+        <div class="td-today-title">
+          <span class="td-today-title-icon"><mat-icon>schedule</mat-icon></span>
+          <div>
+            <h2>Today's Classes</h2>
+          </div>
+        </div>
+        <a routerLink="/dashboard/timetable"
+          >View timetable <mat-icon>arrow_forward</mat-icon></a
+        >
+      </div>
+
+      <div class="td-skeleton" *ngIf="todayClassesLoading">
+        <span></span><span></span><span></span>
+      </div>
+
+      <div class="td-today-error" *ngIf="!todayClassesLoading && todayClassesError">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ todayClassesError }}</span>
+        <button type="button" class="td-today-retry" (click)="retryTodayClasses()">
+          Retry
+        </button>
+      </div>
+
+      <ng-container *ngIf="!todayClassesLoading && !todayClassesError">
+        <div
+          class="td-today-list"
+          *ngIf="todayView.current || todayView.upcoming.length"
+        >
+          <div class="td-today-row is-now" *ngIf="todayView.current">
+            <span class="td-today-badge is-now">Now</span>
+            <span class="td-today-time">{{
+              classTimeLabel(todayView.current)
+            }}</span>
+            <span class="td-today-copy"
+              ><strong>{{ classLabel(todayView.current) }}</strong
+              ><small>{{ todayView.current.subjectName }}</small></span
+            >
+          </div>
+          <div
+            class="td-today-row"
+            *ngFor="let entry of todayView.upcoming; let i = index"
+          >
+            <span class="td-today-badge">{{ i === 0 ? "Next" : "Later" }}</span>
+            <span class="td-today-time">{{ classTimeLabel(entry) }}</span>
+            <span class="td-today-copy"
+              ><strong>{{ classLabel(entry) }}</strong
+              ><small>{{ entry.subjectName }}</small></span
+            >
+          </div>
+        </div>
+
+        <div
+          class="td-empty"
+          *ngIf="!todayView.current && !todayView.upcoming.length && todayView.allDone"
+        >
+          <mat-icon>task_alt</mat-icon
+          ><span>Today's classes are complete.</span>
+        </div>
+
+        <div
+          class="td-empty"
+          *ngIf="!todayView.hasAnyToday && !timetableEntries.length"
+        >
+          <mat-icon>event_busy</mat-icon
+          ><span
+            >No timetable assigned yet. Contact your school admin if this
+            looks incorrect.</span
+          >
+        </div>
+
+        <div
+          class="td-empty"
+          *ngIf="!todayView.hasAnyToday && timetableEntries.length"
+        >
+          <mat-icon>event_available</mat-icon
+          ><span>No classes scheduled for today.</span>
+        </div>
+      </ng-container>
+    </section>
+
     <div class="td-workspaces">
       <section class="td-panel" *ngIf="isClassTeacher">
         <div class="td-heading">

@@ -19,7 +19,16 @@ import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { TeacherAttendanceRecord, TeacherAttendanceSummary } from '../../interfaces/teacher-checkin';
 import { TeacherLeaveService } from '../../services/teacher-leave.service';
 import { TeacherLeave } from '../../interfaces/teacher-leave';
-import { formatTeacherAttendanceTime } from '../../utils/teacher-attendance.util';
+import { formatTeacherAttendanceTime, teacherAttendanceErrorMessage } from '../../utils/teacher-attendance.util';
+import { TimetableService } from '../../services/timetable.service';
+import { TimetableEntry } from '../../interfaces/timetable';
+import {
+  buildTodayClassesView,
+  TeacherTodayClassEntry,
+  TeacherTodayClassesView,
+} from '../../utils/teacher-timetable-today.util';
+
+const EMPTY_TODAY_VIEW: TeacherTodayClassesView = { current: null, upcoming: [], allDone: false, hasAnyToday: false };
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -50,6 +59,11 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   recentTeacherLeaves: TeacherLeave[] = [];
   teacherLeavesLoading = true;
 
+  timetableEntries: TimetableEntry[] = [];
+  todayClassesLoading = true;
+  todayClassesError: string | null = null;
+  todayView: TeacherTodayClassesView = EMPTY_TODAY_VIEW;
+
   constructor(
     private authState: AuthStateService,
     private teacherService: TeacherService,
@@ -60,7 +74,8 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private toast: ToastService,
     private checkinService: TeacherCheckinService,
-    private teacherLeaveService: TeacherLeaveService
+    private teacherLeaveService: TeacherLeaveService,
+    private timetableService: TimetableService
   ) { }
 
   ngOnInit(): void {
@@ -69,6 +84,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
 
     this.loadPersonalAttendance();
     this.loadRecentTeacherLeaves();
+    this.loadTodayClasses(user.userId);
 
     this.teacherService.getTeacher(user.userId)
       .pipe(takeUntil(this.destroy$))
@@ -134,6 +150,46 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   private toLocalDateKey(date: Date): string {
     const pad = (value: number) => String(value).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  /** Independent of the class-teacher forkJoin below — every teacher has periods they
+   * teach, and a timetable failure here must never block the rest of the dashboard. */
+  private loadTodayClasses(teacherId: string): void {
+    this.todayClassesLoading = true;
+    this.todayClassesError = null;
+    this.cdr.markForCheck();
+
+    this.timetableService.getTeacherTimetable(teacherId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: entries => {
+          this.timetableEntries = entries;
+          this.todayView = buildTodayClassesView(entries, new Date());
+          this.todayClassesLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: error => {
+          this.logger.error('Today\'s classes load error:', error);
+          this.todayClassesError = teacherAttendanceErrorMessage(error, 'Unable to load today\'s classes.');
+          this.todayClassesLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  retryTodayClasses(): void {
+    const user = this.authState.getUser();
+    if (!user?.userId) return;
+    this.loadTodayClasses(user.userId);
+  }
+
+  classLabel(entry: TeacherTodayClassEntry): string {
+    return entry.sectionName ? `Class ${entry.className} – ${entry.sectionName}` : `Class ${entry.className}`;
+  }
+
+  classTimeLabel(entry: TeacherTodayClassEntry): string {
+    if (!entry.startTime || !entry.endTime) return `Period ${entry.periodNumber}`;
+    return `${formatTeacherAttendanceTime(entry.startTime)} – ${formatTeacherAttendanceTime(entry.endTime)}`;
   }
 
   ngOnDestroy(): void {
