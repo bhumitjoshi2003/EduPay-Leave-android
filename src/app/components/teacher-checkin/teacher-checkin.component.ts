@@ -9,6 +9,11 @@ import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
 import { Capacitor } from '@capacitor/core';
 import { Geolocation, Position } from '@capacitor/geolocation';
+import {
+  formatTeacherAttendanceTime,
+  localDateKey,
+  teacherAttendanceErrorMessage,
+} from '../../utils/teacher-attendance.util';
 
 interface CalendarDay {
   date: number | null;
@@ -58,6 +63,8 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   selectedYear: number;
 
   isLoading = false;
+  todayStateResolved = false;
+  attendanceLoadError: string | null = null;
   isCheckingIn = false;
   isCheckingOut = false;
   gpsError: string | null = null;
@@ -122,7 +129,14 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   }
 
   loadMonthlyData(): void {
+    const now = new Date();
+    const isCurrentMonth = this.selectedMonth === now.getMonth() + 1
+      && this.selectedYear === now.getFullYear();
     this.isLoading = true;
+    if (isCurrentMonth) {
+      this.todayStateResolved = false;
+      this.attendanceLoadError = null;
+    }
     this.cdr.markForCheck();
     this.checkinService.getMyAttendance(this.selectedMonth, this.selectedYear)
       .pipe(takeUntil(this.destroy$))
@@ -132,21 +146,28 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
           this.findTodayRecord(data);
           this.buildCalendar(data);
           this.isLoading = false;
+          if (isCurrentMonth) this.todayStateResolved = true;
           this.cdr.markForCheck();
         },
         error: (err) => {
           this.logger.error('Failed to load attendance data', err);
           this.isLoading = false;
+          if (isCurrentMonth) {
+            this.todayStateResolved = false;
+            this.attendanceLoadError = teacherAttendanceErrorMessage(
+              err,
+              'We could not load today\'s attendance. Check your connection and try again.'
+            );
+          }
           this.cdr.markForCheck();
         }
       });
   }
 
   private findTodayRecord(data: TeacherAttendanceSummary): void {
-    const todayStr = new Date().toISOString().slice(0, 10);
     const now = new Date();
     if (this.selectedMonth === now.getMonth() + 1 && this.selectedYear === now.getFullYear()) {
-      this.todayRecord = data.records.find(r => r.date === todayStr) ?? null;
+      this.todayRecord = data.records.find(r => r.date === localDateKey(now)) ?? null;
     }
   }
 
@@ -178,6 +199,7 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   }
 
   async checkIn(): Promise<void> {
+    if (!this.todayStateResolved) return;
     if (this.hasCheckedIn) {
       this.toast.warning('Already Checked In', 'You have already checked in today.');
       return;
@@ -203,7 +225,12 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             this.isCheckingIn = false;
-            const msg = typeof err?.error === 'string' ? err.error : 'Check-in failed. Please try again.';
+            const msg = teacherAttendanceErrorMessage(err, 'Check-in failed. Please try again.');
+            if (this.isAlreadyCheckedInError(err, msg)) {
+              this.toast.info('Attendance Updated', 'Your attendance was already marked. Refreshing today\'s status.');
+              this.loadCurrentMonth();
+              return;
+            }
             this.toast.error('Check-in Failed', msg);
             this.cdr.markForCheck();
           }
@@ -242,7 +269,7 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             this.isCheckingOut = false;
-            const msg = typeof err?.error === 'string' ? err.error : 'Check-out failed. Please try again.';
+            const msg = teacherAttendanceErrorMessage(err, 'Check-out failed. Please try again.');
             this.toast.error('Check-out Failed', msg);
             this.cdr.markForCheck();
           }
@@ -382,7 +409,9 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
       }
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-        (err) => reject(new Error(this.getGpsErrorMessage(err))),
+        // Preserve the browser's numeric error code so the outer handler can provide
+        // browser-appropriate permission, unavailable, or timeout guidance.
+        (err) => reject(err),
         { enableHighAccuracy: true, timeout: 15000 }
       );
     });
@@ -390,7 +419,7 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
 
   private getGpsErrorMessage(err: GeolocationPositionError | any): string {
     if (err instanceof AttendanceLocationError) return err.message;
-    if (err?.code === 1) return 'Location permission denied. Please enable location access in your device settings.';
+    if (err?.code === 1) return 'Location access is blocked for Edunexify. Allow Location for this site in your browser\'s site permissions, then try again.';
     if (err?.code === 2) return 'Location unavailable. Please check your GPS/network connection.';
     if (err?.code === 3) return 'Location request timed out. Please try again.';
     return 'Could not retrieve location. Please try again.';
@@ -448,9 +477,7 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
   }
 
   formatCheckInTime(isoTime: string | null): string {
-    if (!isoTime) return '—';
-    const d = new Date(isoTime);
-    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return formatTeacherAttendanceTime(isoTime);
   }
 
   getStatusClass(status: string): string {
@@ -485,6 +512,21 @@ export class TeacherCheckinComponent implements OnInit, OnDestroy {
 
   isToday(day: CalendarDay): boolean {
     if (!day.fullDate) return false;
-    return day.fullDate === new Date().toISOString().slice(0, 10);
+    return day.fullDate === localDateKey(new Date());
+  }
+
+  retryAttendanceLoad(): void {
+    this.loadCurrentMonth();
+  }
+
+  private loadCurrentMonth(): void {
+    const now = new Date();
+    this.selectedMonth = now.getMonth() + 1;
+    this.selectedYear = now.getFullYear();
+    this.loadMonthlyData();
+  }
+
+  private isAlreadyCheckedInError(error: any, message: string): boolean {
+    return error?.status === 409 || /already checked in/i.test(message);
   }
 }

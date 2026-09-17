@@ -19,6 +19,7 @@ import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { TeacherAttendanceRecord, TeacherAttendanceSummary } from '../../interfaces/teacher-checkin';
 import { TeacherLeaveService } from '../../services/teacher-leave.service';
 import { TeacherLeave } from '../../interfaces/teacher-leave';
+import { formatTeacherAttendanceTime } from '../../utils/teacher-attendance.util';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -241,11 +242,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   }
 
   formatAttendanceTime(value: string | null): string {
-    if (!value) return '—';
-    const time = value.includes('T') ? value.split('T')[1] : value;
-    const [hour = '', minute = ''] = time.split(':');
-    if (!hour || !minute) return value;
-    return `${Number(hour)}:${minute}`;
+    return formatTeacherAttendanceTime(value);
   }
 
   get isWeekend(): boolean {

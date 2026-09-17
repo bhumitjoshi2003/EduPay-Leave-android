@@ -12,12 +12,16 @@ export interface NotificationAction { actionRoute?: string | null; sourceEntityT
 @Injectable({ providedIn: 'root' })
 export class NotificationNavigationService {
   private readonly allowedPrefix = '/dashboard/';
+  private readonly historicalRouteAliases: Readonly<Record<string, string>> = {
+    '/dashboard/my-leave': '/dashboard/apply-teacher-leave',
+  };
   constructor(private router: Router, private auth: AuthStateService,
     private parentPortal: ParentPortalService, private childContext: ParentChildContextService,
     private toast: ToastService) {}
 
   async navigate(action: NotificationAction): Promise<boolean> {
-    const route = action.actionRoute?.trim();
+    const requestedRoute = action.actionRoute?.trim();
+    const route = requestedRoute ? this.compatibleRoute(requestedRoute) : requestedRoute;
     if (!route) return false;
     if (!route.startsWith(this.allowedPrefix) || route.includes('://') || route.includes('..')) {
       this.toast.warning('Unable to open notification', 'This notification link is not valid.');
@@ -49,6 +53,13 @@ export class NotificationNavigationService {
       this.toast.warning('Unable to open notification', 'The destination may no longer be available.');
       return false;
     }
+  }
+
+  private compatibleRoute(route: string): string {
+    const queryStart = route.indexOf('?');
+    const path = queryStart >= 0 ? route.slice(0, queryStart) : route;
+    const query = queryStart >= 0 ? route.slice(queryStart) : '';
+    return `${this.historicalRouteAliases[path] ?? path}${query}`;
   }
 
   private studentId(action: NotificationAction): string | null {

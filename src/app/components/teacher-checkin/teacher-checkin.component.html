@@ -18,8 +18,22 @@
 
   <!-- ── Check-in / Check-out Card ─────────────────── -->
   <div class="tc-action-card">
+    <div class="tc-action-body" *ngIf="!todayStateResolved && !attendanceLoadError">
+      <p class="tc-action-prompt">Loading today's attendance…</p>
+      <button class="tc-checkin-btn" type="button" disabled>
+        <span>Loading…</span>
+      </button>
+    </div>
+
+    <div class="tc-action-body" *ngIf="attendanceLoadError">
+      <p class="tc-gps-error" role="alert">{{ attendanceLoadError }}</p>
+      <button class="tc-checkin-btn" type="button" (click)="retryAttendanceLoad()" [disabled]="isLoading">
+        {{ isLoading ? 'Retrying…' : 'Retry' }}
+      </button>
+    </div>
+
     <!-- Not checked in yet -->
-    <ng-container *ngIf="!hasCheckedIn">
+    <ng-container *ngIf="todayStateResolved && !hasCheckedIn">
       <div class="tc-action-body">
         <p class="tc-action-prompt">Tap the button below to mark your attendance</p>
         <button class="tc-checkin-btn tc-btn-pulse" (click)="checkIn()" [disabled]="isCheckingIn">
@@ -32,7 +46,7 @@
     </ng-container>
 
     <!-- Checked in, not checked out -->
-    <ng-container *ngIf="hasCheckedIn && !hasCheckedOut">
+    <ng-container *ngIf="todayStateResolved && hasCheckedIn && !hasCheckedOut">
       <div class="tc-status-card" [class.tc-status-ontime]="todayRecord?.status === 'ON_TIME'" [class.tc-status-late]="todayRecord?.status === 'LATE'">
         <div class="tc-status-header">
           <span class="tc-status-badge" [ngClass]="getStatusClass(todayRecord!.status)">
@@ -54,7 +68,7 @@
     </ng-container>
 
     <!-- Checked out -->
-    <ng-container *ngIf="hasCheckedIn && hasCheckedOut">
+    <ng-container *ngIf="todayStateResolved && hasCheckedIn && hasCheckedOut">
       <div class="tc-status-card tc-status-done">
         <div class="tc-status-header">
           <span class="tc-status-badge" [ngClass]="getStatusClass(todayRecord!.status)">

@@ -255,7 +255,7 @@ describe('PaymentTrackerComponent', () => {
 
   // ── recalculateTotals via toggleMonthSelection: authoritative backend total ──
 
-  it('selecting an unpaid ₹5,800 month reflects the backend-computed total (school fee + late + platform fee), never a client recomputation', () => {
+  it('selecting an unpaid ₹5,800 month reflects the backend-computed total (school fee + online convenience fee), never a client recomputation', () => {
     fixture.detectChanges();
     component.studentId = 'S1';
     component.session = '2026-2027';
@@ -264,10 +264,10 @@ describe('PaymentTrackerComponent', () => {
       studentId: 'S1',
       session: '2026-2027',
       months: [5],
-      schoolFeeDue: 5800,
-      lateFee: 0,
-      platformFee: 87,
-      totalAmount: 5887,
+      schoolFeePaise: 5800,
+      onlineConvenienceFeePaise: 87,
+      totalPayablePaise: 5887,
+      currency: 'INR',
       unresolvedMonths: [],
     };
     feesServiceSpy.getCheckoutQuote.and.returnValue(of(quote));
@@ -285,8 +285,11 @@ describe('PaymentTrackerComponent', () => {
     component.toggleMonthSelection(month);
 
     return fixture.whenStable().then(() => {
+      // totalAmountToPay is the raw paise total (5,800 + 87), displayed as ₹/100 in the
+      // template. manualPaymentAmount (ADMIN "mark as manually paid") is school-fee-only,
+      // in rupees — the online convenience fee is online-only and never manually collected.
       expect(component.totalAmountToPay).toBe(5887);
-      expect(component.manualPaymentAmount).toBe(5887);
+      expect(component.manualPaymentAmount).toBe(58);
     });
   });
 
