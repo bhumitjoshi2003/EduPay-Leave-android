@@ -50,6 +50,9 @@ export interface SchoolSettings {
   checkinWindowStart?: string;      // "HH:mm"
   checkinWindowEnd?: string;        // "HH:mm"
   staffAttendanceTrackingStartDate?: string; // "yyyy-MM-dd" rollout boundary
+  timezone?: string;                // IANA zone id, e.g. "Asia/Kolkata" — always local to the school
+  teacherAttendanceReminderEnabled?: boolean; // default false
+  teacherAttendanceReminderTime?: string | null; // "HH:mm"; required when enabled, null while disabled
 }
 
 export interface FeatureCatalogItem {

@@ -931,6 +931,13 @@
             <span class="ss-sa-label">Attendance Tracking From</span>
             <span class="ss-sa-value">{{ (settings.staffAttendanceTrackingStartDate | date:'mediumDate') || 'Not set' }}</span>
           </div>
+          <div class="ss-sa-item">
+            <span class="ss-sa-label">Teacher Attendance Reminder</span>
+            <span class="ss-sa-value" *ngIf="settings.teacherAttendanceReminderEnabled">
+              {{ settings.teacherAttendanceReminderTime || 'Not set' }} ({{ settings.timezone || 'Asia/Kolkata' }})
+            </span>
+            <span class="ss-sa-value" *ngIf="!settings.teacherAttendanceReminderEnabled">Disabled</span>
+          </div>
         </div>
       </div>
 
@@ -1021,6 +1028,38 @@
           </div>
           <div class="ss-sa-radius-hint">
             Missing check-ins before this date will not be counted as absences. Use the date your school starts using Edunexify staff attendance.
+          </div>
+        </div>
+
+        <div class="ss-sa-section">
+          <div class="ss-sa-section-heading"><span class="ss-sa-section-icon">🔔</span><div><h4 class="ss-sa-section-title">Teacher attendance reminder</h4>
+          <p class="ss-sa-section-desc">Send teachers a one-time nudge on days they haven't marked attendance.</p></div></div>
+          <div class="ss-sa-form-row">
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Teacher attendance reminder</label>
+              <label class="ss-toggle">
+                <input type="checkbox" [(ngModel)]="staffAttendanceForm.teacherAttendanceReminderEnabled">
+                <span class="ss-toggle-track"></span>
+              </label>
+            </div>
+          </div>
+          <div class="ss-sa-form-row" *ngIf="staffAttendanceForm.teacherAttendanceReminderEnabled">
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Reminder Time</label>
+              <input type="time" class="ss-sa-input"
+                     [(ngModel)]="staffAttendanceForm.teacherAttendanceReminderTime">
+            </div>
+            <div class="ss-sa-field">
+              <label class="ss-sa-field-label">Timezone</label>
+              <span class="ss-sa-value">{{ settings.timezone || 'Asia/Kolkata' }}</span>
+            </div>
+          </div>
+          <div class="ss-sa-radius-hint" *ngIf="staffAttendanceForm.teacherAttendanceReminderEnabled">
+            Teachers expected to work that day who have neither marked attendance nor approved leave will receive one reminder.
+          </div>
+          <div class="ss-sa-banner ss-sa-banner-warn" *ngIf="reminderTimeWarning">
+            <span class="ss-sa-banner-icon">⚠️</span>
+            <div><p>{{ reminderTimeWarning }}</p></div>
           </div>
         </div>
 

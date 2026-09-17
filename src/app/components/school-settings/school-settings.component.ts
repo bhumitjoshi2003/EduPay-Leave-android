@@ -77,6 +77,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     checkinWindowStart: string;
     checkinWindowEnd: string;
     staffAttendanceTrackingStartDate: string;
+    teacherAttendanceReminderEnabled: boolean;
+    teacherAttendanceReminderTime: string;
   }> = {};
   isEditingStaffAttendance = false;
   savingStaffAttendance = false;
@@ -892,6 +894,8 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       checkinWindowStart: this.settings.checkinWindowStart ?? '',
       checkinWindowEnd: this.settings.checkinWindowEnd ?? '',
       staffAttendanceTrackingStartDate: this.settings.staffAttendanceTrackingStartDate ?? '',
+      teacherAttendanceReminderEnabled: this.settings.teacherAttendanceReminderEnabled ?? false,
+      teacherAttendanceReminderTime: this.settings.teacherAttendanceReminderTime ?? '',
     };
     this.isEditingStaffAttendance = true;
   }
@@ -944,6 +948,10 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
       this.toast.warning('Validation', 'Staff attendance tracking start date is required.');
       return;
     }
+    if (f.teacherAttendanceReminderEnabled && !f.teacherAttendanceReminderTime) {
+      this.toast.warning('Validation', 'Reminder time is required when the teacher attendance reminder is enabled.');
+      return;
+    }
     this.savingStaffAttendance = true;
     this.cdr.markForCheck();
     this.schoolService.updateSettings(f as any).pipe(takeUntil(this.destroy$)).subscribe({
@@ -965,5 +973,21 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
 
   get isStaffAttendanceConfigured(): boolean {
     return !!(this.settings?.schoolLatitude && this.settings?.schoolLongitude && this.settings?.schoolStartTime);
+  }
+
+  /** Non-blocking guidance only — backend validation never requires the reminder to fall
+   * inside the check-in window, so this never prevents a save. "HH:mm" strings compare
+   * correctly as plain strings. */
+  get reminderTimeWarning(): string | null {
+    const f = this.staffAttendanceForm;
+    if (!f.teacherAttendanceReminderEnabled || !f.teacherAttendanceReminderTime) return null;
+    const time = f.teacherAttendanceReminderTime;
+    if (f.checkinWindowStart && time < f.checkinWindowStart) {
+      return `This is before the check-in window opens (${f.checkinWindowStart}) — teachers may not have had a chance to check in yet.`;
+    }
+    if (f.checkinWindowEnd && time > f.checkinWindowEnd) {
+      return `This is well after the check-in window closes (${f.checkinWindowEnd}) — consider an earlier time so the reminder is still useful.`;
+    }
+    return null;
   }
 }
