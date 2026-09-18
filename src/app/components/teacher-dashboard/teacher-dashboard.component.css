@@ -911,7 +911,8 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 12px;
+  flex-wrap: nowrap;
+  gap: 10px;
   padding: 11px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -921,6 +922,9 @@
   border-color: #99d8d4;
   background: #f2faf9;
   box-shadow: 0 6px 16px rgba(15, 118, 110, 0.08);
+}
+.td-today-row.is-later {
+  opacity: 0.8;
 }
 .td-today-badge {
   flex: 0 0 auto;
@@ -937,17 +941,23 @@
   color: #fff;
   background: #0f766e;
 }
+.td-today-icon {
+  margin-right: 5px;
+  font-size: 0.85em;
+}
 .td-today-time {
   flex: 0 0 auto;
-  min-width: 108px;
+  margin-left: auto;
+  padding-left: 8px;
   color: #526278;
   font-size: 0.72rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 .td-today-copy {
   display: flex;
   min-width: 0;
-  flex: 1;
+  flex: 1 1 auto;
   flex-direction: column;
 }
 .td-today-copy strong,
@@ -957,10 +967,13 @@
   white-space: nowrap;
 }
 .td-today-copy strong {
+  display: flex;
+  align-items: center;
   font-size: 0.78rem;
 }
 .td-today-copy small {
   margin-top: 2px;
+  margin-left: calc(1em + 5px); /* aligns with the text after the icon above, not the icon itself */
   color: #8b97a8;
   font-size: 0.63rem;
 }
@@ -989,21 +1002,27 @@
 }
 @media (max-width: 600px) {
   .td-today-row {
-    flex-wrap: wrap;
     padding: 10px;
+    gap: 8px;
   }
   .td-today-time {
-    min-width: 0;
-    order: 3;
-    flex-basis: 100%;
-    margin-top: 2px;
-  }
-  .td-today-copy strong,
-  .td-today-copy small {
-    white-space: normal;
+    font-size: 0.66rem;
   }
   .td-today-error {
     flex-direction: column;
+  }
+}
+@media (max-width: 360px) {
+  /* Last-resort fallback for genuinely too-narrow screens: let the time drop to its own
+     right-aligned line rather than forcing it to fight the copy text for space. */
+  .td-today-row {
+    flex-wrap: wrap;
+  }
+  .td-today-time {
+    flex-basis: 100%;
+    margin-left: 0;
+    padding-left: calc(1em + 5px + 12px); /* aligns under the copy text, not the badge */
+    text-align: left;
   }
 }
 /* Personal attendance card */

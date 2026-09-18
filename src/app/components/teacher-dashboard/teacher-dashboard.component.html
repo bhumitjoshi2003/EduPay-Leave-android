@@ -122,24 +122,27 @@
         >
           <div class="td-today-row is-now" *ngIf="todayView.current">
             <span class="td-today-badge is-now">Now</span>
-            <span class="td-today-time">{{
-              classTimeLabel(todayView.current)
-            }}</span>
             <span class="td-today-copy"
-              ><strong>{{ classLabel(todayView.current) }}</strong
+              ><strong
+                ><span class="td-today-icon">{{ getSubjectIcon(todayView.current.subjectName) }}</span
+                >{{ periodClassLabel(todayView.current) }}</strong
               ><small>{{ todayView.current.subjectName }}</small></span
             >
+            <span class="td-today-time" *ngIf="classTimeRange(todayView.current) as time">{{ time }}</span>
           </div>
           <div
             class="td-today-row"
+            [class.is-later]="i > 0"
             *ngFor="let entry of todayView.upcoming; let i = index"
           >
             <span class="td-today-badge">{{ i === 0 ? "Next" : "Later" }}</span>
-            <span class="td-today-time">{{ classTimeLabel(entry) }}</span>
             <span class="td-today-copy"
-              ><strong>{{ classLabel(entry) }}</strong
+              ><strong
+                ><span class="td-today-icon">{{ getSubjectIcon(entry.subjectName) }}</span
+                >{{ periodClassLabel(entry) }}</strong
               ><small>{{ entry.subjectName }}</small></span
             >
+            <span class="td-today-time" *ngIf="classTimeRange(entry) as time">{{ time }}</span>
           </div>
         </div>
 

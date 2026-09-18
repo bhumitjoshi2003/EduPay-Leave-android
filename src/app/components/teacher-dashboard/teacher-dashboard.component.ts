@@ -22,6 +22,8 @@ import { TeacherLeave } from '../../interfaces/teacher-leave';
 import { formatTeacherAttendanceTime, teacherAttendanceErrorMessage } from '../../utils/teacher-attendance.util';
 import { TimetableService } from '../../services/timetable.service';
 import { TimetableEntry } from '../../interfaces/timetable';
+import { subjectIcon } from '../../utils/subject-visual.util';
+import { isShowTimesEnabled } from '../../utils/timetable-preferences.util';
 import {
   buildTodayClassesView,
   TeacherTodayClassEntry,
@@ -63,6 +65,11 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   todayClassesLoading = true;
   todayClassesError: string | null = null;
   todayView: TeacherTodayClassesView = EMPTY_TODAY_VIEW;
+  /** Read synchronously at construction — never loaded asynchronously, so the UI can never
+   * briefly show clock times before the real "show times" preference is known. This is the
+   * same per-device viewer preference as the full Timetable page's own "Show times" toggle
+   * (localStorage, not a school/admin setting) — see timetable-preferences.util. */
+  readonly showTimes: boolean = isShowTimesEnabled();
 
   constructor(
     private authState: AuthStateService,
@@ -187,8 +194,26 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     return entry.sectionName ? `Class ${entry.className} – ${entry.sectionName}` : `Class ${entry.className}`;
   }
 
-  classTimeLabel(entry: TeacherTodayClassEntry): string {
-    if (!entry.startTime || !entry.endTime) return `Period ${entry.periodNumber}`;
+  /** Period identity + class — always shown regardless of the "show times" preference,
+   * since that preference only governs clock-time visibility (see classTimeRange). */
+  periodClassLabel(entry: TeacherTodayClassEntry): string {
+    return `Period ${entry.periodNumber} · ${this.classLabel(entry)}`;
+  }
+
+  getSubjectIcon(subjectName: string): string {
+    return subjectIcon(subjectName);
+  }
+
+  /**
+   * The clock-time range, or null when there's nothing genuine to show — either the entry
+   * has no reliable start/end time (an untimed "scheduled" fallback entry) or the viewer's
+   * "show times" preference is off. Never invents a time and never returns a placeholder
+   * like "--": the template hides the whole time element when this is null, so the row
+   * layout reclaims that space instead of leaving it blank.
+   */
+  classTimeRange(entry: TeacherTodayClassEntry): string | null {
+    if (!this.showTimes) return null;
+    if (!entry.startTime || !entry.endTime) return null;
     return `${formatTeacherAttendanceTime(entry.startTime)} – ${formatTeacherAttendanceTime(entry.endTime)}`;
   }
 
