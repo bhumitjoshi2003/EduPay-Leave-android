@@ -1,4 +1,5 @@
 import { WisdomCardsComponent } from '../wisdom/wisdom-cards.component';
+import { TeacherGettingStartedComponent } from '../teacher-getting-started/teacher-getting-started.component';
 import {
   ChangeDetectionStrategy, ChangeDetectorRef,
   Component, OnDestroy, OnInit
@@ -35,7 +36,7 @@ const EMPTY_TODAY_VIEW: TeacherTodayClassesView = { current: null, upcoming: [],
 @Component({
   selector: 'app-teacher-dashboard',
   standalone: true,
-  imports: [WisdomCardsComponent, CommonModule, RouterLink, MatIconModule],
+  imports: [WisdomCardsComponent, TeacherGettingStartedComponent, CommonModule, RouterLink, MatIconModule],
   templateUrl: './teacher-dashboard.component.html',
   styleUrl: './teacher-dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

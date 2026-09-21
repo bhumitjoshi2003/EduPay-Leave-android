@@ -175,6 +175,10 @@
       </ng-container>
     </section>
 
+    <app-teacher-getting-started
+      [todaysClassesAvailable]="todayClassesLoading || timetableEntries.length > 0"
+    ></app-teacher-getting-started>
+
     <div class="td-workspaces">
       <section class="td-panel" *ngIf="isClassTeacher">
         <div class="td-heading">

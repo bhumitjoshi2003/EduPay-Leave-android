@@ -1,0 +1,38 @@
+<section class="gs-shell" *ngIf="visible" [class.is-minimized]="state?.minimized" aria-labelledby="getting-started-title">
+  <ng-container *ngIf="state?.minimized; else expanded">
+    <div class="gs-minimized-copy">
+      <span class="gs-mark"><mat-icon>route</mat-icon></span>
+      <span><strong>Getting started</strong><small>{{ completedCount }} of {{ items.length }} complete</small></span>
+    </div>
+    <button type="button" class="gs-text-button" (click)="setMinimized(false)" aria-label="Reopen Getting Started">Show guide</button>
+  </ng-container>
+
+  <ng-template #expanded>
+    <header class="gs-header">
+      <div class="gs-title-wrap">
+        <span class="gs-mark"><mat-icon>route</mat-icon></span>
+        <div><p>Teacher workspace</p><h2 id="getting-started-title">Getting started</h2></div>
+      </div>
+      <button type="button" class="gs-icon-button" (click)="setMinimized(true)" aria-label="Minimize Getting Started"><mat-icon>remove</mat-icon></button>
+    </header>
+
+    <div class="gs-complete" *ngIf="showCompletion && isComplete; else checklist" role="status">
+      <span><mat-icon>done</mat-icon></span>
+      <div><strong>You’re all set.</strong><p>Edunexify is ready for your day.</p></div>
+      <button type="button" class="gs-primary" (click)="setMinimized(true)">Done</button>
+    </div>
+
+    <ng-template #checklist>
+      <div class="gs-progress-copy"><span>{{ completedCount }} of {{ items.length }} complete</span><span>{{ progressPercent }}%</span></div>
+      <div class="gs-progress" role="progressbar" [attr.aria-valuenow]="completedCount" aria-valuemin="0" [attr.aria-valuemax]="items.length"><span [style.width.%]="progressPercent"></span></div>
+      <div class="gs-list">
+        <article class="gs-item" *ngFor="let item of items" [class.is-complete]="item.complete">
+          <span class="gs-item-icon"><mat-icon>{{ item.complete ? 'done' : item.icon }}</mat-icon></span>
+          <div class="gs-copy"><strong>{{ item.title }}</strong><p>{{ item.description }}</p></div>
+          <span class="gs-status" *ngIf="item.complete">Complete</span>
+          <button *ngIf="!item.complete" type="button" class="gs-action" [disabled]="actionPending !== null" (click)="run(item)">{{ actionPending === item.id ? 'Please wait…' : item.action }}</button>
+        </article>
+      </div>
+    </ng-template>
+  </ng-template>
+</section>

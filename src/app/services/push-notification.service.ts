@@ -27,12 +27,38 @@ export class PushNotificationService {
     // Without this, each re-login stacks another set of handlers → duplicate notifications.
     await PushNotifications.removeAllListeners();
 
-    // Request permission
-    const permission = await PushNotifications.requestPermissions();
-    if (permission.receive !== 'granted') {
-      this.logger.error('Push notification permission denied');
-      return;
+    const permission = await PushNotifications.checkPermissions();
+    if (permission.receive !== 'granted') return;
+
+    await this.registerAndListen();
+  }
+
+  async permissionState(): Promise<'granted' | 'denied' | 'prompt' | 'unavailable'> {
+    if (!Capacitor.isNativePlatform()) return 'unavailable';
+    try {
+      const permission = await PushNotifications.checkPermissions();
+      return permission.receive === 'prompt-with-rationale' ? 'prompt' : permission.receive;
+    } catch (error) {
+      this.logger.error('Unable to check push notification permission', error);
+      return 'unavailable';
     }
+  }
+
+  async requestPermissionAndRegister(): Promise<boolean> {
+    if (!Capacitor.isNativePlatform()) return false;
+    try {
+      const permission = await PushNotifications.requestPermissions();
+      if (permission.receive !== 'granted') return false;
+      await PushNotifications.removeAllListeners();
+      await this.registerAndListen();
+      return true;
+    } catch (error) {
+      this.logger.error('Unable to enable push notifications', error);
+      return false;
+    }
+  }
+
+  private async registerAndListen(): Promise<void> {
 
     await PushNotifications.register();
 
