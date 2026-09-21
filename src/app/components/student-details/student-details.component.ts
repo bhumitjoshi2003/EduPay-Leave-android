@@ -424,12 +424,18 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     this.photoInput?.nativeElement.click();
   }
 
+  private static readonly ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
     input.value = '';
 
+    if (!StudentDetailsComponent.ALLOWED_PHOTO_TYPES.includes(file.type)) {
+      this.toast.error('Unsupported File Type', 'Profile photo must be a JPEG, PNG, or WebP image.');
+      return;
+    }
     // Issue #58: File size check
     if (file.size > 5 * 1024 * 1024) {
       this.toast.error('File Too Large', 'Profile photo must be less than 5MB.');
@@ -439,10 +445,12 @@ export class StudentDetailsComponent implements OnInit, OnDestroy {
     this.photoUploading = true;
     this.cdr.markForCheck();
 
-    this.studentService.uploadStudentPhoto(this.studentId, file).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+    // Direct-to-object-storage upload: bytes go straight from this browser to object storage,
+    // never through our own backend — see StudentService.uploadStudentPhotoDirect.
+    this.studentService.uploadStudentPhotoDirect(this.studentId, file).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
       next: (res) => {
         if (this.studentDetails) {
-          this.studentDetails = { ...this.studentDetails, photoUrl: res.photoUrl + '?t=' + Date.now() };
+          this.studentDetails = { ...this.studentDetails, photoUrl: res.displayUrl };
         }
         this.photoLoadFailed = false;
         this.photoUploading = false;

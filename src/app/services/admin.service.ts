@@ -1,8 +1,10 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Admin } from '../interfaces/admin';
+import { UploadRequestResponse, UploadCompleteResponse } from '../interfaces/upload';
 
 @Injectable({
   providedIn: 'root'
@@ -38,9 +40,44 @@ export class AdminService {
     return this.http.post(this.noticeUrl + '/notice', data, { responseType: 'text' });
   }
 
+  /** @deprecated kept as the rollback path only — see uploadAdminPhotoDirect for the current
+   * direct-to-object-storage flow. Still fully functional server-side. */
   uploadAdminPhoto(adminId: string, file: File): Observable<{ photoUrl: string }> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ photoUrl: string }>(`${this.baseUrl}/${adminId}/photo`, formData);
+  }
+
+  /**
+   * Direct-to-object-storage upload: ask the backend for a short-lived presigned URL, PUT the
+   * file bytes straight to object storage (never through this backend), then tell the backend
+   * the upload finished so it can verify and attach the reference.
+   */
+  uploadAdminPhotoDirect(adminId: string, file: File): Observable<UploadCompleteResponse> {
+    const uploadRequestUrl = `${environment.apiUrl}/files/upload-request`;
+    const completeUrl = `${environment.apiUrl}/files/complete`;
+
+    return this.http
+      .post<UploadRequestResponse>(uploadRequestUrl, {
+        purpose: 'ADMIN_PROFILE_PHOTO',
+        entityId: adminId,
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size,
+      })
+      .pipe(
+        switchMap((uploadRequest) => {
+          const headers = new HttpHeaders(uploadRequest.requiredHeaders);
+          return this.http.put(uploadRequest.uploadUrl, file, { headers }).pipe(
+            switchMap(() =>
+              this.http.post<UploadCompleteResponse>(completeUrl, {
+                objectKey: uploadRequest.objectKey,
+                purpose: 'ADMIN_PROFILE_PHOTO',
+                entityId: adminId,
+              }),
+            ),
+          );
+        }),
+      );
   }
 }

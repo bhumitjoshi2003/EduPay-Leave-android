@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, shareReplay, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { UploadRequestResponse, UploadCompleteResponse } from '../interfaces/upload';
 
 export interface SchoolClass {
   id: number;
@@ -276,12 +277,16 @@ export class SchoolService {
     return this.http.put<SchoolSettings>(`${this.baseUrl}/settings`, data);
   }
 
+  /** @deprecated kept as the rollback path only — see uploadLogoDirect for the current
+   * direct-to-object-storage flow. Still fully functional server-side. */
   uploadLogo(file: File): Observable<{ logoUrl: string }> {
     const form = new FormData();
     form.append('file', file);
     return this.http.post<{ logoUrl: string }>(`${this.baseUrl}/logo`, form);
   }
 
+  /** @deprecated kept as the rollback path only — see uploadReportCardHeaderDirect for the
+   * current direct-to-object-storage flow. Still fully functional server-side. */
   uploadReportCardHeader(file: File): Observable<{ headerImageUrl: string }> {
     const form = new FormData();
     form.append('file', file);
@@ -290,6 +295,49 @@ export class SchoolService {
 
   removeReportCardHeader(): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/report-card-header`);
+  }
+
+  /**
+   * Direct-to-object-storage upload for the school logo (school-level — no per-entity id below
+   * the school itself, hence the fixed "self" entityId, matching the backend's
+   * UploadPurpose.SCHOOL_LOGO/REPORT_CARD_HEADER_IMAGE school-level convention).
+   */
+  uploadLogoDirect(file: File): Observable<UploadCompleteResponse> {
+    return this.uploadSchoolLevelDirect('SCHOOL_LOGO', file);
+  }
+
+  /** Direct-to-object-storage upload for the report-card header image — see uploadLogoDirect. */
+  uploadReportCardHeaderDirect(file: File): Observable<UploadCompleteResponse> {
+    return this.uploadSchoolLevelDirect('REPORT_CARD_HEADER_IMAGE', file);
+  }
+
+  private uploadSchoolLevelDirect(purpose: 'SCHOOL_LOGO' | 'REPORT_CARD_HEADER_IMAGE', file: File): Observable<UploadCompleteResponse> {
+    const uploadRequestUrl = `${environment.apiUrl}/files/upload-request`;
+    const completeUrl = `${environment.apiUrl}/files/complete`;
+    const entityId = 'self';
+
+    return this.http
+      .post<UploadRequestResponse>(uploadRequestUrl, {
+        purpose,
+        entityId,
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size,
+      })
+      .pipe(
+        switchMap((uploadRequest) => {
+          const headers = new HttpHeaders(uploadRequest.requiredHeaders);
+          return this.http.put(uploadRequest.uploadUrl, file, { headers }).pipe(
+            switchMap(() =>
+              this.http.post<UploadCompleteResponse>(completeUrl, {
+                objectKey: uploadRequest.objectKey,
+                purpose,
+                entityId,
+              }),
+            ),
+          );
+        }),
+      );
   }
 
   updateRazorpayKeys(keyId: string, keySecret: string): Observable<void> {

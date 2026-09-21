@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Student, StudentExitRequest, PendingDuesInfo } from '../interfaces/student';
+import { UploadRequestResponse, UploadCompleteResponse } from '../interfaces/upload';
 
 interface StudentDTO {
   studentId: string;
@@ -177,10 +179,45 @@ export class StudentService {
     return this.http.post<BulkImportResult>(`${this.baseUrl}/bulk`, formData);
   }
 
+  /** @deprecated kept as the rollback path only — see uploadStudentPhotoDirect for the current
+   * direct-to-object-storage flow. Still fully functional server-side. */
   uploadStudentPhoto(studentId: string, file: File): Observable<{ photoUrl: string }> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ photoUrl: string }>(`${this.baseUrl}/${studentId}/photo`, formData);
+  }
+
+  /**
+   * Direct-to-object-storage upload: ask the backend for a short-lived presigned URL, PUT the
+   * file bytes straight to object storage (never through this backend), then tell the backend
+   * the upload finished so it can verify and attach the reference.
+   */
+  uploadStudentPhotoDirect(studentId: string, file: File): Observable<UploadCompleteResponse> {
+    const uploadRequestUrl = `${environment.apiUrl}/files/upload-request`;
+    const completeUrl = `${environment.apiUrl}/files/complete`;
+
+    return this.http
+      .post<UploadRequestResponse>(uploadRequestUrl, {
+        purpose: 'STUDENT_PROFILE_PHOTO',
+        entityId: studentId,
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size,
+      })
+      .pipe(
+        switchMap((uploadRequest) => {
+          const headers = new HttpHeaders(uploadRequest.requiredHeaders);
+          return this.http.put(uploadRequest.uploadUrl, file, { headers }).pipe(
+            switchMap(() =>
+              this.http.post<UploadCompleteResponse>(completeUrl, {
+                objectKey: uploadRequest.objectKey,
+                purpose: 'STUDENT_PROFILE_PHOTO',
+                entityId: studentId,
+              }),
+            ),
+          );
+        }),
+      );
   }
 
   /** E2 backend-authoritative preview for one explicit source/target academic session pair.

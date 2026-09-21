@@ -269,10 +269,13 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
       // --- MODIFIED: Image handling logic before saving/updating event ---
       if (this.selectedFile) {
-        // Case 1: A new file has been selected, upload it first
-        this.eventService.uploadEventImage(this.selectedFile).subscribe({
+        // Case 1: A new file has been selected — direct-to-object-storage upload first (bytes
+        // never pass through our own backend), then create/update the event with the returned
+        // object key.
+        const targetEventId = this.isEditMode ? this.eventId : null;
+        this.eventService.uploadEventImageDirect(this.selectedFile, targetEventId).subscribe({
           next: (uploadResponse) => {
-            eventData.imageUrl = uploadResponse.imageUrl; // Set the received URL from upload
+            eventData.imageUrl = uploadResponse.objectKey;
             this.proceedToSaveEvent(eventData);
           },
           error: (uploadError) => {

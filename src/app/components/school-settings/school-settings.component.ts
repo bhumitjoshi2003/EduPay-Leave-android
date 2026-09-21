@@ -528,15 +528,17 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  private static readonly ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   onLogoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      this.toast.warning('Invalid File', 'Please select an image file (JPG, PNG, etc.).');
+    if (!SchoolSettingsComponent.ALLOWED_LOGO_TYPES.includes(file.type)) {
+      this.toast.warning('Unsupported File Type', 'Logo must be a JPEG, PNG, or WebP image.');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      this.toast.warning('File Too Large', 'Logo must be under 10 MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.warning('File Too Large', 'Logo must be under 5 MB.');
       return;
     }
     this.logoFile = file;
@@ -558,9 +560,9 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     if (!this.logoFile) return;
     this.uploadingLogo = true;
     this.cdr.markForCheck();
-    this.schoolService.uploadLogo(this.logoFile).pipe(takeUntil(this.destroy$)).subscribe({
+    this.schoolService.uploadLogoDirect(this.logoFile).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
-        if (this.settings) this.settings.logoUrl = res.logoUrl;
+        if (this.settings) this.settings.logoUrl = res.displayUrl;
         this.logoFile = null;
         this.logoPreviewUrl = null;
         this.uploadingLogo = false;
@@ -609,9 +611,9 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     if (!this.headerImageFile) return;
     this.uploadingHeaderImage = true;
     this.cdr.markForCheck();
-    this.schoolService.uploadReportCardHeader(this.headerImageFile).pipe(takeUntil(this.destroy$)).subscribe({
+    this.schoolService.uploadReportCardHeaderDirect(this.headerImageFile).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
-        if (this.settings) this.settings.reportCardHeaderImageUrl = res.headerImageUrl;
+        if (this.settings) this.settings.reportCardHeaderImageUrl = res.displayUrl;
         this.headerImageFile = null;
         this.headerImagePreviewUrl = null;
         this.uploadingHeaderImage = false;

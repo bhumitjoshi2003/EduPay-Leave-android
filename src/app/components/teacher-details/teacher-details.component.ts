@@ -498,12 +498,21 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     this.photoInput?.nativeElement.click();
   }
 
+  private static readonly ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
     input.value = '';
 
+    if (!TeacherDetailsComponent.ALLOWED_PHOTO_TYPES.includes(file.type)) {
+      this.toast.error(
+        'Unsupported File Type',
+        'Profile photo must be a JPEG, PNG, or WebP image.',
+      );
+      return;
+    }
     // Issue #58: File size check
     if (file.size > 5 * 1024 * 1024) {
       this.toast.error(
@@ -516,15 +525,17 @@ export class TeacherDetailsComponent implements OnInit, OnDestroy {
     this.photoUploading = true;
     this.cdr.markForCheck();
 
+    // Direct-to-object-storage upload: bytes go straight from this browser to object storage,
+    // never through our own backend — see TeacherService.uploadTeacherPhotoDirect.
     this.teacherService
-      .uploadTeacherPhoto(this.teacherId, file)
+      .uploadTeacherPhotoDirect(this.teacherId, file)
       .pipe(takeUntil(this.ngUnsubscribe))
       .subscribe({
         next: (res) => {
           if (this.teacherDetails) {
             this.teacherDetails = {
               ...this.teacherDetails,
-              photoUrl: res.photoUrl + '?t=' + Date.now(),
+              photoUrl: res.displayUrl,
             };
           }
           this.photoUploading = false;

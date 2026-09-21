@@ -240,19 +240,32 @@ export class AdminDetailsComponent implements OnInit, OnDestroy {
     this.photoInput?.nativeElement.click();
   }
 
+  private static readonly ALLOWED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   onPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
     input.value = '';
 
+    if (!AdminDetailsComponent.ALLOWED_PHOTO_TYPES.includes(file.type)) {
+      this.toast.error('Unsupported File Type', 'Profile photo must be a JPEG, PNG, or WebP image.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.error('File Too Large', 'Profile photo must be less than 5MB.');
+      return;
+    }
+
     this.photoUploading = true;
     this.cdr.markForCheck();
 
-    this.adminService.uploadAdminPhoto(this.adminId, file).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
+    // Direct-to-object-storage upload: bytes go straight from this browser to object storage,
+    // never through our own backend — see AdminService.uploadAdminPhotoDirect.
+    this.adminService.uploadAdminPhotoDirect(this.adminId, file).pipe(takeUntil(this.ngUnsubscribe)).subscribe({
       next: (res) => {
         if (this.adminDetails) {
-          this.adminDetails = { ...this.adminDetails, photoUrl: res.photoUrl + '?t=' + Date.now() };
+          this.adminDetails = { ...this.adminDetails, photoUrl: res.displayUrl };
         }
         this.photoUploading = false;
         this.cdr.markForCheck();

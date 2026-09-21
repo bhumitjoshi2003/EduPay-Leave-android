@@ -1,8 +1,10 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Teacher, TeacherExitRequest } from '../interfaces/teacher';
+import { UploadRequestResponse, UploadCompleteResponse } from '../interfaces/upload';
 import { BulkImportResult } from './student.service';
 
 export interface TeacherAttendanceSchedule {
@@ -62,6 +64,8 @@ export class TeacherService {
     return this.http.post<BulkImportResult>(`${this.baseUrl}/bulk`, formData);
   }
 
+  /** @deprecated kept as the rollback path only — see uploadTeacherPhotoDirect for the current
+   * direct-to-object-storage flow. Still fully functional server-side. */
   uploadTeacherPhoto(
     teacherId: string,
     file: File
@@ -72,6 +76,39 @@ export class TeacherService {
       `${this.baseUrl}/${teacherId}/photo`,
       formData
     );
+  }
+
+  /**
+   * Direct-to-object-storage upload: ask the backend for a short-lived presigned URL, PUT the
+   * file bytes straight to object storage (never through this backend), then tell the backend
+   * the upload finished so it can verify and attach the reference.
+   */
+  uploadTeacherPhotoDirect(teacherId: string, file: File): Observable<UploadCompleteResponse> {
+    const uploadRequestUrl = `${environment.apiUrl}/files/upload-request`;
+    const completeUrl = `${environment.apiUrl}/files/complete`;
+
+    return this.http
+      .post<UploadRequestResponse>(uploadRequestUrl, {
+        purpose: 'TEACHER_PROFILE_PHOTO',
+        entityId: teacherId,
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size,
+      })
+      .pipe(
+        switchMap((uploadRequest) => {
+          const headers = new HttpHeaders(uploadRequest.requiredHeaders);
+          return this.http.put(uploadRequest.uploadUrl, file, { headers }).pipe(
+            switchMap(() =>
+              this.http.post<UploadCompleteResponse>(completeUrl, {
+                objectKey: uploadRequest.objectKey,
+                purpose: 'TEACHER_PROFILE_PHOTO',
+                entityId: teacherId,
+              }),
+            ),
+          );
+        }),
+      );
   }
 
   getAttendanceSchedules(

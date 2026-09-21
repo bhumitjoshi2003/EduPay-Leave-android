@@ -523,10 +523,11 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
 
       // --- MODIFIED: Streamlined Image handling logic ---
       if (this.selectedFile) {
-        // Case 1: A new file has been selected, upload it first
-        this.eventService.uploadEventImage(this.selectedFile).subscribe({
+        // Case 1: A new file has been selected — direct-to-object-storage upload first (bytes
+        // never pass through our own backend), then update the event with the returned key.
+        this.eventService.uploadEventImageDirect(this.selectedFile, eventIdToUpdate).subscribe({
           next: (response) => {
-            updatedEvent.imageUrl = response.imageUrl; // Set the new image URL from upload response
+            updatedEvent.imageUrl = response.objectKey;
             this.proceedToUpdateEvent(eventIdToUpdate, updatedEvent);
           },
           error: (err) => {
