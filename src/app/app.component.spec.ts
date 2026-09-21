@@ -1,10 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { AppUpdateService } from './services/app-update.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [
+        { provide: AppUpdateService, useValue: { checkOnStartup: () => {} } },
+      ],
     }).compileComponents();
   });
 
