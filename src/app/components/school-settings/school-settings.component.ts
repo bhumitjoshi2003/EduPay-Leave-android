@@ -8,8 +8,6 @@ import { AuthStateService } from '../../auth/auth-state.service';
 import { TenantService } from '../../services/tenant.service';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
-import { NotificationChannelService } from '../../services/notification-channel.service';
-import { NotificationChannel } from '../../interfaces/notification-channel';
 import { AcademicSessionService } from '../../services/academic-session.service';
 import { AcademicSession } from '../../interfaces/academic-session';
 import { FeeWorkflowSettings } from '../../interfaces/fee-workflow';
@@ -38,7 +36,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   isEditing = false;
   editForm: Partial<SchoolSettings> = {};
 
-  activeTab: 'general' | 'razorpay' | 'features' | 'subscription' | 'channels' | 'staff-attendance' = 'general';
+  activeTab: 'general' | 'razorpay' | 'features' | 'subscription' | 'staff-attendance' = 'general';
   razorpayKeyId = '';
   razorpayKeySecret = '';
 
@@ -61,11 +59,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
   sessions: AcademicSession[] = [];
   sessionsLoading = false;
   creatingSession = false;
-
-  // Notification channels tab
-  channelsLoading = false;
-  notificationChannels: NotificationChannel[] = [];
-  savingChannelType: string | null = null;
 
   // Staff attendance settings
   staffAttendanceForm: Partial<{
@@ -116,7 +109,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private toast: ToastService,
     private route: ActivatedRoute,
-    private notificationChannelService: NotificationChannelService,
     private academicSessionService: AcademicSessionService,
     private feeWorkflowService: FeeWorkflowService
   ) {}
@@ -125,7 +117,7 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     const user = this.authStateService.getUser();
     this.role = user?.role ?? '';
     const tab = this.route.snapshot.queryParamMap.get('tab');
-    if (tab === 'subscription' || tab === 'features' || tab === 'razorpay' || tab === 'channels' || tab === 'staff-attendance') {
+    if (tab === 'subscription' || tab === 'features' || tab === 'razorpay' || tab === 'staff-attendance') {
       this.activeTab = tab;
     }
 
@@ -669,43 +661,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
     return name.split(' ').slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase() || '?';
   }
 
-  // ── Notification Channels ──────────────────────────────────────────
-  loadChannels(): void {
-    if (this.notificationChannels.length > 0) return;
-    this.channelsLoading = true;
-    this.notificationChannelService.getChannels().pipe(takeUntil(this.destroy$)).subscribe({
-      next: channels => {
-        this.notificationChannels = channels;
-        this.channelsLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: err => {
-        this.logger.error('Failed to load notification channels', err);
-        this.channelsLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  toggleChannel(channel: NotificationChannel): void {
-    this.savingChannelType = channel.channelType;
-    const updated: NotificationChannel = { ...channel, enabled: !channel.enabled };
-    this.notificationChannelService.upsertChannel(updated).pipe(takeUntil(this.destroy$)).subscribe({
-      next: saved => {
-        const idx = this.notificationChannels.findIndex(c => c.channelType === saved.channelType);
-        if (idx >= 0) this.notificationChannels[idx] = saved;
-        this.savingChannelType = null;
-        this.cdr.markForCheck();
-      },
-      error: err => {
-        this.logger.error('Failed to toggle channel', err);
-        this.toast.error('Error', 'Failed to update notification channel.');
-        this.savingChannelType = null;
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
   // ── Academic Sessions ──────────────────────────────────────────────
   loadSessions(): void {
     this.sessionsLoading = true;
@@ -867,21 +822,6 @@ export class SchoolSettingsComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
-  }
-
-  getChannelLabel(type: string): string {
-    const labels: Record<string, string> = { PUSH: 'Push Notifications', SMS: 'SMS', EMAIL: 'Email', WHATSAPP: 'WhatsApp' };
-    return labels[type] ?? type;
-  }
-
-  getChannelDescription(type: string): string {
-    const desc: Record<string, string> = {
-      PUSH: 'Send push notifications to mobile devices via Firebase Cloud Messaging.',
-      SMS: 'Send SMS messages to parents and staff. Requires SMS provider configuration.',
-      EMAIL: 'Send email notifications. Requires email service configuration.',
-      WHATSAPP: 'Send WhatsApp messages via WhatsApp Business API.'
-    };
-    return desc[type] ?? '';
   }
 
   // ── Staff Attendance Settings ─────────────────────────────────────

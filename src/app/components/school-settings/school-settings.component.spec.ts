@@ -1,6 +1,14 @@
 import { of, throwError } from 'rxjs';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
 import { SchoolSettingsComponent } from './school-settings.component';
-import { SchoolSettings } from '../../services/school.service';
+import { SchoolService, SchoolSettings } from '../../services/school.service';
+import { AuthStateService } from '../../auth/auth-state.service';
+import { TenantService } from '../../services/tenant.service';
+import { LoggerService } from '../../services/logger.service';
+import { ToastService } from '../../services/toast.service';
+import { AcademicSessionService } from '../../services/academic-session.service';
+import { FeeWorkflowService } from '../../services/fee-workflow.service';
 import { AcademicSession } from '../../interfaces/academic-session';
 import { ActivationPreview, SessionActivationOutcome } from '../../interfaces/session-activation';
 
@@ -28,7 +36,7 @@ describe('G2 Make Current activation parity', () => {
     logger = { error: jasmine.createSpy() };
     c = new SchoolSettingsComponent(
       {} as any, {} as any, {} as any, { markForCheck: () => {} } as any, logger, toast,
-      { snapshot: { queryParamMap: { get: () => null } } } as any, {} as any, academicSessionService, {} as any
+      { snapshot: { queryParamMap: { get: () => null } } } as any, academicSessionService, {} as any
     );
     c.sessions = [current, target];
   });
@@ -127,7 +135,7 @@ describe('Teacher attendance reminder settings', () => {
     logger = { error: jasmine.createSpy() };
     c = new SchoolSettingsComponent(
       schoolService, {} as any, {} as any, { markForCheck: () => {} } as any, logger, toast,
-      { snapshot: { queryParamMap: { get: () => null } } } as any, {} as any, {} as any, {} as any
+      { snapshot: { queryParamMap: { get: () => null } } } as any, {} as any, {} as any
     );
   });
 
@@ -256,5 +264,95 @@ describe('Teacher attendance reminder settings', () => {
 
     expect(toast.warning).not.toHaveBeenCalled();
     expect(schoolService.updateSettings).toHaveBeenCalled();
+  });
+});
+
+describe('School Settings — Notification Channels UI removed', () => {
+  let fixture: ComponentFixture<SchoolSettingsComponent>;
+  let queryParam: string | null;
+
+  const settings = (): SchoolSettings => ({
+    id: 1, name: 'Test School', slug: 'test-school',
+    address: null, city: null, state: null, pincode: null, phone: null, email: null,
+    website: null, logoUrl: null, themeColor: null, contactPersonName: null, boardType: null,
+    plan: null, maxStudents: null, expiryDate: null, active: true, razorpayConfigured: false,
+    academicYearStartMonth: 4, workingDays: 'MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY',
+    periodsPerDay: 8, gradingSystem: 'CBSE',
+    schoolLatitude: 28.6, schoolLongitude: 77.2, geofenceRadius: 200,
+    schoolStartTime: '08:00', lateThresholdMinutes: 5,
+    checkinWindowStart: '07:30', checkinWindowEnd: '08:30',
+    staffAttendanceTrackingStartDate: '2026-01-01',
+    timezone: 'Asia/Kolkata',
+    teacherAttendanceReminderEnabled: false,
+    teacherAttendanceReminderTime: null,
+  });
+
+  beforeEach(async () => {
+    queryParam = null;
+    const schoolService = {
+      getSettings: jasmine.createSpy().and.returnValue(of(settings())),
+      getEntitlement: jasmine.createSpy().and.returnValue(of(null)),
+    };
+    const academicSessionService = { getAllSessions: jasmine.createSpy().and.returnValue(of([])) };
+    const feeWorkflowService = { getSettings: jasmine.createSpy().and.returnValue(of(null)) };
+    const authStateService = { getUser: () => ({ role: 'ADMIN' }) };
+    const tenantService = { getLogoUrl: (u: string) => u };
+    const toast = jasmine.createSpyObj('ToastService', ['success', 'error', 'warning']);
+    const logger = jasmine.createSpyObj('LoggerService', ['error']);
+
+    await TestBed.configureTestingModule({
+      imports: [SchoolSettingsComponent],
+      providers: [
+        { provide: SchoolService, useValue: schoolService },
+        { provide: AuthStateService, useValue: authStateService },
+        { provide: TenantService, useValue: tenantService },
+        { provide: LoggerService, useValue: logger },
+        { provide: ToastService, useValue: toast },
+        { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: { get: (key: string) => key === 'tab' ? queryParam : null } } } },
+        { provide: AcademicSessionService, useValue: academicSessionService },
+        { provide: FeeWorkflowService, useValue: feeWorkflowService },
+      ]
+    }).compileComponents();
+    fixture = TestBed.createComponent(SchoolSettingsComponent);
+  });
+
+  it('does not render a Channels tab button', () => {
+    fixture.detectChanges();
+    const tabLabels = Array.from(fixture.nativeElement.querySelectorAll('.ss-tab-label')) as HTMLElement[];
+    expect(tabLabels.map(el => el.textContent?.trim())).not.toContain('Channels');
+  });
+
+  it('never renders the notification channels empty-state text', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('No notification channels configured yet.');
+  });
+
+  it('still renders the remaining tabs', () => {
+    fixture.detectChanges();
+    const labels = Array.from(fixture.nativeElement.querySelectorAll('.ss-tab-label') as NodeListOf<HTMLElement>)
+      .map(el => el.textContent?.trim());
+    expect(labels).toContain('General');
+    expect(labels).toContain('Payments');
+    expect(labels).toContain('Features');
+    expect(labels).toContain('Staff Attendance');
+    expect(labels).toContain('Plan');
+  });
+
+  it('falls back to the default General tab instead of a blank page when navigated with the removed ?tab=channels', () => {
+    queryParam = 'channels';
+    fixture.detectChanges();
+    expect(fixture.componentInstance.activeTab).toBe('general');
+    expect(fixture.nativeElement.querySelector('.ss-hero')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('No notification channels configured yet.');
+  });
+
+  it('has no notification-channel dependency, state, or methods left to accidentally call on load', () => {
+    fixture.detectChanges();
+    const instance = fixture.componentInstance as any;
+    expect(instance.notificationChannelService).toBeUndefined();
+    expect(instance.notificationChannels).toBeUndefined();
+    expect(instance.channelsLoading).toBeUndefined();
+    expect(instance.loadChannels).toBeUndefined();
+    expect(instance.toggleChannel).toBeUndefined();
   });
 });
