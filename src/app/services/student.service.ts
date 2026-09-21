@@ -179,14 +179,6 @@ export class StudentService {
     return this.http.post<BulkImportResult>(`${this.baseUrl}/bulk`, formData);
   }
 
-  /** @deprecated kept as the rollback path only — see uploadStudentPhotoDirect for the current
-   * direct-to-object-storage flow. Still fully functional server-side. */
-  uploadStudentPhoto(studentId: string, file: File): Observable<{ photoUrl: string }> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post<{ photoUrl: string }>(`${this.baseUrl}/${studentId}/photo`, formData);
-  }
-
   /**
    * Direct-to-object-storage upload: ask the backend for a short-lived presigned URL, PUT the
    * file bytes straight to object storage (never through this backend), then tell the backend

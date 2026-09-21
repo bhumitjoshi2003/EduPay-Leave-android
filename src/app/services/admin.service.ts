@@ -40,14 +40,6 @@ export class AdminService {
     return this.http.post(this.noticeUrl + '/notice', data, { responseType: 'text' });
   }
 
-  /** @deprecated kept as the rollback path only — see uploadAdminPhotoDirect for the current
-   * direct-to-object-storage flow. Still fully functional server-side. */
-  uploadAdminPhoto(adminId: string, file: File): Observable<{ photoUrl: string }> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post<{ photoUrl: string }>(`${this.baseUrl}/${adminId}/photo`, formData);
-  }
-
   /**
    * Direct-to-object-storage upload: ask the backend for a short-lived presigned URL, PUT the
    * file bytes straight to object storage (never through this backend), then tell the backend

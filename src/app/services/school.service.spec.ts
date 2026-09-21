@@ -66,11 +66,8 @@ describe('SchoolService — direct-to-object-storage uploads', () => {
     http.expectOne(`${environment.apiUrl}/files/complete`).flush({ objectKey: 'schools/1/school/report-card-header/uuid.png', displayUrl: 'https://object-storage.example.com/signed-get' });
   });
 
-  it('the legacy multipart upload methods still exist and are untouched (rollback path)', () => {
-    service.uploadLogo(aFile()).subscribe();
-    http.expectOne(`${environment.apiUrl}/school/logo`).flush({ logoUrl: '/uploads/school-logos/1.png' });
-
-    service.uploadReportCardHeader(aFile()).subscribe();
-    http.expectOne(`${environment.apiUrl}/school/report-card-header`).flush({ headerImageUrl: '/uploads/report-card-headers/1.png' });
+  it('the legacy multipart upload methods no longer exist on the service (Phase 3 cleanup)', () => {
+    expect((service as any).uploadLogo).toBeUndefined();
+    expect((service as any).uploadReportCardHeader).toBeUndefined();
   });
 });

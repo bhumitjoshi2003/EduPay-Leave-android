@@ -277,22 +277,6 @@ export class SchoolService {
     return this.http.put<SchoolSettings>(`${this.baseUrl}/settings`, data);
   }
 
-  /** @deprecated kept as the rollback path only — see uploadLogoDirect for the current
-   * direct-to-object-storage flow. Still fully functional server-side. */
-  uploadLogo(file: File): Observable<{ logoUrl: string }> {
-    const form = new FormData();
-    form.append('file', file);
-    return this.http.post<{ logoUrl: string }>(`${this.baseUrl}/logo`, form);
-  }
-
-  /** @deprecated kept as the rollback path only — see uploadReportCardHeaderDirect for the
-   * current direct-to-object-storage flow. Still fully functional server-side. */
-  uploadReportCardHeader(file: File): Observable<{ headerImageUrl: string }> {
-    const form = new FormData();
-    form.append('file', file);
-    return this.http.post<{ headerImageUrl: string }>(`${this.baseUrl}/report-card-header`, form);
-  }
-
   removeReportCardHeader(): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/report-card-header`);
   }

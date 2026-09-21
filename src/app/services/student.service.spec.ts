@@ -53,10 +53,7 @@ describe('StudentService — uploadStudentPhotoDirect', () => {
     completeReq.flush({ objectKey: 'schools/1/students/S1/profile/uuid.jpg', displayUrl: 'https://object-storage.example.com/signed-get' });
   });
 
-  it('the legacy multipart upload method still exists and is untouched (rollback path)', () => {
-    service.uploadStudentPhoto('S1', aFile()).subscribe();
-    const req = http.expectOne(`${environment.apiUrl}/students/S1/photo`);
-    expect(req.request.body instanceof FormData).toBeTrue();
-    req.flush({ photoUrl: '/uploads/student-photos/S1.jpg' });
+  it('the legacy multipart upload method no longer exists on the service (Phase 3 cleanup)', () => {
+    expect((service as any).uploadStudentPhoto).toBeUndefined();
   });
 });
