@@ -113,12 +113,17 @@ export class EventFormComponent implements OnInit, OnDestroy {
     if (!relativePath) {
       return '';
     }
-    // Ensure the path is correct if relativePath already includes '/files/event-images/'
-    // You might need to adjust this based on how your backend generates the relativePath
-    if (relativePath.startsWith('/files/event-images/')) {
-      return `${environment.apiUrl}${relativePath}`;
+    // Object-storage images arrive as an already-absolute, short-lived presigned URL (see
+    // EventService.resolveImageUrl on the backend) — it must be used as-is. Only a legacy
+    // /uploads/events/images/... relative path needs the apiUrl prefix. Mirrors
+    // TeacherDetailsComponent/StudentDetailsComponent's identical getPhotoUrl guard. The old
+    // /files/event-images/... branch referenced a controller that no longer exists (the retired
+    // legacy uploadEventImage/downloadEventImage endpoints) — real serving for legacy values has
+    // always been the permitAll /api/uploads/events/images/** static path instead.
+    if (relativePath.startsWith('http')) {
+      return relativePath;
     }
-    return `${environment.apiUrl}/files/event-images/${relativePath}`; // Common format if backend returns just filename
+    return `${environment.apiUrl}${relativePath}`;
   }
 
 

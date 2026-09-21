@@ -219,10 +219,13 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
     if (!relativePath) {
       return '';
     }
-    // Ensure the path is correct depending on how your backend returns it.
-    // If relativePath is just filename:
-    // return `${environment.apiUrl}/files/event-images/${relativePath}`;
-    // If relativePath already includes /files/event-images/:
+    // Object-storage images arrive as an already-absolute, short-lived presigned URL (see
+    // EventService.resolveImageUrl on the backend) — it must be used as-is. Only a legacy
+    // /uploads/events/images/... relative path needs the apiUrl prefix. Mirrors
+    // TeacherDetailsComponent/StudentDetailsComponent's identical getPhotoUrl guard.
+    if (relativePath.startsWith('http')) {
+      return relativePath;
+    }
     return `${environment.apiUrl}${relativePath}`;
   }
 
