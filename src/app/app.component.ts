@@ -8,6 +8,7 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
 import { AppUpdateService } from './services/app-update.service';
+import { AdoptionMetadataService } from './services/adoption-metadata.service';
 
 @Component({
   selector: 'app-root',
@@ -18,10 +19,11 @@ import { AppUpdateService } from './services/app-update.service';
 export class AppComponent implements OnInit, OnDestroy {
   title = 'ias';
 
-  constructor(private router: Router, private appUpdateService: AppUpdateService) {}
+  constructor(private router: Router, private appUpdateService: AppUpdateService, private adoptionMetadata: AdoptionMetadataService) {}
 
   async ngOnInit() {
     this.appUpdateService.checkOnStartup();
+    this.adoptionMetadata.reportAndroidVersionOnce();
     if (Capacitor.isNativePlatform()) {
       await StatusBar.setOverlaysWebView({ overlay: false });
       await StatusBar.setStyle({ style: Style.Default });

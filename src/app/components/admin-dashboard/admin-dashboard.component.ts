@@ -17,6 +17,8 @@ import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { TeacherAttendanceTodaySummary } from '../../interfaces/teacher-checkin';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
+import { StaffAdoptionService } from '../../services/staff-adoption.service';
+import { StaffAdoptionSummary } from '../../interfaces/staff-adoption';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -37,6 +39,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   recentLeaves: LeaveApplication[] = [];
   entitlement: SchoolEntitlementSummary | null = null;
   staffAttendance: TeacherAttendanceTodaySummary | null = null;
+  staffAdoption: StaffAdoptionSummary | null = null;
+  staffAdoptionError = false;
 
   constructor(
     private authState: AuthStateService,
@@ -48,6 +52,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
     private toast: ToastService,
+    private staffAdoptionService: StaffAdoptionService,
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +67,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
 
     this.loadDashboardData();
+    if (user?.role === 'ADMIN') this.loadStaffAdoption();
+  }
+
+  loadStaffAdoption(): void {
+    this.staffAdoptionError = false;
+    this.staffAdoptionService.getStaffAdoption().pipe(takeUntil(this.destroy$)).subscribe({
+      next: response => { this.staffAdoption = response.summary; this.cdr.markForCheck(); },
+      error: e => { this.logger.error('Staff adoption load error:', e); this.staffAdoptionError = true; this.cdr.markForCheck(); }
+    });
   }
 
   loadDashboardData(): void {

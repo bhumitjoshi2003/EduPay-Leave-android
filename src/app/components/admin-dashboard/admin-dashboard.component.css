@@ -665,3 +665,4 @@
 .ad-meter-alert mat-icon { font-size: 12px; width: 12px; height: 12px; }
 .ad-meter-alert--critical { background: #fee2e2; color: #dc2626; }
 .ad-meter-alert--warn { background: #fef3c7; color: #d97706; }
+.ad-adoption{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(15,23,42,.06)}.ad-adoption-icon{width:44px;height:44px;border-radius:12px;background:#e0f2fe;color:#0369a1;display:grid;place-items:center}.ad-adoption-copy{flex:1}.ad-adoption h2{font-size:1rem;margin:0}.ad-adoption p{font-size:.82rem;color:#64748b;margin:4px 0 0}.ad-adoption a,.ad-adoption button{display:flex;align-items:center;gap:4px;border:0;background:transparent;color:#1a237e;font-weight:700;text-decoration:none}.ad-adoption a mat-icon{font-size:18px}@media(max-width:560px){.ad-adoption{align-items:flex-start}.ad-adoption a{align-self:center}.ad-adoption-icon{flex:0 0 44px}}

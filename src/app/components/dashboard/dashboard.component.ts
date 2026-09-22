@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { LoggerService } from '../../services/logger.service';
+import { AdoptionMetadataService } from '../../services/adoption-metadata.service';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -83,10 +84,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private notificationNavigation: NotificationNavigationService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef,
-    private logger: LoggerService
+    private logger: LoggerService,
+    private adoptionMetadata: AdoptionMetadataService
   ) { }
 
   ngOnInit() {
+    this.adoptionMetadata.reportAndroidVersionOnce();
     void this.pushNotificationService.init();
     this.getDetails();
     this.handleInitialNavigation();

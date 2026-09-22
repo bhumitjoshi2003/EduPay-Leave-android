@@ -262,6 +262,10 @@
            (click)="closeSidebarOnMobile()" title="Teachers">
           <mat-icon>person_pin</mat-icon><span>Teachers</span>
         </a>
+        <a class="nav-item" *ngIf="Role === 'ADMIN'" routerLink="/dashboard/staff-adoption" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Staff Adoption">
+          <mat-icon>groups</mat-icon><span>Staff Adoption</span>
+        </a>
         <a class="nav-item" routerLink="/dashboard/admin-list" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Admins">
           <mat-icon>manage_accounts</mat-icon><span>Admins</span>

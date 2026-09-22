@@ -3,6 +3,9 @@ import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { PushNotificationService } from './push-notification.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { firstValueFrom } from 'rxjs';
 
 export type TeacherOnboardingVisit = 'profileVisited' | 'todaysClassesVisited' | 'attendanceVisited' | 'leaveVisited';
 export type PermissionState = 'granted' | 'denied' | 'prompt' | 'unavailable';
@@ -32,7 +35,8 @@ const DEFAULT_STATE: TeacherOnboardingState = {
 
 @Injectable({ providedIn: 'root' })
 export class TeacherOnboardingService {
-  constructor(private push: PushNotificationService) {}
+  private completionSynced = new Set<string>();
+  constructor(private push: PushNotificationService, private http?: HttpClient) {}
 
   private key(userId: string): string {
     return `edunexify.teacher-onboarding.v1.${userId}`;
@@ -50,6 +54,11 @@ export class TeacherOnboardingService {
   async save(userId: string, state: TeacherOnboardingState): Promise<void> {
     try {
       await this.write(this.key(userId), JSON.stringify(state));
+      if (state.completedAt && !this.completionSynced.has(userId) && this.http) {
+        this.completionSynced.add(userId);
+        firstValueFrom(this.http.post<void>(`${environment.apiUrl}/me/adoption/onboarding-completed`, {}, { withCredentials: true }))
+          .catch(() => { this.completionSynced.delete(userId); });
+      }
     } catch {
       // Onboarding is optional and must never interrupt the dashboard.
     }

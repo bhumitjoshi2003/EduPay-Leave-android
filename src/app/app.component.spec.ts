@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { AppUpdateService } from './services/app-update.service';
+import { AdoptionMetadataService } from './services/adoption-metadata.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -8,6 +9,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         { provide: AppUpdateService, useValue: { checkOnStartup: () => {} } },
+        { provide: AdoptionMetadataService, useValue: { reportAndroidVersionOnce: () => {} } },
       ],
     }).compileComponents();
   });

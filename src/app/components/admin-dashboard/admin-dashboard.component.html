@@ -30,6 +30,13 @@
     </div>
 
     <!-- ── Stats error ──────────────────────────────────────────────── -->
+    <section class="ad-adoption" *ngIf="staffAdoption || staffAdoptionError">
+      <div class="ad-adoption-icon"><mat-icon>groups</mat-icon></div>
+      <div class="ad-adoption-copy"><h2>Staff Adoption</h2><p *ngIf="staffAdoption">{{staffAdoption.startedTeachers}} of {{staffAdoption.totalTeachers}} teachers started · {{staffAdoption.attendanceUsedTeachers}} have used attendance</p><p *ngIf="staffAdoptionError">Staff adoption is temporarily unavailable.</p></div>
+      <a *ngIf="staffAdoption" routerLink="/dashboard/staff-adoption">View<mat-icon>arrow_forward</mat-icon></a>
+      <button *ngIf="staffAdoptionError" (click)="loadStaffAdoption()">Retry</button>
+    </section>
+
     <div class="ad-stats-error" *ngIf="!stats">
       <span>⚠️</span>
       <p>Could not load dashboard stats. Please refresh to try again.</p>
