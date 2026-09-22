@@ -1,6 +1,24 @@
 <main class="sa-page">
   <a class="sa-back" routerLink="/dashboard/admin-dashboard"><mat-icon>arrow_back</mat-icon> Admin dashboard</a>
-  <header class="sa-header"><div class="sa-header-icon"><mat-icon>groups</mat-icon></div><div><h1>Staff Adoption</h1><p>Teacher access and rollout readiness</p></div></header>
+  <header class="sa-header"><div class="sa-header-icon"><mat-icon>groups</mat-icon></div><div><h1>Staff Adoption</h1><p>Teacher access and rollout readiness</p></div><button type="button" class="sa-reminder-toggle" (click)="toggleReminderPanel()"><mat-icon>campaign</mat-icon> Remind</button></header>
+  <section class="sa-reminder-panel" *ngIf="reminderPanelOpen">
+    <div class="sa-reminder-head"><mat-icon>notifications_active</mat-icon><div><h2>Send a reminder</h2><p>A professional nudge to help staff finish setting up Edunexify.</p></div></div>
+    <div class="sa-reminder-options">
+      <label class="sa-reminder-option" *ngFor="let option of reminderOptions" [class.selected]="selectedReminderType === option.type">
+        <input type="radio" name="reminderType" [value]="option.type" [(ngModel)]="selectedReminderType" />
+        <span><strong>{{option.label}}</strong><small>{{option.description}}</small></span>
+      </label>
+    </div>
+    <p class="sa-reminder-error" *ngIf="reminderError">{{reminderError}}</p>
+    <div class="sa-reminder-actions">
+      <button type="button" class="sa-reminder-cancel" (click)="toggleReminderPanel()" [disabled]="reminderPreviewLoading || reminderSendLoading">Cancel</button>
+      <button type="button" class="sa-reminder-preview" (click)="previewAndSendReminder()" [disabled]="reminderPreviewLoading || reminderSendLoading">
+        <span *ngIf="!reminderPreviewLoading && !reminderSendLoading">Preview &amp; Send</span>
+        <span *ngIf="reminderPreviewLoading">Loading&hellip;</span>
+        <span *ngIf="reminderSendLoading">Sending&hellip;</span>
+      </button>
+    </div>
+  </section>
   <div class="sa-state" *ngIf="loading"><span class="sa-spinner"></span>Loading staff adoption…</div>
   <div class="sa-state sa-error" *ngIf="error"><mat-icon>cloud_off</mat-icon><strong>Staff adoption could not be loaded</strong><span>Please check your connection and try again.</span><button (click)="load()">Retry</button></div>
   <ng-container *ngIf="data as d">
