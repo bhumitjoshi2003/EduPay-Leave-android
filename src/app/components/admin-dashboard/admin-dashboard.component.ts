@@ -41,6 +41,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   staffAttendance: TeacherAttendanceTodaySummary | null = null;
   staffAdoption: StaffAdoptionSummary | null = null;
   staffAdoptionError = false;
+  isAdmin = false;
 
   constructor(
     private authState: AuthStateService,
@@ -66,8 +67,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         });
     }
 
+    this.isAdmin = user?.role === 'ADMIN';
     this.loadDashboardData();
-    if (user?.role === 'ADMIN') this.loadStaffAdoption();
+    if (this.isAdmin) this.loadStaffAdoption();
   }
 
   loadStaffAdoption(): void {
@@ -197,6 +199,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (r >= 85) return '--c1:#059669;--c2:#34d399';
     if (r >= 70) return '--c1:#d97706;--c2:#fbbf24';
     return '--c1:#dc2626;--c2:#f87171';
+  }
+
+  /** "Not yet checked in" is never returned by the backend directly — today-summary only
+   *  reports present/late/absent/half-day/on-leave, and ABSENT is never synthesized for
+   *  today (see TeacherAttendanceService), so anyone not yet checked in simply isn't counted
+   *  in any of those five buckets. totalTeachers (from /api/dashboard/stats, already fetched
+   *  in the same load) is the count of ACTIVE teachers for this school, so the remainder is a
+   *  safe, already-available client-side computation — never labelled "Absent". Clamped to 0
+   *  defensively since stats and staffAttendance are fetched independently in the same forkJoin. */
+  get notYetCheckedIn(): number {
+    if (!this.stats || !this.staffAttendance) return 0;
+    const accounted = this.staffAttendance.presentCount + this.staffAttendance.lateCount
+      + this.staffAttendance.absentCount + this.staffAttendance.halfDayCount + this.staffAttendance.onLeaveCount;
+    return Math.max(0, this.stats.totalTeachers - accounted);
   }
 
   hasFeature(featureKey: string): boolean {

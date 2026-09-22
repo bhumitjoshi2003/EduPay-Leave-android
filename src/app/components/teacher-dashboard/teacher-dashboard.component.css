@@ -881,6 +881,24 @@
 .td-today-panel {
   margin-bottom: 18px;
 }
+.td-updates-panel {
+  margin-bottom: 18px;
+}
+.td-updates-panel .td-skeleton {
+  grid-template-columns: 1fr;
+}
+.td-updates-panel .td-skeleton span {
+  height: 20px;
+}
+.td-updates-count {
+  margin: 0;
+  color: #526278;
+  font-size: 0.82rem;
+}
+.td-updates-count strong {
+  color: #223047;
+  font-weight: 800;
+}
 .td-today-title {
   display: flex;
   min-width: 0;

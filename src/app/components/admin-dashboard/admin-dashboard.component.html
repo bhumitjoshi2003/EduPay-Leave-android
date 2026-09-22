@@ -30,13 +30,6 @@
     </div>
 
     <!-- ── Stats error ──────────────────────────────────────────────── -->
-    <section class="ad-adoption" *ngIf="staffAdoption || staffAdoptionError">
-      <div class="ad-adoption-icon"><mat-icon>groups</mat-icon></div>
-      <div class="ad-adoption-copy"><h2>Staff Adoption</h2><p *ngIf="staffAdoption">{{staffAdoption.startedTeachers}} of {{staffAdoption.totalTeachers}} teachers started · {{staffAdoption.attendanceUsedTeachers}} have used attendance</p><p *ngIf="staffAdoptionError">Staff adoption is temporarily unavailable.</p></div>
-      <a *ngIf="staffAdoption" routerLink="/dashboard/staff-adoption">View<mat-icon>arrow_forward</mat-icon></a>
-      <button *ngIf="staffAdoptionError" (click)="loadStaffAdoption()">Retry</button>
-    </section>
-
     <div class="ad-stats-error" *ngIf="!stats">
       <span>⚠️</span>
       <p>Could not load dashboard stats. Please refresh to try again.</p>
@@ -129,6 +122,10 @@
           <span class="ad-staff-att-value">{{ staffAttendance.onLeaveCount }}</span>
           <span class="ad-staff-att-label">On Leave</span>
         </div>
+        <div class="ad-staff-att-pill" style="--pc:#64748b" *ngIf="stats">
+          <span class="ad-staff-att-value">{{ notYetCheckedIn }}</span>
+          <span class="ad-staff-att-label">Not Yet Checked In</span>
+        </div>
       </div>
 
       <a class="ad-view-all" routerLink="/dashboard/staff-attendance">
@@ -136,6 +133,83 @@
         <mat-icon>arrow_forward</mat-icon>
       </a>
     </div>
+
+    <!-- ── Pending Leave Requests ────────────────────────────────────── -->
+    <div class="ad-section">
+      <h2 class="ad-section-title">
+        Pending Leave Requests
+        <span class="ad-badge" *ngIf="stats && stats.pendingLeaves > 0">{{ stats.pendingLeaves }}</span>
+      </h2>
+
+      <div class="ad-empty-leaves" *ngIf="recentLeaves.length === 0">
+        <mat-icon>check_circle_outline</mat-icon>
+        <p>No pending leave requests</p>
+      </div>
+
+      <div class="ad-leave-list" *ngIf="recentLeaves.length > 0">
+        <a class="ad-leave-card" routerLink="/dashboard/view-leaves"
+          *ngFor="let leave of recentLeaves">
+          <div class="ad-leave-avatar">{{ leave.studentName.charAt(0).toUpperCase() }}</div>
+          <div class="ad-leave-info">
+            <span class="ad-leave-name">{{ leave.studentName }}</span>
+            <span class="ad-leave-meta">
+              <mat-icon>school</mat-icon>
+              Class {{ leave.className }}
+              <span class="ad-leave-dot">·</span>
+              <mat-icon>calendar_today</mat-icon>
+              {{ leave.leaveDate | date:'d MMM' }}
+            </span>
+            <span class="ad-leave-reason" *ngIf="leave.reason">{{ leave.reason }}</span>
+          </div>
+          <mat-icon class="ad-leave-arrow">chevron_right</mat-icon>
+        </a>
+      </div>
+
+      <a class="ad-view-all" routerLink="/dashboard/view-leaves"
+        *ngIf="stats && stats.pendingLeaves > 5">
+        View all {{ stats.pendingLeaves }} requests
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+
+    <!-- ── Today's Quick Actions (compact daily subset) ─────────────── -->
+    <div class="ad-section">
+      <h2 class="ad-section-title">Today's Actions</h2>
+      <div class="ad-daily-actions-grid">
+        <a class="ad-action-card" routerLink="/dashboard/staff-attendance">
+          <div class="ad-action-icon" style="background:#e0e7ff;color:#3730a3">
+            <mat-icon>summarize</mat-icon>
+          </div>
+          <span>Staff Attendance</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/view-leaves">
+          <div class="ad-action-icon" style="background:#fef3c7;color:#b45309">
+            <mat-icon>assignment_late</mat-icon>
+          </div>
+          <span>Leave Approval</span>
+        </a>
+        <a class="ad-action-card" routerLink="/dashboard/notice">
+          <div class="ad-action-icon" style="background:#fff1f2;color:#be123c">
+            <mat-icon>campaign</mat-icon>
+          </div>
+          <span>Send Notice</span>
+        </a>
+        <a class="ad-action-card" *ngIf="isAdmin" routerLink="/dashboard/staff-adoption">
+          <div class="ad-action-icon" style="background:#d1fae5;color:#065f46">
+            <mat-icon>groups</mat-icon>
+          </div>
+          <span>Staff Adoption</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Staff Adoption (repositioned below daily operations) ─────── -->
+    <section class="ad-adoption" *ngIf="staffAdoption || staffAdoptionError">
+      <div class="ad-adoption-icon"><mat-icon>groups</mat-icon></div>
+      <div class="ad-adoption-copy"><h2>Staff Adoption</h2><p *ngIf="staffAdoption">{{staffAdoption.startedTeachers}} of {{staffAdoption.totalTeachers}} teachers started · {{staffAdoption.attendanceUsedTeachers}} have used attendance</p><p *ngIf="staffAdoptionError">Staff adoption is temporarily unavailable.</p></div>
+      <a *ngIf="staffAdoption" routerLink="/dashboard/staff-adoption">View<mat-icon>arrow_forward</mat-icon></a>
+      <button *ngIf="staffAdoptionError" (click)="loadStaffAdoption()">Retry</button>
+    </section>
 
     <!-- ── Plan Usage ────────────────────────────────────────────────── -->
     <div class="ad-plan-section" *ngIf="entitlement">
@@ -363,44 +437,6 @@
         </a>
 
       </div>
-    </div>
-
-    <!-- ── Pending Leave Requests ────────────────────────────────────── -->
-    <div class="ad-section">
-      <h2 class="ad-section-title">
-        Pending Leave Requests
-        <span class="ad-badge" *ngIf="stats && stats.pendingLeaves > 0">{{ stats.pendingLeaves }}</span>
-      </h2>
-
-      <div class="ad-empty-leaves" *ngIf="recentLeaves.length === 0">
-        <mat-icon>check_circle_outline</mat-icon>
-        <p>No pending leave requests</p>
-      </div>
-
-      <div class="ad-leave-list" *ngIf="recentLeaves.length > 0">
-        <a class="ad-leave-card" routerLink="/dashboard/view-leaves"
-          *ngFor="let leave of recentLeaves">
-          <div class="ad-leave-avatar">{{ leave.studentName.charAt(0).toUpperCase() }}</div>
-          <div class="ad-leave-info">
-            <span class="ad-leave-name">{{ leave.studentName }}</span>
-            <span class="ad-leave-meta">
-              <mat-icon>school</mat-icon>
-              Class {{ leave.className }}
-              <span class="ad-leave-dot">·</span>
-              <mat-icon>calendar_today</mat-icon>
-              {{ leave.leaveDate | date:'d MMM' }}
-            </span>
-            <span class="ad-leave-reason" *ngIf="leave.reason">{{ leave.reason }}</span>
-          </div>
-          <mat-icon class="ad-leave-arrow">chevron_right</mat-icon>
-        </a>
-      </div>
-
-      <a class="ad-view-all" routerLink="/dashboard/view-leaves"
-        *ngIf="stats && stats.pendingLeaves > 5">
-        View all {{ stats.pendingLeaves }} requests
-        <mat-icon>arrow_forward</mat-icon>
-      </a>
     </div>
 
   </ng-container>

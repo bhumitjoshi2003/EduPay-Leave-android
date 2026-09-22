@@ -1,6 +1,22 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { provideRouter, RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { of, throwError } from 'rxjs';
 import { TeacherDashboardComponent } from './teacher-dashboard.component';
 import { TimetableEntry } from '../../interfaces/timetable';
+import { AuthStateService } from '../../auth/auth-state.service';
+import { TeacherService } from '../../services/teacher.service';
+import { StudentService } from '../../services/student.service';
+import { AttendanceService } from '../../services/attendance.service';
+import { LeaveService } from '../../services/leave.service';
+import { LoggerService } from '../../services/logger.service';
+import { ToastService } from '../../services/toast.service';
+import { TeacherCheckinService } from '../../services/teacher-checkin.service';
+import { TeacherLeaveService } from '../../services/teacher-leave.service';
+import { TimetableService } from '../../services/timetable.service';
+import { NotificationService } from '../../services/notification.service';
 
 describe('TeacherDashboardComponent', () => {
   let authState: any;
@@ -14,12 +30,13 @@ describe('TeacherDashboardComponent', () => {
   let checkinService: any;
   let teacherLeaveService: any;
   let timetableService: any;
+  let notificationService: any;
   let component: TeacherDashboardComponent;
 
   const buildComponent = (): TeacherDashboardComponent =>
     new TeacherDashboardComponent(
       authState, teacherService, studentService, attendanceService, leaveService,
-      cdr, logger, toast, checkinService, teacherLeaveService, timetableService
+      cdr, logger, toast, checkinService, teacherLeaveService, timetableService, notificationService
     );
 
   beforeEach(() => {
@@ -49,6 +66,9 @@ describe('TeacherDashboardComponent', () => {
 
     timetableService = jasmine.createSpyObj('TimetableService', ['getTeacherTimetable']);
     timetableService.getTeacherTimetable.and.returnValue(of([]));
+
+    notificationService = jasmine.createSpyObj('NotificationService', ['getUnreadNotificationCount']);
+    notificationService.getUnreadNotificationCount.and.returnValue(of(0));
   });
 
   const entry = (overrides: Partial<TimetableEntry>): TimetableEntry => ({
@@ -323,5 +343,114 @@ describe('TeacherDashboardComponent', () => {
     timetableService.getTeacherTimetable.and.returnValue(throwError(() => ({ error: { message: 'boom' } })));
     component.retryTodayClasses();
     expect(component.todayClassesError).toBe('boom');
+  });
+
+  // ─── Updates (unread notification count) — reuses GET /api/notification/user/unread/count ───
+
+  it('renders the unread count from the existing notification service', () => {
+    notificationService.getUnreadNotificationCount.and.returnValue(of(3));
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.unreadCount).toBe(3);
+    expect(component.unreadCountLoading).toBeFalse();
+    expect(component.unreadCountFailed).toBeFalse();
+  });
+
+  it('shows a zero-unread state distinctly from a failed load', () => {
+    notificationService.getUnreadNotificationCount.and.returnValue(of(0));
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.unreadCount).toBe(0);
+    expect(component.unreadCountFailed).toBeFalse();
+  });
+
+  it('an unread-count failure never blocks the rest of the dashboard', () => {
+    notificationService.getUnreadNotificationCount.and.returnValue(throwError(() => new Error('offline')));
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.unreadCountFailed).toBeTrue();
+    expect(component.unreadCountLoading).toBeFalse();
+    expect(component.teacherName).toBe('Ms. Rao');
+    expect(component.isLoading).toBeFalse();
+  });
+});
+
+// ─── Layout ordering — rendered via TestBed since it's a template-order concern, not state ───
+
+@Component({ selector: 'app-wisdom-cards', standalone: true, template: '' })
+class StubWisdomCardsComponent {}
+
+@Component({ selector: 'app-teacher-getting-started', standalone: true, template: '<div class="stub-getting-started">Getting Started</div>', inputs: ['todaysClassesAvailable'] })
+class StubTeacherGettingStartedComponent {}
+
+describe('TeacherDashboardComponent layout order', () => {
+  let fixture: ComponentFixture<TeacherDashboardComponent>;
+
+  beforeEach(async () => {
+    const authState = jasmine.createSpyObj('AuthStateService', ['getUser', 'hasFeature']);
+    authState.getUser.and.returnValue({ userId: 'T1' });
+    authState.hasFeature.and.returnValue(false);
+    const teacherService = jasmine.createSpyObj('TeacherService', ['getTeacher']);
+    teacherService.getTeacher.and.returnValue(of({ name: 'Ms. Rao', classTeacher: null }));
+    const checkinService = jasmine.createSpyObj('TeacherCheckinService', ['getMyAttendance']);
+    checkinService.getMyAttendance.and.returnValue(of({
+      totalWorkingDays: 0, presentDays: 0, lateDays: 0, absentDays: 0,
+      halfDayDays: 0, onLeaveDays: 0, onTimePercentage: 0,
+      attendancePercentage: 0, trackingStartDate: null, records: [],
+    }));
+    const teacherLeaveService = jasmine.createSpyObj('TeacherLeaveService', ['getMyLeaves']);
+    teacherLeaveService.getMyLeaves.and.returnValue(of({ content: [], totalElements: 0, totalPages: 0 }));
+    const timetableService = jasmine.createSpyObj('TimetableService', ['getTeacherTimetable']);
+    timetableService.getTeacherTimetable.and.returnValue(of([]));
+    const notificationService = jasmine.createSpyObj('NotificationService', ['getUnreadNotificationCount']);
+    notificationService.getUnreadNotificationCount.and.returnValue(of(2));
+
+    await TestBed.configureTestingModule({
+      imports: [TeacherDashboardComponent],
+      providers: [
+        provideRouter([]),
+        { provide: AuthStateService, useValue: authState },
+        { provide: TeacherService, useValue: teacherService },
+        { provide: StudentService, useValue: jasmine.createSpyObj('StudentService', ['getActiveStudentsByClass']) },
+        { provide: AttendanceService, useValue: jasmine.createSpyObj('AttendanceService', ['getAttendanceByDateAndClass', 'getClassSummary']) },
+        { provide: LeaveService, useValue: jasmine.createSpyObj('LeaveService', ['getLeavesPaginated', 'updateLeaveStatus']) },
+        { provide: LoggerService, useValue: jasmine.createSpyObj('LoggerService', ['error']) },
+        { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success', 'info', 'error']) },
+        { provide: TeacherCheckinService, useValue: checkinService },
+        { provide: TeacherLeaveService, useValue: teacherLeaveService },
+        { provide: TimetableService, useValue: timetableService },
+        { provide: NotificationService, useValue: notificationService },
+      ],
+    })
+      .overrideComponent(TeacherDashboardComponent, {
+        set: { imports: [StubWisdomCardsComponent, StubTeacherGettingStartedComponent, CommonModule, RouterLink, MatIconModule] },
+      })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(TeacherDashboardComponent);
+    fixture.detectChanges();
+  });
+
+  it('keeps Check-in and Today\'s Classes near the top, above Getting Started', () => {
+    const text: string = fixture.nativeElement.textContent;
+    expect(text.indexOf('My attendance')).toBeGreaterThan(-1);
+    expect(text.indexOf('Today\'s Classes')).toBeLessThan(text.indexOf('Getting Started'));
+    expect(text.indexOf('My attendance')).toBeLessThan(text.indexOf('Getting Started'));
+  });
+
+  it('never renders Getting Started above the daily-operational sections (leave, workspaces)', () => {
+    const text: string = fixture.nativeElement.textContent;
+    const gettingStartedIndex = text.indexOf('Getting Started');
+    expect(gettingStartedIndex).toBeGreaterThan(-1);
+    expect(text.indexOf('Quick actions')).toBeLessThan(gettingStartedIndex);
+    expect(text.indexOf('My recent leaves')).toBeLessThan(gettingStartedIndex);
+  });
+
+  it('renders the Updates panel visibly without dominating the layout, using the existing unread-count service', () => {
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('Updates');
+    expect(text).toContain('2');
+    const panel = fixture.nativeElement.querySelector('.td-updates-panel');
+    expect(panel).toBeTruthy();
   });
 });

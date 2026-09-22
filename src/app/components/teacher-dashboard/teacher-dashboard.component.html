@@ -175,9 +175,31 @@
       </ng-container>
     </section>
 
-    <app-teacher-getting-started
-      [todaysClassesAvailable]="todayClassesLoading || timetableEntries.length > 0"
-    ></app-teacher-getting-started>
+    <section class="td-panel td-updates-panel">
+      <div class="td-heading">
+        <div class="td-today-title">
+          <span class="td-today-title-icon"><mat-icon>notifications</mat-icon></span>
+          <div><h2>Updates</h2></div>
+        </div>
+        <a routerLink="/dashboard/notice"
+          >View Updates <mat-icon>arrow_forward</mat-icon></a
+        >
+      </div>
+
+      <div class="td-skeleton" *ngIf="unreadCountLoading">
+        <span></span>
+      </div>
+
+      <p class="td-updates-count" *ngIf="!unreadCountLoading && !unreadCountFailed && unreadCount > 0">
+        <strong>{{ unreadCount }}</strong> unread update{{ unreadCount === 1 ? "" : "s" }}
+      </p>
+      <div class="td-empty" *ngIf="!unreadCountLoading && !unreadCountFailed && unreadCount === 0">
+        <mat-icon>task_alt</mat-icon><span>You're all caught up.</span>
+      </div>
+      <div class="td-empty" *ngIf="!unreadCountLoading && unreadCountFailed">
+        <mat-icon>notifications_none</mat-icon><span>Check Updates for the latest.</span>
+      </div>
+    </section>
 
     <div class="td-workspaces">
       <section class="td-panel" *ngIf="isClassTeacher">
@@ -423,5 +445,9 @@
         </div>
       </section>
     </div>
+
+    <app-teacher-getting-started
+      [todaysClassesAvailable]="todayClassesLoading || timetableEntries.length > 0"
+    ></app-teacher-getting-started>
   </ng-container>
 </div>
