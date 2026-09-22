@@ -31,6 +31,9 @@ import {
   TeacherTodayClassEntry,
   TeacherTodayClassesView,
 } from '../../utils/teacher-timetable-today.util';
+import { EventService } from '../../services/event.service';
+import { CalendarEvent } from '../../interfaces/event-calendar.component';
+import { pickNearestUpcomingEvent } from '../../utils/upcoming-event.util';
 
 const EMPTY_TODAY_VIEW: TeacherTodayClassesView = { current: null, upcoming: [], allDone: false, hasAnyToday: false };
 
@@ -72,6 +75,9 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   /** true only when the unread-count call itself failed — the dashboard must stay fully
    *  usable either way, so this only swaps the Updates panel to a neutral fallback line. */
   unreadCountFailed = false;
+  upcomingEvent: CalendarEvent | null = null;
+  upcomingEventLoading = true;
+  upcomingEventFailed = false;
   /** Read synchronously at construction — never loaded asynchronously, so the UI can never
    * briefly show clock times before the real "show times" preference is known. This is the
    * same per-device viewer preference as the full Timetable page's own "Show times" toggle
@@ -90,7 +96,8 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     private checkinService: TeacherCheckinService,
     private teacherLeaveService: TeacherLeaveService,
     private timetableService: TimetableService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private eventService: EventService
   ) { }
 
   ngOnInit(): void {
@@ -101,6 +108,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     this.loadRecentTeacherLeaves();
     this.loadTodayClasses(user.userId);
     this.loadUnreadCount();
+    this.loadUpcomingEvent();
 
     this.teacherService.getTeacher(user.userId)
       .pipe(takeUntil(this.destroy$))
@@ -178,6 +186,55 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
           this.logger.error('Unread notification count load error:', error);
           this.unreadCountLoading = false;
           this.unreadCountFailed = true;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  /** Current-month request first; only fires the next-month fallback when the current month
+   *  genuinely has no upcoming event left — at most 2 requests, never fired in parallel, and
+   *  isolated from the rest of the dashboard so an event failure never blocks anything else. */
+  private loadUpcomingEvent(): void {
+    this.upcomingEventLoading = true;
+    this.upcomingEventFailed = false;
+    const now = new Date();
+
+    this.eventService.getEventsForMonthAndYear(now.getFullYear(), now.getMonth() + 1)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: events => {
+          const nearest = pickNearestUpcomingEvent(events, now);
+          if (nearest) {
+            this.upcomingEvent = nearest;
+            this.upcomingEventLoading = false;
+            this.cdr.markForCheck();
+            return;
+          }
+          this.loadNextMonthEvent(now);
+        },
+        error: error => {
+          this.logger.error('Upcoming event load error:', error);
+          this.upcomingEventLoading = false;
+          this.upcomingEventFailed = true;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  private loadNextMonthEvent(now: Date): void {
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    this.eventService.getEventsForMonthAndYear(nextMonth.getFullYear(), nextMonth.getMonth() + 1)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: events => {
+          this.upcomingEvent = pickNearestUpcomingEvent(events, now);
+          this.upcomingEventLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: error => {
+          this.logger.error('Next-month event load error:', error);
+          this.upcomingEventLoading = false;
+          this.upcomingEventFailed = true;
           this.cdr.markForCheck();
         }
       });
@@ -353,6 +410,32 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
 
   formatAttendanceTime(value: string | null): string {
     return formatTeacherAttendanceTime(value);
+  }
+
+  /** Reuses the exact same "HH:mm" → "h:mm AM/PM" formatting already used for check-in and
+   *  class times — an event's startTime comes from the same LocalTime-shaped backend field. */
+  formatEventTime(value: string): string {
+    return formatTeacherAttendanceTime(value);
+  }
+
+  /**
+   * Derived entirely from `recentTeacherLeaves` — the same 3-most-recent-by-startDate list
+   * already fetched for the "My recent leaves" panel — so this adds zero new requests. The
+   * teacher-facing `/my-leaves` endpoint has no status filter (unlike the admin endpoint), so
+   * fetching a dedicated pending count would mean a second, largely-duplicate call against the
+   * same data; reusing what's already loaded is deliberately preferred over that. This is a
+   * best-effort signal from the most recent 3 applications, not an exhaustive lifetime count.
+   */
+  get leaveStatusLabel(): string {
+    const todayKey = this.toLocalDateKey(new Date());
+    const onLeaveToday = this.recentTeacherLeaves.find(leave =>
+      leave.status === 'APPROVED' && leave.startDate <= todayKey && leave.endDate >= todayKey);
+    if (onLeaveToday) return 'On leave today · Approved';
+
+    const pendingCount = this.recentTeacherLeaves.filter(leave => leave.status === 'PENDING').length;
+    if (pendingCount > 0) return `${pendingCount} request${pendingCount === 1 ? '' : 's'} pending`;
+
+    return 'No pending requests';
   }
 
   get isWeekend(): boolean {

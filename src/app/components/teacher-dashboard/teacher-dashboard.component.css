@@ -222,8 +222,7 @@
   color: #a7b1bf;
   font-size: 16px;
 }
-.td-workspaces,
-.td-leave-columns {
+.td-workspaces {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   gap: 18px;
@@ -526,13 +525,11 @@
   color: #7c3aed;
   background: #f5f3ff;
 }
-.td-own-leaves,
 .td-student-leaves {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.td-own-leaves > a,
 .td-student-leaves > div {
   display: flex;
   min-width: 0;
@@ -544,27 +541,6 @@
   color: inherit;
   background: #fbfcfd;
   text-decoration: none;
-}
-.td-leave-date {
-  display: flex;
-  width: 40px;
-  height: 42px;
-  flex: 0 0 40px;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  border-radius: 10px;
-  color: #0f766e;
-  background: #dff7f3;
-}
-.td-leave-date strong {
-  line-height: 1;
-}
-.td-leave-date small {
-  margin-top: 3px;
-  font-size: 0.55rem;
-  font-weight: 800;
-  text-transform: uppercase;
 }
 .td-leave-copy {
   display: flex;
@@ -591,6 +567,8 @@
   border-radius: 12px;
   font-size: 0.54rem;
   font-weight: 800;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .td-status.is-approved {
   color: #047857;
@@ -649,8 +627,7 @@
   .td-priority-grid {
     grid-template-columns: 1fr;
   }
-  .td-workspaces,
-  .td-leave-columns {
+  .td-workspaces {
     grid-template-columns: 1fr;
   }
   .td-actions-grid {
@@ -723,8 +700,7 @@
   .td-hero,
   .td-priorities,
   .td-workspaces,
-  .td-actions-panel,
-  .td-leave-columns {
+  .td-actions-panel {
     margin-bottom: 14px;
   }
   .td-heading {
@@ -735,8 +711,7 @@
     font-size: 1rem;
   }
   .td-priority-grid,
-  .td-workspaces,
-  .td-leave-columns {
+  .td-workspaces {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -846,7 +821,6 @@
     font-size: 0.65rem;
     text-align: left;
   }
-  .td-own-leaves > a,
   .td-student-leaves > div {
     align-items: center;
     padding: 10px 8px;
@@ -881,23 +855,109 @@
 .td-today-panel {
   margin-bottom: 18px;
 }
-.td-updates-panel {
+/* ── Today's Classes — richer empty state ──────────────────────────── */
+.td-today-empty {
+  flex-direction: column;
+  gap: 10px;
+  min-height: 120px;
+  background: linear-gradient(160deg, #f4fbfa, #fbfdfd);
+  border: 1px dashed #cfe8e5;
+}
+.td-today-empty-icon {
+  width: 46px; height: 46px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(15, 118, 110, .28);
+}
+.td-today-empty-icon mat-icon { font-size: 22px; width: 22px; height: 22px; }
+.td-today-empty span:last-child { font-size: .82rem; color: #64748b; max-width: 320px; text-align: center; }
+
+/* ── Daily Insights — Leaves / Updates / Upcoming Event ─────────────── */
+.td-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
   margin-bottom: 18px;
 }
-.td-updates-panel .td-skeleton {
-  grid-template-columns: 1fr;
+.td-insight-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--tile-border);
+  background: var(--tile-tint);
+  text-decoration: none;
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .18s ease;
 }
-.td-updates-panel .td-skeleton span {
-  height: 20px;
+.td-insight-tile:active {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, .10);
 }
-.td-updates-count {
-  margin: 0;
-  color: #526278;
-  font-size: 0.82rem;
+.td-insight-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--tile-icon-bg);
+  color: #fff;
+  box-shadow: 0 6px 14px var(--tile-icon-shadow);
+  flex-shrink: 0;
 }
-.td-updates-count strong {
-  color: #223047;
+.td-insight-icon mat-icon { font-size: 20px; width: 20px; height: 20px; }
+.td-insight-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.td-insight-copy small {
+  font-size: .61rem;
   font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--tile-accent);
+}
+.td-insight-copy strong {
+  margin: 2px 0;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #17203a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.td-insight-copy em {
+  font-size: .62rem;
+  font-style: normal;
+  color: #7b879a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.td-insight-arrow {
+  width: 16px; height: 16px; font-size: 16px;
+  color: var(--tile-accent);
+  opacity: .55;
+  flex-shrink: 0;
+  transition: transform .15s ease, opacity .15s ease;
+}
+.td-insight-tile:active .td-insight-arrow { opacity: 1; transform: translateX(3px); }
+.td-insight-skeleton { flex: 1; grid-template-columns: 1fr; }
+.td-insight-skeleton span { height: 16px; margin-top: 3px; border-radius: 6px; }
+
+.insight-amber { --tile-border: #fde3a1; --tile-tint: linear-gradient(165deg, #fffaf0, #fff); --tile-icon-bg: linear-gradient(135deg, #b45309, #f59e0b); --tile-icon-shadow: rgba(180, 83, 9, .32); --tile-accent: #b45309; }
+.insight-indigo { --tile-border: #cdd3fb; --tile-tint: linear-gradient(165deg, #f2f3ff, #fff); --tile-icon-bg: linear-gradient(135deg, #4338ca, #6366f1); --tile-icon-shadow: rgba(67, 56, 202, .32); --tile-accent: #4338ca; }
+.insight-teal { --tile-border: #a9e2dd; --tile-tint: linear-gradient(165deg, #f0fdfa, #fff); --tile-icon-bg: linear-gradient(135deg, #0f766e, #14b8a6); --tile-icon-shadow: rgba(15, 118, 110, .32); --tile-accent: #0f766e; }
+
+@media (max-width: 900px) {
+  .td-insights-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .td-insights-grid { grid-template-columns: 1fr; }
 }
 .td-today-title {
   display: flex;
@@ -1047,6 +1107,7 @@
 .td-attendance-panel {
   position: relative;
   overflow: hidden;
+  margin-bottom: 18px;
   border-color: #d9eeeb;
   background: radial-gradient(
       circle at 105% -8%,

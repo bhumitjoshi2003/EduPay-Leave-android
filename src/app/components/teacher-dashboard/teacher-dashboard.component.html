@@ -147,18 +147,18 @@
         </div>
 
         <div
-          class="td-empty"
+          class="td-empty td-today-empty"
           *ngIf="!todayView.current && !todayView.upcoming.length && todayView.allDone"
         >
-          <mat-icon>task_alt</mat-icon
+          <span class="td-today-empty-icon"><mat-icon>task_alt</mat-icon></span
           ><span>Today's classes are complete.</span>
         </div>
 
         <div
-          class="td-empty"
+          class="td-empty td-today-empty"
           *ngIf="!todayView.hasAnyToday && !timetableEntries.length"
         >
-          <mat-icon>event_busy</mat-icon
+          <span class="td-today-empty-icon"><mat-icon>event_busy</mat-icon></span
           ><span
             >No timetable assigned yet. Contact your school admin if this
             looks incorrect.</span
@@ -166,43 +166,170 @@
         </div>
 
         <div
-          class="td-empty"
+          class="td-empty td-today-empty"
           *ngIf="!todayView.hasAnyToday && timetableEntries.length"
         >
-          <mat-icon>event_available</mat-icon
+          <span class="td-today-empty-icon"><mat-icon>event_available</mat-icon></span
           ><span>No classes scheduled for today.</span>
         </div>
       </ng-container>
     </section>
 
-    <section class="td-panel td-updates-panel">
-      <div class="td-heading">
-        <div class="td-today-title">
-          <span class="td-today-title-icon"><mat-icon>notifications</mat-icon></span>
-          <div><h2>Updates</h2></div>
+    <section class="td-panel td-attendance-panel">
+      <div class="td-heading td-attendance-heading">
+        <div class="td-attendance-title">
+          <span class="td-attendance-title-icon"
+            ><mat-icon>insights</mat-icon></span
+          >
+          <div>
+            <h2>{{ today | date : "MMMM" }} attendance</h2>
+            <span>Your monthly check-in summary</span>
+          </div>
         </div>
-        <a routerLink="/dashboard/notice"
-          >View Updates <mat-icon>arrow_forward</mat-icon></a
+        <a routerLink="/dashboard/teacher-checkin"
+          >View details <mat-icon>arrow_forward</mat-icon></a
         >
       </div>
-
-      <div class="td-skeleton" *ngIf="unreadCountLoading">
-        <span></span>
+      <div class="td-skeleton" *ngIf="personalSummaryLoading">
+        <span></span><span></span><span></span>
       </div>
-
-      <p class="td-updates-count" *ngIf="!unreadCountLoading && !unreadCountFailed && unreadCount > 0">
-        <strong>{{ unreadCount }}</strong> unread update{{ unreadCount === 1 ? "" : "s" }}
-      </p>
-      <div class="td-empty" *ngIf="!unreadCountLoading && !unreadCountFailed && unreadCount === 0">
-        <mat-icon>task_alt</mat-icon><span>You're all caught up.</span>
-      </div>
-      <div class="td-empty" *ngIf="!unreadCountLoading && unreadCountFailed">
-        <mat-icon>notifications_none</mat-icon><span>Check Updates for the latest.</span>
+      <ng-container
+        *ngIf="!personalSummaryLoading && personalAttendance as attendance"
+      >
+        <div class="td-personal-score">
+          <div
+            class="td-ring"
+            [style.--progress]="personalAttendancePercent + '%'"
+          >
+            <span
+              >{{ personalAttendancePercent | number : "1.0-0"
+              }}<small>%</small></span
+            >
+          </div>
+          <div>
+            <strong>Monthly attendance</strong
+            ><span
+              >{{ attendance.totalWorkingDays }} tracked working days</span
+            >
+          </div>
+        </div>
+        <div class="td-personal-metrics">
+          <div>
+            <mat-icon class="green">check_circle</mat-icon
+            ><strong>{{ attendance.presentDays }}</strong
+            ><span>Present</span>
+          </div>
+          <div>
+            <mat-icon class="amber">schedule</mat-icon
+            ><strong>{{ attendance.lateDays }}</strong
+            ><span>Late</span>
+          </div>
+          <div>
+            <mat-icon class="red">event_busy</mat-icon
+            ><strong>{{ attendance.absentDays }}</strong
+            ><span>Absent</span>
+          </div>
+          <div>
+            <mat-icon class="purple">event_note</mat-icon
+            ><strong>{{ attendance.onLeaveDays }}</strong
+            ><span>On leave</span>
+          </div>
+        </div>
+      </ng-container>
+      <div
+        class="td-empty"
+        *ngIf="!personalSummaryLoading && !personalAttendance"
+      >
+        <mat-icon>info_outline</mat-icon
+        ><span>Attendance summary is temporarily unavailable</span>
       </div>
     </section>
 
-    <div class="td-workspaces">
-      <section class="td-panel" *ngIf="isClassTeacher">
+    <div class="td-insights-grid">
+      <a class="td-insight-tile insight-amber" routerLink="/dashboard/apply-teacher-leave">
+        <span class="td-insight-icon"><mat-icon>event_note</mat-icon></span>
+        <span class="td-insight-copy">
+          <small>Leaves</small>
+          <div class="td-skeleton td-insight-skeleton" *ngIf="teacherLeavesLoading"><span></span></div>
+          <ng-container *ngIf="!teacherLeavesLoading">
+            <strong *ngIf="recentTeacherLeaves.length">{{ recentTeacherLeaves[0].reason || "Leave application" }}</strong>
+            <strong *ngIf="!recentTeacherLeaves.length">No leave applications yet</strong>
+          </ng-container>
+        </span>
+        <span
+          class="td-status"
+          *ngIf="!teacherLeavesLoading && recentTeacherLeaves.length"
+          [ngClass]="'is-' + recentTeacherLeaves[0].status.toLowerCase()"
+          >{{ recentTeacherLeaves[0].status | titlecase }}</span
+        >
+        <mat-icon class="td-insight-arrow">arrow_forward</mat-icon>
+      </a>
+
+      <a class="td-insight-tile insight-indigo" routerLink="/dashboard/notice">
+        <span class="td-insight-icon"><mat-icon>notifications</mat-icon></span>
+        <span class="td-insight-copy">
+          <small>Updates</small>
+          <div class="td-skeleton td-insight-skeleton" *ngIf="unreadCountLoading"><span></span></div>
+          <ng-container *ngIf="!unreadCountLoading">
+            <strong *ngIf="!unreadCountFailed && unreadCount > 0">{{ unreadCount }} unread update{{ unreadCount === 1 ? "" : "s" }}</strong>
+            <strong *ngIf="!unreadCountFailed && unreadCount === 0">You're all caught up</strong>
+            <strong *ngIf="unreadCountFailed">Check Updates for the latest</strong>
+          </ng-container>
+        </span>
+        <mat-icon class="td-insight-arrow">arrow_forward</mat-icon>
+      </a>
+
+      <a class="td-insight-tile insight-teal" routerLink="/dashboard/event-calendar">
+        <span class="td-insight-icon"><mat-icon>event</mat-icon></span>
+        <span class="td-insight-copy">
+          <small>Upcoming Event</small>
+          <div class="td-skeleton td-insight-skeleton" *ngIf="upcomingEventLoading"><span></span></div>
+          <ng-container *ngIf="!upcomingEventLoading">
+            <strong *ngIf="upcomingEvent">{{ upcomingEvent.title }}</strong>
+            <em *ngIf="upcomingEvent">{{ upcomingEvent.startDate | date: "EEE, d MMM" }}<ng-container *ngIf="upcomingEvent.startTime"> · {{ formatEventTime(upcomingEvent.startTime) }}</ng-container></em>
+            <strong *ngIf="!upcomingEvent && !upcomingEventFailed">No upcoming events</strong>
+            <em *ngIf="!upcomingEvent && !upcomingEventFailed">Nothing on the calendar this month</em>
+            <strong *ngIf="upcomingEventFailed">Events unavailable</strong>
+            <em *ngIf="upcomingEventFailed">Temporarily unable to load</em>
+          </ng-container>
+        </span>
+        <mat-icon class="td-insight-arrow">arrow_forward</mat-icon>
+      </a>
+    </div>
+
+    <section class="td-panel td-actions-panel">
+      <div class="td-heading">
+        <div>
+          <h2>Quick actions</h2>
+        </div>
+      </div>
+      <div class="td-actions-grid">
+        <a routerLink="/dashboard/teacher-checkin"
+          ><span class="blue"><mat-icon>location_on</mat-icon></span
+          ><strong>My Check-in</strong></a
+        ><a *ngIf="isClassTeacher" routerLink="/dashboard/teacher-attendance"
+          ><span class="cyan"><mat-icon>how_to_reg</mat-icon></span
+          ><strong>Mark Attendance</strong></a
+        ><a routerLink="/dashboard/timetable"
+          ><span class="indigo"><mat-icon>schedule</mat-icon></span
+          ><strong>Timetable</strong></a
+        ><a routerLink="/dashboard/apply-teacher-leave"
+          ><span class="teal"><mat-icon>event_note</mat-icon></span
+          ><strong>My Leave</strong></a
+        ><a *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/mark-entry"
+          ><span class="pink"><mat-icon>grade</mat-icon></span
+          ><strong>Mark Entry</strong></a
+        ><a
+          *ngIf="hasFeature('REPORT_CARD')"
+          routerLink="/dashboard/report-card-remarks"
+          ><span class="violet"><mat-icon>rate_review</mat-icon></span
+          ><strong>Remarks</strong></a
+        >
+      </div>
+    </section>
+
+    <div class="td-workspaces" *ngIf="isClassTeacher">
+      <section class="td-panel">
         <div class="td-heading">
           <div>
             <h2>Class {{ className }} today</h2>
@@ -261,156 +388,7 @@
         </div>
       </section>
 
-      <section class="td-panel td-attendance-panel">
-        <div class="td-heading td-attendance-heading">
-          <div class="td-attendance-title">
-            <span class="td-attendance-title-icon"
-              ><mat-icon>insights</mat-icon></span
-            >
-            <div>
-              <h2>{{ today | date : "MMMM" }} attendance</h2>
-              <span>Your monthly check-in summary</span>
-            </div>
-          </div>
-          <a routerLink="/dashboard/teacher-checkin"
-            >View details <mat-icon>arrow_forward</mat-icon></a
-          >
-        </div>
-        <div class="td-skeleton" *ngIf="personalSummaryLoading">
-          <span></span><span></span><span></span>
-        </div>
-        <ng-container
-          *ngIf="!personalSummaryLoading && personalAttendance as attendance"
-        >
-          <div class="td-personal-score">
-            <div
-              class="td-ring"
-              [style.--progress]="personalAttendancePercent + '%'"
-            >
-              <span
-                >{{ personalAttendancePercent | number : "1.0-0"
-                }}<small>%</small></span
-              >
-            </div>
-            <div>
-              <strong>Monthly attendance</strong
-              ><span
-                >{{ attendance.totalWorkingDays }} tracked working days</span
-              >
-            </div>
-          </div>
-          <div class="td-personal-metrics">
-            <div>
-              <mat-icon class="green">check_circle</mat-icon
-              ><strong>{{ attendance.presentDays }}</strong
-              ><span>Present</span>
-            </div>
-            <div>
-              <mat-icon class="amber">schedule</mat-icon
-              ><strong>{{ attendance.lateDays }}</strong
-              ><span>Late</span>
-            </div>
-            <div>
-              <mat-icon class="red">event_busy</mat-icon
-              ><strong>{{ attendance.absentDays }}</strong
-              ><span>Absent</span>
-            </div>
-            <div>
-              <mat-icon class="purple">event_note</mat-icon
-              ><strong>{{ attendance.onLeaveDays }}</strong
-              ><span>On leave</span>
-            </div>
-          </div>
-        </ng-container>
-        <div
-          class="td-empty"
-          *ngIf="!personalSummaryLoading && !personalAttendance"
-        >
-          <mat-icon>info_outline</mat-icon
-          ><span>Attendance summary is temporarily unavailable</span>
-        </div>
-      </section>
-    </div>
-
-    <section class="td-panel td-actions-panel">
-      <div class="td-heading">
-        <div>
-          <h2>Quick actions</h2>
-        </div>
-      </div>
-      <div class="td-actions-grid">
-        <a routerLink="/dashboard/teacher-checkin"
-          ><span class="blue"><mat-icon>location_on</mat-icon></span
-          ><strong>My Check-in</strong></a
-        ><a *ngIf="isClassTeacher" routerLink="/dashboard/teacher-attendance"
-          ><span class="cyan"><mat-icon>how_to_reg</mat-icon></span
-          ><strong>Mark Attendance</strong></a
-        ><a routerLink="/dashboard/timetable"
-          ><span class="indigo"><mat-icon>schedule</mat-icon></span
-          ><strong>Timetable</strong></a
-        ><a routerLink="/dashboard/apply-teacher-leave"
-          ><span class="teal"><mat-icon>event_note</mat-icon></span
-          ><strong>My Leave</strong></a
-        ><a *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/mark-entry"
-          ><span class="pink"><mat-icon>grade</mat-icon></span
-          ><strong>Mark Entry</strong></a
-        ><a
-          *ngIf="hasFeature('REPORT_CARD')"
-          routerLink="/dashboard/report-card-remarks"
-          ><span class="violet"><mat-icon>rate_review</mat-icon></span
-          ><strong>Remarks</strong></a
-        >
-      </div>
-    </section>
-
-    <div class="td-leave-columns">
       <section class="td-panel">
-        <div class="td-heading">
-          <div>
-            <h2>My recent leaves</h2>
-          </div>
-          <a routerLink="/dashboard/apply-teacher-leave"
-            >View all <mat-icon>arrow_forward</mat-icon></a
-          >
-        </div>
-        <div class="td-skeleton" *ngIf="teacherLeavesLoading">
-          <span></span><span></span><span></span>
-        </div>
-        <div
-          class="td-own-leaves"
-          *ngIf="!teacherLeavesLoading && recentTeacherLeaves.length"
-        >
-          <a
-            routerLink="/dashboard/apply-teacher-leave"
-            *ngFor="let leave of recentTeacherLeaves"
-            ><span class="td-leave-date"
-              ><strong>{{ leave.startDate | date : "d" }}</strong
-              ><small>{{ leave.startDate | date : "MMM" }}</small></span
-            ><span class="td-leave-copy"
-              ><strong>{{ leave.reason || "Leave application" }}</strong
-              ><small
-                >{{ leave.startDate | date : "d MMM"
-                }}<ng-container *ngIf="leave.endDate !== leave.startDate">
-                  – {{ leave.endDate | date : "d MMM" }}</ng-container
-                >
-                · {{ leave.days }} day{{ leave.days === 1 ? "" : "s" }}</small
-              ></span
-            ><span
-              class="td-status"
-              [ngClass]="'is-' + leave.status.toLowerCase()"
-              >{{ leave.status | titlecase }}</span
-            ></a
-          >
-        </div>
-        <div
-          class="td-empty"
-          *ngIf="!teacherLeavesLoading && !recentTeacherLeaves.length"
-        >
-          <mat-icon>event_available</mat-icon
-          ><span>No leave applications yet</span>
-        </div>
-      </section>
-      <section class="td-panel" *ngIf="isClassTeacher">
         <div class="td-heading">
           <div>
             <h2>Pending approvals</h2>

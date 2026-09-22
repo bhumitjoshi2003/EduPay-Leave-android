@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { AdminDashboardComponent } from './admin-dashboard.component';
 import { AuthStateService } from '../../auth/auth-state.service';
 import { AdminService } from '../../services/admin.service';
@@ -11,13 +11,19 @@ import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { StaffAdoptionService } from '../../services/staff-adoption.service';
 import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
+import { TeacherLeaveService } from '../../services/teacher-leave.service';
+import { EventService } from '../../services/event.service';
 
 describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
   let fixture: ComponentFixture<AdminDashboardComponent>;
   let component: AdminDashboardComponent;
   let staffAdoptionService: jasmine.SpyObj<StaffAdoptionService>;
+  let teacherLeaveService: jasmine.SpyObj<TeacherLeaveService>;
+  let eventService: jasmine.SpyObj<EventService>;
 
-  function configure(role: string, opts: { stats?: any; staffAttendance?: any } = {}): void {
+  function configure(role: string, opts: {
+    stats?: any; staffAttendance?: any; teacherLeavesTotal?: number; events?: any[];
+  } = {}): void {
     const authState = jasmine.createSpyObj('AuthStateService', ['getUser', 'hasFeature']);
     authState.getUser.and.returnValue({ userId: 'U1', role, name: 'Test', className: '' } as any);
     authState.hasFeature.and.returnValue(false);
@@ -30,6 +36,13 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
 
     const stats = opts.stats ?? { totalStudents: 0, totalTeachers: 10, feesCollectedThisMonth: 0, overdueStudents: 0, todayAttendanceRate: 0, pendingLeaves: 0 };
     const staffAttendance = opts.staffAttendance ?? { date: '2026-09-22', presentCount: 4, lateCount: 1, absentCount: 0, halfDayCount: 0, onLeaveCount: 1 };
+
+    teacherLeaveService = jasmine.createSpyObj('TeacherLeaveService', ['getLeaves']);
+    teacherLeaveService.getLeaves.and.returnValue(of({
+      content: [], totalElements: opts.teacherLeavesTotal ?? 0, totalPages: 1, size: 1, number: 0, first: true, last: true, empty: true,
+    }));
+    eventService = jasmine.createSpyObj('EventService', ['getEventsForMonthAndYear']);
+    eventService.getEventsForMonthAndYear.and.returnValue(of(opts.events ?? []));
 
     TestBed.configureTestingModule({
       imports: [AdminDashboardComponent],
@@ -44,6 +57,8 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
         { provide: StaffAdoptionService, useValue: staffAdoptionService },
         { provide: LoggerService, useValue: jasmine.createSpyObj('LoggerService', ['error']) },
         { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['error']) },
+        { provide: TeacherLeaveService, useValue: teacherLeaveService },
+        { provide: EventService, useValue: eventService },
       ],
     });
     fixture = TestBed.createComponent(AdminDashboardComponent);
@@ -137,5 +152,92 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
     expect(text).toContain('Total Students');
     expect(text).toContain('Total Teachers');
     expect(text).toContain('No pending leave requests');
+  });
+
+  // ─── Teacher pending leave — reuses the existing ADMIN-only status-filtered endpoint ───
+
+  it('renders the student pending-leave count unchanged, from existing dashboard stats', () => {
+    configure('ADMIN', { stats: { totalStudents: 0, totalTeachers: 10, feesCollectedThisMonth: 0, overdueStudents: 0, todayAttendanceRate: 0, pendingLeaves: 3 } });
+    fixture.detectChanges();
+    const studentPill = fixture.nativeElement.querySelector('.ad-leave-type-pill');
+    expect(studentPill.textContent).toContain('Student');
+    expect(studentPill.textContent).toContain('3');
+  });
+
+  it('renders the teacher pending-leave count separately, via getLeaves(0,1,"PENDING")', () => {
+    configure('ADMIN', { teacherLeavesTotal: 2 });
+    fixture.detectChanges();
+    expect(teacherLeaveService.getLeaves).toHaveBeenCalledWith(0, 1, 'PENDING');
+    const pills = fixture.nativeElement.querySelectorAll('.ad-leave-type-pill');
+    const teacherPill = Array.from(pills).find((r: any) => r.textContent.includes('Teacher')) as HTMLElement;
+    expect(teacherPill.textContent).toContain('2');
+  });
+
+  it('shows a zero teacher-pending state distinctly', () => {
+    configure('ADMIN', { teacherLeavesTotal: 0 });
+    fixture.detectChanges();
+    const pills = fixture.nativeElement.querySelectorAll('.ad-leave-type-pill');
+    const teacherPill = Array.from(pills).find((r: any) => r.textContent.includes('Teacher')) as HTMLElement;
+    expect(teacherPill.querySelector('.ad-leave-type-value')?.textContent?.trim()).toBe('0');
+  });
+
+  it('does not fire the ADMIN-only teacher-leave count request for SUB_ADMIN', () => {
+    configure('SUB_ADMIN');
+    fixture.detectChanges();
+    expect(teacherLeaveService.getLeaves).not.toHaveBeenCalled();
+    const pills = fixture.nativeElement.querySelectorAll('.ad-leave-type-pill');
+    expect(Array.from(pills).some((r: any) => r.textContent.includes('Teacher'))).toBeFalse();
+  });
+
+  it('links Review Student Leave and Review Teacher Leave to the correct existing routes', () => {
+    configure('ADMIN');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.ad-leave-type-pill a[routerLink="/dashboard/view-leaves"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.ad-leave-type-pill a[routerLink="/dashboard/teacher-leave-requests"]')).toBeTruthy();
+  });
+
+  it('isolates a teacher-leave-count failure — the rest of the dashboard still loads', () => {
+    configure('ADMIN');
+    teacherLeaveService.getLeaves.and.returnValue(throwError(() => new Error('offline')));
+    fixture.detectChanges();
+    expect(component.teacherPendingLeaveFailed).toBeTrue();
+    expect(component.isLoading).toBeFalse();
+    expect(fixture.nativeElement.textContent).toContain('Total Teachers');
+  });
+
+  // ─── Upcoming event — bounded to at most 2 requests, isolated failure ───
+
+  const event = (overrides: any = {}) => ({
+    id: 1, title: 'Event', description: '', startDate: '2026-09-22', category: 'GENERAL', targetAudience: [], ...overrides,
+  });
+
+  it('renders the nearest upcoming event for the current month', () => {
+    configure('ADMIN', { events: [event({ title: 'Sooner', startDate: '2026-09-24' }), event({ id: 2, title: 'Later', startDate: '2026-09-28' })] });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Sooner');
+    expect(eventService.getEventsForMonthAndYear).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to next month when the current month has no upcoming event', () => {
+    configure('ADMIN', { events: [event({ title: 'Past', startDate: '2026-09-01' })] });
+    fixture.detectChanges();
+    expect(eventService.getEventsForMonthAndYear).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows a no-event state and Staff Adoption still remains below daily content', () => {
+    configure('ADMIN', { events: [] });
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('No upcoming events this month.');
+    expect(text.indexOf('Upcoming Event')).toBeLessThan(text.lastIndexOf('Staff Adoption'));
+  });
+
+  it('isolates an event-load failure — other sections stay intact', () => {
+    configure('ADMIN');
+    eventService.getEventsForMonthAndYear.and.returnValue(throwError(() => new Error('offline')));
+    fixture.detectChanges();
+    expect(component.upcomingEventFailed).toBeTrue();
+    expect(component.isLoading).toBeFalse();
+    expect(fixture.nativeElement.textContent).toContain('Total Teachers');
   });
 });

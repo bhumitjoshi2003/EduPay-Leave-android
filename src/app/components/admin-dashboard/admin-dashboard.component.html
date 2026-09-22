@@ -136,10 +136,28 @@
 
     <!-- ── Pending Leave Requests ────────────────────────────────────── -->
     <div class="ad-section">
-      <h2 class="ad-section-title">
-        Pending Leave Requests
-        <span class="ad-badge" *ngIf="stats && stats.pendingLeaves > 0">{{ stats.pendingLeaves }}</span>
-      </h2>
+      <h2 class="ad-section-title">Pending Leave Requests</h2>
+
+      <div class="ad-leave-breakdown">
+        <div class="ad-leave-type-pill" style="--pc:#0369a1">
+          <div class="ad-leave-type-icon"><mat-icon>school</mat-icon></div>
+          <div class="ad-leave-type-copy">
+            <span class="ad-leave-type-value">{{ stats?.pendingLeaves ?? 0 }}</span>
+            <span class="ad-leave-type-label">Student{{ (stats?.pendingLeaves ?? 0) === 1 ? '' : 's' }} pending</span>
+          </div>
+          <a class="ad-leave-type-cta" routerLink="/dashboard/view-leaves"><mat-icon>arrow_forward</mat-icon></a>
+        </div>
+        <div class="ad-leave-type-pill" style="--pc:#0f766e" *ngIf="isAdmin">
+          <div class="ad-leave-type-icon"><mat-icon>groups</mat-icon></div>
+          <div class="ad-leave-type-copy">
+            <span class="ad-leave-type-value" *ngIf="!teacherPendingLeaveFailed">{{ teacherPendingLeaveLoading ? '—' : (teacherPendingLeaveCount ?? 0) }}</span>
+            <span class="ad-leave-type-value" *ngIf="teacherPendingLeaveFailed">—</span>
+            <span class="ad-leave-type-label" *ngIf="!teacherPendingLeaveFailed">Teacher{{ teacherPendingLeaveCount === 1 ? '' : 's' }} pending</span>
+            <span class="ad-leave-type-label" *ngIf="teacherPendingLeaveFailed">Unavailable</span>
+          </div>
+          <a class="ad-leave-type-cta" routerLink="/dashboard/teacher-leave-requests"><mat-icon>arrow_forward</mat-icon></a>
+        </div>
+      </div>
 
       <div class="ad-empty-leaves" *ngIf="recentLeaves.length === 0">
         <mat-icon>check_circle_outline</mat-icon>
@@ -152,24 +170,18 @@
           <div class="ad-leave-avatar">{{ leave.studentName.charAt(0).toUpperCase() }}</div>
           <div class="ad-leave-info">
             <span class="ad-leave-name">{{ leave.studentName }}</span>
-            <span class="ad-leave-meta">
-              <mat-icon>school</mat-icon>
-              Class {{ leave.className }}
-              <span class="ad-leave-dot">·</span>
-              <mat-icon>calendar_today</mat-icon>
-              {{ leave.leaveDate | date:'d MMM' }}
-            </span>
-            <span class="ad-leave-reason" *ngIf="leave.reason">{{ leave.reason }}</span>
+            <div class="ad-leave-tags">
+              <span class="ad-leave-class-chip"><mat-icon>school</mat-icon>Class {{ leave.className }}</span>
+              <span class="ad-leave-reason" [ngClass]="reasonTagClass(leave.reason)" *ngIf="leave.reason">{{ leave.reason }}</span>
+            </div>
+          </div>
+          <div class="ad-leave-date-chip">
+            <span class="ad-leave-date-day">{{ leave.leaveDate | date:'d' }}</span>
+            <span class="ad-leave-date-month">{{ leave.leaveDate | date:'MMM' }}</span>
           </div>
           <mat-icon class="ad-leave-arrow">chevron_right</mat-icon>
         </a>
       </div>
-
-      <a class="ad-view-all" routerLink="/dashboard/view-leaves"
-        *ngIf="stats && stats.pendingLeaves > 5">
-        View all {{ stats.pendingLeaves }} requests
-        <mat-icon>arrow_forward</mat-icon>
-      </a>
     </div>
 
     <!-- ── Today's Quick Actions (compact daily subset) ─────────────── -->
@@ -201,6 +213,31 @@
           <span>Staff Adoption</span>
         </a>
       </div>
+    </div>
+
+    <!-- ── Upcoming Event ────────────────────────────────────────────── -->
+    <div class="ad-section">
+      <h2 class="ad-section-title">Upcoming Event</h2>
+      <div class="ad-event-card" *ngIf="!upcomingEventLoading && upcomingEvent">
+        <div class="ad-event-icon"><mat-icon>event</mat-icon></div>
+        <div class="ad-event-copy">
+          <span class="ad-event-title">{{ upcomingEvent.title }}</span>
+          <span class="ad-event-date">
+            <mat-icon>schedule</mat-icon>
+            {{ upcomingEvent.startDate | date:'EEE, d MMM' }}<ng-container *ngIf="upcomingEvent.startTime"> · {{ formatEventTime(upcomingEvent.startTime) }}</ng-container>
+          </span>
+        </div>
+      </div>
+
+      <div class="ad-empty-leaves" *ngIf="!upcomingEventLoading && !upcomingEvent && !upcomingEventFailed">
+        <mat-icon>event_busy</mat-icon>
+        <p>No upcoming events this month.</p>
+      </div>
+      <div class="ad-empty-leaves" *ngIf="upcomingEventFailed">
+        <mat-icon>event_busy</mat-icon>
+        <p>Events are temporarily unavailable.</p>
+      </div>
+      <a class="ad-view-all" routerLink="/dashboard/event-calendar">View Events <mat-icon>arrow_forward</mat-icon></a>
     </div>
 
     <!-- ── Staff Adoption (repositioned below daily operations) ─────── -->

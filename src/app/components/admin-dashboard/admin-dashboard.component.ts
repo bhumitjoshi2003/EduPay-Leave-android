@@ -19,6 +19,10 @@ import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
 import { StaffAdoptionService } from '../../services/staff-adoption.service';
 import { StaffAdoptionSummary } from '../../interfaces/staff-adoption';
+import { TeacherLeaveService } from '../../services/teacher-leave.service';
+import { EventService } from '../../services/event.service';
+import { CalendarEvent } from '../../interfaces/event-calendar.component';
+import { pickNearestUpcomingEvent } from '../../utils/upcoming-event.util';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -42,6 +46,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   staffAdoption: StaffAdoptionSummary | null = null;
   staffAdoptionError = false;
   isAdmin = false;
+  teacherPendingLeaveCount: number | null = null;
+  teacherPendingLeaveLoading = true;
+  teacherPendingLeaveFailed = false;
+  upcomingEvent: CalendarEvent | null = null;
+  upcomingEventLoading = true;
+  upcomingEventFailed = false;
 
   constructor(
     private authState: AuthStateService,
@@ -54,6 +64,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private toast: ToastService,
     private staffAdoptionService: StaffAdoptionService,
+    private teacherLeaveService: TeacherLeaveService,
+    private eventService: EventService,
   ) {}
 
   ngOnInit(): void {
@@ -69,7 +81,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
     this.isAdmin = user?.role === 'ADMIN';
     this.loadDashboardData();
-    if (this.isAdmin) this.loadStaffAdoption();
+    this.loadUpcomingEvent();
+    if (this.isAdmin) {
+      this.loadStaffAdoption();
+      this.loadTeacherPendingLeaveCount();
+    }
   }
 
   loadStaffAdoption(): void {
@@ -78,6 +94,79 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       next: response => { this.staffAdoption = response.summary; this.cdr.markForCheck(); },
       error: e => { this.logger.error('Staff adoption load error:', e); this.staffAdoptionError = true; this.cdr.markForCheck(); }
     });
+  }
+
+  /** Reuses the existing ADMIN-only teacher-leave endpoint's status filter — requests the
+   *  smallest useful page (size=1) and reads totalElements. Never fired for SUB_ADMIN: the
+   *  backend endpoint itself is ADMIN-only. Isolated from the main forkJoin so a failure here
+   *  never blocks Staff Attendance / student Pending Leave. */
+  loadTeacherPendingLeaveCount(): void {
+    this.teacherPendingLeaveLoading = true;
+    this.teacherPendingLeaveFailed = false;
+    this.teacherLeaveService.getLeaves(0, 1, 'PENDING')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: response => {
+          this.teacherPendingLeaveCount = response.totalElements;
+          this.teacherPendingLeaveLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: e => {
+          this.logger.error('Teacher pending leave count load error:', e);
+          this.teacherPendingLeaveLoading = false;
+          this.teacherPendingLeaveFailed = true;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  /** Current-month request first; only fires the next-month fallback when the current month
+   *  genuinely has no upcoming event left — at most 2 requests, never fired in parallel, and
+   *  isolated from the rest of the dashboard so an event failure never blocks anything else. */
+  private loadUpcomingEvent(): void {
+    this.upcomingEventLoading = true;
+    this.upcomingEventFailed = false;
+    const now = new Date();
+
+    this.eventService.getEventsForMonthAndYear(now.getFullYear(), now.getMonth() + 1)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: events => {
+          const nearest = pickNearestUpcomingEvent(events, now);
+          if (nearest) {
+            this.upcomingEvent = nearest;
+            this.upcomingEventLoading = false;
+            this.cdr.markForCheck();
+            return;
+          }
+          this.loadNextMonthEvent(now);
+        },
+        error: e => {
+          this.logger.error('Upcoming event load error:', e);
+          this.upcomingEventLoading = false;
+          this.upcomingEventFailed = true;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  private loadNextMonthEvent(now: Date): void {
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    this.eventService.getEventsForMonthAndYear(nextMonth.getFullYear(), nextMonth.getMonth() + 1)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: events => {
+          this.upcomingEvent = pickNearestUpcomingEvent(events, now);
+          this.upcomingEventLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: e => {
+          this.logger.error('Next-month event load error:', e);
+          this.upcomingEventLoading = false;
+          this.upcomingEventFailed = true;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   loadDashboardData(): void {
@@ -217,5 +306,26 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   hasFeature(featureKey: string): boolean {
     return this.authState.hasFeature(featureKey);
+  }
+
+  /** Same "HH:mm" → "h:mm AM/PM" formatting used across the app for LocalTime-shaped fields. */
+  formatEventTime(value: string): string {
+    const match = /^(\d{1,2}):(\d{2})/.exec(value);
+    if (!match) return value;
+    const hour = Number(match[1]);
+    const suffix = hour >= 12 ? 'PM' : 'AM';
+    return `${hour % 12 || 12}:${match[2]} ${suffix}`;
+  }
+
+  private static readonly REASON_TAG_CLASSES = ['tag-violet', 'tag-amber', 'tag-rose', 'tag-indigo', 'tag-emerald', 'tag-cyan'];
+
+  /** Deterministically assigns one of a fixed set of existing Edunexify tag colors to a leave
+   *  reason, purely from its text — same reason always renders the same color, and every color
+   *  used is already present elsewhere on this dashboard (Quick Actions icon tiles), so no new
+   *  palette is introduced. Purely cosmetic grouping, not a real category on the backend. */
+  reasonTagClass(reason: string): string {
+    let hash = 0;
+    for (let i = 0; i < reason.length; i++) hash = (hash * 31 + reason.charCodeAt(i)) >>> 0;
+    return AdminDashboardComponent.REASON_TAG_CLASSES[hash % AdminDashboardComponent.REASON_TAG_CLASSES.length];
   }
 }

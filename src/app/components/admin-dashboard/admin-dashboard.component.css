@@ -342,6 +342,69 @@
   margin: 0;
 }
 
+.ad-leave-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.ad-leave-type-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--pc) 8%, #fff);
+  border: 1px solid color-mix(in srgb, var(--pc) 22%, #fff);
+}
+.ad-leave-type-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--pc) 16%, #fff);
+  color: var(--pc);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.ad-leave-type-icon mat-icon { font-size: 20px; width: 20px; height: 20px; }
+.ad-leave-type-copy { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.ad-leave-type-value { font-size: 1.3rem; font-weight: 800; color: var(--pc); line-height: 1.1; }
+.ad-leave-type-label { font-size: 0.72rem; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ad-leave-type-cta {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pc) 14%, #fff);
+  color: var(--pc);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.ad-leave-type-cta mat-icon { font-size: 16px; width: 16px; height: 16px; }
+.ad-leave-type-cta:hover { background: color-mix(in srgb, var(--pc) 26%, #fff); transform: translateX(2px); }
+
+.ad-event-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+.ad-event-icon {
+  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px;
+  background: linear-gradient(135deg, #b45309, #f59e0b); color: #fff; flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(180, 83, 9, .25);
+}
+.ad-event-icon mat-icon { font-size: 22px; width: 22px; height: 22px; }
+.ad-event-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ad-event-title { font-size: 0.95rem; font-weight: 700; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ad-event-date { display: flex; align-items: center; gap: 5px; font-size: 0.78rem; font-weight: 600; color: #92400e; }
+.ad-event-date mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
 .ad-leave-list {
   display: flex;
   flex-direction: column;
@@ -351,75 +414,106 @@
 .ad-leave-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid #e8edf2;
+  gap: 14px;
+  padding: 13px 16px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #eef1f6;
   text-decoration: none;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.ad-leave-card:active { background: #f1f5f9; }
+.ad-leave-card:active { background: #f8fafc; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08); border-color: #e2e6ee; }
 
 .ad-leave-avatar {
-  width: 38px; height: 38px;
+  width: 44px; height: 44px;
   border-radius: 50%;
   background: linear-gradient(135deg, #4338ca, #6366f1);
   color: #fff;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(67, 56, 202, 0.28);
 }
 
 .ad-leave-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
   min-width: 0;
 }
 
 .ad-leave-name {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #1a1a2e;
+  text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.ad-leave-meta {
-  display: flex;
+.ad-leave-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.ad-leave-class-chip {
+  display: inline-flex;
   align-items: center;
-  gap: 3px;
-  font-size: 0.7rem;
-  color: #64748b;
-  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
-
-.ad-leave-meta mat-icon {
-  font-size: 11px; width: 11px; height: 11px;
-}
-
-.ad-leave-dot { margin: 0 2px; }
+.ad-leave-class-chip mat-icon { font-size: 12px; width: 12px; height: 12px; }
 
 .ad-leave-reason {
-  font-size: 0.7rem;
-  color: #94a3b8;
+  display: inline-flex;
+  max-width: 160px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.ad-leave-reason.tag-violet { background: #ede9fe; color: #7c3aed; }
+.ad-leave-reason.tag-amber { background: #fef3c7; color: #b45309; }
+.ad-leave-reason.tag-rose { background: #fff1f2; color: #be123c; }
+.ad-leave-reason.tag-indigo { background: #e0e7ff; color: #3730a3; }
+.ad-leave-reason.tag-emerald { background: #ecfdf5; color: #059669; }
+.ad-leave-reason.tag-cyan { background: #ecfeff; color: #0891b2; }
+
+.ad-leave-date-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #eef1f6;
+  flex-shrink: 0;
+}
+.ad-leave-date-day { font-size: 1.05rem; font-weight: 800; color: #1a1a2e; line-height: 1; }
+.ad-leave-date-month { margin-top: 2px; font-size: 0.6rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; }
 
 .ad-leave-arrow {
   font-size: 18px; width: 18px; height: 18px;
   color: #cbd5e1;
   flex-shrink: 0;
+  transition: transform 0.15s ease, color 0.15s ease;
 }
+.ad-leave-card:active .ad-leave-arrow { color: #4338ca; transform: translateX(2px); }
 
 .ad-view-all {
   display: flex;

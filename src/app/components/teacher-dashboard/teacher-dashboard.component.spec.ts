@@ -17,6 +17,7 @@ import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { TeacherLeaveService } from '../../services/teacher-leave.service';
 import { TimetableService } from '../../services/timetable.service';
 import { NotificationService } from '../../services/notification.service';
+import { EventService } from '../../services/event.service';
 
 describe('TeacherDashboardComponent', () => {
   let authState: any;
@@ -31,12 +32,13 @@ describe('TeacherDashboardComponent', () => {
   let teacherLeaveService: any;
   let timetableService: any;
   let notificationService: any;
+  let eventService: any;
   let component: TeacherDashboardComponent;
 
   const buildComponent = (): TeacherDashboardComponent =>
     new TeacherDashboardComponent(
       authState, teacherService, studentService, attendanceService, leaveService,
-      cdr, logger, toast, checkinService, teacherLeaveService, timetableService, notificationService
+      cdr, logger, toast, checkinService, teacherLeaveService, timetableService, notificationService, eventService
     );
 
   beforeEach(() => {
@@ -69,6 +71,9 @@ describe('TeacherDashboardComponent', () => {
 
     notificationService = jasmine.createSpyObj('NotificationService', ['getUnreadNotificationCount']);
     notificationService.getUnreadNotificationCount.and.returnValue(of(0));
+
+    eventService = jasmine.createSpyObj('EventService', ['getEventsForMonthAndYear']);
+    eventService.getEventsForMonthAndYear.and.returnValue(of([]));
   });
 
   const entry = (overrides: Partial<TimetableEntry>): TimetableEntry => ({
@@ -373,6 +378,89 @@ describe('TeacherDashboardComponent', () => {
     expect(component.teacherName).toBe('Ms. Rao');
     expect(component.isLoading).toBeFalse();
   });
+
+  // ─── Leave status — derived from the already-fetched recentTeacherLeaves, no new request ───
+
+  it('shows the pending count when the most recent leaves include a pending request', () => {
+    teacherLeaveService.getMyLeaves.and.returnValue(of({
+      content: [
+        { id: 1, teacherId: 'T1', teacherName: 'Ms. Rao', startDate: '2026-10-01', endDate: '2026-10-01', reason: 'x', status: 'PENDING', appliedDate: '2026-09-15', days: 1 },
+      ], totalElements: 1, totalPages: 1,
+    }));
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.leaveStatusLabel).toBe('1 request pending');
+  });
+
+  it('shows a neutral state when there are no pending or current leaves', () => {
+    teacherLeaveService.getMyLeaves.and.returnValue(of({
+      content: [
+        { id: 1, teacherId: 'T1', teacherName: 'Ms. Rao', startDate: '2026-08-01', endDate: '2026-08-01', reason: 'x', status: 'REJECTED', appliedDate: '2026-07-15', days: 1 },
+      ], totalElements: 1, totalPages: 1,
+    }));
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.leaveStatusLabel).toBe('No pending requests');
+  });
+
+  it('does not fire a second/duplicate request for the leave status card', () => {
+    component = buildComponent();
+    component.ngOnInit();
+    expect(teacherLeaveService.getMyLeaves).toHaveBeenCalledTimes(1);
+  });
+
+  // ─── Upcoming event — bounded to at most 2 requests, isolated failure ───
+
+  const event = (overrides: any = {}) => ({
+    id: 1, title: 'Event', description: '', startDate: '2026-09-20', category: 'GENERAL', targetAudience: [],
+    ...overrides,
+  });
+
+  it('picks the nearest upcoming event, excluding past ones', () => {
+    eventService.getEventsForMonthAndYear.and.returnValue(of([
+      event({ id: 1, title: 'Past Event', startDate: '2026-09-10' }),
+      event({ id: 2, title: 'Sooner Event', startDate: '2026-09-24' }),
+      event({ id: 3, title: 'Later Event', startDate: '2026-09-28' }),
+    ]));
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.upcomingEvent?.title).toBe('Sooner Event');
+    expect(eventService.getEventsForMonthAndYear).toHaveBeenCalledTimes(1);
+    expect(eventService.getEventsForMonthAndYear).toHaveBeenCalledWith(2026, 9);
+  });
+
+  it('falls back to next month when the current month has no upcoming event', () => {
+    eventService.getEventsForMonthAndYear.and.returnValue(of([event({ id: 1, title: 'Past Event', startDate: '2026-09-10' })]));
+    component = buildComponent();
+    component.ngOnInit();
+
+    expect(eventService.getEventsForMonthAndYear).toHaveBeenCalledWith(2026, 9);
+    expect(eventService.getEventsForMonthAndYear).toHaveBeenCalledWith(2026, 10);
+    expect(eventService.getEventsForMonthAndYear).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows a no-event state when neither the current nor next month has one', () => {
+    eventService.getEventsForMonthAndYear.and.returnValue(of([]));
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.upcomingEvent).toBeNull();
+    expect(component.upcomingEventLoading).toBeFalse();
+    expect(component.upcomingEventFailed).toBeFalse();
+  });
+
+  it('isolates an event-load failure — the rest of the dashboard still loads normally', () => {
+    eventService.getEventsForMonthAndYear.and.returnValue(throwError(() => new Error('offline')));
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.upcomingEventFailed).toBeTrue();
+    expect(component.upcomingEventLoading).toBeFalse();
+    expect(component.teacherName).toBe('Ms. Rao');
+    expect(component.isLoading).toBeFalse();
+  });
+
+  it('formats an event start time using the existing shared clock-time formatter', () => {
+    expect(buildComponent().formatEventTime('10:00:00')).toBe('10:00 AM');
+  });
 });
 
 // ─── Layout ordering — rendered via TestBed since it's a template-order concern, not state ───
@@ -404,6 +492,8 @@ describe('TeacherDashboardComponent layout order', () => {
     timetableService.getTeacherTimetable.and.returnValue(of([]));
     const notificationService = jasmine.createSpyObj('NotificationService', ['getUnreadNotificationCount']);
     notificationService.getUnreadNotificationCount.and.returnValue(of(2));
+    const eventService = jasmine.createSpyObj('EventService', ['getEventsForMonthAndYear']);
+    eventService.getEventsForMonthAndYear.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [TeacherDashboardComponent],
@@ -420,6 +510,7 @@ describe('TeacherDashboardComponent layout order', () => {
         { provide: TeacherLeaveService, useValue: teacherLeaveService },
         { provide: TimetableService, useValue: timetableService },
         { provide: NotificationService, useValue: notificationService },
+        { provide: EventService, useValue: eventService },
       ],
     })
       .overrideComponent(TeacherDashboardComponent, {
@@ -443,14 +534,33 @@ describe('TeacherDashboardComponent layout order', () => {
     const gettingStartedIndex = text.indexOf('Getting Started');
     expect(gettingStartedIndex).toBeGreaterThan(-1);
     expect(text.indexOf('Quick actions')).toBeLessThan(gettingStartedIndex);
-    expect(text.indexOf('My recent leaves')).toBeLessThan(gettingStartedIndex);
+    expect(fixture.nativeElement.querySelector('.td-insight-tile.insight-amber')).toBeTruthy();
   });
 
-  it('renders the Updates panel visibly without dominating the layout, using the existing unread-count service', () => {
+  it('renders the Updates tile visibly without dominating the layout, using the existing unread-count service', () => {
     const text: string = fixture.nativeElement.textContent;
     expect(text).toContain('Updates');
     expect(text).toContain('2');
-    const panel = fixture.nativeElement.querySelector('.td-updates-panel');
-    expect(panel).toBeTruthy();
+    const tile = fixture.nativeElement.querySelector('.td-insight-tile.insight-indigo');
+    expect(tile).toBeTruthy();
+  });
+
+  it('orders Today\'s Classes, September attendance, Leaves, Updates and Upcoming Event ahead of Quick actions and the class workspace', () => {
+    const text: string = fixture.nativeElement.textContent;
+    expect(fixture.nativeElement.querySelector('.td-insight-tile.insight-amber')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.td-insight-tile.insight-teal')).toBeTruthy();
+    const todayIdx = text.indexOf('Today\'s Classes');
+    const attendanceIdx = text.indexOf('September attendance');
+    const leavesIdx = text.indexOf('Leaves');
+    const updatesIdx = text.indexOf('Updates');
+    const eventIdx = text.indexOf('Upcoming Event');
+    const quickActionsIdx = text.indexOf('Quick actions');
+    const gettingStartedIdx = text.indexOf('Getting Started');
+    expect(todayIdx).toBeLessThan(attendanceIdx);
+    expect(attendanceIdx).toBeLessThan(leavesIdx);
+    expect(leavesIdx).toBeLessThan(updatesIdx);
+    expect(updatesIdx).toBeLessThan(eventIdx);
+    expect(eventIdx).toBeLessThan(quickActionsIdx);
+    expect(quickActionsIdx).toBeLessThan(gettingStartedIdx);
   });
 });
