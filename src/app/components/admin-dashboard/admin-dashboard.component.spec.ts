@@ -121,13 +121,20 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
     }
   });
 
-  it('hides the Staff Adoption quick action for a non-ADMIN role, matching existing ADMIN-only behavior', () => {
+  it('hides all ADMIN-only daily actions for SUB_ADMIN', () => {
     configure('SUB_ADMIN');
     fixture.detectChanges();
     expect(staffAdoptionService.getStaffAdoption).not.toHaveBeenCalled();
     const link = fixture.nativeElement.querySelector('.ad-daily-actions-grid a[routerLink="/dashboard/staff-adoption"]');
     expect(link).toBeNull();
-    expect(fixture.nativeElement.querySelector('.ad-daily-actions-grid a[routerLink="/dashboard/staff-attendance"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.ad-daily-actions-grid')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[routerLink="/dashboard/view-leaves"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[routerLink="/dashboard/notice"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[routerLink="/dashboard/staff-attendance"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[routerLink="/dashboard/class-management"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('a[routerLink="/dashboard/timetable"]')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).not.toContain('Staff Attendance Today');
+    expect(fixture.nativeElement.textContent).not.toContain('Pending Leave Requests');
   });
 
   it('still renders the full existing Quick Actions grid unchanged', () => {

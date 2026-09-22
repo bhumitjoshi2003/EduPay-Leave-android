@@ -16,7 +16,7 @@
         <h1 class="ad-hero-name">{{ adminName || 'Admin' }} 👋</h1>
         <div class="ad-role-badge">
           <mat-icon>admin_panel_settings</mat-icon>
-          <span>Administrator</span>
+          <span>{{ isAdmin ? 'Administrator' : 'Sub Administrator' }}</span>
         </div>
       </div>
       <div class="ad-hero-right">
@@ -30,13 +30,13 @@
     </div>
 
     <!-- ── Stats error ──────────────────────────────────────────────── -->
-    <div class="ad-stats-error" *ngIf="!stats">
+    <div class="ad-stats-error" *ngIf="isAdmin && statsFailed">
       <span>⚠️</span>
       <p>Could not load dashboard stats. Please refresh to try again.</p>
     </div>
 
     <!-- ── Stat Cards ────────────────────────────────────────────────── -->
-    <div class="ad-stats-grid" *ngIf="stats">
+    <div class="ad-stats-grid" *ngIf="isAdmin && stats">
 
       <div class="ad-stat-card" style="--c1:#0369a1;--c2:#0ea5e9">
         <div class="ad-stat-icon">👨‍🎓</div>
@@ -95,7 +95,7 @@
     </div>
 
     <!-- ── Staff Attendance Today ───────────────────────────────────── -->
-    <div class="ad-section" *ngIf="staffAttendance">
+    <div class="ad-section" *ngIf="isAdmin && staffAttendance">
       <h2 class="ad-section-title">
         Staff Attendance Today
         <span class="ad-staff-att-date">{{ staffAttendance.date | date:'d MMM' }}</span>
@@ -135,7 +135,7 @@
     </div>
 
     <!-- ── Pending Leave Requests ────────────────────────────────────── -->
-    <div class="ad-section">
+    <div class="ad-section" *ngIf="isAdmin">
       <h2 class="ad-section-title">Pending Leave Requests</h2>
 
       <div class="ad-leave-breakdown">
@@ -185,7 +185,7 @@
     </div>
 
     <!-- ── Today's Quick Actions (compact daily subset) ─────────────── -->
-    <div class="ad-section">
+    <div class="ad-section" *ngIf="isAdmin">
       <h2 class="ad-section-title">Today's Actions</h2>
       <div class="ad-daily-actions-grid">
         <a class="ad-action-card" routerLink="/dashboard/staff-attendance">
@@ -358,49 +358,49 @@
       <h2 class="ad-section-title">Quick Actions</h2>
       <div class="ad-actions-grid">
 
-        <a class="ad-action-card" routerLink="/dashboard/student-list">
+        <a class="ad-action-card" *ngIf="isAdmin" routerLink="/dashboard/student-list">
           <div class="ad-action-icon" style="background:#e0f2fe;color:#0369a1">
             <mat-icon>group</mat-icon>
           </div>
           <span>Students</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/teacher-list">
+        <a class="ad-action-card" *ngIf="isAdmin" routerLink="/dashboard/teacher-list">
           <div class="ad-action-icon" style="background:#d1fae5;color:#065f46">
             <mat-icon>school</mat-icon>
           </div>
           <span>Teachers</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/view-leaves">
+        <a class="ad-action-card" *ngIf="isAdmin" routerLink="/dashboard/view-leaves">
           <div class="ad-action-icon" style="background:#fef3c7;color:#b45309">
             <mat-icon>assignment_late</mat-icon>
           </div>
           <span>Leaves</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('PAYMENT_COLLECTION')" routerLink="/dashboard/payment-history-admin">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('PAYMENT_COLLECTION')" routerLink="/dashboard/payment-history-admin">
           <div class="ad-action-icon" style="background:#ede9fe;color:#7c3aed">
             <mat-icon>payments</mat-icon>
           </div>
           <span>Payments</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('FEE_REMINDERS')" routerLink="/dashboard/fee-reminders">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('FEE_REMINDERS')" routerLink="/dashboard/fee-reminders">
           <div class="ad-action-icon" style="background:#fee2e2;color:#dc2626">
             <mat-icon>notifications_active</mat-icon>
           </div>
           <span>Fee Reminders</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/register">
+        <a class="ad-action-card" *ngIf="isAdmin" routerLink="/dashboard/register">
           <div class="ad-action-icon" style="background:#ecfdf5;color:#059669">
             <mat-icon>person_add</mat-icon>
           </div>
           <span>Register</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/notice">
+        <a class="ad-action-card" *ngIf="isAdmin" routerLink="/dashboard/notice">
           <div class="ad-action-icon" style="background:#fff1f2;color:#be123c">
             <mat-icon>campaign</mat-icon>
           </div>
           <span>Notice Board</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('ANALYTICS')" routerLink="/dashboard/analytics">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('ANALYTICS')" routerLink="/dashboard/analytics">
           <div class="ad-action-icon" style="background:#fdf4ff;color:#a21caf">
             <mat-icon>bar_chart</mat-icon>
           </div>
@@ -412,7 +412,7 @@
           </div>
           <span>Attendance</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/fee-structure">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('FEE_MANAGEMENT')" routerLink="/dashboard/fee-structure">
           <div class="ad-action-icon" style="background:#f0fdf4;color:#15803d">
             <mat-icon>receipt_long</mat-icon>
           </div>
@@ -430,47 +430,56 @@
           </div>
           <span>Audit Logs</span>
         </a>
-        <a class="ad-action-card" routerLink="/dashboard/student-promotion">
+        <a class="ad-action-card" *ngIf="isAdmin" routerLink="/dashboard/student-promotion">
           <div class="ad-action-icon" style="background:#dcfce7;color:#14532d">
             <mat-icon>upgrade</mat-icon>
           </div>
           <span>Promotion</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/assessment-groups">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('EXAM_MARKS')" routerLink="/dashboard/assessment-groups">
           <div class="ad-action-icon" style="background:#ede9fe;color:#4338ca">
             <mat-icon>bar_chart</mat-icon>
           </div>
           <span>Assessment Groups</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-templates">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-templates">
           <div class="ad-action-icon" style="background:#e0f2fe;color:#0369a1">
             <mat-icon>description</mat-icon>
           </div>
           <span>RC Templates</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-remarks">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-remarks">
           <div class="ad-action-icon" style="background:#f5f3ff;color:#7c3aed">
             <mat-icon>rate_review</mat-icon>
           </div>
           <span>Remarks Entry</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/bulk-report-cards">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('REPORT_CARD')" routerLink="/dashboard/bulk-report-cards">
           <div class="ad-action-icon" style="background:#fdf2f8;color:#be185d">
             <mat-icon>picture_as_pdf</mat-icon>
           </div>
           <span>Bulk PDFs</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/class-overview">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('REPORT_CARD')" routerLink="/dashboard/class-overview">
           <div class="ad-action-icon" style="background:#ecfeff;color:#0891b2">
             <mat-icon>bar_chart</mat-icon>
           </div>
           <span>Class Overview</span>
         </a>
-        <a class="ad-action-card" *ngIf="hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-gallery">
+        <a class="ad-action-card" *ngIf="isAdmin && hasFeature('REPORT_CARD')" routerLink="/dashboard/report-card-gallery">
           <div class="ad-action-icon" style="background:#e0f2fe;color:#0369a1">
             <mat-icon>style</mat-icon>
           </div>
           <span>RC Gallery</span>
+        </a>
+
+        <a class="ad-action-card" *ngIf="!isAdmin" routerLink="/dashboard/class-management">
+          <div class="ad-action-icon" style="background:#ecfeff;color:#0e7490"><mat-icon>account_tree</mat-icon></div>
+          <span>Classes</span>
+        </a>
+        <a class="ad-action-card" *ngIf="!isAdmin" routerLink="/dashboard/timetable">
+          <div class="ad-action-icon" style="background:#eef2ff;color:#4338ca"><mat-icon>calendar_view_week</mat-icon></div>
+          <span>Timetable</span>
         </a>
 
       </div>
