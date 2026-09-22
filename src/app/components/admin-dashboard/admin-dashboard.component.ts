@@ -9,7 +9,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { Subject, takeUntil } from 'rxjs';
 
 import { AuthStateService } from '../../auth/auth-state.service';
-import { AdminService } from '../../services/admin.service';
 import { DashboardAnalyticsService, DashboardStats } from '../../services/dashboard-analytics.service';
 import { LeaveService, LeaveApplication } from '../../services/leave.service';
 import { SchoolService, SchoolEntitlementSummary } from '../../services/school.service';
@@ -58,7 +57,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private authState: AuthStateService,
-    private adminService: AdminService,
     private analyticsService: DashboardAnalyticsService,
     private leaveService: LeaveService,
     private schoolService: SchoolService,
@@ -73,15 +71,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const user = this.authState.getUser();
     this.isAdmin = user?.role === 'ADMIN';
+    // The greeting name only ever needs the display name — already present on the session
+    // user from /auth/me (the same Admin.name field getAdminById() would otherwise re-fetch),
+    // so no separate admin-profile request is needed here.
     this.adminName = user?.name ?? '';
-    if (this.isAdmin && user?.userId) {
-      this.adminService.getAdminById(user.userId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: a => { this.adminName = a.name; this.cdr.markForCheck(); },
-          error: e => this.logger.error('Failed to load admin name:', e)
-        });
-    }
 
     this.loadUpcomingEvent();
     if (this.isAdmin) {

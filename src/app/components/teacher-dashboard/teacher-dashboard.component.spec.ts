@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { provideRouter, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { of, throwError } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 import { TeacherDashboardComponent } from './teacher-dashboard.component';
 import { TimetableEntry } from '../../interfaces/timetable';
 import { AuthStateService } from '../../auth/auth-state.service';
@@ -16,7 +16,7 @@ import { ToastService } from '../../services/toast.service';
 import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { TeacherLeaveService } from '../../services/teacher-leave.service';
 import { TimetableService } from '../../services/timetable.service';
-import { NotificationService } from '../../services/notification.service';
+import { NotificationStateService, UnreadCountState } from '../../services/notification-state.service';
 import { EventService } from '../../services/event.service';
 
 describe('TeacherDashboardComponent', () => {
@@ -69,8 +69,9 @@ describe('TeacherDashboardComponent', () => {
     timetableService = jasmine.createSpyObj('TimetableService', ['getTeacherTimetable']);
     timetableService.getTeacherTimetable.and.returnValue(of([]));
 
-    notificationService = jasmine.createSpyObj('NotificationService', ['getUnreadNotificationCount']);
+    notificationService = jasmine.createSpyObj('NotificationStateService', ['getUnreadNotificationCount']);
     notificationService.getUnreadNotificationCount.and.returnValue(of(0));
+    notificationService.unreadState$ = new BehaviorSubject<UnreadCountState>({ status: 'loading', count: 0 });
 
     eventService = jasmine.createSpyObj('EventService', ['getEventsForMonthAndYear']);
     eventService.getEventsForMonthAndYear.and.returnValue(of([]));
@@ -350,10 +351,17 @@ describe('TeacherDashboardComponent', () => {
     expect(component.todayClassesError).toBe('boom');
   });
 
-  // ─── Updates (unread notification count) — reuses GET /api/notification/user/unread/count ───
+  // ─── Updates (unread notification count) — reuses the dashboard shell's shared
+  //     NotificationStateService.unreadState$ rather than fetching its own copy ───
 
-  it('renders the unread count from the existing notification service', () => {
-    notificationService.getUnreadNotificationCount.and.returnValue(of(3));
+  it('never calls getUnreadNotificationCount directly — it only subscribes to the shared shell state', () => {
+    component = buildComponent();
+    component.ngOnInit();
+    expect(notificationService.getUnreadNotificationCount).not.toHaveBeenCalled();
+  });
+
+  it('renders a positive unread count from the shared shell state', () => {
+    notificationService.unreadState$ = of({ status: 'success', count: 3 } as UnreadCountState);
     component = buildComponent();
     component.ngOnInit();
     expect(component.unreadCount).toBe(3);
@@ -362,21 +370,43 @@ describe('TeacherDashboardComponent', () => {
   });
 
   it('shows a zero-unread state distinctly from a failed load', () => {
-    notificationService.getUnreadNotificationCount.and.returnValue(of(0));
+    notificationService.unreadState$ = of({ status: 'success', count: 0 } as UnreadCountState);
     component = buildComponent();
     component.ngOnInit();
     expect(component.unreadCount).toBe(0);
+    expect(component.unreadCountLoading).toBeFalse();
+    expect(component.unreadCountFailed).toBeFalse();
+  });
+
+  it('reflects the shared loading state while the shell refresh is still in flight', () => {
+    notificationService.unreadState$ = new BehaviorSubject<UnreadCountState>({ status: 'loading', count: 0 });
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.unreadCountLoading).toBeTrue();
     expect(component.unreadCountFailed).toBeFalse();
   });
 
   it('an unread-count failure never blocks the rest of the dashboard', () => {
-    notificationService.getUnreadNotificationCount.and.returnValue(throwError(() => new Error('offline')));
+    notificationService.unreadState$ = of({ status: 'error', count: 0 } as UnreadCountState);
     component = buildComponent();
     component.ngOnInit();
     expect(component.unreadCountFailed).toBeTrue();
     expect(component.unreadCountLoading).toBeFalse();
     expect(component.teacherName).toBe('Ms. Rao');
     expect(component.isLoading).toBeFalse();
+  });
+
+  it('reacts live when the shared unread count changes after initial load (e.g. the shell\'s poll)', () => {
+    const shared = new BehaviorSubject<UnreadCountState>({ status: 'success', count: 1 });
+    notificationService.unreadState$ = shared;
+    component = buildComponent();
+    component.ngOnInit();
+    expect(component.unreadCount).toBe(1);
+
+    shared.next({ status: 'success', count: 6 });
+    expect(component.unreadCount).toBe(6);
+    expect(component.unreadCountLoading).toBeFalse();
+    expect(component.unreadCountFailed).toBeFalse();
   });
 
   // ─── Leave status — derived from the already-fetched recentTeacherLeaves, no new request ───
@@ -490,8 +520,9 @@ describe('TeacherDashboardComponent layout order', () => {
     teacherLeaveService.getMyLeaves.and.returnValue(of({ content: [], totalElements: 0, totalPages: 0 }));
     const timetableService = jasmine.createSpyObj('TimetableService', ['getTeacherTimetable']);
     timetableService.getTeacherTimetable.and.returnValue(of([]));
-    const notificationService = jasmine.createSpyObj('NotificationService', ['getUnreadNotificationCount']);
+    const notificationService = jasmine.createSpyObj('NotificationStateService', ['getUnreadNotificationCount']);
     notificationService.getUnreadNotificationCount.and.returnValue(of(2));
+    notificationService.unreadState$ = of({ status: 'success', count: 2 } as UnreadCountState);
     const eventService = jasmine.createSpyObj('EventService', ['getEventsForMonthAndYear']);
     eventService.getEventsForMonthAndYear.and.returnValue(of([]));
 
@@ -509,7 +540,7 @@ describe('TeacherDashboardComponent layout order', () => {
         { provide: TeacherCheckinService, useValue: checkinService },
         { provide: TeacherLeaveService, useValue: teacherLeaveService },
         { provide: TimetableService, useValue: timetableService },
-        { provide: NotificationService, useValue: notificationService },
+        { provide: NotificationStateService, useValue: notificationService },
         { provide: EventService, useValue: eventService },
       ],
     })
@@ -537,10 +568,11 @@ describe('TeacherDashboardComponent layout order', () => {
     expect(fixture.nativeElement.querySelector('.td-insight-tile.insight-amber')).toBeTruthy();
   });
 
-  it('renders the Updates tile visibly without dominating the layout, using the existing unread-count service', () => {
+  it('renders the Updates tile visibly without dominating the layout, using the shared unread-count state', () => {
     const text: string = fixture.nativeElement.textContent;
     expect(text).toContain('Updates');
     expect(text).toContain('2');
+    expect((TestBed.inject(NotificationStateService) as any).getUnreadNotificationCount).not.toHaveBeenCalled();
     const tile = fixture.nativeElement.querySelector('.td-insight-tile.insight-indigo');
     expect(tile).toBeTruthy();
   });

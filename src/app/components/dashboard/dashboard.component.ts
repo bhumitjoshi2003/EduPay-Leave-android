@@ -316,6 +316,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   async logout(): Promise<void> {
     await this.pushNotificationService.clearToken().catch(() => {}); // Don't block logout on push failure
     this.schoolService.invalidateClasses();
+    // The app never fully reloads between sessions on the same device, so this singleton
+    // would otherwise keep the previous user's unread count in memory across a logout.
+    this.notificationState.clear();
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/home']),
       error: () => this.router.navigate(['/home'])

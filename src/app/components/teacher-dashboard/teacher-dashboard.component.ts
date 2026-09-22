@@ -16,7 +16,7 @@ import { StudentService } from '../../services/student.service';
 import { AttendanceService } from '../../services/attendance.service';
 import { LeaveService, LeaveApplication } from '../../services/leave.service';
 import { LoggerService } from '../../services/logger.service';
-import { NotificationService } from '../../services/notification.service';
+import { NotificationStateService } from '../../services/notification-state.service';
 import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { TeacherAttendanceRecord, TeacherAttendanceSummary } from '../../interfaces/teacher-checkin';
 import { TeacherLeaveService } from '../../services/teacher-leave.service';
@@ -96,7 +96,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     private checkinService: TeacherCheckinService,
     private teacherLeaveService: TeacherLeaveService,
     private timetableService: TimetableService,
-    private notificationService: NotificationService,
+    private notificationState: NotificationStateService,
     private eventService: EventService
   ) { }
 
@@ -107,7 +107,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     this.loadPersonalAttendance();
     this.loadRecentTeacherLeaves();
     this.loadTodayClasses(user.userId);
-    this.loadUnreadCount();
+    this.subscribeToUnreadCount();
     this.loadUpcomingEvent();
 
     this.teacherService.getTeacher(user.userId)
@@ -171,23 +171,21 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  /** Isolated from every other dashboard section on purpose — a failure here must never
+  /** Reuses the dashboard shell's shared NotificationStateService (kept fresh by the shell on
+   *  load, on navigation, and on its periodic poll) instead of issuing a second, redundant
+   *  GET /api/notification/user/unread/count — the shell is always mounted as the parent of
+   *  this route, so its refresh is already in flight (or resolved) by the time this
+   *  subscribes, and the BehaviorSubject replays the latest value immediately either way.
+   *  Isolated from every other dashboard section on purpose — a failure here must never
    *  block or blank out check-in status, Today's Classes, or leave data. */
-  private loadUnreadCount(): void {
-    this.notificationService.getUnreadNotificationCount()
+  private subscribeToUnreadCount(): void {
+    this.notificationState.unreadState$
       .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: count => {
-          this.unreadCount = count;
-          this.unreadCountLoading = false;
-          this.cdr.markForCheck();
-        },
-        error: error => {
-          this.logger.error('Unread notification count load error:', error);
-          this.unreadCountLoading = false;
-          this.unreadCountFailed = true;
-          this.cdr.markForCheck();
-        }
+      .subscribe(state => {
+        this.unreadCountLoading = state.status === 'loading';
+        this.unreadCountFailed = state.status === 'error';
+        if (state.status === 'success') this.unreadCount = state.count;
+        this.cdr.markForCheck();
       });
   }
 
