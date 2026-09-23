@@ -126,7 +126,8 @@
               ><strong
                 ><span class="td-today-icon">{{ getSubjectIcon(todayView.current.subjectName) }}</span
                 >{{ periodClassLabel(todayView.current) }}</strong
-              ><small>{{ todayView.current.subjectName }}</small></span
+              ><small>{{ todayView.current.subjectName }}<span class="td-cover-chip" *ngIf="todayView.current.isSubstitution">Arrangement</span></small
+              ><em class="td-cover-for" *ngIf="todayView.current.isSubstitution">Replacing {{ todayView.current.originalTeacherName }}</em></span
             >
             <span class="td-today-time" *ngIf="classTimeRange(todayView.current) as time">{{ time }}</span>
           </div>
@@ -140,7 +141,8 @@
               ><strong
                 ><span class="td-today-icon">{{ getSubjectIcon(entry.subjectName) }}</span
                 >{{ periodClassLabel(entry) }}</strong
-              ><small>{{ entry.subjectName }}</small></span
+              ><small>{{ entry.subjectName }}<span class="td-cover-chip" *ngIf="entry.isSubstitution">Arrangement</span></small
+              ><em class="td-cover-for" *ngIf="entry.isSubstitution">Replacing {{ entry.originalTeacherName }}</em></span
             >
             <span class="td-today-time" *ngIf="classTimeRange(entry) as time">{{ time }}</span>
           </div>

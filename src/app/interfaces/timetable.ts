@@ -12,6 +12,8 @@ export interface TimetableEntry {
   subjectName: string;
   teacherId: string;
   teacherName?: string;
+  isSubstitution?: boolean;
+  originalTeacherName?: string | null;
 }
 
 /** Exact create/update body; display names are response-only. */

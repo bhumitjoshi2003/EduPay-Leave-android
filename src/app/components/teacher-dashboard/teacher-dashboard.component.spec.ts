@@ -16,6 +16,8 @@ import { ToastService } from '../../services/toast.service';
 import { TeacherCheckinService } from '../../services/teacher-checkin.service';
 import { TeacherLeaveService } from '../../services/teacher-leave.service';
 import { TimetableService } from '../../services/timetable.service';
+import { TeacherSubstitutionService } from '../../services/teacher-substitution.service';
+import { TeacherSubstitution } from '../../interfaces/teacher-substitution';
 import { NotificationStateService, UnreadCountState } from '../../services/notification-state.service';
 import { EventService } from '../../services/event.service';
 
@@ -31,6 +33,7 @@ describe('TeacherDashboardComponent', () => {
   let checkinService: any;
   let teacherLeaveService: any;
   let timetableService: any;
+  let substitutionService: any;
   let notificationService: any;
   let eventService: any;
   let component: TeacherDashboardComponent;
@@ -38,7 +41,8 @@ describe('TeacherDashboardComponent', () => {
   const buildComponent = (): TeacherDashboardComponent =>
     new TeacherDashboardComponent(
       authState, teacherService, studentService, attendanceService, leaveService,
-      cdr, logger, toast, checkinService, teacherLeaveService, timetableService, notificationService, eventService
+      cdr, logger, toast, checkinService, teacherLeaveService, timetableService, substitutionService,
+      notificationService, eventService
     );
 
   beforeEach(() => {
@@ -68,6 +72,9 @@ describe('TeacherDashboardComponent', () => {
 
     timetableService = jasmine.createSpyObj('TimetableService', ['getTeacherTimetable']);
     timetableService.getTeacherTimetable.and.returnValue(of([]));
+
+    substitutionService = jasmine.createSpyObj('TeacherSubstitutionService', ['getMine']);
+    substitutionService.getMine.and.returnValue(of([]));
 
     notificationService = jasmine.createSpyObj('NotificationStateService', ['getUnreadNotificationCount']);
     notificationService.getUnreadNotificationCount.and.returnValue(of(0));
@@ -192,6 +199,63 @@ describe('TeacherDashboardComponent', () => {
 
     expect(component.timetableEntries.length).toBe(0);
     expect(component.todayView.hasAnyToday).toBeFalse();
+  });
+
+  // ─── Teacher substitution — cover classes appear in Today's Classes ───
+
+  const coverClass = (overrides: Partial<TeacherSubstitution> = {}): TeacherSubstitution => ({
+    id: 9, revision: 0, date: '2026-09-17', timetableEntryId: 55,
+    originalTeacherId: 'T9', originalTeacherName: 'Mr Original',
+    substituteTeacherId: 'T1', substituteTeacherName: 'Ms. Rao',
+    className: 'VII', sectionName: null, subjectName: 'Science', periodNumber: 5,
+    startTime: '11:00', endTime: '11:40', status: 'ACTIVE', assignedBy: 'A1',
+    assignedAt: '2026-09-17T08:00:00', updatedAt: '2026-09-17T08:00:00',
+    ...overrides,
+  });
+
+  it('merges an active cover class alongside normal timetable entries in Today\'s Classes', () => {
+    timetableService.getTeacherTimetable.and.returnValue(of([entry({})]));
+    substitutionService.getMine.and.returnValue(of([coverClass()]));
+    component = buildComponent();
+    component.ngOnInit();
+
+    expect(substitutionService.getMine).toHaveBeenCalledWith('2026-09-17');
+    const cover = component.todayView.upcoming.find(e => e.subjectName === 'Science');
+    expect(cover).toBeTruthy();
+    expect(cover!.isSubstitution).toBeTrue();
+    expect(cover!.originalTeacherName).toBe('Mr Original');
+    expect(cover!.className).toBe('VII');
+  });
+
+  it('never marks a normal (non-cover) class as a substitution', () => {
+    timetableService.getTeacherTimetable.and.returnValue(of([entry({ startTime: '09:55', endTime: '10:35' })]));
+    substitutionService.getMine.and.returnValue(of([coverClass()]));
+    component = buildComponent();
+    component.ngOnInit();
+
+    expect(component.todayView.current?.isSubstitution).toBeFalse();
+  });
+
+  it('shows Today\'s Classes normally when the teacher has no cover classes today', () => {
+    timetableService.getTeacherTimetable.and.returnValue(of([entry({ startTime: '09:55', endTime: '10:35' })]));
+    substitutionService.getMine.and.returnValue(of([]));
+    component = buildComponent();
+    component.ngOnInit();
+
+    expect(component.todayView.current?.isSubstitution).toBeFalse();
+    expect(component.timetableEntries.length).toBe(1);
+  });
+
+  it('a substitution-lookup failure does not block or error the rest of Today\'s Classes', () => {
+    timetableService.getTeacherTimetable.and.returnValue(of([entry({ startTime: '09:55', endTime: '10:35' })]));
+    substitutionService.getMine.and.returnValue(throwError(() => new Error('offline')));
+    component = buildComponent();
+    component.ngOnInit();
+
+    expect(component.todayClassesLoading).toBeFalse();
+    expect(component.todayClassesError).toBeNull();
+    expect(component.todayView.current?.subjectName).toBe('English');
+    expect(component.todayView.current?.isSubstitution).toBeFalse();
   });
 
   it('preserves existing dashboard behavior: class-teacher branch still loads class data', () => {
@@ -552,6 +616,8 @@ describe('TeacherDashboardComponent layout order', () => {
     teacherLeaveService.getMyLeaves.and.returnValue(of({ content: [], totalElements: 0, totalPages: 0 }));
     const timetableService = jasmine.createSpyObj('TimetableService', ['getTeacherTimetable']);
     timetableService.getTeacherTimetable.and.returnValue(of([]));
+    const substitutionService = jasmine.createSpyObj('TeacherSubstitutionService', ['getMine']);
+    substitutionService.getMine.and.returnValue(of([]));
     const notificationService = jasmine.createSpyObj('NotificationStateService', ['getUnreadNotificationCount']);
     notificationService.getUnreadNotificationCount.and.returnValue(of(2));
     notificationService.unreadState$ = of({ status: 'success', count: 2 } as UnreadCountState);
@@ -572,6 +638,7 @@ describe('TeacherDashboardComponent layout order', () => {
         { provide: TeacherCheckinService, useValue: checkinService },
         { provide: TeacherLeaveService, useValue: teacherLeaveService },
         { provide: TimetableService, useValue: timetableService },
+        { provide: TeacherSubstitutionService, useValue: substitutionService },
         { provide: NotificationStateService, useValue: notificationService },
         { provide: EventService, useValue: eventService },
       ],

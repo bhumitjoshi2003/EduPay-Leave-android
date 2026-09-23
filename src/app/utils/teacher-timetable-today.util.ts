@@ -18,6 +18,8 @@ export interface TeacherTimetableEntryLike {
   periodNumber: number;
   startTime?: string | null;
   endTime?: string | null;
+  isSubstitution?: boolean;
+  originalTeacherName?: string | null;
 }
 
 export interface TeacherTodayClassEntry {
@@ -31,6 +33,8 @@ export interface TeacherTodayClassEntry {
   startTime: string | null;
   endTime: string | null;
   status: TeacherTodayClassStatus;
+  isSubstitution: boolean;
+  originalTeacherName: string | null;
 }
 
 export interface TeacherTodayClassesView {
@@ -101,6 +105,8 @@ export function buildTodayClasses(entries: TeacherTimetableEntryLike[], now: Dat
         startTime: start !== null ? entry.startTime! : null,
         endTime: end !== null ? entry.endTime! : null,
         status,
+        isSubstitution: !!entry.isSubstitution,
+        originalTeacherName: entry.originalTeacherName ?? null,
         sortMinutes: start,
       };
     })
@@ -125,10 +131,16 @@ export function buildTodayClassesView(
 ): TeacherTodayClassesView {
   const today = buildTodayClasses(entries, now);
   const current = today.find(entry => entry.status === 'current') ?? null;
-  const pending = today.filter(entry => entry.status === 'upcoming' || entry.status === 'scheduled');
-  const remainingSlots = Math.max(0, current ? visibleLimit - 1 : visibleLimit);
-  const upcoming = pending.slice(0, remainingSlots);
-  const allDone = today.length > 0 && !current && pending.length === 0;
+  const rest = today.filter(entry => entry !== current);
+  // A cover assignment must stay visible on the dashboard all day — unlike a normal class,
+  // it's the one thing the substitute teacher needs confirmation of, so once its period is
+  // 'done' it must not silently vanish (the pending filter below only keeps 'upcoming'/
+  // 'scheduled'), and it must never be trimmed out by the visible-row cap either.
+  const substituteNotices = rest.filter(entry => entry.isSubstitution);
+  const pending = rest.filter(entry => !entry.isSubstitution && (entry.status === 'upcoming' || entry.status === 'scheduled'));
+  const remainingSlots = Math.max(0, (current ? visibleLimit - 1 : visibleLimit) - substituteNotices.length);
+  const upcoming = [...substituteNotices, ...pending.slice(0, remainingSlots)];
+  const allDone = today.length > 0 && !current && upcoming.length === 0;
 
   return { current, upcoming, allDone, hasAnyToday: today.length > 0 };
 }

@@ -395,6 +395,11 @@ export const routes: Routes = [
 
       // ── Timetable ─────────────────────────────────────────────────────
       {
+        path: 'teacher-substitutions',
+        loadComponent: () => import('./components/teacher-substitution/teacher-substitution.component').then(m => m.TeacherSubstitutionComponent),
+        canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUB_ADMIN'] }
+      },
+      {
         path: 'timetable',
         loadComponent: () => import('./components/timetable/timetable.component').then(m => m.TimetableComponent),
         canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'PARENT'] }

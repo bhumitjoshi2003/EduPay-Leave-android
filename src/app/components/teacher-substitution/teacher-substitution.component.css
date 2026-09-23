@@ -1,0 +1,248 @@
+:host { display: block; }
+
+/* Page chrome (padding, max-width) comes from the dashboard shell's .content-area —
+   matching Class Management / Elective Assignment / Timetable, which don't set their
+   own page-level padding or width either. */
+.sub-page {
+  padding-bottom: 16px;
+  color: #1e293b;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.sub-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #526075; text-decoration: none; margin-bottom: 18px; font-size: 0.85rem;
+}
+.sub-back mat-icon { font-size: 19px; width: 19px; height: 19px; }
+.sub-back:hover { color: #1e293b; }
+
+/* ── Hero — sized/spaced exactly like Elective Assignment's hero ── */
+.sub-hero {
+  position: relative;
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 55%, #a78bfa 100%);
+  border-radius: 20px;
+  padding: 22px 24px;
+  margin: 0 0 16px;
+  overflow: hidden;
+  color: #fff;
+}
+.sub-blob { position: absolute; border-radius: 50%; opacity: 0.12; pointer-events: none; }
+.sub-blob-1 { width: 130px; height: 130px; background: #fff; top: -30px; right: -20px; }
+.sub-blob-2 { width: 80px; height: 80px; background: #c4b5fd; bottom: -20px; left: 35%; }
+
+.sub-hero-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; min-width: 0; }
+.sub-hero-icon {
+  width: 48px; height: 48px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+}
+.sub-hero-icon mat-icon { font-size: 24px; width: 24px; height: 24px; }
+.sub-hero-title { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.3px; line-height: 1.2; }
+.sub-hero-sub { margin: 3px 0 0; font-size: 0.78rem; font-weight: 500; color: rgba(255, 255, 255, 0.85); }
+
+/* ── Filter bar — same shape as Elective Assignment's .ea-filters ── */
+.sub-filters {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+}
+.sub-filter-group { display: flex; flex-direction: column; gap: 4px; }
+.sub-filter-group label {
+  font-size: 0.78rem; font-weight: 700; color: #6d28d9;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.sub-filter-group input {
+  padding: 8px 12px; border: 1.5px solid #c4b5fd; border-radius: 8px;
+  font-size: 0.9rem; background: #fff; font-family: inherit;
+  outline: none; transition: border-color 0.15s;
+}
+.sub-filter-group input:focus { border-color: #7c3aed; }
+
+/* ── Attention summary strip ── */
+.sub-summary {
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(165deg, #fff7ed, #fff);
+  border: 1px solid #fde3a1;
+  border-radius: 16px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+}
+.sub-summary-icon {
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: 11px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, #b45309, #f59e0b);
+  color: #fff; box-shadow: 0 6px 14px rgba(180, 83, 9, 0.3);
+}
+.sub-summary.all-covered {
+  background: linear-gradient(165deg, #f0fdf4, #fff);
+  border-color: #bbf7d0;
+}
+.sub-summary.all-covered .sub-summary-icon {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  box-shadow: 0 6px 14px rgba(15, 118, 110, 0.3);
+}
+.sub-summary-icon mat-icon { font-size: 20px; width: 20px; height: 20px; }
+.sub-summary-copy { display: flex; flex-direction: column; gap: 2px; }
+.sub-summary-copy strong { font-size: 0.92rem; font-weight: 800; color: #17203a; }
+.sub-summary-copy small { font-size: 0.72rem; color: #7b879a; font-weight: 600; }
+
+/* ── Period cards ── */
+.sub-list { display: grid; gap: 14px; }
+
+.sub-card {
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  align-items: center;
+  gap: 18px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid #a855f7;
+  transition: box-shadow 0.15s;
+}
+.sub-card:hover { box-shadow: 0 8px 22px rgba(124, 58, 237, 0.1); }
+.sub-card.is-covered { border-left-color: #14b8a6; }
+
+.sub-card-period {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; text-align: center;
+  background: #f5f3ff; border-radius: 12px; padding: 10px 6px;
+}
+.sub-card.is-covered .sub-card-period { background: #f0fdfa; }
+.sub-card-period-num { font-size: 1.05rem; font-weight: 800; color: #6d28d9; }
+.sub-card.is-covered .sub-card-period-num { color: #0f766e; }
+.sub-card-time { font-size: 0.68rem; font-weight: 700; color: #7b879a; white-space: nowrap; }
+
+/* Mobile-only echo of .sub-substitute, placed to the right of the class/subject/absent-
+   teacher block instead of down in the actions area — hidden on desktop, where the
+   assign column already shows the substitute's name. */
+.sub-substitute-mobile { display: none; }
+
+.sub-card-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.sub-card-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.sub-card-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sub-card-class { font-size: 0.95rem; font-weight: 800; color: #17203a; }
+.sub-subject { font-size: 0.8rem; color: #475569; font-weight: 600; text-transform: capitalize; }
+.sub-absent { font-size: 0.74rem; color: #94a3b8; }
+
+.sub-chip {
+  display: inline-flex; align-items: center;
+  padding: 3px 11px; border-radius: 999px;
+  font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em;
+  background: #fef3c7; color: #b45309;
+}
+.sub-chip.covered { background: #dcfce7; color: #15803d; }
+
+/* ── Assign / change actions ── */
+.sub-assign {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap;
+  min-width: 220px; max-width: 100%;
+}
+.sub-assign select {
+  margin: 0; flex: 1; min-width: 160px;
+  border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 9px 12px;
+  background: #fff; color: #172033; font-size: 0.85rem;
+}
+.sub-assign select:focus { outline: none; border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15); }
+.sub-assign small { width: 100%; color: #b45309; font-size: 0.72rem; text-align: right; }
+
+/* Kept deliberately quiet — plain colored text, no bordered/filled box — so the
+   substitute's name reads as a calm confirmation, not a competing alert. */
+.sub-substitute {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.82rem; color: #0f766e;
+  margin-right: auto;
+}
+.sub-substitute strong { font-weight: 800; }
+.sub-substitute mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+.sub-assign-actions { display: flex; align-items: center; gap: 8px; }
+
+/* Each is its own full-width flex row (NOT display:contents — that's a known source of
+   native form-control popup mispositioning in some mobile browsers, which is exactly
+   the bug this replaced). [hidden] (not *ngIf) is what toggles between them, so the
+   <select> inside .sub-assign-changing is never destroyed/recreated. */
+.sub-assign-collapsed, .sub-assign-changing {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;
+}
+.sub-assign-collapsed[hidden], .sub-assign-changing[hidden] { display: none; }
+
+button {
+  border: 0; border-radius: 10px; padding: 9px 16px;
+  font-weight: 700; font-size: 0.82rem; cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+button:active { transform: translateY(1px); }
+.primary { background: linear-gradient(135deg, #6d28d9, #a855f7); color: #fff; }
+.primary:hover:not(:disabled) { filter: brightness(1.05); }
+.secondary { background: #ede9fe; color: #6d28d9; }
+.secondary:hover:not(:disabled) { background: #ddd6fe; }
+.remove { background: #fee2e2; color: #b91c1c; }
+.remove:hover:not(:disabled) { background: #fecaca; }
+.link-cancel { background: transparent; color: #7b879a; padding: 9px 6px; }
+.link-cancel:hover { text-decoration: underline; color: #526075; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.sub-view-only {
+  color: #b45309; font-size: 0.78rem; text-align: right; width: 100%;
+}
+
+/* ── Loading / error / empty states ── */
+.sub-state, .sub-loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; min-height: 200px;
+  border: 1.5px dashed #e5d9fb; border-radius: 18px;
+  background: linear-gradient(160deg, #faf8ff, #fdfcff);
+  color: #64748b; padding: 30px;
+}
+.sub-state-icon {
+  width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%;
+  background: linear-gradient(135deg, #6d28d9, #a855f7);
+  color: #fff; box-shadow: 0 6px 16px rgba(109, 40, 217, 0.28);
+}
+.sub-state-icon mat-icon { font-size: 22px; width: 22px; height: 22px; }
+.sub-state.error .sub-state-icon { background: linear-gradient(135deg, #b91c1c, #ef4444); box-shadow: 0 6px 16px rgba(185, 28, 28, 0.28); }
+.sub-state strong { font-size: 0.95rem; color: #17203a; }
+.sub-state span:not(.sub-state-icon) { font-size: 0.8rem; max-width: 340px; text-align: center; }
+.sub-state button {
+  background: linear-gradient(135deg, #6d28d9, #a855f7); color: #fff;
+}
+
+.sub-loading .spinner {
+  width: 34px; height: 34px; border: 3px solid #ede9fe; border-top-color: #7c3aed;
+  border-radius: 50%; animation: sub-spin 0.8s linear infinite;
+}
+@keyframes sub-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 600px) {
+  .sub-hero { padding: 16px; }
+  .sub-hero-icon { width: 42px; height: 42px; }
+  .sub-hero-title { font-size: 1.2rem; }
+  .sub-filters { flex-direction: column; align-items: stretch; padding: 12px 14px; }
+  .sub-filter-group input { width: 100%; box-sizing: border-box; }
+  .sub-card { grid-template-columns: 1fr; text-align: left; }
+  .sub-card-period { flex-direction: row; justify-content: flex-start; gap: 8px; padding: 8px 12px; }
+  /* Class/subject/absent-teacher on the left, the substitute's name on the right of that
+     same row — instead of repeating it again down in the actions area. */
+  .sub-card-body { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .sub-assign-collapsed .sub-substitute { display: none; }
+  .sub-substitute-mobile {
+    display: flex; flex-direction: column; align-items: flex-end; text-align: right;
+    gap: 2px; flex-shrink: 0;
+  }
+  .sub-substitute-mobile small {
+    font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #0f766e;
+  }
+  .sub-substitute-mobile strong { font-size: 0.82rem; font-weight: 800; color: #0f766e; }
+  .sub-assign { align-items: stretch; width: 100%; min-width: 0; }
+  .sub-assign select { width: 100%; }
+  .sub-assign small, .sub-view-only { text-align: left; }
+  .sub-assign-actions { width: 100%; }
+  .sub-assign-actions button { flex: 1; }
+}

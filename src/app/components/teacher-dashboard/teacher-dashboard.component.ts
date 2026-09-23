@@ -7,7 +7,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { Subject, forkJoin, takeUntil } from 'rxjs';
+import { Subject, forkJoin, of, takeUntil } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ToastService } from '../../services/toast.service';
 
 import { AuthStateService } from '../../auth/auth-state.service';
@@ -23,11 +24,13 @@ import { TeacherLeaveService } from '../../services/teacher-leave.service';
 import { TeacherLeave } from '../../interfaces/teacher-leave';
 import { formatTeacherAttendanceTime, teacherAttendanceErrorMessage } from '../../utils/teacher-attendance.util';
 import { TimetableService } from '../../services/timetable.service';
+import { TeacherSubstitutionService } from '../../services/teacher-substitution.service';
 import { TimetableEntry } from '../../interfaces/timetable';
 import { subjectIcon } from '../../utils/subject-visual.util';
 import { isShowTimesEnabled } from '../../utils/timetable-preferences.util';
 import {
   buildTodayClassesView,
+  todayDayCode,
   TeacherTodayClassEntry,
   TeacherTodayClassesView,
 } from '../../utils/teacher-timetable-today.util';
@@ -100,6 +103,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     private checkinService: TeacherCheckinService,
     private teacherLeaveService: TeacherLeaveService,
     private timetableService: TimetableService,
+    private substitutionService: TeacherSubstitutionService,
     private notificationState: NotificationStateService,
     private eventService: EventService
   ) { }
@@ -254,10 +258,35 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     this.todayClassesError = null;
     this.cdr.markForCheck();
 
-    this.timetableService.getTeacherTimetable(teacherId)
+    forkJoin({
+      timetable: this.timetableService.getTeacherTimetable(teacherId),
+      // Isolated so a substitution-service outage never blocks normal timetable classes —
+      // Today's Classes must stay usable either way, just without cover-class markers.
+      substitutions: this.substitutionService.getMine(this.toLocalDateKey(new Date())).pipe(
+        catchError(error => {
+          this.logger.error('Cover-class lookup failed (isolated from timetable load):', error);
+          return of([]);
+        }),
+      ),
+    })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: entries => {
+        next: ({ timetable, substitutions }) => {
+          const coverEntries: TimetableEntry[] = substitutions.map(item => ({
+            id: -item.id,
+            className: item.className,
+            sectionName: item.sectionName,
+            day: todayDayCode(new Date()),
+            periodNumber: item.periodNumber,
+            startTime: item.startTime,
+            endTime: item.endTime,
+            subjectName: item.subjectName,
+            teacherId,
+            teacherName: item.substituteTeacherName,
+            isSubstitution: true,
+            originalTeacherName: item.originalTeacherName,
+          }));
+          const entries = [...timetable, ...coverEntries];
           this.timetableEntries = entries;
           this.todayView = buildTodayClassesView(entries, new Date());
           this.todayClassesLoading = false;

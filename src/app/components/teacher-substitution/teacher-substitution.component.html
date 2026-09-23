@@ -1,0 +1,103 @@
+<div class="sub-page">
+  <a class="sub-back" routerLink="/dashboard/admin-dashboard"><mat-icon>arrow_back</mat-icon> Admin dashboard</a>
+
+  <div class="sub-hero">
+    <div class="sub-hero-left">
+      <div class="sub-hero-icon"><mat-icon>sync_alt</mat-icon></div>
+      <div>
+        <h1 class="sub-hero-title">Teacher Substitutions</h1>
+        <p class="sub-hero-sub">Cover uncovered periods quickly</p>
+      </div>
+    </div>
+    <div class="sub-blob sub-blob-1"></div>
+    <div class="sub-blob sub-blob-2"></div>
+  </div>
+
+  <div class="sub-filters">
+    <div class="sub-filter-group">
+      <label>Date</label>
+      <input type="date" [(ngModel)]="selectedDate" (change)="load()" />
+    </div>
+  </div>
+
+  <div class="sub-summary" *ngIf="!loading && !failed && periods.length" [class.all-covered]="!needsAttentionCount">
+    <span class="sub-summary-icon"><mat-icon>{{ needsAttentionCount ? 'warning_amber' : 'task_alt' }}</mat-icon></span>
+    <span class="sub-summary-copy">
+      <strong>{{ attentionSummary }}</strong>
+      <small>{{ periods.length }} uncovered period{{ periods.length === 1 ? "" : "s" }} on this date</small>
+    </span>
+  </div>
+
+  <div class="sub-loading" *ngIf="loading"><span class="spinner"></span>Loading uncovered periods…</div>
+
+  <div class="sub-state error" *ngIf="!loading && failed">
+    <span class="sub-state-icon"><mat-icon>cloud_off</mat-icon></span>
+    <strong>Substitutions are temporarily unavailable.</strong>
+    <span>Please check your connection and try again.</span>
+    <button type="button" (click)="load()">Retry</button>
+  </div>
+
+  <div class="sub-state" *ngIf="!loading && !failed && !periods.length">
+    <span class="sub-state-icon"><mat-icon>task_alt</mat-icon></span>
+    <strong>No uncovered periods for this date.</strong>
+    <span>Approved leave and recorded staff absence are checked automatically.</span>
+  </div>
+
+  <section class="sub-list" *ngIf="!loading && !failed && periods.length">
+    <article class="sub-card" *ngFor="let period of periods" [class.is-covered]="period.assignment">
+      <div class="sub-card-period">
+        <span class="sub-card-period-num">P{{ period.periodNumber }}</span>
+        <span class="sub-card-time">{{ period.startTime }}–{{ period.endTime }}</span>
+      </div>
+
+      <div class="sub-card-body">
+        <div class="sub-card-info">
+          <div class="sub-card-top">
+            <strong class="sub-card-class">{{ classLabel(period) }}</strong>
+            <span class="sub-chip" [class.covered]="period.assignment">{{ period.assignment ? "Covered" : "Needs substitute" }}</span>
+          </div>
+          <span class="sub-subject">{{ period.subjectName }}</span>
+          <small class="sub-absent">Absent teacher: {{ period.originalTeacherName }}</small>
+        </div>
+        <span class="sub-substitute-mobile" *ngIf="canManage && period.assignment && changingEntryId !== period.timetableEntryId">
+          <small>Substitution</small>
+          <strong>{{ period.assignment.substituteTeacherName }}</strong>
+        </span>
+      </div>
+
+      <div class="sub-assign" *ngIf="canManage; else viewOnly">
+        <ng-container *ngIf="!period.assignment">
+          <select [(ngModel)]="selections[period.timetableEntryId]" [disabled]="busyEntryId === period.timetableEntryId">
+            <option value="">Select free teacher</option>
+            <option *ngFor="let teacher of period.freeTeachers" [value]="teacher.teacherId">{{ teacher.name }}</option>
+          </select>
+          <button type="button" class="primary" (click)="save(period)" [disabled]="busyEntryId === period.timetableEntryId || !selections[period.timetableEntryId]">Assign</button>
+          <small *ngIf="!period.freeTeachers.length">No eligible teacher is free for this period.</small>
+        </ng-container>
+
+        <ng-container *ngIf="period.assignment">
+          <div class="sub-assign-collapsed" [hidden]="changingEntryId === period.timetableEntryId">
+            <span class="sub-substitute"><mat-icon>how_to_reg</mat-icon>Substitute: <strong>{{ period.assignment.substituteTeacherName }}</strong></span>
+            <div class="sub-assign-actions">
+              <button type="button" class="secondary" (click)="startChange(period)" [disabled]="busyEntryId === period.timetableEntryId">Change substitute</button>
+              <button type="button" class="remove" (click)="remove(period)" [disabled]="busyEntryId === period.timetableEntryId">Remove</button>
+            </div>
+          </div>
+
+          <div class="sub-assign-changing" [hidden]="changingEntryId !== period.timetableEntryId">
+            <select [(ngModel)]="selections[period.timetableEntryId]" [disabled]="busyEntryId === period.timetableEntryId">
+              <option value="">Select free teacher</option>
+              <option *ngFor="let teacher of period.freeTeachers" [value]="teacher.teacherId">{{ teacher.name }}</option>
+            </select>
+            <button type="button" class="primary" (click)="save(period)" [disabled]="busyEntryId === period.timetableEntryId || !selections[period.timetableEntryId]">Confirm change</button>
+            <button type="button" class="link-cancel" (click)="cancelChange(period)" [disabled]="busyEntryId === period.timetableEntryId">Cancel</button>
+            <small *ngIf="!period.freeTeachers.length">No eligible teacher is free for this period.</small>
+          </div>
+        </ng-container>
+      </div>
+      <ng-template #viewOnly>
+        <small class="sub-view-only">Your role does not have permission to manage substitutions.</small>
+      </ng-template>
+    </article>
+  </section>
+</div>
