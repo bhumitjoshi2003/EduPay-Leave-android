@@ -444,6 +444,25 @@
            (click)="closeSidebarOnMobile()" title="Register Admin">
           <mat-icon>person_add</mat-icon><span>Register Admin</span>
         </a>
+        <a class="nav-item" routerLink="/dashboard/support-queue" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Support Tickets">
+          <mat-icon>support_agent</mat-icon><span>Support Tickets</span>
+        </a>
+      </ng-container>
+
+      <!-- Help & Support — every normal role (Student/Teacher/Parent/Admin/Sub-admin).
+           SUPER_ADMIN is the recipient of these tickets, so gets only the global
+           "Support Tickets" queue above, never Report a Problem / My Support Requests. -->
+      <ng-container *ngIf="!isSuperAdmin()">
+        <div class="nav-section-label">Support</div>
+        <a class="nav-item" routerLink="/dashboard/report-problem" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Report a Technical Problem">
+          <mat-icon>report_problem</mat-icon><span>Report a Problem</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/my-support-requests" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="My Support Requests">
+          <mat-icon>list_alt</mat-icon><span>My Support Requests</span>
+        </a>
       </ng-container>
 
     </nav>

@@ -1,0 +1,62 @@
+<div class="msr-page">
+  <div class="msr-hero">
+    <div class="msr-blob msr-blob-1"></div>
+    <div class="msr-blob msr-blob-2"></div>
+    <div class="msr-hero-icon"><mat-icon>list_alt</mat-icon></div>
+    <div>
+      <h1 class="msr-hero-title">My Support Requests</h1>
+      <p class="msr-hero-sub">
+        <span class="msr-sub-long">Track the technical problems you've reported to Edunexify support.</span>
+        <span class="msr-sub-short">Track your reported problems</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="msr-loading" *ngIf="loading"><span class="spinner"></span>Loading your requests…</div>
+
+  <div class="msr-state error" *ngIf="!loading && failed">
+    <mat-icon>cloud_off</mat-icon>
+    <strong>Your support requests are temporarily unavailable.</strong>
+    <button type="button" (click)="load(currentPage)">Retry</button>
+  </div>
+
+  <div class="msr-state" *ngIf="!loading && !failed && !tickets.length">
+    <mat-icon>task_alt</mat-icon>
+    <strong>You haven't reported any problems.</strong>
+    <a routerLink="/dashboard/report-problem">Report a Technical Problem</a>
+  </div>
+
+  <section class="msr-list" *ngIf="!loading && !failed && tickets.length">
+    <article class="msr-card" *ngFor="let ticket of tickets" [class.is-expanded]="expandedId === ticket.id">
+      <button type="button" class="msr-row" (click)="toggleDetail(ticket)" [attr.aria-expanded]="expandedId === ticket.id">
+        <div class="msr-row-main">
+          <div class="msr-row-top">
+            <span class="msr-number">{{ ticket.ticketNumber }}</span>
+            <span class="msr-chip" [ngClass]="statusClass(ticket.status)">{{ statusLabel(ticket.status) }}</span>
+          </div>
+          <span class="msr-title">{{ ticket.title }}</span>
+          <span class="msr-date">Reported {{ ticket.createdAt | date:'d MMM yyyy' }}</span>
+        </div>
+        <mat-icon class="msr-caret">{{ expandedId === ticket.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
+
+      <div class="msr-detail" *ngIf="expandedId === ticket.id">
+        <div class="msr-detail-loading" *ngIf="detailLoading"><span class="spinner"></span></div>
+        <ng-container *ngIf="!detailLoading && detail">
+          <div class="msr-detail-meta">
+            <span>Category: <strong>{{ categoryLabel(detail.category) }}</strong></span>
+            <span>Updated: <strong>{{ detail.updatedAt | date:'d MMM yyyy, h:mm a' }}</strong></span>
+          </div>
+          <p class="msr-detail-description">{{ detail.description }}</p>
+          <img *ngIf="detail.screenshotUrl" [src]="detail.screenshotUrl" alt="Attached screenshot" class="msr-detail-screenshot" />
+        </ng-container>
+      </div>
+    </article>
+  </section>
+
+  <div class="msr-pagination" *ngIf="!loading && !failed && totalPages > 1">
+    <button type="button" (click)="prevPage()" [disabled]="currentPage === 0">Previous</button>
+    <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+    <button type="button" (click)="nextPage()" [disabled]="currentPage >= totalPages - 1">Next</button>
+  </div>
+</div>

@@ -253,6 +253,25 @@ export const routes: Routes = [
         loadComponent: () => import('./components/register-admin/register-admin.component').then(m => m.RegisterAdminComponent),
         canActivate: [roleGuard], data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
       },
+
+      // ── Help & Support — every normal role reports to Edunexify platform support
+      //    directly, never to their own school admin. SUPER_ADMIN receives these tickets via
+      //    the support-queue route only. ────────────────────────────────
+      {
+        path: 'report-problem',
+        loadComponent: () => import('./components/report-support-ticket/report-support-ticket.component').then(m => m.ReportSupportTicketComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'PARENT'] }
+      },
+      {
+        path: 'my-support-requests',
+        loadComponent: () => import('./components/my-support-requests/my-support-requests.component').then(m => m.MySupportRequestsComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT', 'TEACHER', 'ADMIN', 'SUB_ADMIN', 'PARENT'] }
+      },
+      {
+        path: 'support-queue',
+        loadComponent: () => import('./components/super-admin-support-queue/super-admin-support-queue.component').then(m => m.SuperAdminSupportQueueComponent),
+        canActivate: [roleGuard], data: { roles: ['SUPER_ADMIN'] }
+      },
       {
         path: 'audit-logs',
         loadComponent: () => import('./components/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent),

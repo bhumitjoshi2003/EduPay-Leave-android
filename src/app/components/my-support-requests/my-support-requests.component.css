@@ -1,0 +1,76 @@
+:host { display: block; }
+.msr-page { padding-bottom: 16px; color: #1e293b; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+.msr-hero {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #60a5fa 100%);
+  border-radius: 20px; padding: 22px 20px; margin: 0 0 16px; color: #fff;
+}
+.msr-hero > * { position: relative; z-index: 1; }
+.msr-hero .msr-blob { position: absolute; z-index: 0; border-radius: 50%; opacity: 0.12; pointer-events: none; }
+.msr-blob-1 { width: 130px; height: 130px; background: #fff; top: -35px; right: -25px; }
+.msr-blob-2 { width: 80px; height: 80px; background: #bfdbfe; bottom: -20px; left: 35%; }
+.msr-hero-icon {
+  width: 52px; height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.18); border-radius: 14px;
+}
+.msr-hero-icon mat-icon { font-size: 26px; width: 26px; height: 26px; }
+.msr-hero-title { margin: 0; font-size: 1.25rem; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.msr-hero-sub { margin: 2px 0 0; font-size: 0.78rem; color: rgba(255, 255, 255, 0.75); }
+.msr-sub-short { display: none; }
+
+.msr-list { display: grid; gap: 12px; }
+.msr-card { background: #fff; border-radius: 14px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06); overflow: hidden; }
+.msr-row {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  border: 0; background: transparent; cursor: pointer; font-family: inherit; text-align: left;
+}
+.msr-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.msr-row-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.msr-number { font-weight: 800; color: #2563eb; font-size: 0.82rem; }
+.msr-title {
+  font-weight: 600; font-size: 0.9rem; line-height: 1.35; color: #17203a; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.msr-date { font-size: 0.74rem; color: #94a3b8; }
+.msr-card.is-expanded .msr-title { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.msr-caret { color: #94a3b8; flex-shrink: 0; }
+
+.msr-chip {
+  padding: 3px 10px; border-radius: 999px; font-size: 0.66rem; font-weight: 800; text-transform: uppercase; flex-shrink: 0;
+}
+.msr-status--open { background: #fef3c7; color: #b45309; }
+.msr-status--in_progress { background: #dbeafe; color: #1d4ed8; }
+.msr-status--resolved { background: #dcfce7; color: #15803d; }
+
+.msr-detail { padding: 0 16px 16px; border-top: 1px solid #eef1f5; }
+.msr-detail-meta { display: flex; gap: 4px 18px; flex-wrap: wrap; font-size: 0.76rem; color: #64748b; margin: 12px 0 8px; }
+.msr-detail-description { font-size: 0.85rem; color: #334155; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 10px; }
+.msr-detail-screenshot { max-width: min(260px, 100%); max-height: 180px; border-radius: 10px; border: 1.5px solid #e2e8f0; display: block; }
+.msr-detail-loading { display: flex; justify-content: center; padding: 12px 0; }
+
+.msr-loading, .msr-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  min-height: 180px; border-radius: 16px; color: #64748b;
+}
+.msr-loading { flex-direction: row; border: 1px dashed #cbd5e1; }
+.msr-state { border: 1.5px dashed #e2e8f0; background: #f8fafc; }
+.msr-state mat-icon { font-size: 32px; width: 32px; height: 32px; color: #2563eb; }
+.msr-state.error mat-icon { color: #dc2626; }
+.msr-state a, .msr-state button { color: #2563eb; font-weight: 700; text-decoration: none; border: 0; background: transparent; cursor: pointer; font-size: 0.85rem; }
+
+.spinner { width: 24px; height: 24px; border: 3px solid #dbeafe; border-top-color: #2563eb; border-radius: 50%; animation: msr-spin 0.8s linear infinite; }
+@keyframes msr-spin { to { transform: rotate(360deg); } }
+
+.msr-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; font-size: 0.82rem; color: #526075; }
+.msr-pagination button { border: 1.5px solid #e2e8f0; background: #fff; border-radius: 8px; padding: 6px 14px; cursor: pointer; font-weight: 700; }
+.msr-pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 600px) {
+  .msr-hero { padding: 16px; }
+  .msr-sub-long { display: none; }
+  .msr-sub-short { display: inline; }
+  .msr-row { padding: 12px 14px; }
+  .msr-detail { padding: 0 14px 14px; }
+}

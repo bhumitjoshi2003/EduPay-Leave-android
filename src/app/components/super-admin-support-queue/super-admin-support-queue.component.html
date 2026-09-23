@@ -1,0 +1,113 @@
+<div class="saq-page">
+  <a class="saq-back" routerLink="/dashboard/super-admin-dashboard"><mat-icon>arrow_back</mat-icon> Super Admin dashboard</a>
+
+  <div class="saq-hero">
+    <div class="saq-hero-icon"><mat-icon>support_agent</mat-icon></div>
+    <div>
+      <h1 class="saq-hero-title">Support Tickets</h1>
+      <p class="saq-hero-sub">Every technical problem reported across every school.</p>
+    </div>
+  </div>
+
+  <div class="saq-filters">
+    <div class="saq-filter-group">
+      <label>Status</label>
+      <select [(ngModel)]="filterStatus">
+        <option value="">All</option>
+        <option *ngFor="let s of statuses" [value]="s">{{ statusLabel(s) }}</option>
+      </select>
+    </div>
+    <div class="saq-filter-group">
+      <label>Category</label>
+      <select [(ngModel)]="filterCategory">
+        <option value="">All</option>
+        <option *ngFor="let c of categories" [value]="c.value">{{ c.label }}</option>
+      </select>
+    </div>
+    <div class="saq-filter-group">
+      <label>School</label>
+      <select [(ngModel)]="filterSchoolId">
+        <option value="">All schools</option>
+        <option *ngFor="let s of schools" [value]="s.id">{{ s.name }}</option>
+      </select>
+    </div>
+    <button type="button" class="saq-apply" (click)="applyFilters()">Apply</button>
+  </div>
+
+  <div class="saq-loading" *ngIf="loading"><span class="spinner"></span>Loading tickets…</div>
+  <div class="saq-state error" *ngIf="!loading && failed">
+    <mat-icon>cloud_off</mat-icon><strong>Support tickets are temporarily unavailable.</strong>
+    <button type="button" (click)="load(currentPage)">Retry</button>
+  </div>
+  <div class="saq-state" *ngIf="!loading && !failed && !tickets.length">
+    <mat-icon>task_alt</mat-icon><strong>No tickets match these filters.</strong>
+  </div>
+
+  <div class="saq-table-wrapper" *ngIf="!loading && !failed && tickets.length">
+    <table class="saq-table">
+      <thead>
+        <tr>
+          <th>Ticket</th><th>Reporter</th><th>School</th><th>Role</th><th>Category</th>
+          <th>Title</th><th>Status</th><th>Created</th><th>Platform</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of tickets" (click)="openTicket(t)" [class.is-selected]="selectedId === t.id">
+          <td class="saq-number">{{ t.ticketNumber }}</td>
+          <td>{{ t.reporterName }}</td>
+          <td>{{ t.schoolName || '—' }}</td>
+          <td>{{ t.reporterRole }}</td>
+          <td>{{ categoryLabel(t.category) }}</td>
+          <td class="saq-title-cell">{{ t.title }}</td>
+          <td><span class="saq-chip" [ngClass]="statusClass(t.status)">{{ statusLabel(t.status) }}</span></td>
+          <td>{{ t.createdAt | date:'d MMM, h:mm a' }}</td>
+          <td>{{ t.platform }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="saq-pagination" *ngIf="!loading && !failed && totalPages > 1">
+    <button type="button" (click)="prevPage()" [disabled]="currentPage === 0">Previous</button>
+    <span>Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+    <button type="button" (click)="nextPage()" [disabled]="currentPage >= totalPages - 1">Next</button>
+  </div>
+
+  <div class="saq-overlay" *ngIf="selectedId !== null" (click)="closeDetail()">
+    <div class="saq-drawer" (click)="$event.stopPropagation()">
+      <button type="button" class="saq-close" (click)="closeDetail()"><mat-icon>close</mat-icon></button>
+      <div class="saq-drawer-loading" *ngIf="detailLoading"><span class="spinner"></span></div>
+      <ng-container *ngIf="!detailLoading && detail">
+        <h2>{{ detail.ticketNumber }}</h2>
+        <p class="saq-drawer-title">{{ detail.title }}</p>
+        <div class="saq-drawer-meta">
+          <span>{{ detail.reporterName }} · {{ detail.reporterRole }}</span>
+          <span>{{ detail.schoolName || '—' }}</span>
+          <span>{{ categoryLabel(detail.category) }}</span>
+          <span>{{ detail.platform }}<ng-container *ngIf="detail.appVersion"> · v{{ detail.appVersion }}</ng-container></span>
+          <span *ngIf="detail.route">Page: {{ detail.route }}</span>
+          <span>Created {{ detail.createdAt | date:'d MMM yyyy, h:mm a' }}</span>
+        </div>
+
+        <p class="saq-drawer-description">{{ detail.description }}</p>
+        <img *ngIf="detail.screenshotUrl" [src]="detail.screenshotUrl" alt="Attached screenshot" class="saq-drawer-screenshot" />
+
+        <div class="saq-drawer-controls">
+          <label class="saq-field">
+            <span>Status</span>
+            <select [(ngModel)]="statusDraft">
+              <option *ngFor="let s of statuses" [value]="s">{{ statusLabel(s) }}</option>
+            </select>
+          </label>
+          <label class="saq-field">
+            <span>Internal note</span>
+            <textarea [(ngModel)]="internalNoteDraft" rows="4" placeholder="Notes visible only to Super Admin."></textarea>
+          </label>
+          <button type="button" class="saq-save" (click)="saveStatus()" [disabled]="saving">
+            {{ saving ? 'Saving…' : 'Save changes' }}
+          </button>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

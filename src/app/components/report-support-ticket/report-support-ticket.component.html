@@ -1,0 +1,74 @@
+<div class="rst-page">
+  <div class="rst-hero">
+    <div class="rst-blob rst-blob-1"></div>
+    <div class="rst-blob rst-blob-2"></div>
+    <div class="rst-hero-icon"><mat-icon>support_agent</mat-icon></div>
+    <div>
+      <h1 class="rst-hero-title"><span class="rst-sub-long">Report a Technical Problem</span><span class="rst-sub-short">Report a Problem</span></h1>
+      <p class="rst-hero-sub">
+        <span class="rst-sub-long">Tell us what went wrong — this goes straight to Edunexify support.</span>
+        <span class="rst-sub-short">Sent to Edunexify support</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="rst-layout">
+    <div class="rst-card">
+      <label class="rst-field">
+        <span>Category</span>
+        <select [(ngModel)]="category">
+          <option value="" disabled>Select a category</option>
+          <option *ngFor="let c of categories" [value]="c.value">{{ c.label }}</option>
+        </select>
+      </label>
+
+      <label class="rst-field">
+        <span>Title</span>
+        <input type="text" [(ngModel)]="title" maxlength="200" placeholder="Short summary of the problem" />
+      </label>
+
+      <label class="rst-field">
+        <span>Description</span>
+        <textarea [(ngModel)]="description" rows="6" maxlength="5000"
+          placeholder="Tell us what happened, what you expected, and any steps that help us reproduce it."></textarea>
+      </label>
+
+      <div class="rst-field">
+        <span>Screenshot <small>(optional)</small></span>
+        <input #fileInput type="file" accept="image/jpeg,image/png,image/webp" (change)="onFileSelected($event)" id="rst-file" hidden />
+
+        <label for="rst-file" class="rst-dropzone" *ngIf="!imagePreviewUrl">
+          <mat-icon>add_photo_alternate</mat-icon>
+          <strong>Attach screenshot</strong>
+          <small>PNG, JPG or WebP · Max 5 MB</small>
+        </label>
+
+        <div class="rst-preview" *ngIf="imagePreviewUrl">
+          <img [src]="imagePreviewUrl" alt="Screenshot preview" />
+          <div class="rst-preview-info">
+            <span class="rst-preview-name">{{ selectedFile?.name }}</span>
+            <div class="rst-preview-actions">
+              <label for="rst-file" class="rst-link-btn">Replace</label>
+              <button type="button" class="rst-link-btn rst-link-btn--danger"
+                (click)="removeScreenshot(); fileInput.value = ''">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="rst-submit" (click)="submit()" [disabled]="submitting">
+        {{ submitting ? 'Submitting…' : 'Submit Request' }}
+      </button>
+    </div>
+
+    <aside class="rst-info">
+      <h2>What happens after you submit?</h2>
+      <ul>
+        <li><mat-icon>send</mat-icon><span>Sent directly to Edunexify Support</span></li>
+        <li><mat-icon>list_alt</mat-icon><span>Track it under My Support Requests</span></li>
+        <li><mat-icon>notifications_active</mat-icon><span>You'll receive status updates</span></li>
+      </ul>
+      <a class="rst-info-link" routerLink="/dashboard/my-support-requests">View My Support Requests</a>
+    </aside>
+  </div>
+</div>
