@@ -338,54 +338,63 @@
             >Open class <mat-icon>arrow_forward</mat-icon></a
           >
         </div>
-        <div class="td-class-hero">
-          <div>
-            <strong>{{ totalStudents }}</strong
-            ><span>Active students</span>
+        <ng-container *ngIf="!classDataFailed; else classDataUnavailable">
+          <div class="td-class-hero">
+            <div>
+              <strong>{{ totalStudents }}</strong
+              ><span>Active students</span>
+            </div>
+            <div class="td-class-status" [class.is-pending]="!attendanceTaken">
+              <mat-icon>{{
+                attendanceTaken ? "verified" : "pending_actions"
+              }}</mat-icon
+              ><span
+                ><strong>{{
+                  attendanceTaken ? "Attendance recorded" : "Not marked yet"
+                }}</strong
+                ><small>{{
+                  attendanceTaken
+                    ? todayPresentCount + " present · " + todayAbsent + " absent"
+                    : "Complete today's register"
+                }}</small></span
+              >
+            </div>
           </div>
-          <div class="td-class-status" [class.is-pending]="!attendanceTaken">
-            <mat-icon>{{
-              attendanceTaken ? "verified" : "pending_actions"
-            }}</mat-icon
-            ><span
-              ><strong>{{
-                attendanceTaken ? "Attendance recorded" : "Not marked yet"
-              }}</strong
-              ><small>{{
-                attendanceTaken
-                  ? todayPresentCount + " present · " + todayAbsent + " absent"
-                  : "Complete today's register"
-              }}</small></span
-            >
+          <div class="td-class-metrics">
+            <div>
+              <i class="green-dot"></i
+              ><strong>{{ attendanceTaken ? todayPresentCount : "—" }}</strong
+              ><small>Present today</small>
+            </div>
+            <div>
+              <i class="red-dot"></i
+              ><strong>{{ attendanceTaken ? todayAbsent : "—" }}</strong
+              ><small>Absent today</small>
+            </div>
+            <div>
+              <i class="amber-dot"></i><strong>{{ pendingLeavesCount }}</strong
+              ><small>Pending leaves</small>
+            </div>
+            <div>
+              <i class="blue-dot"></i
+              ><strong>{{ monthlyAttendanceRate | number : "1.0-1" }}%</strong
+              ><small>Class attendance</small>
+            </div>
           </div>
-        </div>
-        <div class="td-class-metrics">
-          <div>
-            <i class="green-dot"></i
-            ><strong>{{ attendanceTaken ? todayPresentCount : "—" }}</strong
-            ><small>Present today</small>
+          <div class="td-panel-actions">
+            <a routerLink="/dashboard/teacher-attendance">{{
+              attendanceTaken ? "Review attendance" : "Mark attendance"
+            }}</a
+            ><a routerLink="/dashboard/view-leaves">Review requests</a>
           </div>
-          <div>
-            <i class="red-dot"></i
-            ><strong>{{ attendanceTaken ? todayAbsent : "—" }}</strong
-            ><small>Absent today</small>
+        </ng-container>
+        <ng-template #classDataUnavailable>
+          <div class="td-empty">
+            <mat-icon>cloud_off</mat-icon
+            ><span>Class data is temporarily unavailable.</span>
           </div>
-          <div>
-            <i class="amber-dot"></i><strong>{{ pendingLeavesCount }}</strong
-            ><small>Pending leaves</small>
-          </div>
-          <div>
-            <i class="blue-dot"></i
-            ><strong>{{ monthlyAttendanceRate | number : "1.0-1" }}%</strong
-            ><small>Class attendance</small>
-          </div>
-        </div>
-        <div class="td-panel-actions">
-          <a routerLink="/dashboard/teacher-attendance">{{
-            attendanceTaken ? "Review attendance" : "Mark attendance"
-          }}</a
-          ><a routerLink="/dashboard/view-leaves">Review requests</a>
-        </div>
+          <button type="button" class="td-today-retry" (click)="loadClassData()">Retry</button>
+        </ng-template>
       </section>
 
       <section class="td-panel">
@@ -397,7 +406,7 @@
             >View all <mat-icon>arrow_forward</mat-icon></a
           >
         </div>
-        <div class="td-student-leaves" *ngIf="recentLeaves.length">
+        <div class="td-student-leaves" *ngIf="!classDataFailed && recentLeaves.length">
           <div *ngFor="let leave of recentLeaves | slice : 0 : 3">
             <span class="td-avatar">{{
               leave.studentName.charAt(0).toUpperCase()
@@ -417,9 +426,13 @@
             >
           </div>
         </div>
-        <div class="td-empty" *ngIf="!recentLeaves.length">
+        <div class="td-empty" *ngIf="!classDataFailed && !recentLeaves.length">
           <mat-icon>task_alt</mat-icon
           ><span>No pending student leave requests</span>
+        </div>
+        <div class="td-empty" *ngIf="classDataFailed">
+          <mat-icon>cloud_off</mat-icon
+          ><span>Pending approvals are temporarily unavailable.</span>
         </div>
       </section>
     </div>

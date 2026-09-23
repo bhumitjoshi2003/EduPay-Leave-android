@@ -134,6 +134,15 @@
       </a>
     </div>
 
+    <div class="ad-section" *ngIf="isAdmin && staffAttendanceFailed">
+      <h2 class="ad-section-title">Staff Attendance Today</h2>
+      <div class="ad-empty-leaves">
+        <mat-icon>cloud_off</mat-icon>
+        <p>Staff attendance is temporarily unavailable.</p>
+      </div>
+      <button class="ad-view-all" type="button" style="border:0;background:transparent;cursor:pointer;width:100%" (click)="loadStaffAttendance()">Retry</button>
+    </div>
+
     <!-- ── Pending Leave Requests ────────────────────────────────────── -->
     <div class="ad-section" *ngIf="isAdmin">
       <h2 class="ad-section-title">Pending Leave Requests</h2>
@@ -142,8 +151,10 @@
         <div class="ad-leave-type-pill" style="--pc:#0369a1">
           <div class="ad-leave-type-icon"><mat-icon>school</mat-icon></div>
           <div class="ad-leave-type-copy">
-            <span class="ad-leave-type-value">{{ stats?.pendingLeaves ?? 0 }}</span>
-            <span class="ad-leave-type-label">Student{{ (stats?.pendingLeaves ?? 0) === 1 ? '' : 's' }} pending</span>
+            <span class="ad-leave-type-value" *ngIf="!statsFailed">{{ statsLoading ? '—' : (stats?.pendingLeaves ?? 0) }}</span>
+            <span class="ad-leave-type-value" *ngIf="statsFailed">—</span>
+            <span class="ad-leave-type-label" *ngIf="!statsFailed">Student{{ (stats?.pendingLeaves ?? 0) === 1 ? '' : 's' }} pending</span>
+            <span class="ad-leave-type-label" *ngIf="statsFailed">Unavailable</span>
           </div>
           <a class="ad-leave-type-cta" routerLink="/dashboard/view-leaves"><mat-icon>arrow_forward</mat-icon></a>
         </div>
@@ -159,12 +170,18 @@
         </div>
       </div>
 
-      <div class="ad-empty-leaves" *ngIf="recentLeaves.length === 0">
+      <div class="ad-empty-leaves" *ngIf="!studentLeavesFailed && recentLeaves.length === 0">
         <mat-icon>check_circle_outline</mat-icon>
         <p>No pending leave requests</p>
       </div>
 
-      <div class="ad-leave-list" *ngIf="recentLeaves.length > 0">
+      <div class="ad-empty-leaves" *ngIf="studentLeavesFailed">
+        <mat-icon>cloud_off</mat-icon>
+        <p>Unable to load leave requests right now.</p>
+        <button class="ad-view-all" type="button" style="border:0;background:transparent;cursor:pointer" (click)="loadStudentLeaves()">Retry</button>
+      </div>
+
+      <div class="ad-leave-list" *ngIf="!studentLeavesFailed && recentLeaves.length > 0">
         <a class="ad-leave-card" routerLink="/dashboard/view-leaves"
           *ngFor="let leave of recentLeaves">
           <div class="ad-leave-avatar">{{ leave.studentName.charAt(0).toUpperCase() }}</div>
@@ -249,6 +266,15 @@
     </section>
 
     <!-- ── Plan Usage ────────────────────────────────────────────────── -->
+    <div class="ad-section" *ngIf="isAdmin && entitlementFailed">
+      <h2 class="ad-section-title">Plan Usage</h2>
+      <div class="ad-empty-leaves">
+        <mat-icon>cloud_off</mat-icon>
+        <p>Plan usage is temporarily unavailable.</p>
+      </div>
+      <button class="ad-view-all" type="button" style="border:0;background:transparent;cursor:pointer;width:100%" (click)="loadEntitlement()">Retry</button>
+    </div>
+
     <div class="ad-plan-section" *ngIf="entitlement">
 
       <!-- Plan Identity Banner -->

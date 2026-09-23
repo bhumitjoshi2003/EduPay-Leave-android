@@ -60,6 +60,10 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   pendingLeavesCount = 0;
   monthlyAttendanceRate = 0;
   recentLeaves: LeaveApplication[] = [];
+  /** true only when the combined class-data request failed — "Class {{ className }} today"
+   *  and "Pending approvals" must show a neutral unavailable state instead of the fabricated
+   *  "0 active students" / "No pending requests" a blank default would otherwise imply. */
+  classDataFailed = false;
   personalAttendance: TeacherAttendanceSummary | null = null;
   todayTeacherRecord: TeacherAttendanceRecord | null = null;
   personalSummaryLoading = true;
@@ -306,7 +310,8 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private loadClassData(): void {
+  loadClassData(): void {
+    this.classDataFailed = false;
     const now = this.today;
     const pad = (n: number) => String(n).padStart(2, '0');
     const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
@@ -341,6 +346,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
       },
       error: e => {
         this.logger.error('Class data load error:', e);
+        this.classDataFailed = true;
         this.isLoading = false;
         this.cdr.markForCheck();
       }

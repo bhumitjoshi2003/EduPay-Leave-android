@@ -50,6 +50,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   upcomingEvent: CalendarEvent | null = null;
   upcomingEventLoading = true;
   upcomingEventFailed = false;
+  statsLoading = true;
   statsFailed = false;
   studentLeavesFailed = false;
   entitlementFailed = false;
@@ -78,12 +79,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
     this.loadUpcomingEvent();
     if (this.isAdmin) {
-      this.loadDashboardData();
+      this.loadStats();
+      this.loadStudentLeaves();
+      this.loadEntitlement();
+      this.loadStaffAttendance();
       this.loadStaffAdoption();
       this.loadTeacherPendingLeaveCount();
-    } else {
-      this.isLoading = false;
     }
+    this.isLoading = false;
   }
 
   loadStaffAdoption(): void {
@@ -167,20 +170,44 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  loadDashboardData(): void {
-    this.isLoading = false;
+  /** Each of these four sources is independently retryable — a failure in one must never
+   *  hide or block the others, and a Retry action must only re-request its own source. */
+  loadStats(): void {
+    this.statsLoading = true;
+    this.statsFailed = false;
     this.analyticsService.getStats().pipe(takeUntil(this.destroy$)).subscribe({
-      next: stats => { this.stats = { ...stats, feesCollectedThisMonth: stats.feesCollectedThisMonth / 100 }; this.cdr.markForCheck(); },
-      error: e => { this.statsFailed = true; this.logger.error('Dashboard stats load error:', e); this.cdr.markForCheck(); }
+      next: stats => {
+        this.stats = { ...stats, feesCollectedThisMonth: stats.feesCollectedThisMonth / 100 };
+        this.statsLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: e => {
+        this.statsFailed = true;
+        this.statsLoading = false;
+        this.logger.error('Dashboard stats load error:', e);
+        this.cdr.markForCheck();
+      }
     });
+  }
+
+  loadStudentLeaves(): void {
+    this.studentLeavesFailed = false;
     this.leaveService.getLeavesPaginated(0, 10).pipe(takeUntil(this.destroy$)).subscribe({
       next: page => { this.recentLeaves = page.content.filter(l => l.status === 'PENDING').slice(0, 5); this.cdr.markForCheck(); },
       error: e => { this.studentLeavesFailed = true; this.logger.error('Student leave preview load error:', e); this.cdr.markForCheck(); }
     });
+  }
+
+  loadEntitlement(): void {
+    this.entitlementFailed = false;
     this.schoolService.getEntitlement().pipe(takeUntil(this.destroy$)).subscribe({
       next: entitlement => { this.entitlement = entitlement; this.cdr.markForCheck(); },
       error: e => { this.entitlementFailed = true; this.logger.error('Plan entitlement load error:', e); this.cdr.markForCheck(); }
     });
+  }
+
+  loadStaffAttendance(): void {
+    this.staffAttendanceFailed = false;
     this.teacherCheckinService.getTodaySummary().pipe(takeUntil(this.destroy$)).subscribe({
       next: attendance => { this.staffAttendance = attendance; this.cdr.markForCheck(); },
       error: e => { this.staffAttendanceFailed = true; this.logger.error('Staff attendance summary load error:', e); this.cdr.markForCheck(); }

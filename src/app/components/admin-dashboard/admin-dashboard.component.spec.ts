@@ -24,16 +24,23 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
 
   function configure(role: string, opts: {
     stats?: any; staffAttendance?: any; teacherLeavesTotal?: number; events?: any[];
+    entitlement?: any;
+    statsError?: boolean; staffAttendanceError?: boolean; studentLeavesError?: boolean;
+    entitlementError?: boolean; staffAdoptionError?: boolean;
   } = {}): void {
     const authState = jasmine.createSpyObj('AuthStateService', ['getUser', 'hasFeature']);
     authState.getUser.and.returnValue({ userId: 'U1', role, name: 'Test', className: '' } as any);
     authState.hasFeature.and.returnValue(false);
 
     staffAdoptionService = jasmine.createSpyObj('StaffAdoptionService', ['getStaffAdoption']);
-    staffAdoptionService.getStaffAdoption.and.returnValue(of({
-      summary: { totalTeachers: 22, startedTeachers: 18, notStartedTeachers: 3, attendanceUsedTeachers: 16, disabledTeachers: 1 },
-      teachers: [],
-    }));
+    staffAdoptionService.getStaffAdoption.and.returnValue(
+      opts.staffAdoptionError
+        ? throwError(() => new Error('staff adoption offline'))
+        : of({
+          summary: { totalTeachers: 22, startedTeachers: 18, notStartedTeachers: 3, attendanceUsedTeachers: 16, disabledTeachers: 1 },
+          teachers: [],
+        }),
+    );
 
     const stats = opts.stats ?? { totalStudents: 0, totalTeachers: 10, feesCollectedThisMonth: 0, overdueStudents: 0, todayAttendanceRate: 0, pendingLeaves: 0 };
     const staffAttendance = opts.staffAttendance ?? { date: '2026-09-22', presentCount: 4, lateCount: 1, absentCount: 0, halfDayCount: 0, onLeaveCount: 1 };
@@ -53,10 +60,26 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
         provideRouter([]),
         { provide: AuthStateService, useValue: authState },
         { provide: AdminService, useValue: adminService },
-        { provide: DashboardAnalyticsService, useValue: { getStats: () => of(stats) } },
-        { provide: LeaveService, useValue: { getLeavesPaginated: () => of({ content: [] }) } },
-        { provide: SchoolService, useValue: { getEntitlement: () => of(null) } },
-        { provide: TeacherCheckinService, useValue: { getTodaySummary: () => of(staffAttendance) } },
+        {
+          provide: DashboardAnalyticsService, useValue: {
+            getStats: () => opts.statsError ? throwError(() => new Error('stats offline')) : of(stats),
+          },
+        },
+        {
+          provide: LeaveService, useValue: {
+            getLeavesPaginated: () => opts.studentLeavesError ? throwError(() => new Error('leaves offline')) : of({ content: [] }),
+          },
+        },
+        {
+          provide: SchoolService, useValue: {
+            getEntitlement: () => opts.entitlementError ? throwError(() => new Error('entitlement offline')) : of(opts.entitlement ?? null),
+          },
+        },
+        {
+          provide: TeacherCheckinService, useValue: {
+            getTodaySummary: () => opts.staffAttendanceError ? throwError(() => new Error('attendance offline')) : of(staffAttendance),
+          },
+        },
         { provide: StaffAdoptionService, useValue: staffAdoptionService },
         { provide: LoggerService, useValue: jasmine.createSpyObj('LoggerService', ['error']) },
         { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['error']) },
@@ -265,5 +288,165 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
     expect(component.upcomingEventFailed).toBeTrue();
     expect(component.isLoading).toBeFalse();
     expect(fixture.nativeElement.textContent).toContain('Total Teachers');
+  });
+
+  // ─── Failure isolation — one failed source must never blank an unrelated section ───
+
+  it('stats failure does not hide Staff Attendance Today', () => {
+    configure('ADMIN', { statsError: true });
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('Staff Attendance Today');
+    expect(text).toContain('Present');
+    expect(text).toContain('Could not load dashboard stats');
+  });
+
+  it('stats failure does not hide Quick Actions', () => {
+    configure('ADMIN', { statsError: true });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.ad-actions-grid')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('Quick Actions');
+  });
+
+  it('stats failure never fabricates a "0 Students pending" count — shows Unavailable instead', () => {
+    configure('ADMIN', { statsError: true });
+    fixture.detectChanges();
+    const studentPill = fixture.nativeElement.querySelector('.ad-leave-type-pill');
+    expect(studentPill.textContent).toContain('Unavailable');
+    expect(studentPill.querySelector('.ad-leave-type-value').textContent.trim()).toBe('—');
+  });
+
+  it('staff attendance failure does not hide the stat cards, and shows an isolated fallback with Retry', () => {
+    configure('ADMIN', { staffAttendanceError: true });
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('Total Students');
+    expect(text).toContain('Total Teachers');
+    expect(text).toContain('Staff attendance is temporarily unavailable');
+    expect(fixture.nativeElement.querySelector('.ad-staff-att-grid')).toBeNull();
+  });
+
+  it('staff attendance failure does not compute "Not Yet Checked In" from missing data', () => {
+    configure('ADMIN', { staffAttendanceError: true });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Not Yet Checked In');
+  });
+
+  it('student leave failure does not hide the teacher pending-leave pill', () => {
+    configure('ADMIN', { studentLeavesError: true, teacherLeavesTotal: 3 });
+    fixture.detectChanges();
+    const pills = fixture.nativeElement.querySelectorAll('.ad-leave-type-pill');
+    const teacherPill = Array.from(pills).find((r: any) => r.textContent.includes('Teacher')) as HTMLElement;
+    expect(teacherPill.textContent).toContain('3');
+  });
+
+  it('student leave failure shows an isolated fallback with Retry, never the false "No pending leave requests" empty state', () => {
+    configure('ADMIN', { studentLeavesError: true });
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('Unable to load leave requests right now');
+    expect(text).not.toContain('No pending leave requests');
+  });
+
+  it('entitlement failure affects only Plan Usage — daily operations remain intact', () => {
+    configure('ADMIN', { entitlementError: true });
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('Plan usage is temporarily unavailable');
+    expect(fixture.nativeElement.querySelector('.ad-plan-section')).toBeNull();
+    expect(text).toContain('Staff Attendance Today');
+    expect(text).toContain('Pending Leave Requests');
+    expect(text).toContain('Quick Actions');
+  });
+
+  it('entitlement success still renders Plan Usage exactly as before', () => {
+    configure('ADMIN', { entitlement: { planName: 'Growth Plan', subscriptionStatus: 'ACTIVE', featureCount: 5, activeStudents: 10, maxStudents: 100, totalStaff: 4, maxStaff: 20 } });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.ad-plan-section')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('Growth Plan');
+  });
+
+  it('Staff Adoption failure remains isolated from the rest of the dashboard', () => {
+    configure('ADMIN', { staffAdoptionError: true });
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('Staff adoption is temporarily unavailable');
+    expect(text).toContain('Staff Attendance Today');
+    expect(text).toContain('Pending Leave Requests');
+  });
+
+  it('a fully successful ADMIN dashboard renders exactly as before (no visible change on the happy path)', () => {
+    configure('ADMIN');
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('Total Students');
+    expect(text).toContain('Staff Attendance Today');
+    expect(text).toContain('Pending Leave Requests');
+    expect(text).toContain('Quick Actions');
+    expect(text).not.toContain('temporarily unavailable');
+    expect(text).not.toContain('Could not load dashboard stats');
+  });
+
+  it('a fully successful SUB_ADMIN dashboard renders exactly as before (contract unchanged)', () => {
+    configure('SUB_ADMIN');
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).not.toContain('Staff Attendance Today');
+    expect(text).not.toContain('Pending Leave Requests');
+    expect(text).not.toContain('temporarily unavailable');
+    expect(fixture.nativeElement.querySelector('a[routerLink="/dashboard/class-management"]')).toBeTruthy();
+  });
+
+  it('Retry on Staff Attendance re-requests only that source, not stats/leaves/entitlement', () => {
+    const getStats = jasmine.createSpy('getStats').and.returnValue(of({ totalStudents: 0, totalTeachers: 10, feesCollectedThisMonth: 0, overdueStudents: 0, todayAttendanceRate: 0, pendingLeaves: 0 }));
+    const getLeavesPaginated = jasmine.createSpy('getLeavesPaginated').and.returnValue(of({ content: [] }));
+    const getEntitlement = jasmine.createSpy('getEntitlement').and.returnValue(of(null));
+    let attendanceCallCount = 0;
+    const getTodaySummary = jasmine.createSpy('getTodaySummary').and.callFake(() => {
+      attendanceCallCount++;
+      return attendanceCallCount === 1
+        ? throwError(() => new Error('attendance offline'))
+        : of({ date: '2026-09-22', presentCount: 4, lateCount: 1, absentCount: 0, halfDayCount: 0, onLeaveCount: 1 });
+    });
+    const authState = jasmine.createSpyObj('AuthStateService', ['getUser', 'hasFeature']);
+    authState.getUser.and.returnValue({ userId: 'U1', role: 'ADMIN', name: 'Test', className: '' } as any);
+    authState.hasFeature.and.returnValue(false);
+
+    TestBed.configureTestingModule({
+      imports: [AdminDashboardComponent],
+      providers: [
+        provideRouter([]),
+        { provide: AuthStateService, useValue: authState },
+        { provide: AdminService, useValue: { getAdminById: () => of({ name: 'Test Admin' }) } },
+        { provide: DashboardAnalyticsService, useValue: { getStats } },
+        { provide: LeaveService, useValue: { getLeavesPaginated } },
+        { provide: SchoolService, useValue: { getEntitlement } },
+        { provide: TeacherCheckinService, useValue: { getTodaySummary } },
+        { provide: StaffAdoptionService, useValue: jasmine.createSpyObj('StaffAdoptionService', { getStaffAdoption: of({ summary: { totalTeachers: 1, startedTeachers: 1, notStartedTeachers: 0, attendanceUsedTeachers: 1, disabledTeachers: 0 }, teachers: [] }) }) },
+        { provide: LoggerService, useValue: jasmine.createSpyObj('LoggerService', ['error']) },
+        { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['error']) },
+        { provide: TeacherLeaveService, useValue: { getLeaves: () => of({ content: [], totalElements: 0, totalPages: 0 }) } },
+        { provide: EventService, useValue: { getEventsForMonthAndYear: () => of([]) } },
+      ],
+    });
+    fixture = TestBed.createComponent(AdminDashboardComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Staff attendance is temporarily unavailable');
+    expect(getStats).toHaveBeenCalledTimes(1);
+    expect(getLeavesPaginated).toHaveBeenCalledTimes(1);
+    expect(getEntitlement).toHaveBeenCalledTimes(1);
+
+    const retryButton: HTMLButtonElement = Array.from(fixture.nativeElement.querySelectorAll('button'))
+      .find((b: any) => b.textContent.includes('Retry')) as HTMLButtonElement;
+    retryButton.click();
+    fixture.detectChanges();
+
+    expect(getTodaySummary).toHaveBeenCalledTimes(2);
+    expect(getStats).toHaveBeenCalledTimes(1);
+    expect(getLeavesPaginated).toHaveBeenCalledTimes(1);
+    expect(getEntitlement).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.textContent).toContain('Staff Attendance Today');
+    expect(fixture.nativeElement.querySelector('.ad-staff-att-grid')).toBeTruthy();
   });
 });
