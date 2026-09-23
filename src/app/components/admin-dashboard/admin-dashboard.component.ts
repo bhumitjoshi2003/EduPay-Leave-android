@@ -1,7 +1,7 @@
 import { WisdomCardsComponent } from '../wisdom/wisdom-cards.component';
 import {
   ChangeDetectionStrategy, ChangeDetectorRef,
-  Component, OnDestroy, OnInit
+  Component, OnDestroy, OnInit, Optional
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -21,6 +21,7 @@ import { TeacherLeaveService } from '../../services/teacher-leave.service';
 import { EventService } from '../../services/event.service';
 import { CalendarEvent } from '../../interfaces/event-calendar.component';
 import { pickNearestUpcomingEvent } from '../../utils/upcoming-event.util';
+import { TeacherSubstitutionService } from '../../services/teacher-substitution.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -42,6 +43,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   entitlement: SchoolEntitlementSummary | null = null;
   staffAttendance: TeacherAttendanceTodaySummary | null = null;
   staffAdoption: StaffAdoptionSummary | null = null;
+  staffAdoptionLoading = false;
   staffAdoptionError = false;
   isAdmin = false;
   teacherPendingLeaveCount: number | null = null;
@@ -55,6 +57,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   studentLeavesFailed = false;
   entitlementFailed = false;
   staffAttendanceFailed = false;
+  uncoveredSubstitutionCount = 0;
+  substitutionsLoading = true;
+  substitutionsFailed = false;
 
   constructor(
     private authState: AuthStateService,
@@ -67,6 +72,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private staffAdoptionService: StaffAdoptionService,
     private teacherLeaveService: TeacherLeaveService,
     private eventService: EventService,
+    @Optional() private substitutionService: TeacherSubstitutionService | null,
   ) {}
 
   ngOnInit(): void {
@@ -78,6 +84,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.adminName = user?.name ?? '';
 
     this.loadUpcomingEvent();
+    this.loadUncoveredSubstitutions();
     if (this.isAdmin) {
       this.loadStats();
       this.loadStudentLeaves();
@@ -89,12 +96,72 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.isLoading = false;
   }
 
+  loadUncoveredSubstitutions(): void {
+    if (!this.substitutionService) {
+      this.substitutionsLoading = false;
+      return;
+    }
+    this.substitutionsLoading = true;
+    this.substitutionsFailed = false;
+    const pad = (value: number) => String(value).padStart(2, '0');
+    const date = `${this.today.getFullYear()}-${pad(this.today.getMonth() + 1)}-${pad(this.today.getDate())}`;
+    this.substitutionService.getUncovered(date).pipe(takeUntil(this.destroy$)).subscribe({
+      next: periods => {
+        this.uncoveredSubstitutionCount = periods.filter(period => !period.assignment).length;
+        this.substitutionsLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: error => {
+        this.logger.error('Uncovered substitutions load error:', error);
+        this.substitutionsLoading = false;
+        this.substitutionsFailed = true;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  get adoptionOnboardingIncomplete(): number {
+    if (!this.staffAdoption || this.staffAdoption.onboardingCompletedTeachers == null) return 0;
+    return Math.max(0, this.staffAdoption.totalTeachers - this.staffAdoption.onboardingCompletedTeachers);
+  }
+
+  get adoptionOutdatedApp(): number {
+    if (!this.staffAdoption || this.staffAdoption.appUpToDateTeachers == null) return 0;
+    return Math.max(0, this.staffAdoption.totalTeachers - this.staffAdoption.appUpToDateTeachers);
+  }
+
+  get hasAdminAttention(): boolean {
+    return this.uncoveredSubstitutionCount > 0 || (this.isAdmin && (
+      this.notYetCheckedIn > 0 || (this.staffAttendance?.onLeaveCount ?? 0) > 0
+      || (this.teacherPendingLeaveCount ?? 0) > 0 || (this.stats?.pendingLeaves ?? 0) > 0
+      || this.staffAdoptionNotStarted > 0 || this.adoptionOnboardingIncomplete > 0 || this.adoptionOutdatedApp > 0
+    ));
+  }
+
+  get attentionLoading(): boolean {
+    return this.substitutionsLoading || (this.isAdmin && (
+      this.statsLoading || this.teacherPendingLeaveLoading || this.staffAdoptionLoading
+      || (!this.staffAttendance && !this.staffAttendanceFailed)
+    ));
+  }
+
+  get attentionDataFailed(): boolean {
+    return this.substitutionsFailed || (this.isAdmin && (
+      this.statsFailed || this.teacherPendingLeaveFailed || this.staffAdoptionError || this.staffAttendanceFailed
+    ));
+  }
+
   loadStaffAdoption(): void {
+    this.staffAdoptionLoading = true;
     this.staffAdoptionError = false;
     this.staffAdoptionService.getStaffAdoption().pipe(takeUntil(this.destroy$)).subscribe({
-      next: response => { this.staffAdoption = response.summary; this.cdr.markForCheck(); },
-      error: e => { this.logger.error('Staff adoption load error:', e); this.staffAdoptionError = true; this.cdr.markForCheck(); }
+      next: response => { this.staffAdoption = response.summary; this.staffAdoptionLoading = false; this.cdr.markForCheck(); },
+      error: e => { this.logger.error('Staff adoption load error:', e); this.staffAdoptionLoading = false; this.staffAdoptionError = true; this.cdr.markForCheck(); }
     });
+  }
+
+  get staffAdoptionNotStarted(): number {
+    return this.staffAdoption ? this.staffAdoption.notStartedTeachers + this.staffAdoption.disabledTeachers : 0;
   }
 
   /** Reuses the existing ADMIN-only teacher-leave endpoint's status filter — requests the

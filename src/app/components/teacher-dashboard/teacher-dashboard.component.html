@@ -1,4 +1,5 @@
-<app-wisdom-cards *ngIf="hasFeature('WISDOM')"></app-wisdom-cards>
+    <app-wisdom-cards *ngIf="hasFeature('WISDOM')"></app-wisdom-cards>
+
 <div class="td-page">
   <div class="td-loading" *ngIf="isLoading">
     <div class="td-spinner"></div>
@@ -22,6 +23,17 @@
         ><mat-icon>schedule</mat-icon><span>View timetable</span></a
       >
     </header>
+
+    <section class="td-attention">
+      <div class="td-attention-head"><div><mat-icon>priority_high</mat-icon><h2>Needs Attention</h2></div><span *ngIf="teacherAttentionLoading">Checking…</span></div>
+      <div class="td-attention-list" *ngIf="!teacherAttentionLoading && hasTeacherAttention">
+        <a class="is-checkin" *ngIf="checkInNeedsAttention" routerLink="/dashboard/teacher-checkin"><mat-icon>location_on</mat-icon><span>Check-in pending</span><strong>Now</strong></a>
+        <button class="is-cover" type="button" *ngIf="coverClassCount > 0" (click)="scrollToCoverClasses()"><mat-icon>swap_horiz</mat-icon><span>Cover class{{ coverClassCount === 1 ? '' : 'es' }} assigned today</span><strong>{{ coverClassCount }}</strong></button>
+        <a class="is-update" *ngIf="unreadCount > 0" routerLink="/dashboard/notice"><mat-icon>notifications</mat-icon><span>Unread updates</span><strong>{{ unreadCount }}</strong></a>
+        <a class="is-leave" [class.is-rejected]="leave.status === 'REJECTED'" *ngIf="recentLeaveDecision as leave" routerLink="/dashboard/apply-teacher-leave"><mat-icon>event_note</mat-icon><span>Leave request {{ leave.status | lowercase }}</span><strong>View</strong></a>
+      </div>
+      <div class="td-attention-ok" *ngIf="!teacherAttentionLoading && !hasTeacherAttention"><mat-icon>task_alt</mat-icon><span>Everything looks good for today.</span></div>
+    </section>
 
     <section class="td-priorities">
       <div class="td-heading">
@@ -90,7 +102,7 @@
       </div>
     </section>
 
-    <section class="td-panel td-today-panel">
+    <section class="td-panel td-today-panel" id="todays-classes" [class.is-cover-focus]="coverClassesHighlighted">
       <div class="td-heading">
         <div class="td-today-title">
           <span class="td-today-title-icon"><mat-icon>schedule</mat-icon></span>
@@ -120,29 +132,30 @@
           class="td-today-list"
           *ngIf="todayView.current || todayView.upcoming.length"
         >
-          <div class="td-today-row is-now" *ngIf="todayView.current">
+          <div class="td-today-row is-now" [class.is-cover-highlight]="coverClassesHighlighted && todayView.current.isSubstitution" *ngIf="todayView.current">
             <span class="td-today-badge is-now">Now</span>
             <span class="td-today-copy"
               ><strong
                 ><span class="td-today-icon">{{ getSubjectIcon(todayView.current.subjectName) }}</span
                 >{{ periodClassLabel(todayView.current) }}</strong
               ><small>{{ todayView.current.subjectName }}<span class="td-cover-chip" *ngIf="todayView.current.isSubstitution">Arrangement</span></small
-              ><em class="td-cover-for" *ngIf="todayView.current.isSubstitution">Replacing {{ todayView.current.originalTeacherName }}</em></span
+              ></span
             >
             <span class="td-today-time" *ngIf="classTimeRange(todayView.current) as time">{{ time }}</span>
           </div>
           <div
             class="td-today-row"
             [class.is-later]="i > 0"
+            [class.is-cover-highlight]="coverClassesHighlighted && entry.isSubstitution"
             *ngFor="let entry of todayView.upcoming; let i = index"
           >
-            <span class="td-today-badge">{{ i === 0 ? "Next" : "Later" }}</span>
+            <span class="td-today-badge" [class.is-next]="i === 0">{{ i === 0 ? "Next" : "Later" }}</span>
             <span class="td-today-copy"
               ><strong
                 ><span class="td-today-icon">{{ getSubjectIcon(entry.subjectName) }}</span
                 >{{ periodClassLabel(entry) }}</strong
               ><small>{{ entry.subjectName }}<span class="td-cover-chip" *ngIf="entry.isSubstitution">Arrangement</span></small
-              ><em class="td-cover-for" *ngIf="entry.isSubstitution">Replacing {{ entry.originalTeacherName }}</em></span
+              ></span
             >
             <span class="td-today-time" *ngIf="classTimeRange(entry) as time">{{ time }}</span>
           </div>

@@ -178,31 +178,31 @@ describe('teacher today-classes utilities', () => {
     expect(today[0].subjectName).toBe('Science');
   });
 
-  // ─── Cover-class visibility — a substitution must never silently disappear ───
+  // ─── Cover-class visibility — a substitution follows the same rules as any other
+  //     period: once its time has passed, it's 'done' and drops off the list. ───
 
-  it('still shows an active cover class after its period has ended ("done"), instead of dropping it', () => {
+  it('a cover class whose period has already ended is not shown, same as a normal completed class', () => {
     const entries = [
       entry({ id: 9, periodNumber: 2, startTime: '09:00', endTime: '09:40', isSubstitution: true, originalTeacherName: 'Mr Original' }),
     ];
-    const view = buildTodayClassesView(entries, at(12, 0)); // well past 09:40 — would normally be 'done' and dropped
+    const view = buildTodayClassesView(entries, at(12, 0)); // well past 09:40
 
     expect(view.current).toBeNull();
-    expect(view.upcoming.map(e => e.key)).toEqual(['9']);
-    expect(view.upcoming[0].isSubstitution).toBeTrue();
-    expect(view.allDone).toBeFalse();
+    expect(view.upcoming).toEqual([]);
+    expect(view.allDone).toBeTrue();
   });
 
-  it('a done cover class alongside otherwise-complete normal classes still renders the list, not allDone', () => {
+  it('a completed cover class alongside other completed classes still reports allDone', () => {
     const entries = [
       entry({ id: 1, periodNumber: 1, startTime: '08:00', endTime: '08:40' }),
       entry({ id: 9, periodNumber: 2, startTime: '09:00', endTime: '09:40', isSubstitution: true }),
     ];
     const view = buildTodayClassesView(entries, at(12, 0));
-    expect(view.allDone).toBeFalse();
-    expect(view.upcoming.map(e => e.key)).toEqual(['9']);
+    expect(view.allDone).toBeTrue();
+    expect(view.upcoming).toEqual([]);
   });
 
-  it('a cover class is never trimmed out by the visible-row cap, even when normal periods already fill it', () => {
+  it('an upcoming cover class is still subject to the normal visible-row cap, like any other period', () => {
     const entries = [
       entry({ id: 1, periodNumber: 1, startTime: '09:00', endTime: '09:40' }),
       entry({ id: 2, periodNumber: 2, startTime: '09:50', endTime: '10:30' }),
@@ -211,6 +211,7 @@ describe('teacher today-classes utilities', () => {
     ];
     const view = buildTodayClassesView(entries, at(9, 15), 3);
     expect(view.current?.key).toBe('1');
-    expect(view.upcoming.some(e => e.key === '9')).toBeTrue();
+    expect(view.upcoming.map(e => e.key)).toEqual(['2', '3']);
+    expect(view.upcoming.some(e => e.key === '9')).toBeFalse();
   });
 });

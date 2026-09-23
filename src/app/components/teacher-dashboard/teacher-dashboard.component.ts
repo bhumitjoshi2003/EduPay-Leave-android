@@ -56,6 +56,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   isClassTeacher = false;
   isLoading = true;
   today = new Date();
+  coverClassesHighlighted = false;
 
   totalStudents = 0;
   todayAbsent = 0;
@@ -435,6 +436,42 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
     if (!this.todayTeacherRecord) return 'Not checked in';
     return this.todayTeacherRecord.status.replaceAll('_', ' ').toLowerCase()
       .replace(/\b\w/g, character => character.toUpperCase());
+  }
+
+  get coverClassCount(): number {
+    return (this.todayView.current?.isSubstitution ? 1 : 0)
+      + this.todayView.upcoming.filter(entry => entry.isSubstitution).length;
+  }
+
+  scrollToCoverClasses(): void {
+    document.getElementById('todays-classes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.coverClassesHighlighted = true;
+    this.cdr.markForCheck();
+    window.setTimeout(() => {
+      this.coverClassesHighlighted = false;
+      this.cdr.markForCheck();
+    }, 1800);
+  }
+
+  get checkInNeedsAttention(): boolean {
+    if (this.personalSummaryLoading) return false;
+    const status = this.todayTeacherRecord?.status;
+    return !this.todayTeacherRecord?.checkInTime && status !== 'ON_LEAVE' && status !== 'ABSENT';
+  }
+
+  get recentLeaveDecision(): TeacherLeave | null {
+    const decided = this.recentTeacherLeaves.find(leave => leave.status === 'APPROVED' || leave.status === 'REJECTED');
+    if (!decided?.appliedDate) return null;
+    const applied = new Date(decided.appliedDate).getTime();
+    return Number.isFinite(applied) && Date.now() - applied <= 7 * 24 * 60 * 60 * 1000 ? decided : null;
+  }
+
+  get teacherAttentionLoading(): boolean {
+    return this.personalSummaryLoading || this.todayClassesLoading || this.unreadCountLoading || this.teacherLeavesLoading;
+  }
+
+  get hasTeacherAttention(): boolean {
+    return this.checkInNeedsAttention || this.coverClassCount > 0 || this.unreadCount > 0 || !!this.recentLeaveDecision;
   }
 
   get personalAttendancePercent(): number {

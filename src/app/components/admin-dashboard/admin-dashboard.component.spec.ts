@@ -13,6 +13,7 @@ import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
 import { TeacherLeaveService } from '../../services/teacher-leave.service';
 import { EventService } from '../../services/event.service';
+import { TeacherSubstitutionService } from '../../services/teacher-substitution.service';
 
 describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
   let fixture: ComponentFixture<AdminDashboardComponent>;
@@ -58,6 +59,7 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
       imports: [AdminDashboardComponent],
       providers: [
         provideRouter([]),
+        { provide: TeacherSubstitutionService, useValue: { getUncovered: () => of([]) } },
         { provide: AuthStateService, useValue: authState },
         { provide: AdminService, useValue: adminService },
         {
@@ -426,6 +428,7 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
       providers: [
         provideRouter([]),
         { provide: AuthStateService, useValue: authState },
+        { provide: TeacherSubstitutionService, useValue: { getUncovered: () => of([]) } },
         { provide: AdminService, useValue: { getAdminById: () => of({ name: 'Test Admin' }) } },
         { provide: DashboardAnalyticsService, useValue: { getStats } },
         { provide: LeaveService, useValue: { getLeavesPaginated } },

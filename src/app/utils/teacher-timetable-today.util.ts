@@ -131,16 +131,12 @@ export function buildTodayClassesView(
 ): TeacherTodayClassesView {
   const today = buildTodayClasses(entries, now);
   const current = today.find(entry => entry.status === 'current') ?? null;
-  const rest = today.filter(entry => entry !== current);
-  // A cover assignment must stay visible on the dashboard all day — unlike a normal class,
-  // it's the one thing the substitute teacher needs confirmation of, so once its period is
-  // 'done' it must not silently vanish (the pending filter below only keeps 'upcoming'/
-  // 'scheduled'), and it must never be trimmed out by the visible-row cap either.
-  const substituteNotices = rest.filter(entry => entry.isSubstitution);
-  const pending = rest.filter(entry => !entry.isSubstitution && (entry.status === 'upcoming' || entry.status === 'scheduled'));
-  const remainingSlots = Math.max(0, (current ? visibleLimit - 1 : visibleLimit) - substituteNotices.length);
-  const upcoming = [...substituteNotices, ...pending.slice(0, remainingSlots)];
-  const allDone = today.length > 0 && !current && upcoming.length === 0;
+  // A cover assignment follows the same visibility rule as any other period — once its
+  // time has passed it's 'done' and drops off Today's Classes, it does not linger.
+  const pending = today.filter(entry => entry.status === 'upcoming' || entry.status === 'scheduled');
+  const remainingSlots = Math.max(0, current ? visibleLimit - 1 : visibleLimit);
+  const upcoming = pending.slice(0, remainingSlots);
+  const allDone = today.length > 0 && !current && pending.length === 0;
 
   return { current, upcoming, allDone, hasAnyToday: today.length > 0 };
 }
