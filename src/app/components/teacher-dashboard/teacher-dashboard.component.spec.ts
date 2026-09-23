@@ -609,6 +609,19 @@ describe('TeacherDashboardComponent layout order', () => {
     expect(tile).toBeTruthy();
   });
 
+  it('keeps Check-in and guarded Mark Attendance in Quick Actions without restoring Timetable or My Leave', () => {
+    (TestBed.inject(AuthStateService) as jasmine.SpyObj<AuthStateService>).hasFeature.and.returnValue(true);
+    (TestBed.inject(TeacherService) as jasmine.SpyObj<TeacherService>).getTeacher.and.returnValue(of({ teacherId: 'T1', name: 'Ms Rao', classTeacher: 'X' }));
+    fixture.destroy();
+    fixture = TestBed.createComponent(TeacherDashboardComponent);
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    expect(root.querySelector('.td-actions-grid a[href="/dashboard/teacher-checkin"]')).toBeTruthy();
+    expect(root.querySelector('.td-actions-grid a[href="/dashboard/teacher-attendance"]')).toBeTruthy();
+    expect(root.querySelector('.td-actions-grid a[href="/dashboard/timetable"]')).toBeNull();
+    expect(root.querySelector('.td-actions-grid a[href="/dashboard/apply-teacher-leave"]')).toBeNull();
+  });
+
   it('orders Today\'s Classes, September attendance, Leaves, Updates and Upcoming Event ahead of Quick actions and the class workspace', () => {
     const text: string = fixture.nativeElement.textContent;
     expect(fixture.nativeElement.querySelector('.td-insight-tile.insight-amber')).toBeTruthy();

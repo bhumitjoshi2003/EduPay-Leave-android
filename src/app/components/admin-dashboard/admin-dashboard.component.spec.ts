@@ -156,11 +156,13 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
   it('renders the compact daily quick actions with the correct existing routes', () => {
     configure('ADMIN');
     fixture.detectChanges();
-    const routes = ['/dashboard/staff-attendance', '/dashboard/view-leaves', '/dashboard/notice', '/dashboard/staff-adoption'];
+    const routes = ['/dashboard/staff-attendance', '/dashboard/view-leaves', '/dashboard/notice'];
     for (const route of routes) {
       const link = fixture.nativeElement.querySelector(`.ad-daily-actions-grid a[routerLink="${route}"]`);
       expect(link).withContext(route).toBeTruthy();
     }
+    expect(fixture.nativeElement.querySelector('.ad-daily-actions-grid a[routerLink="/dashboard/staff-adoption"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.ad-adoption a[routerLink="/dashboard/staff-adoption"]')).toBeTruthy();
   });
 
   it('hides all ADMIN-only daily actions for SUB_ADMIN', () => {
@@ -179,11 +181,18 @@ describe('AdminDashboardComponent — Daily Action Center (Phase 1)', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Pending Leave Requests');
   });
 
-  it('still renders the full existing Quick Actions grid unchanged', () => {
+  it('keeps Leave Approval, Send Notice and Events in the full Quick Actions grid', () => {
     configure('ADMIN');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.ad-actions-grid')).toBeTruthy();
     expect(fixture.nativeElement.textContent).toContain('Quick Actions');
+    for (const route of ['/dashboard/view-leaves', '/dashboard/notice', '/dashboard/event-calendar']) {
+      expect(fixture.nativeElement.querySelector(`.ad-actions-grid a[routerLink="${route}"]`)).withContext(route).toBeTruthy();
+    }
+    expect(fixture.nativeElement.querySelector('.ad-daily-actions-grid a[routerLink="/dashboard/view-leaves"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.ad-daily-actions-grid a[routerLink="/dashboard/notice"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.ad-view-all[routerLink="/dashboard/event-calendar"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.ad-actions-grid a[routerLink="/dashboard/attendance-summary"]')).toBeTruthy();
   });
 
   it('renders the repositioned Staff Adoption card for an ADMIN, with its existing CTA route', () => {
