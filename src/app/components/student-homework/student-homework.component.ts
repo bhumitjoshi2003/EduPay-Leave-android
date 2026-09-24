@@ -1,7 +1,7 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { interval, Observable, Subject, takeUntil } from 'rxjs';
 import { HomeworkClasswork, dueLabel, formatFileSize, homeworkClassLabel, homeworkKind } from '../../interfaces/homework';
 import { HomeworkService } from '../../services/homework.service';
 import { LoggerService } from '../../services/logger.service';
@@ -29,11 +29,14 @@ export class StudentHomeworkComponent implements OnInit, OnDestroy {
   readonly due = dueLabel;
   readonly fileSize = formatFileSize;
   readonly classLabel = homeworkClassLabel;
-  readonly tabs: { key: StudentHomeworkTab; label: string }[] = [
-    { key: 'today', label: 'Today' },
-    { key: 'upcoming', label: 'Due soon' },
-    { key: 'recent', label: 'Recent' },
+  readonly tabs: { key: StudentHomeworkTab; label: string; icon: string }[] = [
+    { key: 'today', label: 'Today', icon: 'today' },
+    { key: 'upcoming', label: 'Due soon', icon: 'alarm' },
+    { key: 'recent', label: 'Recent', icon: 'history' },
   ];
+  readonly skeletons = [0, 1, 2];
+  /** Refreshed every minute so relative times stay live. */
+  now = Date.now();
 
   active: StudentHomeworkTab = 'today';
   state: Record<StudentHomeworkTab, TabState> = {
@@ -42,10 +45,62 @@ export class StudentHomeworkComponent implements OnInit, OnDestroy {
     recent: { loaded: false, loading: false, failed: false, items: [] },
   };
 
-  constructor(private homework: HomeworkService, private logger: LoggerService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private homework: HomeworkService,
+    private logger: LoggerService,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: object,
+  ) {}
 
   ngOnInit(): void {
     this.select('today');
+    if (isPlatformBrowser(this.platformId)) {
+      interval(60_000).pipe(takeUntil(this.destroy$)).subscribe(() => {
+        this.now = Date.now();
+        this.cdr.markForCheck();
+      });
+    }
+  }
+
+  get tabIndex(): number {
+    return this.tabs.findIndex(t => t.key === this.active);
+  }
+
+  /** One of six colour themes, stable per subject. */
+  tone(subject: string | null | undefined): number {
+    const key = (subject || '').toLowerCase();
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0;
+    return Math.abs(hash) % 6;
+  }
+
+  initials(subject: string | null | undefined): string {
+    const words = (subject || '?').trim().split(/\s+/);
+    return (words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2)).toUpperCase();
+  }
+
+  teacherInitial(item: HomeworkClasswork): string {
+    return (item.teacherName || item.teacherId || '?').trim().charAt(0).toUpperCase();
+  }
+
+  /** "Just now", "12m ago", "3h ago", "Yesterday", "4d ago", then the date. */
+  relative(iso: string): string {
+    const minutes = Math.floor((this.now - new Date(iso).getTime()) / 60_000);
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return `${days}d ago`;
+    return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  }
+
+  /** Colour of a due label: overdue, due today/tomorrow, or later. */
+  dueTone(dueDate: string | null): 'overdue' | 'soon' | 'later' {
+    const label = this.due(dueDate) ?? '';
+    if (label.startsWith('Was due')) return 'overdue';
+    return label === 'Due today' || label === 'Due tomorrow' ? 'soon' : 'later';
   }
 
   select(tab: StudentHomeworkTab): void {

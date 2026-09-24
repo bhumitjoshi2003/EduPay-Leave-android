@@ -1,9 +1,9 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute } from '@angular/router';
-import { forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
+import { forkJoin, interval, Observable, of, Subject, takeUntil } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthStateService } from '../../auth/auth-state.service';
 import {
@@ -68,6 +68,7 @@ export class TeacherHomeworkComponent implements OnInit, OnDestroy {
   readonly fileSize = formatFileSize;
   readonly acceptTypes = HOMEWORK_ATTACHMENT_TYPES.join(',');
   readonly maxAttachments = HOMEWORK_MAX_ATTACHMENTS;
+  readonly skeletons = [0, 1, 2];
 
   readonly today = localDateKey(new Date());
   periods: HomeworkPeriod[] = [];
@@ -77,6 +78,9 @@ export class TeacherHomeworkComponent implements OnInit, OnDestroy {
   failed = false;
 
   form: FormState | null = null;
+  dragOver = false;
+  /** Refreshed every minute so relative times stay live. */
+  now = Date.now();
   private pendingEntryId: number | null = null;
   private localPreviewUrls: string[] = [];
   private nextAttachmentId = 0;
@@ -90,12 +94,19 @@ export class TeacherHomeworkComponent implements OnInit, OnDestroy {
     private toast: ToastService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: object,
   ) {}
 
   ngOnInit(): void {
     const entry = Number(this.route.snapshot.queryParamMap.get('entry'));
     this.pendingEntryId = Number.isFinite(entry) && entry > 0 ? entry : null;
     this.load();
+    if (isPlatformBrowser(this.platformId)) {
+      interval(60_000).pipe(takeUntil(this.destroy$)).subscribe(() => {
+        this.now = Date.now();
+        this.cdr.markForCheck();
+      });
+    }
   }
 
   load(): void {
@@ -150,6 +161,48 @@ export class TeacherHomeworkComponent implements OnInit, OnDestroy {
     return this.periods.filter(p => this.postFor(p)).length;
   }
 
+  get pendingCount(): number {
+    return this.periods.length - this.postedCount;
+  }
+
+  /** Share of today's periods already posted, 0–100. */
+  get progress(): number {
+    return this.periods.length ? Math.round((this.postedCount / this.periods.length) * 100) : 0;
+  }
+
+  /** One of six colour themes, stable per subject. */
+  tone(subject: string | null | undefined): number {
+    const key = (subject || '').toLowerCase();
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0;
+    return Math.abs(hash) % 6;
+  }
+
+  initials(subject: string | null | undefined): string {
+    const words = (subject || '?').trim().split(/\s+/);
+    return (words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2)).toUpperCase();
+  }
+
+  /** "Just now", "12m ago", "3h ago", "Yesterday", "4d ago", then the date. */
+  relative(iso: string): string {
+    const minutes = Math.floor((this.now - new Date(iso).getTime()) / 60_000);
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return `${days}d ago`;
+    return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  }
+
+  /** Colour of a due label: overdue, due today/tomorrow, or later. */
+  dueTone(dueDate: string | null): 'overdue' | 'soon' | 'later' {
+    const label = this.due(dueDate) ?? '';
+    if (label.startsWith('Was due')) return 'overdue';
+    return label === 'Due today' || label === 'Due tomorrow' ? 'soon' : 'later';
+  }
+
   postFor(period: HomeworkPeriod): HomeworkClasswork | undefined {
     return this.todayPosts.find(p => p.timetableEntryId === period.timetableEntryId);
   }
@@ -177,11 +230,34 @@ export class TeacherHomeworkComponent implements OnInit, OnDestroy {
   }
 
   onFilesSelected(event: Event): void {
-    const form = this.form;
-    if (!form) return;
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
     input.value = '';
+    this.addFiles(files);
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (!this.dragOver) {
+      this.dragOver = true;
+      this.cdr.markForCheck();
+    }
+  }
+
+  onDragLeave(): void {
+    this.dragOver = false;
+    this.cdr.markForCheck();
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.dragOver = false;
+    this.addFiles(Array.from(event.dataTransfer?.files ?? []));
+  }
+
+  private addFiles(files: File[]): void {
+    const form = this.form;
+    if (!form) return;
     for (const file of files) {
       if (form.attachments.length >= HOMEWORK_MAX_ATTACHMENTS) {
         this.toast.warning('Attachment limit', `A post can have at most ${HOMEWORK_MAX_ATTACHMENTS} attachments.`);

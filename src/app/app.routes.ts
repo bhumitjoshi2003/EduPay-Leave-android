@@ -405,6 +405,18 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['STUDENT'] }
       },
 
+      // ── Class Updates ─────────────────────────────────────────────────
+      {
+        path: 'teacher-class-updates',
+        loadComponent: () => import('./components/teacher-class-updates/teacher-class-updates.component').then(m => m.TeacherClassUpdatesComponent),
+        canActivate: [roleGuard], data: { roles: ['TEACHER'] }
+      },
+      {
+        path: 'class-updates',
+        loadComponent: () => import('./components/student-class-updates/student-class-updates.component').then(m => m.StudentClassUpdatesComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT'] }
+      },
+
       // ── Admin Dashboard ───────────────────────────────────────────────
       {
         path: 'admin-dashboard',

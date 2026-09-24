@@ -10,6 +10,7 @@ import { LoggerService } from '../../services/logger.service';
 import { ToastService } from '../../services/toast.service';
 import { HomeworkService } from '../../services/homework.service';
 import { HomeworkClasswork } from '../../interfaces/homework';
+import { ClassUpdateService } from '../../services/class-update.service';
 
 /** The dashboard's compact homework section — isolated from the rest of the dashboard load. */
 describe("StudentDashboardComponent — Today's Homework & Classwork", () => {
@@ -37,6 +38,7 @@ describe("StudentDashboardComponent — Today's Homework & Classwork", () => {
         { provide: LoggerService, useValue: jasmine.createSpyObj('LoggerService', ['error']) },
         { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['error']) },
         { provide: HomeworkService, useValue: homework },
+        { provide: ClassUpdateService, useValue: {} },
       ],
     });
     fixture = TestBed.createComponent(StudentDashboardComponent);

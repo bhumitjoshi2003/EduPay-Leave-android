@@ -15,6 +15,8 @@ import { LeaveService, LeaveApplication } from '../../services/leave.service';
 import { LoggerService } from '../../services/logger.service';
 import { HomeworkService } from '../../services/homework.service';
 import { HomeworkClasswork, dueLabel, homeworkKind } from '../../interfaces/homework';
+import { ClassUpdateService } from '../../services/class-update.service';
+import { ClassUpdate } from '../../interfaces/class-update';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -48,6 +50,12 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   readonly homeworkKind = homeworkKind;
   readonly dueLabel = dueLabel;
 
+  /** Recent active class updates — isolated like homework: an outage never blocks the rest. */
+  classUpdates: ClassUpdate[] = [];
+  classUpdatesLoading = true;
+  classUpdatesFailed = false;
+  readonly classUpdatesPreviewLimit = 3;
+
   constructor(
     private authState: AuthStateService,
     private studentService: StudentService,
@@ -56,6 +64,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private logger: LoggerService,
     private homework: HomeworkService,
+    private classUpdateService: ClassUpdateService,
   ) {}
 
   ngOnInit(): void {
@@ -103,8 +112,28 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadClassUpdates(): void {
+    this.classUpdatesLoading = true;
+    this.classUpdatesFailed = false;
+    this.cdr.markForCheck();
+    this.classUpdateService.studentActive(this.classUpdatesPreviewLimit).pipe(takeUntil(this.destroy$)).subscribe({
+      next: items => {
+        this.classUpdates = items.slice(0, this.classUpdatesPreviewLimit);
+        this.classUpdatesLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: err => {
+        this.logger.error('Class updates load failed (isolated):', err);
+        this.classUpdatesLoading = false;
+        this.classUpdatesFailed = true;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   private loadDashboardData(): void {
     this.loadTodayHomework();
+    this.loadClassUpdates();
     const now = this.today;
     const year = now.getFullYear();
     const month = now.getMonth() + 1;

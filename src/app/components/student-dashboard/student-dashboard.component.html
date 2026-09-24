@@ -168,6 +168,36 @@
       </a>
     </div>
 
+    <!-- ── Class Updates ────────────────────────────────────────────── -->
+    <div class="sd-section sd-cu">
+      <h2 class="sd-section-title">Class Updates</h2>
+
+      <div class="sd-hw-state" *ngIf="classUpdatesLoading"><span class="sd-hw-spinner"></span>Loading…</div>
+      <div class="sd-hw-state" *ngIf="!classUpdatesLoading && classUpdatesFailed">
+        <span>Class updates are temporarily unavailable.</span>
+        <button type="button" (click)="loadClassUpdates()">Retry</button>
+      </div>
+      <div class="sd-hw-state" *ngIf="!classUpdatesLoading && !classUpdatesFailed && !classUpdates.length">
+        <mat-icon>notifications_none</mat-icon><span>No class updates right now.</span>
+      </div>
+
+      <ul class="sd-hw-list" *ngIf="!classUpdatesLoading && !classUpdatesFailed && classUpdates.length">
+        <li class="sd-hw-item sd-cu-item" *ngFor="let item of classUpdates">
+          <span class="sd-hw-icon"><mat-icon>campaign</mat-icon></span>
+          <span class="sd-hw-copy">
+            <strong>{{ item.title }}</strong>
+            <small>{{ item.subjectName || ('Class ' + item.className) }} · {{ item.teacherName || item.teacherId }}</small>
+          </span>
+          <mat-icon class="sd-cu-clip" *ngIf="item.attachment" aria-label="Has attachment">attach_file</mat-icon>
+        </li>
+      </ul>
+
+      <a class="sd-view-all" routerLink="/dashboard/class-updates">
+        View all class updates
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+
     <!-- ── Recent Leave Applications ────────────────────────────────── -->
     <div class="sd-section">
       <h2 class="sd-section-title">

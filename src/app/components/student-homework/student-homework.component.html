@@ -1,49 +1,85 @@
 <div class="shw-page">
-  <div class="shw-hero">
-    <div class="shw-blob shw-blob-1"></div>
-    <div class="shw-blob shw-blob-2"></div>
-    <div class="shw-hero-icon"><mat-icon>menu_book</mat-icon></div>
-    <div>
-      <h1 class="shw-hero-title">Homework &amp; Classwork</h1>
-      <p class="shw-hero-sub">What your teachers covered and what's due.</p>
-    </div>
-  </div>
+  <!-- ── Hero ── -->
+  <header class="shw-hero">
+    <span class="shw-orb shw-orb-1"></span>
+    <span class="shw-orb shw-orb-2"></span>
+    <span class="shw-orb shw-orb-3"></span>
+    <span class="shw-dots"></span>
 
-  <div class="shw-tabs" role="tablist" aria-label="Homework views">
-    <button type="button" role="tab" *ngFor="let tab of tabs" [class.active]="active === tab.key"
-            [attr.aria-selected]="active === tab.key" (click)="select(tab.key)">{{ tab.label }}</button>
+    <div class="shw-hero-main">
+      <div class="shw-hero-icon"><mat-icon>menu_book</mat-icon></div>
+      <div class="shw-hero-copy">
+        <h1>Homework &amp; Classwork</h1>
+        <p>What's covered and what's due.</p>
+      </div>
+    </div>
+
+    <div class="shw-stats" *ngIf="state.today.loaded">
+      <div class="shw-stat"><strong>{{ state.today.items.length }}</strong><span>Today</span></div>
+      <div class="shw-stat" *ngIf="state.upcoming.loaded"><strong>{{ state.upcoming.items.length }}</strong><span>Due soon</span></div>
+    </div>
+  </header>
+
+  <!-- ── Tabs ── -->
+  <div class="shw-tabs" [ngClass]="'is-' + active" role="tablist" aria-label="Homework views">
+    <span class="shw-tab-indicator" [style.transform]="'translateX(' + tabIndex * 100 + '%)'"></span>
+    <button type="button" role="tab" *ngFor="let tab of tabs" [ngClass]="'tab-' + tab.key" [class.active]="active === tab.key"
+            [attr.aria-selected]="active === tab.key" (click)="select(tab.key)">
+      <mat-icon class="shw-tab-icon">{{ tab.icon }}</mat-icon>{{ tab.label }}
+      <span class="shw-tab-count" *ngIf="state[tab.key].loaded">{{ state[tab.key].items.length }}</span>
+    </button>
   </div>
 
   <ng-container *ngIf="state[active] as s">
-    <div class="shw-loading" *ngIf="s.loading"><span class="spinner"></span>Loading…</div>
-    <div class="shw-state error" *ngIf="!s.loading && s.failed">
-      <mat-icon>cloud_off</mat-icon>
-      <strong>Homework is temporarily unavailable.</strong>
-      <button type="button" (click)="load(active)">Retry</button>
+    <div class="shw-grid" *ngIf="s.loading" aria-busy="true" aria-label="Loading homework">
+      <div class="shw-skeleton" *ngFor="let k of skeletons">
+        <div class="sk-row"><span class="sk sk-avatar"></span><span class="sk-lines"><span class="sk sk-line w70"></span><span class="sk sk-line w40"></span></span></div>
+        <span class="sk sk-block"></span>
+        <span class="sk sk-line w50"></span>
+      </div>
     </div>
-    <div class="shw-state" *ngIf="!s.loading && !s.failed && s.loaded && !s.items.length">
-      <mat-icon>task_alt</mat-icon>
-      <strong>{{ emptyText(active) }}</strong>
+
+    <div class="shw-empty is-error" *ngIf="!s.loading && s.failed">
+      <div class="shw-empty-art"><mat-icon>cloud_off</mat-icon></div>
+      <h3>Homework is temporarily unavailable.</h3>
+      <button type="button" class="shw-ghost" (click)="load(active)"><mat-icon>refresh</mat-icon>Retry</button>
+    </div>
+
+    <div class="shw-empty" *ngIf="!s.loading && !s.failed && s.loaded && !s.items.length">
+      <div class="shw-empty-art">
+        <span class="ring r1"></span><span class="ring r2"></span>
+        <mat-icon>task_alt</mat-icon>
+      </div>
+      <h3>{{ emptyText(active) }}</h3>
+      <p>New homework and classwork from your teachers will show up here.</p>
     </div>
 
     <div class="shw-grid" *ngIf="!s.loading && !s.failed && s.items.length">
-      <article class="shw-card" *ngFor="let item of s.items; trackBy: trackById">
+      <article class="shw-card" *ngFor="let item of s.items; let i = index; trackBy: trackById"
+               [ngClass]="'tone-' + tone(item.subjectName)" [style.animation-delay.ms]="i * 55">
         <header class="shw-card-head">
-          <span class="shw-subject-icon"><mat-icon>menu_book</mat-icon></span>
+          <span class="shw-subject-icon">{{ initials(item.subjectName) }}</span>
           <div class="shw-card-title">
             <strong class="shw-subject">{{ item.subjectName }}</strong>
-            <span class="shw-meta">{{ classLabel(item.className, item.sectionName) }} · {{ item.workDate | date:'EEE, d MMM' }}</span>
-            <span class="shw-teacher">{{ item.teacherName || item.teacherId }}</span>
+            <span class="shw-meta"><mat-icon>groups</mat-icon>{{ classLabel(item.className, item.sectionName) }} · {{ item.workDate | date:'EEE, d MMM' }}</span>
           </div>
+          <span class="shw-kind">{{ kind(item) }}</span>
         </header>
 
+        <div class="shw-teacher">
+          <span class="shw-teacher-avatar">{{ teacherInitial(item) }}</span>
+          <span class="shw-teacher-name">{{ item.teacherName || item.teacherId }}</span>
+        </div>
+
         <div class="shw-block is-classwork" *ngIf="item.classwork">
-          <span class="shw-label"><mat-icon>class</mat-icon>Classwork</span>
+          <span class="shw-label"><span class="shw-label-icon"><mat-icon>class</mat-icon></span>Classwork</span>
           <p>{{ item.classwork }}</p>
         </div>
         <div class="shw-block is-homework" *ngIf="item.homework">
-          <span class="shw-label"><mat-icon>home_work</mat-icon>Homework
-            <span class="shw-due" *ngIf="due(item.dueDate) as dueText">{{ dueText }}</span>
+          <span class="shw-label"><span class="shw-label-icon"><mat-icon>home_work</mat-icon></span>Homework
+            <span class="shw-due" *ngIf="due(item.dueDate) as dueText" [ngClass]="'is-' + dueTone(item.dueDate)">
+              <mat-icon>alarm</mat-icon>{{ dueText }}
+            </span>
           </span>
           <p>{{ item.homework }}</p>
         </div>
@@ -58,7 +94,11 @@
           </a>
         </div>
 
-        <span class="shw-posted">Posted {{ item.createdAt | date:'d MMM, h:mm a' }}</span>
+        <footer class="shw-card-foot">
+          <span class="shw-posted" [title]="'Posted ' + (item.createdAt | date:'d MMM y, h:mm a')">
+            <mat-icon>schedule</mat-icon>Posted {{ relative(item.createdAt) }}
+          </span>
+        </footer>
       </article>
     </div>
   </ng-container>

@@ -458,3 +458,6 @@
 .sd-hw-state button { margin-left: auto; border: 0; background: transparent; color: #2563eb; font-weight: 700; cursor: pointer; }
 .sd-hw-spinner { width: 16px; height: 16px; border: 2px solid #dbeafe; border-top-color: #2563eb; border-radius: 50%; animation: sd-hw-spin 0.8s linear infinite; }
 @keyframes sd-hw-spin { to { transform: rotate(360deg); } }
+
+/* ── Class Updates (reuses the homework list styles) ── */
+.sd-cu-clip { flex: 0 0 auto; font-size: 18px; width: 18px; height: 18px; color: #94a3b8; }

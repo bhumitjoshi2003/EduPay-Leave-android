@@ -1,0 +1,238 @@
+<div class="tcu-page">
+  <!-- ── Hero ── -->
+  <header class="tcu-hero">
+    <span class="tcu-orb tcu-orb-1"></span>
+    <span class="tcu-orb tcu-orb-2"></span>
+    <span class="tcu-orb tcu-orb-3"></span>
+    <span class="tcu-dots"></span>
+
+    <div class="tcu-hero-main">
+      <div class="tcu-hero-icon">
+        <mat-icon>campaign</mat-icon>
+        <span class="tcu-ping"></span>
+      </div>
+      <div class="tcu-hero-copy">
+        <h1>Class Updates</h1>
+        <p>Keep your classes in the loop.</p>
+      </div>
+    </div>
+
+    <div class="tcu-hero-side" *ngIf="!loading && !failed">
+      <div class="tcu-stats">
+        <div class="tcu-stat"><strong>{{ activeCount }}</strong><span>Active</span></div>
+        <div class="tcu-stat"><strong>{{ recent.length }}</strong><span>Posted</span></div>
+        <div class="tcu-stat"><strong>{{ contexts.length }}</strong><span>Classes</span></div>
+      </div>
+      <button type="button" class="tcu-new" *ngIf="contexts.length" (click)="openCreate()">
+        <mat-icon>add</mat-icon><span>New update</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Loading skeleton ── -->
+  <div class="tcu-grid" *ngIf="loading" aria-busy="true" aria-label="Loading class updates">
+    <div class="tcu-skeleton" *ngFor="let s of skeletons">
+      <div class="sk-row"><span class="sk sk-avatar"></span><span class="sk-lines"><span class="sk sk-line w70"></span><span class="sk sk-line w40"></span></span></div>
+      <span class="sk sk-line w100"></span>
+      <span class="sk sk-line w90"></span>
+      <span class="sk sk-line w50"></span>
+    </div>
+  </div>
+
+  <div class="tcu-empty is-error" *ngIf="!loading && failed">
+    <div class="tcu-empty-art"><mat-icon>cloud_off</mat-icon></div>
+    <h3>Class updates are temporarily unavailable.</h3>
+    <button type="button" class="tcu-ghost" (click)="load()"><mat-icon>refresh</mat-icon>Retry</button>
+  </div>
+
+  <ng-container *ngIf="!loading && !failed">
+    <div class="tcu-notice" *ngIf="!contexts.length">
+      <mat-icon>event_busy</mat-icon>
+      <div>
+        <strong>No classes found in your timetable for the current session.</strong>
+        <span>You can post updates once you are assigned periods in the timetable.</span>
+      </div>
+    </div>
+
+    <!-- ── Toolbar ── -->
+    <div class="tcu-toolbar" *ngIf="recent.length">
+      <h2>Recent updates</h2>
+      <div class="tcu-segments" [ngClass]="'is-' + filter" role="tablist" aria-label="Filter updates">
+        <span class="tcu-seg-indicator" [style.transform]="'translateX(' + filterIndex * 100 + '%)'"></span>
+        <button type="button" role="tab" *ngFor="let f of filters" [ngClass]="'seg-' + f.key" [class.active]="filter === f.key"
+                [attr.aria-selected]="filter === f.key" (click)="setFilter(f.key)">
+          <mat-icon class="tcu-seg-icon">{{ f.key === 'all' ? 'apps' : f.key === 'active' ? 'bolt' : 'history' }}</mat-icon>
+          {{ f.label }}<span class="tcu-seg-count">{{ countFor(f.key) }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Empty ── -->
+    <div class="tcu-empty" *ngIf="!recent.length">
+      <div class="tcu-empty-art">
+        <span class="ring r1"></span><span class="ring r2"></span>
+        <mat-icon>campaign</mat-icon>
+      </div>
+      <h3>You haven't posted any class updates yet.</h3>
+      <p>Announce tests, reminders or resources — students get them instantly.</p>
+      <button type="button" class="tcu-new is-solid" *ngIf="contexts.length" (click)="openCreate()">
+        <mat-icon>add</mat-icon><span>Post your first update</span>
+      </button>
+    </div>
+    <div class="tcu-empty is-compact" *ngIf="recent.length && !visible.length">
+      <mat-icon>{{ filter === 'active' ? 'inventory_2' : 'history_toggle_off' }}</mat-icon>
+      <h3>{{ filter === 'active' ? 'No active updates right now.' : 'Nothing has expired yet.' }}</h3>
+    </div>
+
+    <!-- ── Cards ── -->
+    <div class="tcu-grid" *ngIf="visible.length">
+      <article class="tcu-card" *ngFor="let item of visible; let i = index; trackBy: trackById"
+               [ngClass]="'tone-' + tone(item)" [class.is-expired]="isExpired(item)"
+               [style.animation-delay.ms]="i * 55">
+        <a class="tcu-media" *ngIf="item.attachment?.type === 'IMAGE'" [href]="item.attachment!.url" target="_blank" rel="noopener"
+           [title]="item.attachment!.fileName">
+          <img [src]="item.attachment!.url" [alt]="item.attachment!.fileName" loading="lazy" />
+          <span class="tcu-media-tag"><mat-icon>image</mat-icon>{{ fileSize(item.attachment!.fileSize) }}</span>
+        </a>
+
+        <div class="tcu-card-body">
+          <header class="tcu-card-head">
+            <span class="tcu-avatar">{{ initials(item) }}</span>
+            <div class="tcu-card-title">
+              <h3>{{ item.title }}</h3>
+              <div class="tcu-chips">
+                <span class="tcu-chip is-class"><mat-icon>groups</mat-icon>{{ classLabel(item.className, item.sectionName) }}</span>
+                <span class="tcu-chip is-subject" *ngIf="item.subjectName">{{ item.subjectName }}</span>
+              </div>
+            </div>
+            <div class="tcu-card-actions">
+              <button type="button" class="tcu-icon-btn" (click)="openEdit(item)" aria-label="Edit update" title="Edit"><mat-icon>edit</mat-icon></button>
+              <button type="button" class="tcu-icon-btn is-danger" (click)="remove(item)" aria-label="Delete update" title="Delete"><mat-icon>delete_outline</mat-icon></button>
+            </div>
+          </header>
+
+          <p class="tcu-message" [class.is-clamped]="isLong(item) && !isExpanded(item)">{{ item.message }}</p>
+          <button type="button" class="tcu-more" *ngIf="isLong(item)" (click)="toggleExpanded(item)">
+            {{ isExpanded(item) ? 'Show less' : 'Show more' }}<mat-icon>{{ isExpanded(item) ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </button>
+
+          <a class="tcu-doc" *ngIf="item.attachment?.type === 'PDF'" [href]="item.attachment!.url" target="_blank" rel="noopener"
+             [title]="item.attachment!.fileName">
+            <span class="tcu-doc-icon"><mat-icon>picture_as_pdf</mat-icon></span>
+            <span class="tcu-doc-copy">
+              <span class="tcu-doc-name">{{ item.attachment!.fileName }}</span>
+              <span class="tcu-doc-size">PDF · {{ fileSize(item.attachment!.fileSize) }}</span>
+            </span>
+            <mat-icon class="tcu-doc-open">open_in_new</mat-icon>
+          </a>
+
+          <footer class="tcu-card-foot">
+            <span class="tcu-time" [title]="'Posted ' + (item.createdAt | date:'d MMM y, h:mm a')">
+              <mat-icon>schedule</mat-icon>{{ relative(item.createdAt) }}
+            </span>
+            <span class="tcu-status is-expired" *ngIf="isExpired(item)"><mat-icon>block</mat-icon>Expired</span>
+            <span class="tcu-status is-live" *ngIf="!isExpired(item) && item.expiresAt"
+                  [title]="'Until ' + (item.expiresAt | date:'d MMM, h:mm a')">
+              <span class="tcu-live-dot"></span>{{ expiresIn(item) }}
+            </span>
+            <span class="tcu-status is-open" *ngIf="!isExpired(item) && !item.expiresAt"><span class="tcu-live-dot"></span>Live</span>
+          </footer>
+        </div>
+
+        <div class="tcu-life" *ngIf="!isExpired(item) && item.expiresAt" aria-hidden="true">
+          <span [style.width.%]="lifeLeft(item)"></span>
+        </div>
+      </article>
+    </div>
+  </ng-container>
+
+  <!-- ── Create / edit drawer ── -->
+  <div class="tcu-overlay" *ngIf="form" (click)="closeForm()">
+    <aside class="tcu-drawer" (click)="$event.stopPropagation()" role="dialog" aria-label="Class update">
+      <header class="tcu-drawer-head">
+        <span class="tcu-drawer-icon"><mat-icon>{{ form.mode === 'create' ? 'campaign' : 'edit' }}</mat-icon></span>
+        <div>
+          <h2>{{ form.mode === 'create' ? 'New class update' : 'Edit update' }}</h2>
+          <p *ngIf="form.mode === 'edit'">{{ contextLabel(form.update!) }}</p>
+          <p *ngIf="form.mode === 'create'">Students are notified as soon as you post.</p>
+        </div>
+        <button type="button" class="tcu-close" (click)="closeForm()" aria-label="Close"><mat-icon>close</mat-icon></button>
+      </header>
+
+      <div class="tcu-drawer-body">
+        <section class="tcu-field" *ngIf="form.mode === 'create'">
+          <span class="tcu-label">Class</span>
+          <div class="tcu-contexts" role="radiogroup" aria-label="Class">
+            <button type="button" role="radio" class="tcu-context" *ngFor="let context of contexts"
+                    [ngClass]="'tone-' + tone(context)"
+                    [class.selected]="form.contextKey === contextKey(context)"
+                    [attr.aria-checked]="form.contextKey === contextKey(context)"
+                    (click)="selectContext(context)">
+              <span class="tcu-context-avatar">{{ initials(context) }}</span>
+              <span class="tcu-context-copy">
+                <strong>{{ classLabel(context.className, context.sectionName) }}</strong>
+                <small>{{ context.subjectName || 'Whole class' }}</small>
+              </span>
+              <mat-icon class="tcu-context-check">check_circle</mat-icon>
+            </button>
+          </div>
+        </section>
+
+        <label class="tcu-field">
+          <span class="tcu-label">Title <small class="tcu-counter">{{ form.title.length }}/{{ titleMax }}</small></span>
+          <input type="text" [maxlength]="titleMax" [(ngModel)]="form.title" name="title" placeholder="e.g. Unit test on Friday" />
+        </label>
+
+        <label class="tcu-field">
+          <span class="tcu-label">Message <small class="tcu-counter">{{ form.message.length }}/{{ messageMax }}</small></span>
+          <textarea rows="5" [maxlength]="messageMax" [(ngModel)]="form.message" name="message" placeholder="What should students know?"></textarea>
+        </label>
+
+        <section class="tcu-field">
+          <span class="tcu-label">Attachment <small>optional · image or PDF · 10 MB</small></span>
+          <input #fileInput type="file" [accept]="acceptTypes" (change)="onFileSelected($event)" hidden />
+          <div class="tcu-pick" *ngIf="form.attachment as file">
+            <img *ngIf="file.previewUrl; else pdfIcon" [src]="file.previewUrl" [alt]="file.fileName" />
+            <ng-template #pdfIcon><span class="tcu-doc-icon"><mat-icon>{{ file.isPdf ? 'picture_as_pdf' : 'image' }}</mat-icon></span></ng-template>
+            <span class="tcu-doc-copy">
+              <span class="tcu-doc-name" [title]="file.fileName">{{ file.fileName }}</span>
+              <span class="tcu-doc-size">{{ fileSize(file.size) }}<ng-container *ngIf="file.kind === 'new'"> · ready to upload</ng-container></span>
+            </span>
+            <button type="button" class="tcu-pick-btn" (click)="fileInput.click()">Replace</button>
+            <button type="button" class="tcu-pick-remove" (click)="removeAttachment()" [attr.aria-label]="'Remove ' + file.fileName">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <button type="button" class="tcu-drop" *ngIf="!form.attachment" [class.is-over]="dragOver"
+                  (click)="fileInput.click()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
+            <span class="tcu-drop-icon"><mat-icon>cloud_upload</mat-icon></span>
+            <strong>Drop a file or <u>browse</u></strong>
+            <small>JPG, PNG, WebP or PDF</small>
+          </button>
+        </section>
+
+        <section class="tcu-field">
+          <span class="tcu-label">Visible until <small>optional</small></span>
+          <div class="tcu-presets">
+            <button type="button" [class.active]="!form.expiry" (click)="clearExpiry()">No expiry</button>
+            <button type="button" *ngFor="let preset of presets" [class.active]="form.expiry === preset.value"
+                    (click)="applyPreset(preset)">{{ preset.label }}</button>
+          </div>
+          <input type="datetime-local" [(ngModel)]="form.expiry" name="expiry" [min]="minExpiry" aria-label="Custom expiry" />
+        </section>
+      </div>
+
+      <footer class="tcu-drawer-foot">
+        <p *ngIf="form.mode === 'create'"><mat-icon>notifications_active</mat-icon>Students get an in-app and push notification.</p>
+        <div class="tcu-actions">
+          <button type="button" class="tcu-cancel" (click)="closeForm()">Cancel</button>
+          <button type="button" class="tcu-save" (click)="save()" [disabled]="!canSave">
+            <span class="tcu-btn-spinner" *ngIf="form.saving"></span>
+            <mat-icon *ngIf="!form.saving">{{ form.mode === 'create' ? 'send' : 'check' }}</mat-icon>
+            {{ form.saving ? 'Saving…' : (form.mode === 'create' ? 'Post update' : 'Save changes') }}
+          </button>
+        </div>
+      </footer>
+    </aside>
+  </div>
+</div>

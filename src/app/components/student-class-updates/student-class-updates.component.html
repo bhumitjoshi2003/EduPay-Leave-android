@@ -1,0 +1,123 @@
+<div class="scu-page">
+  <!-- ── Hero ── -->
+  <header class="scu-hero">
+    <span class="scu-orb scu-orb-1"></span>
+    <span class="scu-orb scu-orb-2"></span>
+    <span class="scu-orb scu-orb-3"></span>
+    <span class="scu-dots"></span>
+
+    <div class="scu-hero-main">
+      <div class="scu-hero-icon">
+        <mat-icon>campaign</mat-icon>
+        <span class="scu-ping" *ngIf="newCount"></span>
+      </div>
+      <div class="scu-hero-copy">
+        <h1>Class Updates</h1>
+        <p>Updates from your teachers.</p>
+      </div>
+    </div>
+
+    <div class="scu-stats" *ngIf="!loading && !failed">
+      <div class="scu-stat"><strong>{{ items.length }}</strong><span>Active</span></div>
+      <div class="scu-stat"><strong>{{ newCount }}</strong><span>New today</span></div>
+    </div>
+  </header>
+
+  <!-- ── Loading skeleton ── -->
+  <div class="scu-grid" *ngIf="loading" aria-busy="true" aria-label="Loading class updates">
+    <div class="scu-skeleton" *ngFor="let s of skeletons">
+      <div class="sk-row"><span class="sk sk-avatar"></span><span class="sk-lines"><span class="sk sk-line w70"></span><span class="sk sk-line w40"></span></span></div>
+      <span class="sk sk-line w100"></span>
+      <span class="sk sk-line w90"></span>
+      <span class="sk sk-line w50"></span>
+    </div>
+  </div>
+
+  <div class="scu-empty is-error" *ngIf="!loading && failed">
+    <div class="scu-empty-art"><mat-icon>cloud_off</mat-icon></div>
+    <h3>Class updates are temporarily unavailable.</h3>
+    <button type="button" class="scu-ghost" (click)="load()"><mat-icon>refresh</mat-icon>Retry</button>
+  </div>
+
+  <div class="scu-empty" *ngIf="!loading && !failed && !items.length">
+    <div class="scu-empty-art">
+      <span class="ring r1"></span><span class="ring r2"></span>
+      <mat-icon>notifications_none</mat-icon>
+    </div>
+    <h3>No class updates right now.</h3>
+    <p>When your teachers post an update, it will show up here.</p>
+  </div>
+
+  <ng-container *ngIf="!loading && !failed && items.length">
+    <!-- ── Subject filter ── -->
+    <div class="scu-toolbar">
+      <h2>Latest updates</h2>
+      <div class="scu-filters" *ngIf="subjects.length > 1" role="tablist" aria-label="Filter by subject">
+        <button type="button" role="tab" [class.active]="!subject" [attr.aria-selected]="!subject" (click)="selectSubject(null)">All</button>
+        <button type="button" role="tab" *ngFor="let s of subjects" [ngClass]="'tone-' + tone({ subjectName: s, className: '' })"
+                [class.active]="subject === s" [attr.aria-selected]="subject === s" (click)="selectSubject(s)">
+          <span class="scu-filter-dot"></span>{{ s }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Cards ── -->
+    <div class="scu-grid">
+      <article class="scu-card" *ngFor="let item of visible; let i = index; trackBy: trackById"
+               [ngClass]="'tone-' + tone(item)" [style.animation-delay.ms]="i * 55">
+        <a class="scu-media" *ngIf="item.attachment?.type === 'IMAGE'" [href]="item.attachment!.url" target="_blank" rel="noopener"
+           [title]="item.attachment!.fileName">
+          <img [src]="item.attachment!.url" [alt]="item.attachment!.fileName" loading="lazy" />
+          <span class="scu-media-tag"><mat-icon>zoom_in</mat-icon>View image</span>
+        </a>
+
+        <div class="scu-card-body">
+          <header class="scu-card-head">
+            <span class="scu-avatar">{{ initials(item) }}</span>
+            <div class="scu-card-title">
+              <h3>{{ item.title }}</h3>
+              <div class="scu-chips">
+                <span class="scu-chip is-subject" *ngIf="item.subjectName">{{ item.subjectName }}</span>
+                <span class="scu-chip is-class"><mat-icon>groups</mat-icon>{{ classLabel(item.className, item.sectionName) }}</span>
+              </div>
+            </div>
+            <span class="scu-new" *ngIf="isNew(item)">New</span>
+          </header>
+
+          <div class="scu-teacher">
+            <span class="scu-teacher-avatar">{{ teacherInitial(item) }}</span>
+            <span class="scu-teacher-name">{{ item.teacherName || item.teacherId }}</span>
+          </div>
+
+          <p class="scu-message" [class.is-clamped]="isLong(item) && !isExpanded(item)">{{ item.message }}</p>
+          <button type="button" class="scu-more" *ngIf="isLong(item)" (click)="toggleExpanded(item)">
+            {{ isExpanded(item) ? 'Show less' : 'Show more' }}<mat-icon>{{ isExpanded(item) ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </button>
+
+          <a class="scu-file" *ngIf="item.attachment?.type === 'PDF'" [href]="item.attachment!.url" target="_blank" rel="noopener"
+             [title]="item.attachment!.fileName">
+            <span class="scu-pdf"><mat-icon>picture_as_pdf</mat-icon></span>
+            <span class="scu-file-copy">
+              <span class="scu-file-name">{{ item.attachment!.fileName }}</span>
+              <span class="scu-file-size">PDF · {{ fileSize(item.attachment!.fileSize) }}</span>
+            </span>
+            <span class="scu-open"><mat-icon>open_in_new</mat-icon></span>
+          </a>
+
+          <footer class="scu-card-foot">
+            <span class="scu-posted" [title]="'Posted ' + (item.createdAt | date:'d MMM y, h:mm a')">
+              <mat-icon>schedule</mat-icon>Posted {{ relative(item.createdAt) }}
+            </span>
+            <span class="scu-expiry" *ngIf="item.expiresAt" [title]="'Until ' + (item.expiresAt | date:'d MMM, h:mm a')">
+              <span class="scu-live-dot"></span>{{ endsIn(item) }}
+            </span>
+          </footer>
+        </div>
+
+        <div class="scu-life" *ngIf="item.expiresAt" aria-hidden="true">
+          <span [style.width.%]="lifeLeft(item)"></span>
+        </div>
+      </article>
+    </div>
+  </ng-container>
+</div>
