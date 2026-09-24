@@ -393,6 +393,18 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['TEACHER'] }
       },
 
+      // ── Homework & Classwork ──────────────────────────────────────────
+      {
+        path: 'homework-classwork',
+        loadComponent: () => import('./components/teacher-homework/teacher-homework.component').then(m => m.TeacherHomeworkComponent),
+        canActivate: [roleGuard], data: { roles: ['TEACHER'] }
+      },
+      {
+        path: 'homework',
+        loadComponent: () => import('./components/student-homework/student-homework.component').then(m => m.StudentHomeworkComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT'] }
+      },
+
       // ── Admin Dashboard ───────────────────────────────────────────────
       {
         path: 'admin-dashboard',

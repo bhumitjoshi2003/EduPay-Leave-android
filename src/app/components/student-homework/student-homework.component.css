@@ -1,0 +1,75 @@
+:host { display: block; }
+.shw-page { padding-bottom: 16px; color: #1e293b; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+/* ── Hero ── */
+.shw-hero {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #60a5fa 100%);
+  border-radius: 20px; padding: 22px 20px; margin: 0 0 14px; color: #fff;
+}
+.shw-hero > * { position: relative; z-index: 1; }
+.shw-hero .shw-blob { position: absolute; z-index: 0; border-radius: 50%; opacity: 0.12; pointer-events: none; }
+.shw-blob-1 { width: 130px; height: 130px; background: #fff; top: -35px; right: -25px; }
+.shw-blob-2 { width: 80px; height: 80px; background: #bfdbfe; bottom: -20px; left: 35%; }
+.shw-hero-icon { width: 52px; height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.18); border-radius: 14px; }
+.shw-hero-icon mat-icon { font-size: 26px; width: 26px; height: 26px; }
+.shw-hero-title { margin: 0; font-size: 1.25rem; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.shw-hero-sub { margin: 2px 0 0; font-size: 0.78rem; color: rgba(255, 255, 255, 0.75); }
+
+/* ── Tabs ── */
+.shw-tabs { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 14px; background: #e2e8f0; border-radius: 10px; max-width: 100%; }
+.shw-tabs button { border: 0; background: transparent; padding: 7px 16px; border-radius: 8px; font-family: inherit; font-size: 0.82rem; font-weight: 700; color: #475569; cursor: pointer; }
+.shw-tabs button.active { background: #fff; color: #1d4ed8; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12); }
+
+/* ── Cards ── */
+.shw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+.shw-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px; background: #fff; border: 1px solid #e6ecf5; border-radius: 16px; box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05); }
+.shw-card-head { display: flex; align-items: flex-start; gap: 10px; }
+.shw-subject-icon { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: #eff6ff; color: #2563eb; }
+.shw-subject-icon mat-icon { font-size: 20px; width: 20px; height: 20px; }
+.shw-card-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.shw-subject { font-size: 0.98rem; color: #0f172a; }
+.shw-meta { font-size: 0.74rem; color: #64748b; }
+.shw-teacher { font-size: 0.72rem; font-weight: 600; color: #1d4ed8; }
+
+.shw-block { border-radius: 12px; padding: 10px 12px; }
+.shw-block.is-classwork { background: #eff6ff; border: 1px solid #dbeafe; }
+.shw-block.is-homework { background: #fffbeb; border: 1px solid #fde68a; }
+.shw-label { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
+.shw-block.is-classwork .shw-label { color: #1d4ed8; }
+.shw-block.is-homework .shw-label { color: #b45309; }
+.shw-label mat-icon { font-size: 15px; width: 15px; height: 15px; text-transform: none; }
+.shw-block p { margin: 4px 0 0; font-size: 0.86rem; color: #1e293b; white-space: pre-wrap; overflow-wrap: anywhere; }
+.shw-due { margin-left: auto; font-size: 0.66rem; font-weight: 800; text-transform: none; color: #92400e; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+
+/* ── Attachment gallery ── */
+.shw-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.shw-file { display: flex; flex-direction: column; min-width: 0; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #f8fafc; text-decoration: none; }
+.shw-file img { display: block; width: 100%; height: 76px; object-fit: cover; }
+.shw-pdf { height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 0.66rem; font-weight: 800; color: #b91c1c; background: #fef2f2; }
+.shw-pdf mat-icon { font-size: 26px; width: 26px; height: 26px; }
+.shw-file-name { padding: 4px 6px 0; font-size: 0.68rem; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shw-file-size { padding: 0 6px 5px; font-size: 0.62rem; color: #94a3b8; }
+.shw-posted { font-size: 0.7rem; color: #94a3b8; }
+
+/* ── States ── */
+.shw-loading, .shw-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  min-height: 140px; border-radius: 16px; color: #64748b; text-align: center; padding: 0 16px;
+}
+.shw-loading { flex-direction: row; border: 1px dashed #cbd5e1; }
+.shw-state { border: 1.5px dashed #e2e8f0; background: #f8fafc; }
+.shw-state mat-icon { font-size: 28px; width: 28px; height: 28px; color: #2563eb; }
+.shw-state.error mat-icon { color: #dc2626; }
+.shw-state button { color: #2563eb; font-weight: 700; border: 0; background: transparent; cursor: pointer; }
+.spinner { width: 22px; height: 22px; border: 3px solid #dbeafe; border-top-color: #2563eb; border-radius: 50%; animation: shw-spin 0.8s linear infinite; margin-right: 8px; }
+@keyframes shw-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 600px) {
+  .shw-hero { padding: 16px; }
+  .shw-tabs { display: flex; }
+  .shw-tabs button { flex: 1; padding: 7px 8px; }
+  .shw-grid { grid-template-columns: minmax(0, 1fr); }
+  .shw-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

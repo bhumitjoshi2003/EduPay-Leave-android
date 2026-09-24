@@ -214,4 +214,14 @@ describe('teacher today-classes utilities', () => {
     expect(view.upcoming.map(e => e.key)).toEqual(['2', '3']);
     expect(view.upcoming.some(e => e.key === '9')).toBeFalse();
   });
+  it('exposes the real timetable entry id: own periods use their id, covered periods their timetableEntryId', () => {
+    const entries = buildTodayClasses([
+      { id: 100, day: todayDayCode(new Date(2026, 8, 23)), className: '8', subjectName: 'Science', periodNumber: 1, startTime: '09:00', endTime: '09:40' },
+      { id: -7, day: todayDayCode(new Date(2026, 8, 23)), className: '7', subjectName: 'English', periodNumber: 2,
+        startTime: '10:00', endTime: '10:40', isSubstitution: true, timetableEntryId: 300 },
+      { id: -8, day: todayDayCode(new Date(2026, 8, 23)), className: '6', subjectName: 'Art', periodNumber: 3,
+        startTime: '11:00', endTime: '11:40', isSubstitution: true },
+    ], new Date(2026, 8, 23, 8, 0));
+    expect(entries.map(e => e.timetableEntryId)).toEqual([100, 300, null]);
+  });
 });

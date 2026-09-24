@@ -48,6 +48,10 @@
            (click)="closeSidebarOnMobile()" title="Timetable">
           <mat-icon>schedule</mat-icon><span>Timetable</span>
         </a>
+        <a class="nav-item" routerLink="/dashboard/homework" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Homework &amp; Classwork">
+          <mat-icon>menu_book</mat-icon><span>Homework &amp; Classwork</span>
+        </a>
         <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/my-results" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="My Results">
           <mat-icon>grade</mat-icon><span>My Results</span>
@@ -201,6 +205,10 @@
         <a class="nav-item" routerLink="/dashboard/timetable" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Timetable">
           <mat-icon>schedule</mat-icon><span>Timetable</span>
+        </a>
+        <a class="nav-item" routerLink="/dashboard/homework-classwork" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Homework &amp; Classwork">
+          <mat-icon>edit_note</mat-icon><span>Homework &amp; Classwork</span>
         </a>
 
         <div class="nav-section-label">Report Cards</div>

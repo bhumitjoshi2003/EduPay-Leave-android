@@ -1,0 +1,65 @@
+<div class="shw-page">
+  <div class="shw-hero">
+    <div class="shw-blob shw-blob-1"></div>
+    <div class="shw-blob shw-blob-2"></div>
+    <div class="shw-hero-icon"><mat-icon>menu_book</mat-icon></div>
+    <div>
+      <h1 class="shw-hero-title">Homework &amp; Classwork</h1>
+      <p class="shw-hero-sub">What your teachers covered and what's due.</p>
+    </div>
+  </div>
+
+  <div class="shw-tabs" role="tablist" aria-label="Homework views">
+    <button type="button" role="tab" *ngFor="let tab of tabs" [class.active]="active === tab.key"
+            [attr.aria-selected]="active === tab.key" (click)="select(tab.key)">{{ tab.label }}</button>
+  </div>
+
+  <ng-container *ngIf="state[active] as s">
+    <div class="shw-loading" *ngIf="s.loading"><span class="spinner"></span>Loading…</div>
+    <div class="shw-state error" *ngIf="!s.loading && s.failed">
+      <mat-icon>cloud_off</mat-icon>
+      <strong>Homework is temporarily unavailable.</strong>
+      <button type="button" (click)="load(active)">Retry</button>
+    </div>
+    <div class="shw-state" *ngIf="!s.loading && !s.failed && s.loaded && !s.items.length">
+      <mat-icon>task_alt</mat-icon>
+      <strong>{{ emptyText(active) }}</strong>
+    </div>
+
+    <div class="shw-grid" *ngIf="!s.loading && !s.failed && s.items.length">
+      <article class="shw-card" *ngFor="let item of s.items; trackBy: trackById">
+        <header class="shw-card-head">
+          <span class="shw-subject-icon"><mat-icon>menu_book</mat-icon></span>
+          <div class="shw-card-title">
+            <strong class="shw-subject">{{ item.subjectName }}</strong>
+            <span class="shw-meta">{{ classLabel(item.className, item.sectionName) }} · {{ item.workDate | date:'EEE, d MMM' }}</span>
+            <span class="shw-teacher">{{ item.teacherName || item.teacherId }}</span>
+          </div>
+        </header>
+
+        <div class="shw-block is-classwork" *ngIf="item.classwork">
+          <span class="shw-label"><mat-icon>class</mat-icon>Classwork</span>
+          <p>{{ item.classwork }}</p>
+        </div>
+        <div class="shw-block is-homework" *ngIf="item.homework">
+          <span class="shw-label"><mat-icon>home_work</mat-icon>Homework
+            <span class="shw-due" *ngIf="due(item.dueDate) as dueText">{{ dueText }}</span>
+          </span>
+          <p>{{ item.homework }}</p>
+        </div>
+
+        <div class="shw-gallery" *ngIf="item.attachments.length">
+          <a class="shw-file" *ngFor="let file of item.attachments" [href]="file.url" target="_blank" rel="noopener"
+             [title]="file.fileName">
+            <img *ngIf="file.type === 'IMAGE'" [src]="file.url" [alt]="file.fileName" loading="lazy" />
+            <span class="shw-pdf" *ngIf="file.type === 'PDF'"><mat-icon>picture_as_pdf</mat-icon>PDF</span>
+            <span class="shw-file-name">{{ file.fileName }}</span>
+            <span class="shw-file-size">{{ fileSize(file.fileSize) }}</span>
+          </a>
+        </div>
+
+        <span class="shw-posted">Posted {{ item.createdAt | date:'d MMM, h:mm a' }}</span>
+      </article>
+    </div>
+  </ng-container>
+</div>

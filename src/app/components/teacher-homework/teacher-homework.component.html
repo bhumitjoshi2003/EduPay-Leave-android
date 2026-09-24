@@ -1,0 +1,157 @@
+<div class="thw-page">
+  <div class="thw-hero">
+    <div class="thw-blob thw-blob-1"></div>
+    <div class="thw-blob thw-blob-2"></div>
+    <div class="thw-hero-icon"><mat-icon>edit_note</mat-icon></div>
+    <div>
+      <h1 class="thw-hero-title">Homework &amp; Classwork</h1>
+      <p class="thw-hero-sub">Post for today's periods — students are notified instantly.</p>
+    </div>
+  </div>
+
+  <div class="thw-loading" *ngIf="loading"><span class="spinner"></span>Loading today's periods…</div>
+  <div class="thw-state error" *ngIf="!loading && failed">
+    <mat-icon>cloud_off</mat-icon>
+    <strong>Homework &amp; classwork is temporarily unavailable.</strong>
+    <button type="button" (click)="load()">Retry</button>
+  </div>
+
+  <ng-container *ngIf="!loading && !failed">
+    <!-- ── Today's periods ── -->
+    <section class="thw-section">
+      <div class="thw-section-head">
+        <h2>Today's periods</h2>
+        <span class="thw-count" *ngIf="periods.length">{{ postedCount }} of {{ periods.length }} posted</span>
+      </div>
+      <div class="thw-state" *ngIf="!periods.length">
+        <mat-icon>event_available</mat-icon>
+        <strong>No periods scheduled for you today.</strong>
+      </div>
+      <div class="thw-period-grid" *ngIf="periods.length">
+        <article class="thw-period" *ngFor="let period of periods"
+                 [class.is-posted]="postFor(period)" [class.is-cover]="period.isSubstitution">
+          <div class="thw-period-top">
+            <span class="thw-pill"><mat-icon>schedule</mat-icon>P{{ period.periodNumber }}<ng-container *ngIf="timeRange(period) as time"> · {{ time }}</ng-container></span>
+            <span class="thw-chip is-cover" *ngIf="period.isSubstitution">Arrangement</span>
+            <span class="thw-chip" [class.is-posted]="postFor(period)" [class.is-pending]="!postFor(period)">
+              {{ postFor(period) ? 'Posted' : 'Not posted' }}
+            </span>
+          </div>
+          <h3 class="thw-period-class">{{ classLabel(period.className, period.sectionName) }}</h3>
+          <p class="thw-period-subject"><mat-icon>menu_book</mat-icon>{{ period.subjectName }}</p>
+          <p class="thw-period-summary" *ngIf="postFor(period) as post">
+            {{ kind(post) }}<ng-container *ngIf="post.attachments.length"> · {{ post.attachments.length }} attachment{{ post.attachments.length === 1 ? '' : 's' }}</ng-container>
+          </p>
+          <div class="thw-period-foot">
+            <button type="button" class="thw-action" [class.is-edit]="postFor(period)" (click)="openCreate(period)">
+              <mat-icon>{{ postFor(period) ? 'edit' : 'add' }}</mat-icon>
+              {{ postFor(period) ? 'Edit post' : 'Add Homework / Classwork' }}
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ── Recent posts ── -->
+    <section class="thw-section">
+      <div class="thw-section-head"><h2>Recent posts</h2></div>
+      <div class="thw-state" *ngIf="!recent.length">
+        <mat-icon>inbox</mat-icon>
+        <strong>You haven't posted any homework or classwork yet.</strong>
+      </div>
+      <div class="thw-post-grid" *ngIf="recent.length">
+        <article class="thw-post" *ngFor="let post of recent">
+          <header class="thw-post-head">
+            <div class="thw-post-title">
+              <strong>{{ post.subjectName }}</strong>
+              <span class="thw-post-meta">{{ classLabel(post.className, post.sectionName) }} · {{ post.workDate | date:'EEE, d MMM' }}</span>
+            </div>
+            <div class="thw-post-actions">
+              <button type="button" class="thw-icon-btn" (click)="openEdit(post)" aria-label="Edit post" title="Edit"><mat-icon>edit</mat-icon></button>
+              <button type="button" class="thw-icon-btn is-danger" (click)="remove(post)" aria-label="Delete post" title="Delete"><mat-icon>delete</mat-icon></button>
+            </div>
+          </header>
+
+          <div class="thw-block is-classwork" *ngIf="post.classwork">
+            <span class="thw-block-label"><mat-icon>class</mat-icon>Classwork</span>
+            <p>{{ post.classwork }}</p>
+          </div>
+          <div class="thw-block is-homework" *ngIf="post.homework">
+            <span class="thw-block-label"><mat-icon>home_work</mat-icon>Homework
+              <span class="thw-due" *ngIf="due(post.dueDate) as dueText">{{ dueText }}</span>
+            </span>
+            <p>{{ post.homework }}</p>
+          </div>
+
+          <div class="thw-gallery" *ngIf="post.attachments.length">
+            <a class="thw-file-tile" *ngFor="let file of post.attachments" [href]="file.url" target="_blank" rel="noopener"
+               [title]="file.fileName">
+              <img *ngIf="file.type === 'IMAGE'" [src]="file.url" [alt]="file.fileName" loading="lazy" />
+              <span class="thw-pdf" *ngIf="file.type === 'PDF'"><mat-icon>picture_as_pdf</mat-icon>PDF</span>
+              <span class="thw-file-caption">{{ file.fileName }}</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+  </ng-container>
+
+  <!-- ── Add / edit form ── -->
+  <div class="thw-overlay" *ngIf="form" (click)="closeForm()">
+    <div class="thw-drawer" (click)="$event.stopPropagation()" role="dialog" aria-label="Homework and classwork">
+      <button type="button" class="thw-close" (click)="closeForm()" aria-label="Close"><mat-icon>close</mat-icon></button>
+      <h2>{{ form.mode === 'create' ? 'Add Homework / Classwork' : 'Edit post' }}</h2>
+      <p class="thw-context">
+        <ng-container *ngIf="form.period; else fromWork">
+          {{ classLabel(form.period.className, form.period.sectionName) }} · {{ form.period.subjectName }} · Period {{ form.period.periodNumber }}
+        </ng-container>
+        <ng-template #fromWork>
+          {{ classLabel(form.work!.className, form.work!.sectionName) }} · {{ form.work!.subjectName }} · {{ form.work!.workDate | date:'d MMM' }}
+        </ng-template>
+      </p>
+
+      <label class="thw-field">
+        <span>Classwork <small>(optional)</small></span>
+        <textarea rows="4" maxlength="5000" [(ngModel)]="form.classwork" placeholder="What was covered in class today?"></textarea>
+      </label>
+      <label class="thw-field">
+        <span>Homework <small>(optional)</small></span>
+        <textarea rows="4" maxlength="5000" [(ngModel)]="form.homework" placeholder="What should students do at home?"></textarea>
+      </label>
+      <label class="thw-field" *ngIf="form.homework.trim()">
+        <span>Due date <small>(optional)</small></span>
+        <input type="date" [(ngModel)]="form.dueDate" [min]="form.work?.workDate ?? today" />
+      </label>
+
+      <div class="thw-field">
+        <span>Attachments <small>(optional · images or PDF · max 10 MB each)</small>
+          <small class="thw-limit">{{ form.attachments.length }} / {{ maxAttachments }}</small>
+        </span>
+        <input #fileInput type="file" multiple [accept]="acceptTypes" (change)="onFilesSelected($event)" hidden />
+        <div class="thw-picker">
+          <div class="thw-pick-tile" *ngFor="let file of form.attachments; trackBy: trackAttachment">
+            <img *ngIf="file.previewUrl; else pdfTile" [src]="file.previewUrl" [alt]="file.fileName" />
+            <ng-template #pdfTile><span class="thw-pdf"><mat-icon>{{ file.isPdf ? 'picture_as_pdf' : 'image' }}</mat-icon>{{ file.isPdf ? 'PDF' : 'Image' }}</span></ng-template>
+            <span class="thw-pick-name" [title]="file.fileName">{{ file.fileName }}</span>
+            <span class="thw-pick-size">{{ fileSize(file.size) }}<ng-container *ngIf="file.kind === 'new'"> · new</ng-container></span>
+            <button type="button" class="thw-pick-remove" (click)="removeAttachment(file)" [attr.aria-label]="'Remove ' + file.fileName">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <button type="button" class="thw-add-tile" *ngIf="form.attachments.length < maxAttachments" (click)="fileInput.click()">
+            <mat-icon>add_photo_alternate</mat-icon>
+            <span>Add files</span>
+          </button>
+        </div>
+      </div>
+
+      <p class="thw-hint" *ngIf="form.mode === 'create'">Students in this class will get an in-app and push notification.</p>
+      <div class="thw-actions">
+        <button type="button" class="thw-cancel" (click)="closeForm()">Cancel</button>
+        <button type="button" class="thw-save" (click)="save()" [disabled]="!canSave">
+          {{ form.saving ? 'Saving…' : (form.mode === 'create' ? 'Post' : 'Save changes') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

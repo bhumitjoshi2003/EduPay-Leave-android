@@ -137,6 +137,37 @@
       </div>
     </div>
 
+    <!-- ── Today's Homework & Classwork ─────────────────────────────── -->
+    <div class="sd-section sd-hw">
+      <h2 class="sd-section-title">Today's Homework &amp; Classwork</h2>
+
+      <div class="sd-hw-state" *ngIf="homeworkLoading"><span class="sd-hw-spinner"></span>Loading…</div>
+      <div class="sd-hw-state" *ngIf="!homeworkLoading && homeworkFailed">
+        <span>Homework is temporarily unavailable.</span>
+        <button type="button" (click)="loadTodayHomework()">Retry</button>
+      </div>
+      <div class="sd-hw-state" *ngIf="!homeworkLoading && !homeworkFailed && !todayHomework.length">
+        <mat-icon>task_alt</mat-icon><span>Nothing posted for today yet.</span>
+      </div>
+
+      <ul class="sd-hw-list" *ngIf="!homeworkLoading && !homeworkFailed && todayHomework.length">
+        <li class="sd-hw-item" *ngFor="let item of todayHomework | slice:0:homeworkPreviewLimit">
+          <span class="sd-hw-icon"><mat-icon>menu_book</mat-icon></span>
+          <span class="sd-hw-copy">
+            <strong>{{ item.subjectName }} · {{ homeworkKind(item) }}</strong>
+            <small>{{ item.homework || item.classwork }}</small>
+          </span>
+          <span class="sd-hw-due" *ngIf="dueLabel(item.dueDate) as due">{{ due }}</span>
+        </li>
+      </ul>
+
+      <a class="sd-view-all" routerLink="/dashboard/homework">
+        <ng-container *ngIf="todayHomework.length > homeworkPreviewLimit; else viewAll">View all {{ todayHomework.length }}</ng-container>
+        <ng-template #viewAll>View homework &amp; classwork</ng-template>
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+
     <!-- ── Recent Leave Applications ────────────────────────────────── -->
     <div class="sd-section">
       <h2 class="sd-section-title">

@@ -110,9 +110,12 @@
             <h2>Today's Classes</h2>
           </div>
         </div>
-        <a routerLink="/dashboard/timetable"
-          >View timetable <mat-icon>arrow_forward</mat-icon></a
-        >
+        <div class="td-today-links">
+          <a routerLink="/dashboard/homework-classwork">Homework &amp; Classwork <mat-icon>edit_note</mat-icon></a>
+          <a routerLink="/dashboard/timetable"
+            >View timetable <mat-icon>arrow_forward</mat-icon></a
+          >
+        </div>
       </div>
 
       <div class="td-skeleton" *ngIf="todayClassesLoading">
@@ -142,6 +145,9 @@
               ></span
             >
             <span class="td-today-time" *ngIf="classTimeRange(todayView.current) as time">{{ time }}</span>
+            <a class="td-today-hw" *ngIf="todayView.current.timetableEntryId" routerLink="/dashboard/homework-classwork"
+               [queryParams]="{ entry: todayView.current.timetableEntryId }" title="Add Homework / Classwork"
+               aria-label="Add Homework / Classwork"><mat-icon>edit_note</mat-icon></a>
           </div>
           <div
             class="td-today-row"
@@ -158,6 +164,9 @@
               ></span
             >
             <span class="td-today-time" *ngIf="classTimeRange(entry) as time">{{ time }}</span>
+            <a class="td-today-hw" *ngIf="entry.timetableEntryId" routerLink="/dashboard/homework-classwork"
+               [queryParams]="{ entry: entry.timetableEntryId }" title="Add Homework / Classwork"
+               aria-label="Add Homework / Classwork"><mat-icon>edit_note</mat-icon></a>
           </div>
         </div>
 

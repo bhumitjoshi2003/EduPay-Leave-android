@@ -286,6 +286,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
             teacherName: item.substituteTeacherName,
             isSubstitution: true,
             originalTeacherName: item.originalTeacherName,
+            timetableEntryId: item.timetableEntryId,
           }));
           const entries = [...timetable, ...coverEntries];
           this.timetableEntries = entries;
