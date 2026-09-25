@@ -1,0 +1,219 @@
+:host {
+  display: block;
+  --ink: #0f172a;
+  --ink-2: #334155;
+  --muted: #64748b;
+  --faint: #94a3b8;
+  --line: #e7ecf4;
+  --brand: #7c3aed;
+  --brand-2: #db2777;
+}
+.sas-page { padding-bottom: 24px; color: var(--ink); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+.sas-page mat-icon { text-transform: none; }
+
+/* ── Colour tones (per assessment type) ── */
+.tone-0 { --tone: #4f46e5; --tone-2: #7c3aed; --tone-soft: #eef2ff; --tone-ink: #4338ca; }
+.tone-1 { --tone: #0891b2; --tone-2: #2563eb; --tone-soft: #ecfeff; --tone-ink: #0e7490; }
+.tone-2 { --tone: #059669; --tone-2: #10b981; --tone-soft: #ecfdf5; --tone-ink: #047857; }
+.tone-3 { --tone: #ea580c; --tone-2: #f59e0b; --tone-soft: #fff7ed; --tone-ink: #c2410c; }
+.tone-4 { --tone: #db2777; --tone-2: #f43f5e; --tone-soft: #fdf2f8; --tone-ink: #be185d; }
+.tone-5 { --tone: #7c3aed; --tone-2: #c026d3; --tone-soft: #f5f3ff; --tone-ink: #6d28d9; }
+
+/* ── Hero (same dimensions as the Timetable hero) ── */
+.sas-hero {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 22px 24px; margin-bottom: 16px; border-radius: 20px; color: #fff;
+  background:
+    radial-gradient(120% 140% at 0% 0%, #3b0764 0%, transparent 55%),
+    linear-gradient(120deg, #2e1065 0%, #6d28d9 40%, #c026d3 72%, #f43f5e 100%);
+  box-shadow: 0 18px 40px -18px rgba(109, 40, 217, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.sas-orb { position: absolute; z-index: -1; border-radius: 50%; filter: blur(2px); pointer-events: none; }
+.sas-orb-1 { width: 260px; height: 260px; right: -70px; top: -120px; background: radial-gradient(circle, rgba(251, 113, 133, 0.55), transparent 65%); animation: sas-float 9s ease-in-out infinite; }
+.sas-orb-2 { width: 180px; height: 180px; left: 38%; bottom: -110px; background: radial-gradient(circle, rgba(167, 139, 250, 0.55), transparent 65%); animation: sas-float 11s ease-in-out infinite reverse; }
+.sas-orb-3 { width: 120px; height: 120px; left: -40px; top: -50px; background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%); }
+.sas-dots {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.35;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 55%, transparent 100%);
+}
+@keyframes sas-float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-14px, 12px); } }
+
+.sas-hero-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.sas-hero-icon {
+  width: 50px; height: 50px; flex-shrink: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.28); backdrop-filter: blur(8px); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+}
+.sas-hero-icon mat-icon { font-size: 25px; width: 25px; height: 25px; }
+.sas-hero-copy { min-width: 0; }
+.sas-hero-copy h1 { margin: 0 0 2px; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.2px; color: #fff; }
+.sas-hero-copy p { margin: 0; font-size: 0.78rem; color: rgba(255, 255, 255, 0.8); }
+.sas-stats { display: flex; border-radius: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.18); backdrop-filter: blur(10px); }
+.sas-stat { display: flex; flex-direction: column; align-items: center; padding: 5px 12px; min-width: 60px; }
+.sas-stat + .sas-stat { border-left: 1px solid rgba(255, 255, 255, 0.16); }
+.sas-stat strong { font-size: 1rem; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.sas-stat span { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); white-space: nowrap; }
+
+/* ── Cards: header (date tile + title) · compact content · muted footer ── */
+.sas-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (min-width: 1100px) {
+  .sas-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+}
+.sas-card {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; min-width: 0;
+  background: #fff; border: 1px solid var(--line); border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px -12px rgba(15, 23, 42, 0.14);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  animation: sas-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* Subtle accent: a thin tone stripe on the left edge instead of a coloured outer border. */
+.sas-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--tone), var(--tone-2)); opacity: 0.85; }
+.sas-card:hover { transform: translateY(-2px); border-color: #dbe2ec; box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 16px 32px -18px rgba(15, 23, 42, 0.28); }
+.sas-card.is-past { background: #fcfcfd; }
+.sas-card.is-past::before { background: #cbd5e1; }
+.sas-card.is-past .sas-date { filter: grayscale(0.7); opacity: 0.8; }
+@keyframes sas-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.sas-card-head { display: flex; align-items: flex-start; gap: 16px; padding: 18px 20px 12px 22px; }
+.sas-date {
+  flex-shrink: 0; width: 60px; display: flex; flex-direction: column; align-items: center;
+  border-radius: 14px; overflow: hidden; background: #fff; border: 1px solid var(--line); box-shadow: 0 6px 14px -10px rgba(15, 23, 42, 0.35);
+}
+.sas-date-month { width: 100%; padding: 3px 0; text-align: center; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, var(--tone), var(--tone-2)); }
+.sas-date-day { padding-top: 3px; font-size: 1.5rem; font-weight: 800; line-height: 1.05; color: var(--ink); }
+.sas-date-weekday { padding-bottom: 5px; font-size: 0.64rem; font-weight: 700; color: var(--muted); }
+
+.sas-head-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.sas-head-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sas-type { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 7px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.2px; white-space: nowrap; color: var(--tone-ink); background: var(--tone-soft); }
+.sas-type mat-icon { font-size: 13px; width: 13px; height: 13px; }
+.sas-card-head h3 { margin: 1px 0 0; font-size: 1.18rem; font-weight: 800; line-height: 1.28; letter-spacing: -0.3px; color: var(--ink); overflow-wrap: anywhere; }
+
+/* One clean metadata row: subject · class · time. */
+.sas-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.sas-meta > * { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.sas-meta > * + *::before { content: ''; width: 3px; height: 3px; margin: 0 10px; border-radius: 50%; background: #cbd5e1; }
+.sas-meta-item mat-icon { font-size: 15px; width: 15px; height: 15px; color: var(--faint); }
+.sas-chip.is-subject { font-weight: 800; color: var(--tone-ink); }
+.sas-chip.is-subject::after { content: none; }
+
+/* Countdown stays the one strong indicator. */
+.sas-countdown { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; white-space: nowrap; }
+.sas-countdown.is-today { color: #fff; background: linear-gradient(135deg, #e11d48, #f97316); box-shadow: 0 6px 14px -6px rgba(225, 29, 72, 0.7); }
+.sas-countdown.is-tomorrow { color: #c2410c; background: #ffedd5; border: 1px solid #fdba74; }
+.sas-countdown.is-soon { color: #6d28d9; background: #f5f3ff; border: 1px solid #ddd6fe; }
+.sas-countdown.is-later { color: #0e7490; background: #ecfeff; border: 1px solid #a5f3fc; }
+.sas-countdown.is-past { color: var(--muted); background: #f1f5f9; border: 1px solid #e2e8f0; }
+.sas-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: sas-blink 1.4s ease-in-out infinite; }
+@keyframes sas-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.sas-card-content { display: flex; flex-direction: column; gap: 10px; padding: 2px 20px 16px 22px; }
+.sas-portion { border-radius: 12px; padding: 9px 12px; background: #f9fafb; border: 1px solid #eef1f5; }
+.sas-portion-label { display: flex; align-items: center; gap: 5px; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--faint); }
+.sas-portion-label mat-icon { font-size: 14px; width: 14px; height: 14px; color: var(--tone); }
+.sas-portion p { margin: 3px 0 0; font-size: 0.86rem; line-height: 1.5; color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sas-instructions { display: flex; gap: 8px; margin: 0; padding: 0 2px; font-size: 0.82rem; line-height: 1.5; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sas-instructions mat-icon { flex-shrink: 0; font-size: 16px; width: 16px; height: 16px; color: var(--faint); margin-top: 1px; }
+
+.sas-file { display: flex; align-items: center; gap: 14px; min-width: 0; padding: 10px 14px 10px 10px; border-radius: 14px; text-decoration: none; background: #fff; border: 1px solid var(--line); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+.sas-file:hover { border-color: #d5dde8; box-shadow: 0 8px 18px -12px rgba(15, 23, 42, 0.35); transform: translateY(-1px); }
+.sas-file img { flex-shrink: 0; width: 60px; height: 60px; border-radius: 11px; object-fit: cover; box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06); }
+.sas-pdf { flex-shrink: 0; width: 60px; height: 60px; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, #ef4444, #f97316); }
+.sas-pdf mat-icon { font-size: 28px; width: 28px; height: 28px; }
+.sas-file-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.sas-file-name { font-size: 0.86rem; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sas-file-size { font-size: 0.72rem; color: var(--faint); }
+.sas-file-open { flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; color: var(--muted); background: #f1f5f9; transition: background 0.2s, color 0.2s; }
+.sas-file:hover .sas-file-open { color: var(--tone-ink); background: var(--tone-soft); }
+
+.sas-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding: 10px 20px 10px 22px; border-top: 1px solid #eef1f5; }
+.sas-by { display: inline-flex; align-items: center; gap: 5px; font-size: 0.74rem; font-weight: 600; color: var(--faint); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sas-by mat-icon { font-size: 15px; width: 15px; height: 15px; color: #cbd5e1; }
+.sas-foot-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.sas-icon-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 11px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font-family: inherit; font-size: 0.74rem; font-weight: 700; color: var(--ink-2); cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+.sas-icon-btn mat-icon { font-size: 15px; width: 15px; height: 15px; }
+.sas-icon-btn:hover { color: var(--tone-ink); background: var(--tone-soft); border-color: transparent; }
+.sas-icon-btn.is-danger:hover { color: #dc2626; background: #fef2f2; }
+
+/* ── Skeleton / empty ── */
+.sas-skeleton { display: flex; gap: 14px; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: 20px; }
+.sk-lines { flex: 1; display: flex; flex-direction: column; gap: 9px; }
+.sk { display: block; border-radius: 8px; background: linear-gradient(90deg, #eef2f7 0%, #f8fafc 40%, #eef2f7 80%); background-size: 200% 100%; animation: sas-shimmer 1.3s linear infinite; }
+.sk-tile { width: 62px; height: 74px; border-radius: 16px; flex-shrink: 0; }
+.sk-line { height: 11px; }
+.sk-block { height: 54px; border-radius: 14px; }
+.w90 { width: 90%; } .w70 { width: 70%; } .w40 { width: 40%; }
+@keyframes sas-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.sas-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 36px 20px; border-radius: 22px; background: linear-gradient(180deg, #fff, #fbf7ff); border: 1px solid var(--line); }
+.sas-empty h3 { margin: 10px 0 0; font-size: 1rem; font-weight: 800; color: #17203a; }
+.sas-empty p { margin: 0 0 10px; max-width: 400px; font-size: 0.84rem; color: var(--muted); }
+.sas-empty-art { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff; background: linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow: 0 16px 30px -14px rgba(124, 58, 237, 0.8); }
+.sas-empty-art mat-icon { font-size: 34px; width: 34px; height: 34px; }
+.sas-empty-art .ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(124, 58, 237, 0.35); animation: sas-ring 2.8s ease-out infinite; }
+.sas-empty-art .ring.r2 { animation-delay: 1.4s; }
+@keyframes sas-ring { from { transform: scale(1); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+.sas-empty.is-error .sas-empty-art { background: linear-gradient(135deg, #ef4444, #f97316); }
+.sas-ghost { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; border: 1px solid var(--line); border-radius: 12px; padding: 8px 16px; background: #fff; font-family: inherit; font-weight: 700; color: var(--brand); cursor: pointer; }
+.sas-ghost mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+/* ── Tabs: Upcoming = violet, This month = cyan, Past = slate ── */
+.sas-tabs {
+  --seg: #7c3aed; --seg-2: #db2777; --seg-glow: rgba(124, 58, 237, 0.45);
+  position: relative; display: inline-grid; grid-template-columns: repeat(3, 1fr); padding: 5px; margin-bottom: 14px; max-width: 100%;
+  border-radius: 16px; background: #fff; border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 24px -16px rgba(124, 58, 237, 0.4);
+}
+.sas-tabs.is-month { --seg: #0891b2; --seg-2: #2563eb; --seg-glow: rgba(8, 145, 178, 0.45); }
+.sas-tabs.is-past { --seg: #475569; --seg-2: #64748b; --seg-glow: rgba(71, 85, 105, 0.4); }
+.sas-tab-indicator {
+  position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 3); border-radius: 12px;
+  background: linear-gradient(135deg, var(--seg), var(--seg-2)); box-shadow: 0 8px 18px -8px var(--seg-glow);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.35s ease;
+}
+.sas-tabs button {
+  --c: #7c3aed;
+  position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; background: transparent; padding: 8px 18px; border-radius: 12px; white-space: nowrap;
+  font-family: inherit; font-size: 0.82rem; font-weight: 700; color: var(--ink-2); cursor: pointer; transition: color 0.25s ease;
+}
+.sas-tabs button.tab-month { --c: #0891b2; }
+.sas-tabs button.tab-past { --c: #475569; }
+.sas-tabs button:not(.active):hover { color: var(--c); }
+.sas-tab-icon { font-size: 17px; width: 17px; height: 17px; color: var(--c); }
+.sas-tabs button.active, .sas-tabs button.active .sas-tab-icon { color: #fff; }
+
+/* ── Month navigator ── */
+.sas-month { display: flex; align-items: center; justify-content: space-between; gap: 10px; max-width: 360px; margin: 0 0 14px; padding: 6px; border-radius: 14px; background: #fff; border: 1px solid var(--line); }
+.sas-month strong { font-size: 0.9rem; font-weight: 800; color: #0e7490; }
+.sas-month button { width: 34px; height: 34px; border: 0; border-radius: 10px; background: #ecfeff; color: #0e7490; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+.sas-month button:hover { background: #cffafe; transform: scale(1.06); }
+
+/* ── Next up (subtle) ── */
+.sas-card.is-next { border-color: color-mix(in srgb, var(--brand) 22%, var(--line)); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 14px 30px -20px rgba(124, 58, 237, 0.45); }
+.sas-next { display: inline-flex; align-items: center; gap: 2px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; white-space: nowrap; color: #7c3aed; }
+.sas-next mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
+/* ── Responsive ── */
+@media (hover: none) {
+  .sas-card:hover { transform: none; }
+}
+@media (max-width: 720px) {
+  .sas-card-head { padding: 16px 14px 10px 17px; gap: 12px; }
+  .sas-date { width: 52px; }
+  .sas-date-day { font-size: 1.3rem; }
+  .sas-card-head h3 { font-size: 1.08rem; }
+  .sas-card-content { padding: 2px 14px 14px 17px; }
+  .sas-card-foot { padding: 10px 14px 10px 17px; }
+  .sas-file img, .sas-pdf { width: 52px; height: 52px; }
+  .sas-stats { display: none; }
+  .sas-tabs { display: grid; width: 100%; box-sizing: border-box; }
+  .sas-tabs button { padding: 8px 6px; font-size: 0.78rem; gap: 4px; }
+  .sas-tab-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sas-page *, .sas-page *::before, .sas-page *::after { animation: none !important; transition: none !important; }
+}

@@ -417,6 +417,18 @@ export const routes: Routes = [
         canActivate: [roleGuard], data: { roles: ['STUDENT'] }
       },
 
+      // ── Assessments (SUB_ADMIN intentionally excluded) ──────────────
+      {
+        path: 'manage-assessments',
+        loadComponent: () => import('./components/assessment-manage/assessment-manage.component').then(m => m.AssessmentManageComponent),
+        canActivate: [roleGuard], data: { roles: ['TEACHER', 'ADMIN'] }
+      },
+      {
+        path: 'assessments',
+        loadComponent: () => import('./components/student-assessments/student-assessments.component').then(m => m.StudentAssessmentsComponent),
+        canActivate: [roleGuard], data: { roles: ['STUDENT'] }
+      },
+
       // ── Admin Dashboard ───────────────────────────────────────────────
       {
         path: 'admin-dashboard',

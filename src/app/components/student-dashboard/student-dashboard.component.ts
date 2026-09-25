@@ -17,6 +17,8 @@ import { HomeworkService } from '../../services/homework.service';
 import { HomeworkClasswork, dueLabel, homeworkKind } from '../../interfaces/homework';
 import { ClassUpdateService } from '../../services/class-update.service';
 import { ClassUpdate } from '../../interfaces/class-update';
+import { AssessmentService } from '../../services/assessment.service';
+import { Assessment, countdownLabel, countdownTone, dateParts } from '../../interfaces/assessment';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -56,6 +58,15 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   classUpdatesFailed = false;
   readonly classUpdatesPreviewLimit = 3;
 
+  /** Next few assessments — isolated like homework: an outage never blocks the rest. */
+  upcomingAssessments: Assessment[] = [];
+  assessmentsLoading = true;
+  assessmentsFailed = false;
+  readonly assessmentsPreviewLimit = 3;
+  readonly assessmentCountdown = (date: string) => countdownLabel(date);
+  readonly assessmentCountdownTone = (date: string) => countdownTone(date);
+  readonly assessmentParts = dateParts;
+
   constructor(
     private authState: AuthStateService,
     private studentService: StudentService,
@@ -65,6 +76,7 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     private logger: LoggerService,
     private homework: HomeworkService,
     private classUpdateService: ClassUpdateService,
+    private assessmentService: AssessmentService,
   ) {}
 
   ngOnInit(): void {
@@ -131,9 +143,29 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadUpcomingAssessments(): void {
+    this.assessmentsLoading = true;
+    this.assessmentsFailed = false;
+    this.cdr.markForCheck();
+    this.assessmentService.studentUpcoming(this.assessmentsPreviewLimit).pipe(takeUntil(this.destroy$)).subscribe({
+      next: items => {
+        this.upcomingAssessments = items.slice(0, this.assessmentsPreviewLimit);
+        this.assessmentsLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: err => {
+        this.logger.error('Upcoming assessments load failed (isolated):', err);
+        this.assessmentsLoading = false;
+        this.assessmentsFailed = true;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   private loadDashboardData(): void {
     this.loadTodayHomework();
     this.loadClassUpdates();
+    this.loadUpcomingAssessments();
     const now = this.today;
     const year = now.getFullYear();
     const month = now.getMonth() + 1;

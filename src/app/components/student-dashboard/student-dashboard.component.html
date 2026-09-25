@@ -198,6 +198,36 @@
       </a>
     </div>
 
+    <!-- ── Upcoming Assessments ─────────────────────────────────────── -->
+    <div class="sd-section sd-as">
+      <h2 class="sd-section-title">Upcoming Assessments</h2>
+
+      <div class="sd-hw-state" *ngIf="assessmentsLoading"><span class="sd-hw-spinner"></span>Loading…</div>
+      <div class="sd-hw-state" *ngIf="!assessmentsLoading && assessmentsFailed">
+        <span>Assessments are temporarily unavailable.</span>
+        <button type="button" (click)="loadUpcomingAssessments()">Retry</button>
+      </div>
+      <div class="sd-hw-state" *ngIf="!assessmentsLoading && !assessmentsFailed && !upcomingAssessments.length">
+        <mat-icon>event_available</mat-icon><span>No upcoming assessments.</span>
+      </div>
+
+      <ul class="sd-hw-list" *ngIf="!assessmentsLoading && !assessmentsFailed && upcomingAssessments.length">
+        <li class="sd-hw-item sd-as-item" *ngFor="let item of upcomingAssessments">
+          <span class="sd-as-date"><small>{{ assessmentParts(item.assessmentDate).month }}</small><strong>{{ assessmentParts(item.assessmentDate).day }}</strong></span>
+          <span class="sd-hw-copy">
+            <strong>{{ item.subjectName }} · {{ item.typeLabel }}</strong>
+            <small>{{ item.title }}</small>
+          </span>
+          <span class="sd-as-when" [ngClass]="'is-' + assessmentCountdownTone(item.assessmentDate)">{{ assessmentCountdown(item.assessmentDate) }}</span>
+        </li>
+      </ul>
+
+      <a class="sd-view-all" routerLink="/dashboard/assessments">
+        View all assessments
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+
     <!-- ── Recent Leave Applications ────────────────────────────────── -->
     <div class="sd-section">
       <h2 class="sd-section-title">

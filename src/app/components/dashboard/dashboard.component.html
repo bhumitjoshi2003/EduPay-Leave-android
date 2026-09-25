@@ -56,6 +56,10 @@
            (click)="closeSidebarOnMobile()" title="Class Updates">
           <mat-icon>campaign</mat-icon><span>Class Updates</span>
         </a>
+        <a class="nav-item" routerLink="/dashboard/assessments" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Assessments">
+          <mat-icon>event_note</mat-icon><span>Assessments</span>
+        </a>
         <a class="nav-item" *ngIf="hasFeature('EXAM_MARKS')" routerLink="/dashboard/my-results" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="My Results">
           <mat-icon>grade</mat-icon><span>My Results</span>
@@ -218,6 +222,10 @@
            (click)="closeSidebarOnMobile()" title="Class Updates">
           <mat-icon>campaign</mat-icon><span>Class Updates</span>
         </a>
+        <a class="nav-item" routerLink="/dashboard/manage-assessments" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Assessments">
+          <mat-icon>event_note</mat-icon><span>Assessments</span>
+        </a>
 
         <div class="nav-section-label">Report Cards</div>
 
@@ -351,6 +359,10 @@
         <a class="nav-item" routerLink="/dashboard/teacher-substitutions" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Teacher Substitution">
           <mat-icon>sync_alt</mat-icon><span>Teacher Substitution</span>
+        </a>
+        <a class="nav-item" *ngIf="Role === 'ADMIN'" routerLink="/dashboard/manage-assessments" routerLinkActive="active"
+           (click)="closeSidebarOnMobile()" title="Assessments">
+          <mat-icon>event_note</mat-icon><span>Assessments</span>
         </a>
 
         <div class="nav-section-label">Report Cards</div>

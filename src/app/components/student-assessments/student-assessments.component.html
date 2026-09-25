@@ -1,0 +1,113 @@
+<div class="sas-page">
+  <!-- ── Hero ── -->
+  <header class="sas-hero">
+    <span class="sas-orb sas-orb-1"></span>
+    <span class="sas-orb sas-orb-2"></span>
+    <span class="sas-orb sas-orb-3"></span>
+    <span class="sas-dots"></span>
+
+    <div class="sas-hero-main">
+      <div class="sas-hero-icon"><mat-icon>event_note</mat-icon></div>
+      <div class="sas-hero-copy">
+        <h1>Assessment Calendar</h1>
+        <p>Your upcoming tests and exams.</p>
+      </div>
+    </div>
+
+    <div class="sas-stats" *ngIf="state.upcoming.loaded">
+      <div class="sas-stat"><strong>{{ state.upcoming.items.length }}</strong><span>Upcoming</span></div>
+      <div class="sas-stat"><strong>{{ thisWeekCount }}</strong><span>This week</span></div>
+    </div>
+  </header>
+
+  <!-- ── Tabs: Upcoming = violet, This month = cyan, Past = slate ── -->
+  <div class="sas-tabs" [ngClass]="'is-' + active" role="tablist" aria-label="Assessment views">
+    <span class="sas-tab-indicator" [style.transform]="'translateX(' + tabIndex * 100 + '%)'"></span>
+    <button type="button" role="tab" *ngFor="let tab of tabs" [ngClass]="'tab-' + tab.key" [class.active]="active === tab.key"
+            [attr.aria-selected]="active === tab.key" (click)="select(tab.key)">
+      <mat-icon class="sas-tab-icon">{{ tab.icon }}</mat-icon>{{ tab.label }}
+    </button>
+  </div>
+
+  <div class="sas-month" *ngIf="active === 'month'">
+    <button type="button" (click)="shiftMonth(-1)" aria-label="Previous month"><mat-icon>chevron_left</mat-icon></button>
+    <strong>{{ monthLabel }}</strong>
+    <button type="button" (click)="shiftMonth(1)" aria-label="Next month"><mat-icon>chevron_right</mat-icon></button>
+  </div>
+
+  <ng-container *ngIf="state[active] as s">
+    <div class="sas-grid" *ngIf="s.loading" aria-busy="true" aria-label="Loading assessments">
+      <div class="sas-skeleton" *ngFor="let k of skeletons">
+        <span class="sk sk-tile"></span>
+        <span class="sk-lines"><span class="sk sk-line w40"></span><span class="sk sk-line w90"></span><span class="sk sk-block"></span></span>
+      </div>
+    </div>
+
+    <div class="sas-empty is-error" *ngIf="!s.loading && s.failed">
+      <div class="sas-empty-art"><mat-icon>cloud_off</mat-icon></div>
+      <h3>Assessments are temporarily unavailable.</h3>
+      <button type="button" class="sas-ghost" (click)="load(active)"><mat-icon>refresh</mat-icon>Retry</button>
+    </div>
+
+    <div class="sas-empty" *ngIf="!s.loading && !s.failed && s.loaded && !s.items.length">
+      <div class="sas-empty-art">
+        <span class="ring r1"></span><span class="ring r2"></span>
+        <mat-icon>event_available</mat-icon>
+      </div>
+      <h3>{{ emptyText(active) }}</h3>
+      <p *ngIf="active === 'upcoming'">When your teachers schedule a test, it will show up here — with a reminder the day before.</p>
+    </div>
+
+    <div class="sas-grid" *ngIf="!s.loading && !s.failed && s.items.length">
+      <article class="sas-card" *ngFor="let item of s.items; let i = index; trackBy: trackById"
+               [ngClass]="'tone-' + typeMeta(item.assessmentType).tone"
+               [class.is-next]="active === 'upcoming' && i === 0" [class.is-past]="countdownTone(item) === 'past'"
+               [style.animation-delay.ms]="i * 55">
+        <header class="sas-card-head">
+          <div class="sas-date" *ngIf="parts(item.assessmentDate) as d">
+            <span class="sas-date-month">{{ d.month }}</span>
+            <strong class="sas-date-day">{{ d.day }}</strong>
+            <span class="sas-date-weekday">{{ d.weekday }}</span>
+          </div>
+          <div class="sas-head-main">
+            <div class="sas-head-top">
+              <span class="sas-type"><mat-icon>{{ typeMeta(item.assessmentType).icon }}</mat-icon>{{ item.typeLabel }}</span>
+              <span class="sas-next" *ngIf="active === 'upcoming' && i === 0"><mat-icon>bolt</mat-icon>Next up</span>
+              <span class="sas-countdown" [ngClass]="'is-' + countdownTone(item)">
+                <span class="sas-live-dot" *ngIf="countdownTone(item) === 'today'"></span>{{ countdown(item) }}
+              </span>
+            </div>
+            <h3>{{ item.title }}</h3>
+            <div class="sas-meta">
+              <span class="sas-chip is-subject">{{ item.subjectName }}</span>
+              <span class="sas-meta-item" *ngIf="timeRange(item.startTime, item.endTime) as time"><mat-icon>schedule</mat-icon>{{ time }}</span>
+              <span class="sas-meta-item"><mat-icon>groups</mat-icon>{{ classLabel(item.className, item.sectionName) }}</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="sas-card-content">
+          <div class="sas-portion">
+            <span class="sas-portion-label"><mat-icon>menu_book</mat-icon>Syllabus / portion</span>
+            <p>{{ item.syllabus }}</p>
+          </div>
+          <p class="sas-instructions" *ngIf="item.instructions"><mat-icon>info</mat-icon>{{ item.instructions }}</p>
+
+          <a class="sas-file" *ngIf="item.attachment as file" [href]="file.url" target="_blank" rel="noopener" [title]="file.fileName">
+            <img *ngIf="file.type === 'IMAGE'" [src]="file.url" [alt]="file.fileName" loading="lazy" />
+            <span class="sas-pdf" *ngIf="file.type === 'PDF'"><mat-icon>picture_as_pdf</mat-icon></span>
+            <span class="sas-file-copy">
+              <span class="sas-file-name">{{ file.fileName }}</span>
+              <span class="sas-file-size">{{ file.type === 'PDF' ? 'PDF' : 'Image' }} · {{ fileSize(file.fileSize) }}</span>
+            </span>
+            <mat-icon class="sas-file-open">open_in_new</mat-icon>
+          </a>
+        </div>
+
+        <footer class="sas-card-foot" *ngIf="item.createdByName">
+          <span class="sas-by"><mat-icon>person</mat-icon>Set by {{ item.createdByName }}</span>
+        </footer>
+      </article>
+    </div>
+  </ng-container>
+</div>

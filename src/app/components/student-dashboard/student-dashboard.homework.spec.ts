@@ -11,6 +11,7 @@ import { ToastService } from '../../services/toast.service';
 import { HomeworkService } from '../../services/homework.service';
 import { HomeworkClasswork } from '../../interfaces/homework';
 import { ClassUpdateService } from '../../services/class-update.service';
+import { AssessmentService } from '../../services/assessment.service';
 
 /** The dashboard's compact homework section — isolated from the rest of the dashboard load. */
 describe("StudentDashboardComponent — Today's Homework & Classwork", () => {
@@ -39,6 +40,7 @@ describe("StudentDashboardComponent — Today's Homework & Classwork", () => {
         { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['error']) },
         { provide: HomeworkService, useValue: homework },
         { provide: ClassUpdateService, useValue: {} },
+        { provide: AssessmentService, useValue: {} },
       ],
     });
     fixture = TestBed.createComponent(StudentDashboardComponent);

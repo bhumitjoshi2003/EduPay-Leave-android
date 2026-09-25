@@ -461,3 +461,12 @@
 
 /* ── Class Updates (reuses the homework list styles) ── */
 .sd-cu-clip { flex: 0 0 auto; font-size: 18px; width: 18px; height: 18px; color: #94a3b8; }
+
+/* ── Upcoming Assessments (reuses the homework list styles) ── */
+.sd-as-date { flex: 0 0 auto; width: 36px; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; align-items: center; background: #fff; border: 1px solid #ede9fe; }
+.sd-as-date small { width: 100%; text-align: center; font-size: 0.56rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, #7c3aed, #db2777); }
+.sd-as-date strong { font-size: 0.95rem; line-height: 1.25; color: #17203a; }
+.sd-as-when { flex: 0 0 auto; font-size: 0.68rem; font-weight: 800; border-radius: 999px; padding: 2px 8px; white-space: nowrap; color: #6d28d9; background: #f5f3ff; }
+.sd-as-when.is-today { color: #fff; background: linear-gradient(135deg, #e11d48, #f97316); }
+.sd-as-when.is-tomorrow { color: #c2410c; background: #ffedd5; }
+.sd-as-when.is-later { color: #0e7490; background: #ecfeff; }

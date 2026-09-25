@@ -1,0 +1,249 @@
+<div class="asm-page">
+  <!-- ── Hero ── -->
+  <header class="asm-hero">
+    <span class="asm-orb asm-orb-1"></span>
+    <span class="asm-orb asm-orb-2"></span>
+    <span class="asm-orb asm-orb-3"></span>
+    <span class="asm-dots"></span>
+
+    <div class="asm-hero-main">
+      <div class="asm-hero-icon"><mat-icon>event_note</mat-icon></div>
+      <div class="asm-hero-copy">
+        <h1>Assessments</h1>
+        <p>{{ isAdmin ? 'Schedule and manage school assessments.' : 'Schedule tests for your classes.' }}</p>
+      </div>
+    </div>
+
+    <div class="asm-hero-side">
+      <div class="asm-stats" *ngIf="state.upcoming.loaded">
+        <div class="asm-stat"><strong>{{ state.upcoming.items.length }}</strong><span>Upcoming</span></div>
+        <div class="asm-stat"><strong>{{ thisWeekCount }}</strong><span>This week</span></div>
+      </div>
+      <button type="button" class="asm-new" *ngIf="contexts.length" (click)="openCreate()">
+        <mat-icon>add</mat-icon><span>Schedule assessment</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="asm-notice" *ngIf="contextsLoaded && !contexts.length">
+    <mat-icon>event_busy</mat-icon>
+    <div>
+      <strong>{{ isAdmin ? 'No active classes found for this school.' : 'No classes found in your timetable for the current session.' }}</strong>
+      <span>{{ isAdmin ? 'Add classes in Class Management to schedule assessments.' : 'You can schedule assessments once you are assigned periods in the timetable.' }}</span>
+    </div>
+  </div>
+
+  <!-- ── Tabs ── -->
+  <div class="asm-toolbar">
+    <h2>{{ isAdmin ? 'School assessments' : 'Assessments for my classes' }}</h2>
+    <div class="asm-segments" [ngClass]="'is-' + active" role="tablist" aria-label="Assessment views">
+      <span class="asm-seg-indicator" [style.transform]="'translateX(' + tabIndex * 100 + '%)'"></span>
+      <button type="button" role="tab" *ngFor="let tab of tabs" [ngClass]="'seg-' + tab.key" [class.active]="active === tab.key"
+              [attr.aria-selected]="active === tab.key" (click)="select(tab.key)">
+        <mat-icon class="asm-seg-icon">{{ tab.icon }}</mat-icon>{{ tab.label }}
+        <span class="asm-seg-count" *ngIf="state[tab.key].loaded">{{ state[tab.key].items.length }}</span>
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="state[active] as s">
+    <div class="asm-grid" *ngIf="s.loading" aria-busy="true" aria-label="Loading assessments">
+      <div class="asm-skeleton" *ngFor="let k of skeletons">
+        <span class="sk sk-tile"></span>
+        <span class="sk-lines"><span class="sk sk-line w40"></span><span class="sk sk-line w90"></span><span class="sk sk-line w70"></span><span class="sk sk-block"></span></span>
+      </div>
+    </div>
+
+    <div class="asm-empty is-error" *ngIf="!s.loading && s.failed">
+      <div class="asm-empty-art"><mat-icon>cloud_off</mat-icon></div>
+      <h3>Assessments are temporarily unavailable.</h3>
+      <button type="button" class="asm-ghost" (click)="load(active)"><mat-icon>refresh</mat-icon>Retry</button>
+    </div>
+
+    <div class="asm-empty" *ngIf="!s.loading && !s.failed && s.loaded && !s.items.length">
+      <div class="asm-empty-art">
+        <span class="ring r1"></span><span class="ring r2"></span>
+        <mat-icon>{{ active === 'upcoming' ? 'event_available' : 'history' }}</mat-icon>
+      </div>
+      <h3>{{ active === 'upcoming' ? 'No upcoming assessments.' : 'No past assessments yet.' }}</h3>
+      <p *ngIf="active === 'upcoming'">Schedule a class test, unit test or practical — students are notified and reminded the day before.</p>
+      <button type="button" class="asm-new is-solid" *ngIf="active === 'upcoming' && contexts.length" (click)="openCreate()">
+        <mat-icon>add</mat-icon><span>Schedule your first assessment</span>
+      </button>
+    </div>
+
+    <div class="asm-grid" *ngIf="!s.loading && !s.failed && s.items.length">
+      <article class="asm-card" *ngFor="let item of s.items; let i = index; trackBy: trackById"
+               [ngClass]="'tone-' + typeMeta(item.assessmentType).tone" [class.is-past]="active === 'past'"
+               [style.animation-delay.ms]="i * 55">
+        <header class="asm-card-head">
+          <div class="asm-date" *ngIf="parts(item.assessmentDate) as d">
+            <span class="asm-date-month">{{ d.month }}</span>
+            <strong class="asm-date-day">{{ d.day }}</strong>
+            <span class="asm-date-weekday">{{ d.weekday }}</span>
+          </div>
+          <div class="asm-head-main">
+            <div class="asm-head-top">
+              <span class="asm-type"><mat-icon>{{ typeMeta(item.assessmentType).icon }}</mat-icon>{{ item.typeLabel }}</span>
+              <span class="asm-countdown" [ngClass]="'is-' + countdownTone(item)">
+                <span class="asm-live-dot" *ngIf="countdownTone(item) === 'today'"></span>{{ countdown(item) }}
+              </span>
+            </div>
+            <h3>{{ item.title }}</h3>
+            <div class="asm-meta">
+              <span class="asm-chip is-subject">{{ item.subjectName }}</span>
+              <span class="asm-meta-item"><mat-icon>groups</mat-icon>{{ classLabel(item.className, item.sectionName) }}</span>
+              <span class="asm-meta-item" *ngIf="timeRange(item.startTime, item.endTime) as time"><mat-icon>schedule</mat-icon>{{ time }}</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="asm-card-content">
+          <div class="asm-portion">
+            <span class="asm-portion-label"><mat-icon>menu_book</mat-icon>Syllabus / portion</span>
+            <p>{{ item.syllabus }}</p>
+          </div>
+          <p class="asm-instructions" *ngIf="item.instructions"><mat-icon>info</mat-icon>{{ item.instructions }}</p>
+
+          <a class="asm-file" *ngIf="item.attachment as file" [href]="file.url" target="_blank" rel="noopener" [title]="file.fileName">
+            <img *ngIf="file.type === 'IMAGE'" [src]="file.url" [alt]="file.fileName" loading="lazy" />
+            <span class="asm-pdf" *ngIf="file.type === 'PDF'"><mat-icon>picture_as_pdf</mat-icon></span>
+            <span class="asm-file-copy">
+              <span class="asm-file-name">{{ file.fileName }}</span>
+              <span class="asm-file-size">{{ file.type === 'PDF' ? 'PDF' : 'Image' }} · {{ fileSize(file.fileSize) }}</span>
+            </span>
+            <mat-icon class="asm-file-open">open_in_new</mat-icon>
+          </a>
+        </div>
+
+        <footer class="asm-card-foot">
+          <span class="asm-by" [class.is-mine]="item.createdByCurrentUser">
+            <mat-icon>{{ item.createdByCurrentUser ? 'verified_user' : (item.createdByRole === 'ADMIN' ? 'admin_panel_settings' : 'person') }}</mat-icon>{{ sourceLabel(item) }}
+          </span>
+          <div class="asm-foot-actions" *ngIf="item.canEdit || item.canDelete; else viewOnly">
+            <button type="button" class="asm-icon-btn" *ngIf="item.canEdit" (click)="openEdit(item)" aria-label="Edit assessment"><mat-icon>edit</mat-icon>Edit</button>
+            <button type="button" class="asm-icon-btn is-danger" *ngIf="item.canDelete" (click)="remove(item)" aria-label="Delete assessment"><mat-icon>delete_outline</mat-icon>Delete</button>
+          </div>
+          <ng-template #viewOnly><span class="asm-view-only"><mat-icon>visibility</mat-icon>View only</span></ng-template>
+        </footer>
+      </article>
+    </div>
+  </ng-container>
+
+  <!-- ── Create / edit drawer ── -->
+  <div class="asm-overlay" *ngIf="form" (click)="closeForm()">
+    <aside class="asm-drawer" (click)="$event.stopPropagation()" role="dialog" aria-label="Assessment">
+      <header class="asm-drawer-head">
+        <span class="asm-drawer-icon"><mat-icon>{{ form.mode === 'create' ? 'event_note' : 'edit' }}</mat-icon></span>
+        <div class="asm-drawer-title">
+          <h2>{{ form.mode === 'create' ? 'Schedule assessment' : 'Edit assessment' }}</h2>
+          <p *ngIf="form.mode === 'edit'">{{ classLabel(form.assessment!.className, form.assessment!.sectionName) }} · {{ form.assessment!.subjectName }}</p>
+          <p *ngIf="form.mode === 'create'">Students are notified now and reminded the day before.</p>
+        </div>
+        <button type="button" class="asm-close" (click)="closeForm()" aria-label="Close"><mat-icon>close</mat-icon></button>
+      </header>
+
+      <div class="asm-drawer-body">
+        <section class="asm-field">
+          <span class="asm-label">Type</span>
+          <div class="asm-types" role="radiogroup" aria-label="Assessment type">
+            <button type="button" role="radio" class="asm-type-opt" *ngFor="let t of types" [ngClass]="'tone-' + t.tone"
+                    [class.selected]="form.type === t.key" [attr.aria-checked]="form.type === t.key" (click)="form.type = t.key">
+              <mat-icon>{{ t.icon }}</mat-icon>{{ t.label }}
+            </button>
+          </div>
+        </section>
+
+        <ng-container *ngIf="form.mode === 'create'">
+          <section class="asm-field">
+            <span class="asm-label">Class</span>
+            <div class="asm-pills" role="radiogroup" aria-label="Class">
+              <button type="button" role="radio" class="asm-pill" *ngFor="let c of contexts" [class.selected]="form.classId === c.classId"
+                      [attr.aria-checked]="form.classId === c.classId" (click)="selectClass(c)">Class {{ c.className }}</button>
+            </div>
+          </section>
+          <section class="asm-field" *ngIf="selectedClass as cls">
+            <span class="asm-label">Section</span>
+            <div class="asm-pills" role="radiogroup" aria-label="Section">
+              <button type="button" role="radio" class="asm-pill" *ngFor="let sec of cls.sections" [class.selected]="form.sectionKey === sectionKey(sec)"
+                      [attr.aria-checked]="form.sectionKey === sectionKey(sec)" (click)="selectSection(sec)">
+                {{ sec.sectionName ? 'Section ' + sec.sectionName : 'Whole class' }}
+              </button>
+            </div>
+          </section>
+          <section class="asm-field" *ngIf="selectedSection as sec">
+            <span class="asm-label">Subject</span>
+            <div class="asm-pills" *ngIf="sec.subjects.length" role="radiogroup" aria-label="Subject">
+              <button type="button" role="radio" class="asm-pill is-subject" *ngFor="let subject of sec.subjects" [class.selected]="form.subject === subject"
+                      [attr.aria-checked]="form.subject === subject" (click)="form.subject = subject">{{ subject }}</button>
+            </div>
+            <input *ngIf="!sec.subjects.length" type="text" maxlength="100" [(ngModel)]="form.subject" name="subject" placeholder="Subject" />
+          </section>
+        </ng-container>
+
+        <label class="asm-field">
+          <span class="asm-label">Title <small class="asm-counter">{{ form.title.length }}/{{ titleMax }}</small></span>
+          <input type="text" [maxlength]="titleMax" [(ngModel)]="form.title" name="title" placeholder="e.g. Unit Test 2 — Algebra" />
+        </label>
+
+        <div class="asm-row">
+          <label class="asm-field">
+            <span class="asm-label">Date</span>
+            <input type="date" [(ngModel)]="form.date" name="date" [min]="form.mode === 'create' ? today : null" />
+          </label>
+          <label class="asm-field">
+            <span class="asm-label">Start <small>optional</small></span>
+            <input type="time" [(ngModel)]="form.start" name="start" />
+          </label>
+          <label class="asm-field">
+            <span class="asm-label">End <small>optional</small></span>
+            <input type="time" [(ngModel)]="form.end" name="end" />
+          </label>
+        </div>
+
+        <label class="asm-field">
+          <span class="asm-label">Syllabus / portion <small class="asm-counter">{{ form.syllabus.length }}/{{ syllabusMax }}</small></span>
+          <textarea rows="4" [maxlength]="syllabusMax" [(ngModel)]="form.syllabus" name="syllabus" placeholder="Chapters, topics or pages to prepare"></textarea>
+        </label>
+
+        <label class="asm-field">
+          <span class="asm-label">Instructions <small>optional</small></span>
+          <textarea rows="3" [maxlength]="instructionsMax" [(ngModel)]="form.instructions" name="instructions" placeholder="What to bring, format, marks…"></textarea>
+        </label>
+
+        <section class="asm-field">
+          <span class="asm-label">Attachment <small>optional · image or PDF · 10 MB</small></span>
+          <input #fileInput type="file" [accept]="acceptTypes" (change)="onFileSelected($event)" hidden />
+          <div class="asm-pick" *ngIf="form.attachment as file">
+            <img *ngIf="file.previewUrl; else pdfIcon" [src]="file.previewUrl" [alt]="file.fileName" />
+            <ng-template #pdfIcon><span class="asm-pdf"><mat-icon>{{ file.isPdf ? 'picture_as_pdf' : 'image' }}</mat-icon></span></ng-template>
+            <span class="asm-file-copy">
+              <span class="asm-file-name" [title]="file.fileName">{{ file.fileName }}</span>
+              <span class="asm-file-size">{{ fileSize(file.size) }}<ng-container *ngIf="file.kind === 'new'"> · ready to upload</ng-container></span>
+            </span>
+            <button type="button" class="asm-pick-btn" (click)="fileInput.click()">Replace</button>
+            <button type="button" class="asm-pick-remove" (click)="removeAttachment()" [attr.aria-label]="'Remove ' + file.fileName"><mat-icon>close</mat-icon></button>
+          </div>
+          <button type="button" class="asm-drop" *ngIf="!form.attachment" [class.is-over]="dragOver"
+                  (click)="fileInput.click()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
+            <span class="asm-drop-icon"><mat-icon>cloud_upload</mat-icon></span>
+            <strong>Drop a file or <u>browse</u></strong>
+            <small>Question paper, sample or notice</small>
+          </button>
+        </section>
+      </div>
+
+      <footer class="asm-drawer-foot">
+        <p><mat-icon>notifications_active</mat-icon>{{ form.mode === 'create' ? 'Students get an in-app and push notification now, and a reminder the day before.' : 'Students are notified only if the date, time or title changes.' }}</p>
+        <div class="asm-actions">
+          <button type="button" class="asm-cancel" (click)="closeForm()">Cancel</button>
+          <button type="button" class="asm-save" (click)="save()" [disabled]="!canSave">
+            <span class="asm-btn-spinner" *ngIf="form.saving"></span>
+            <mat-icon *ngIf="!form.saving">{{ form.mode === 'create' ? 'event_available' : 'check' }}</mat-icon>
+            {{ form.saving ? 'Saving…' : (form.mode === 'create' ? 'Schedule' : 'Save changes') }}
+          </button>
+        </div>
+      </footer>
+    </aside>
+  </div>
+</div>
