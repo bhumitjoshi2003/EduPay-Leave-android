@@ -87,6 +87,19 @@ describe('DashboardComponent — Teacher Substitution nav entry', () => {
     expect(link).toBeNull();
   });
 
+  // Attendance V2: marking is TEACHER/ADMIN only (route + API), so the shared admin menu must
+  // not offer SUB_ADMIN a "Mark Attendance" link that only bounces them back to the dashboard.
+  it('shows the admin "Mark Attendance" link for ADMIN', () => {
+    build('ADMIN');
+    expect(fixture.nativeElement.querySelector('a[routerLink="/dashboard/teacher-attendance"]')).toBeTruthy();
+  });
+
+  it('never shows "Mark Attendance" for SUB_ADMIN (they cannot mark attendance)', () => {
+    build('SUB_ADMIN');
+    expect(fixture.nativeElement.querySelector('a[routerLink="/dashboard/teacher-attendance"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('a[routerLink="/dashboard/attendance-summary"]')).toBeTruthy();
+  });
+
   it('never shows the link for TEACHER (the route does not permit them)', () => {
     build('TEACHER');
     const link = fixture.nativeElement.querySelector('a[routerLink="/dashboard/teacher-substitutions"]');

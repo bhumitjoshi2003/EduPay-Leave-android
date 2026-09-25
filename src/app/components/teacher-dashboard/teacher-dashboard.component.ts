@@ -60,7 +60,8 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
 
   totalStudents = 0;
   todayAbsent = 0;
-  attendanceTaken = false;   // true when 'X' record found → school was open that day
+  todayPresent = 0;
+  attendanceTaken = false;   // true once today's attendance has been submitted for the class
   pendingLeavesCount = 0;
   monthlyAttendanceRate = 0;
   recentLeaves: LeaveApplication[] = [];
@@ -344,33 +345,35 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   loadClassData(): void {
     this.classDataFailed = false;
     const now = this.today;
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
 
     forkJoin([
       this.studentService.getActiveStudentsByClass(this.className),
-      this.attendanceService.getAttendanceByDateAndClass(todayStr, this.className),
+      // Today's sheet for the teacher's own class/section (the server picks the school's today).
+      // A sheet failure (e.g. no current session) only hides today's figures.
+      this.attendanceService.getSheet(null).pipe(catchError(e => {
+        this.logger.error('Today attendance load error:', e);
+        return of(null);
+      })),
       this.leaveService.getLeavesPaginated(0, 50, this.className),
       this.attendanceService.getClassSummary(this.className, { year, month }),
     ]).pipe(takeUntil(this.destroy$)).subscribe({
-      next: ([students, absentToday, leavesPage, summary]) => {
+      next: ([students, todaySheet, leavesPage, summary]) => {
         this.totalStudents = students.length;
-        // 'X' is a dummy record that marks the school as open that day.
-        // Exclude it from the real absent count.
-        this.attendanceTaken = absentToday.some(a => a.studentId === 'X');
-        this.todayAbsent = absentToday.filter(a => a.studentId !== 'X'
-          && (!a.status || a.status === 'ABSENT')).length;
+        this.attendanceTaken = !!todaySheet?.submitted;
+        const todayRows = this.attendanceTaken ? todaySheet!.students : [];
+        this.todayAbsent = todayRows.filter(s => s.status === 'ABSENT').length;
+        this.todayPresent = todayRows.filter(s => s.status === 'PRESENT').length;
 
         const pending = leavesPage.content.filter(l => l.status === 'PENDING');
         this.pendingLeavesCount = pending.length;
         this.recentLeaves = pending.slice(0, 5);
 
-        if (summary.length > 0) {
-          const avg = summary.reduce((s, r) => s + r.attendancePercentage, 0) / summary.length;
-          this.monthlyAttendanceRate = avg;
-        }
+        // Class rate = all present days / all submitted days (the same formula as each student's %).
+        const workingDays = summary.reduce((sum, r) => sum + r.totalWorkingDays, 0);
+        const presentDays = summary.reduce((sum, r) => sum + r.daysPresent, 0);
+        this.monthlyAttendanceRate = workingDays > 0 ? Math.round(presentDays * 1000 / workingDays) / 10 : 0;
 
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -430,7 +433,7 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   }
 
   get todayPresentCount(): number {
-    return Math.max(0, this.totalStudents - this.todayAbsent);
+    return this.todayPresent;
   }
 
   get personalAttendanceStatus(): string {
@@ -516,9 +519,8 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   /** 'weekend' | 'not-marked' | 'marked' */
   get absentCardState(): 'weekend' | 'not-marked' | 'marked' {
     if (this.isWeekend) return 'weekend';
-    // 'not-marked' = no 'X' record found → attendance was never submitted today
-    // 'marked'     = 'X' record exists → school was open, attendance submitted
-    //                (todayAbsent may be 0 = all present, or N = N real absences)
+    // 'not-marked' = today's attendance has not been submitted
+    // 'marked'     = submitted (todayAbsent may be 0 = all present, or N explicit absences)
     return this.attendanceTaken ? 'marked' : 'not-marked';
   }
 

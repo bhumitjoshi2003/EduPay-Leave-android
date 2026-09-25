@@ -137,6 +137,7 @@
       <div class="as-stat-card as-stat-absent">
         <span class="as-stat-value">{{ studentSummary.daysAbsent }}</span>
         <span class="as-stat-label">Absent</span>
+        <span class="as-stat-note" *ngIf="studentSummary.approvedLeaveDays > 0">incl. {{ studentSummary.approvedLeaveDays }} on approved leave</span>
       </div>
       <div class="as-stat-card">
         <span class="as-stat-value" [ngClass]="getAttendanceClass(studentSummary.attendancePercentage)">
@@ -169,11 +170,9 @@
             <div class="as-cal-legend no-print">
               <span class="as-legend-item"><span class="as-legend-dot dot-present"></span> Present</span>
               <span class="as-legend-item"><span class="as-legend-dot dot-absent"></span> Absent</span>
-              <span class="as-legend-item"><span class="as-legend-dot dot-half-day"></span> Half day</span>
-              <span class="as-legend-item"><span class="as-legend-dot dot-late"></span> Late</span>
-              <span class="as-legend-item"><span class="as-legend-dot dot-excused"></span> Excused</span>
+              <span class="as-legend-item"><span class="as-legend-dot dot-leave"></span> Absent (approved leave)</span>
               <span class="as-legend-item"><span class="as-legend-dot dot-holiday"></span> Holiday</span>
-              <span class="as-legend-item"><span class="as-legend-dot dot-unmarked"></span> Unmarked</span>
+              <span class="as-legend-item"><span class="as-legend-dot dot-unmarked"></span> Not recorded</span>
               <span class="as-legend-item"><span class="as-legend-dot dot-future"></span> Future</span>
             </div>
             <!-- Day-of-week header -->
@@ -230,7 +229,7 @@
                 <td data-label="Month">{{ row.month }} {{ row.year }}</td>
                 <td data-label="Working Days">{{ row.workingDays }}</td>
                 <td data-label="Present" class="as-present-cell">{{ row.present }}</td>
-                <td data-label="Absent" class="as-absent-cell">{{ row.absent }}</td>
+                <td data-label="Absent" class="as-absent-cell">{{ row.absent }}<span class="as-leave-note" *ngIf="row.approvedLeave > 0"> ({{ row.approvedLeave }} leave)</span></td>
                 <td data-label="Attendance %">
                   <span class="as-pct-badge" [ngClass]="getAttendanceClass(row.percentage)">
                     {{ row.percentage }}%
@@ -258,11 +257,9 @@
                         <div class="as-cal-legend no-print">
                           <span class="as-legend-item"><span class="as-legend-dot dot-present"></span> Present</span>
                           <span class="as-legend-item"><span class="as-legend-dot dot-absent"></span> Absent</span>
-                          <span class="as-legend-item"><span class="as-legend-dot dot-half-day"></span> Half day</span>
-                          <span class="as-legend-item"><span class="as-legend-dot dot-late"></span> Late</span>
-                          <span class="as-legend-item"><span class="as-legend-dot dot-excused"></span> Excused</span>
+                          <span class="as-legend-item"><span class="as-legend-dot dot-leave"></span> Absent (approved leave)</span>
                           <span class="as-legend-item"><span class="as-legend-dot dot-holiday"></span> Holiday</span>
-                          <span class="as-legend-item"><span class="as-legend-dot dot-unmarked"></span> Unmarked</span>
+                          <span class="as-legend-item"><span class="as-legend-dot dot-unmarked"></span> Not recorded</span>
                           <span class="as-legend-item"><span class="as-legend-dot dot-future"></span> Future</span>
                         </div>
                         <div class="as-cal-header">
@@ -324,7 +321,7 @@
             <td data-label="Student">{{ row.studentName }}</td>
             <td data-label="Working Days">{{ row.totalWorkingDays }}</td>
             <td data-label="Present" class="as-present-cell">{{ row.daysPresent }}</td>
-            <td data-label="Absent" class="as-absent-cell">{{ row.daysAbsent }}</td>
+            <td data-label="Absent" class="as-absent-cell">{{ row.daysAbsent }}<span class="as-leave-note" *ngIf="row.approvedLeaveDays > 0"> ({{ row.approvedLeaveDays }} leave)</span></td>
             <td data-label="Attendance %">
               <span class="as-pct-badge" [ngClass]="getAttendanceClass(row.attendancePercentage)">
                 {{ row.attendancePercentage }}%

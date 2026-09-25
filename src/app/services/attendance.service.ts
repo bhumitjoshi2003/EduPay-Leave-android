@@ -1,9 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AttendanceData } from '../interfaces/atendance-data';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { StudentAttendanceSummary, ClassAttendanceSummary, DailyDetail } from '../interfaces/attendance-summary';
+import { AttendanceSheet, AttendanceSubmission } from '../interfaces/attendance-sheet';
 
 @Injectable({
   providedIn: 'root'
@@ -17,35 +17,30 @@ export class AttendanceService {
     return this.http.get<{ workingDays: string; timezone: string }>(`${this.apiUrl}/calendar-config`);
   }
 
-  saveAttendance(attendanceData: AttendanceData[], sectionId?: number | null): Observable<string> {
-    const params = sectionId != null ? new HttpParams().set('sectionId', sectionId) : undefined;
-    return this.http.post(this.apiUrl, attendanceData, { responseType: 'text', params });
+  /** Roster + saved statuses for a class (section) day. A teacher omits classId/sectionId — the server uses their own class. */
+  getSheet(date: string | null, classId?: number | null, sectionId?: number | null): Observable<AttendanceSheet> {
+    let params = new HttpParams();
+    if (date) params = params.set('date', date);
+    if (classId != null) params = params.set('classId', classId);
+    if (sectionId != null) params = params.set('sectionId', sectionId);
+    return this.http.get<AttendanceSheet>(`${this.apiUrl}/sheet`, { params });
   }
 
-  getAttendanceByDateAndClass(absentDate: string, className: string, sectionId?: number | null): Observable<AttendanceData[]> {
-    const params = sectionId != null ? new HttpParams().set('sectionId', sectionId) : undefined;
-    return this.http.get<AttendanceData[]>(`${this.apiUrl}/date/${absentDate}/class/${className}`, { params });
+  /** Saves an explicit status for every rostered student; re-submitting the same day updates it. */
+  submitSheet(submission: AttendanceSubmission): Observable<AttendanceSheet> {
+    return this.http.put<AttendanceSheet>(`${this.apiUrl}/sheet`, submission);
   }
 
-  getAttendanceCounts(studentId: string, year: number, month: number): Observable<{ studentAbsent: number; totalAbsent: number }> {
-    return this.http.get<{ studentAbsent: number; totalAbsent: number }>(`${this.apiUrl}/counts/${studentId}/${year}/${month}`);
+  deleteSheet(date: string, classId?: number | null, sectionId?: number | null): Observable<void> {
+    let params = new HttpParams().set('date', date);
+    if (classId != null) params = params.set('classId', classId);
+    if (sectionId != null) params = params.set('sectionId', sectionId);
+    return this.http.delete<void>(`${this.apiUrl}/sheet`, { params });
   }
 
+  /** Chargeable absences (ABSENT without approved leave, not yet paid) for the fee screens. */
   getTotalUnappliedLeaveCount(studentId: string, session: string): Observable<number> {
     return this.http.get<number>(`${this.apiUrl}/unapplied-leave-count/${studentId}/session/${session}`);
-  }
-
-  deleteAttendanceByDateAndClass(absentDate: string, className: string, sectionId?: number | null): Observable<string> {
-    const params = sectionId != null ? new HttpParams().set('sectionId', sectionId) : undefined;
-    return this.http.delete<string>(`${this.apiUrl}/date/${absentDate}/class/${className}`, { responseType: 'text' as 'json', params }
-    );
-  }
-
-  getMonthlyAttendance(studentId: string, className: string, year: number, month: number): Observable<AttendanceData[]> {
-    return this.http.get<AttendanceData[]>(
-      `${this.apiUrl}/student/${studentId}/month/${month}/year/${year}`,
-      { params: { className } }
-    );
   }
 
   getStudentSummary(studentId: string, params: Record<string, string | number>): Observable<StudentAttendanceSummary> {

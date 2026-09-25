@@ -305,7 +305,8 @@
 
         <div class="nav-section-label">Attendance</div>
 
-        <a class="nav-item" routerLink="/dashboard/teacher-attendance" routerLinkActive="active"
+        <!-- Marking is TEACHER/ADMIN only (route + API); SUB_ADMIN shares this menu but cannot mark. -->
+        <a class="nav-item" *ngIf="Role === 'ADMIN'" routerLink="/dashboard/teacher-attendance" routerLinkActive="active"
            (click)="closeSidebarOnMobile()" title="Mark Attendance">
           <mat-icon>how_to_reg</mat-icon><span>Mark Attendance</span>
         </a>

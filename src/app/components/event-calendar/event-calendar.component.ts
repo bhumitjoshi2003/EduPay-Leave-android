@@ -565,7 +565,7 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
   }
 
   private loadAttendance(): void {
-    if (!this.studentId || !this.currentUserClass) return;
+    if (!this.studentId) return;
 
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth() + 1;
@@ -573,15 +573,15 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
     const monthStart = format(startOfMonth(this.currentDate), 'yyyy-MM-dd');
     const monthEnd = format(endOfMonth(this.currentDate), 'yyyy-MM-dd');
 
-    const absent$ = this.attendanceService.getMonthlyAttendance(this.studentId, this.currentUserClass, year, month);
-    const workingDays$ = this.attendanceService.getMonthlyAttendance('X', this.currentUserClass, year, month);
+    // The student's own explicit PRESENT/ABSENT rows for the month (Attendance V2).
+    const daily$ = this.attendanceService.getStudentDailyDetail(this.studentId, month, year);
     const holidays$ = this.holidayService.getHolidaysByRange(monthStart, monthEnd);
 
-    forkJoin([absent$, workingDays$, holidays$]).pipe(takeUntil(this.destroy$)).subscribe({
-      next: ([absentData, workingDaysData, holidays]) => {
+    forkJoin([daily$, holidays$]).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ([daily, holidays]) => {
 
-        const absentSet = new Set(absentData.map(a => a.date));
-        const workingSet = new Set(workingDaysData.map(w => w.date));
+        const absentSet = new Set(daily.absentDays);
+        const workingSet = new Set(daily.schoolDays);
 
         const holidaySet = new Map<string, string>();
         holidays.forEach(h => {
@@ -614,7 +614,7 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
           }
 
           if (workingSet.has(dateStr)) {
-            // Attendance was taken — P/A always wins over holiday
+            // Attendance was recorded for the student — P/A always wins over holiday
             if (absentSet.has(dateStr)) {
               this.attendanceMap[dateStr] = 'A';
             } else {
@@ -625,7 +625,7 @@ export class EventCalendarComponent implements OnInit, OnDestroy {
             this.attendanceMap[dateStr] = 'H';
             this.holidayMap[dateStr] = holidaySet.get(dateStr)!;
           }
-          // else: no attendance and not a holiday — leave blank
+          // else: no attendance recorded and not a holiday — leave blank
 
         });
         this.cdr.markForCheck();

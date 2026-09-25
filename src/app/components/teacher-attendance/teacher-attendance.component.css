@@ -117,8 +117,16 @@
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
+.ta-controls-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .ta-class-title {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 0.82rem;
   font-weight: 700;
   color: #64748b;
@@ -290,40 +298,6 @@
   white-space: nowrap;
 }
 
-.ta-mark-btn {
-  padding: 6px 14px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  transition: opacity 0.15s;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.ta-mark-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.ta-mark-btn:hover:not(:disabled) { opacity: 0.85; }
-
-.ta-mark-absent  { background: linear-gradient(135deg, #dc2626, #f87171); color: #fff; }
-.ta-mark-present { background: linear-gradient(135deg, #059669, #34d399); color: #fff; }
-
-.ta-status-select {
-  padding: 5px 8px;
-  border: 1.5px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  font-family: inherit;
-  background: #fff;
-  color: #374151;
-  cursor: pointer;
-  flex-shrink: 0;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.ta-status-select:focus { border-color: #059669; }
-.ta-status-select:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ── Already Marked Badge ──────────────────────────────────────── */
 .attendance-marked-badge {
@@ -336,5 +310,125 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.3px;
-  margin-bottom: 4px;
+}
+
+.attendance-pending-badge {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.ta-warning-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+/* ── Summary ──────────────────────────────────────────────────────── */
+.ta-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ta-summary-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.ta-summary-num { font-size: 1.05rem; font-weight: 800; }
+.ta-summary-present { background: #ecfdf5; color: #047857; }
+.ta-summary-absent  { background: #fef2f2; color: #b91c1c; }
+.ta-summary-leave   { background: #eff6ff; color: #1d4ed8; }
+
+.ta-link-btn {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: #059669;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 6px 4px;
+}
+.ta-link-btn:hover { text-decoration: underline; }
+
+.ta-summary-dim { opacity: 0.55; pointer-events: none; transition: opacity 0.15s; }
+
+/* ── Marking rows ─────────────────────────────────────────────────── */
+.ta-card-editable { cursor: pointer; }
+.ta-card-editable:focus-visible { outline: 2px solid #059669; outline-offset: 2px; }
+
+.ta-student-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ta-leave-tag {
+  align-self: flex-start;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.ta-toggle {
+  display: inline-flex;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.ta-toggle-btn {
+  width: 38px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+.ta-toggle-btn:disabled { cursor: not-allowed; }
+.ta-toggle-present.ta-toggle-on { background: linear-gradient(135deg, #059669, #34d399); color: #fff; }
+.ta-toggle-absent.ta-toggle-on  { background: linear-gradient(135deg, #dc2626, #f87171); color: #fff; }
+.ta-toggle-btn:disabled.ta-toggle-on { opacity: 0.7; }
+
+.ta-skeleton {
+  height: 58px;
+  border-left-color: #e2e8f0;
+  background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: ta-shimmer 1.2s infinite linear;
+}
+@keyframes ta-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@media (max-width: 480px) {
+  .ta-action-btns { width: 100%; }
+  .ta-action-btns .ta-btn { flex: 1; }
+  .ta-date-control { max-width: none; }
 }

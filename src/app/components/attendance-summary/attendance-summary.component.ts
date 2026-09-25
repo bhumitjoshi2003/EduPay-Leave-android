@@ -450,6 +450,7 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
   private buildCalendarCells(year: number, month: number, detail: DailyDetail, holidays: Map<string, string> = new Map()): CalendarCell[][] {
     const schoolDaySet = new Set(detail.schoolDays);
     const absentDaySet = new Set(detail.absentDays);
+    const approvedLeaveSet = new Set(detail.approvedLeaveDays ?? []);
     const nonWorkingDaySet = new Set(detail.nonWorkingDays ?? []);
     const explicitStatuses = detail.statuses ?? {};
 
@@ -476,13 +477,9 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
         // Future date — not yet reachable
         status = 'future';
       } else if (schoolDaySet.has(dateStr)) {
-        // Attendance was marked — P/A wins (class was working even if it's a school holiday)
-        const recorded = explicitStatuses[dateStr]?.toUpperCase();
-        status = recorded === 'HALF_DAY' ? 'half-day'
-          : recorded === 'LATE' ? 'late'
-          : recorded === 'EXCUSED' ? 'excused'
-          : (recorded === 'ABSENT' || absentDaySet.has(dateStr)) ? 'absent'
-          : 'present';
+        // Attendance was recorded for the student — P/A wins (the class met even on a holiday)
+        const absent = explicitStatuses[dateStr] === 'ABSENT' || absentDaySet.has(dateStr);
+        status = !absent ? 'present' : approvedLeaveSet.has(dateStr) ? 'leave' : 'absent';
       } else if (holidays.has(dateStr)) {
         // No attendance marked and it's a holiday
         status = 'holiday';

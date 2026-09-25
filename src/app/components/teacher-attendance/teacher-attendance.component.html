@@ -6,7 +6,7 @@
       <div class="ta-hero-icon">✅</div>
       <div>
         <h1 class="ta-hero-title">Attendance</h1>
-        <p class="ta-hero-sub">Mark student attendance by class</p>
+        <p class="ta-hero-sub">Everyone starts present — tap a student to mark them absent</p>
       </div>
     </div>
     <div class="ta-blob ta-blob-1"></div>
@@ -14,101 +14,126 @@
   </div>
 
   <!-- ── Class Chips (admin only) ──────────────────────────────────── -->
-  <div class="ta-chips-wrap" *ngIf="loggedInUserRole === 'ADMIN'">
+  <div class="ta-chips-wrap" *ngIf="isAdmin">
     <div class="ta-chips">
-      <button *ngFor="let className of classList; trackBy: trackByClass" class="ta-chip"
-        [class.ta-chip-active]="className === selectedClass"
-        (click)="onClassSelect(className)">{{ className }}</button>
+      <button *ngFor="let cls of classes; trackBy: trackByClassId" type="button" class="ta-chip"
+        [class.ta-chip-active]="cls.id === selectedClassId"
+        (click)="onClassSelect(cls)">{{ cls.name }}</button>
     </div>
   </div>
 
-  <!-- ── Section Chips ────────────────────────────────────────────── -->
-  <div class="ta-chips-wrap" *ngIf="sections.length > 0">
+  <!-- ── Section Chips (admin, class with sections) ────────────────── -->
+  <div class="ta-chips-wrap" *ngIf="isAdmin && sections.length > 0">
     <div class="ta-chips">
-      <span class="section-label">Sections</span>
-      <button class="ta-chip ta-chip-section" [class.ta-chip-active]="selectedSectionId === null"
-        (click)="onSectionSelect(null)">All Sections</button>
-      <button *ngFor="let sec of sections" class="ta-chip ta-chip-section"
+      <span class="section-label">Section</span>
+      <button *ngFor="let sec of sections; trackBy: trackBySectionId" type="button" class="ta-chip ta-chip-section"
         [class.ta-chip-active]="selectedSectionId === sec.id"
         (click)="onSectionSelect(sec.id!)">{{ sec.name }}</button>
     </div>
   </div>
 
-  <!-- ── Controls Card ─────────────────────────────────────────────── -->
-  <div class="ta-controls">
-    <h2 class="ta-class-title">Class {{ selectedClass }}</h2>
-    <div class="ta-controls-row">
-      <div class="ta-date-control">
-        <label class="ta-date-label" for="attendance-date">Attendance Date</label>
-        <div class="ta-date-shell">
-          <span class="ta-date-leading" aria-hidden="true">📅</span>
-          <mat-form-field appearance="outline" class="ta-date-field">
-            <input id="attendance-date" matInput [matDatepicker]="picker" [(ngModel)]="attendanceDate"
-              (dateChange)="onDateChange($event)" aria-label="Attendance date" readonly />
-            <mat-datepicker-toggle matSuffix [for]="picker" aria-label="Open attendance date calendar"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-          </mat-form-field>
+  <div class="ta-empty" *ngIf="isAdmin && selectedClassId === null">
+    <div class="ta-empty-icon">🏫</div>
+    <p class="ta-empty-title">Choose a class</p>
+    <p class="ta-empty-sub">Pick a class above to mark its attendance.</p>
+  </div>
+
+  <ng-container *ngIf="!isAdmin || selectedClassId !== null">
+    <!-- ── Controls Card ─────────────────────────────────────────────── -->
+    <div class="ta-controls">
+      <div class="ta-controls-head">
+        <h2 class="ta-class-title">{{ displayScope || 'Your class' }}</h2>
+        <span class="attendance-marked-badge" *ngIf="sheet?.submitted">&#10003; Submitted</span>
+        <span class="attendance-pending-badge" *ngIf="sheet && !sheet.submitted && sheet.markable">Not submitted yet</span>
+      </div>
+      <div class="ta-controls-row">
+        <div class="ta-date-control">
+          <label class="ta-date-label" for="attendance-date">Attendance Date</label>
+          <div class="ta-date-shell">
+            <span class="ta-date-leading" aria-hidden="true">📅</span>
+            <mat-form-field appearance="outline" class="ta-date-field">
+              <input id="attendance-date" matInput [matDatepicker]="picker" [matDatepickerFilter]="dateFilter"
+                [(ngModel)]="attendanceDate" (dateChange)="onDateChange($event)" aria-label="Attendance date" readonly />
+              <mat-datepicker-toggle matSuffix [for]="picker" aria-label="Open attendance date calendar"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+          </div>
+          <span class="ta-date-caption" *ngIf="lastSavedAt">
+            Last saved {{ lastSavedAt | date: 'd MMM, h:mm a' }}<span *ngIf="sheet?.markedBy"> by {{ sheet!.markedBy }}</span>
+          </span>
         </div>
-        <span class="ta-date-caption">Choose the day whose attendance you want to mark</span>
-      </div>
-      <span class="attendance-marked-badge" *ngIf="isAttendanceAlreadyMarked">&#10003; Already Marked</span>
-      <div class="ta-action-btns">
-        <button class="ta-btn ta-btn-save"
-          [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate) || !hasStudents || isSaving"
-          (click)="saveAttendance()">{{ isSaving ? 'Saving…' : '✓ Save' }}</button>
-        <button class="ta-btn ta-btn-delete"
-          [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate) || disableDeleteButton || !hasStudents"
-          (click)="deleteAttendance()">✕ Delete</button>
+        <div class="ta-action-btns">
+          <button type="button" class="ta-btn ta-btn-save" [disabled]="!canEdit || rows.length === 0" (click)="saveAttendance()">
+            {{ isSaving ? 'Saving…' : (sheet?.submitted ? '✓ Update' : '✓ Submit') }}
+          </button>
+          <button type="button" class="ta-btn ta-btn-delete" *ngIf="sheet?.submitted" [disabled]="!canEdit"
+            (click)="deleteAttendance()">{{ isDeleting ? 'Deleting…' : '✕ Delete' }}</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- ── Warnings ───────────────────────────────────────────────────── -->
-  <div class="ta-warning" *ngIf="!isDateWithinAllowedRange()">
-    Attendance can only be modified for dates between {{ getRelativeDate(-3) }} and {{ getRelativeDate(0) }}.
-  </div>
-  <div class="ta-warning ta-warning-sunday" *ngIf="isNonWorkingDay(attendanceDate)">
-    This is a configured non-working day.
-  </div>
+    <!-- ── Warnings ───────────────────────────────────────────────────── -->
+    <div class="ta-warning ta-warning-sunday" *ngIf="sheet && !sheet.markable">
+      {{ sheet.blockedReason }}
+    </div>
+    <div class="ta-warning" *ngIf="sheet?.markable && !isWithinTeacherWindow">
+      Teachers can change attendance from {{ editWindowStart }} to today. Ask a school admin to correct older days.
+    </div>
+    <div class="ta-warning ta-warning-error" *ngIf="loadError">{{ loadError }}</div>
 
-  <!-- ── Empty ─────────────────────────────────────────────────────── -->
-  <div class="ta-empty" *ngIf="!hasStudents">
-    <div class="ta-empty-icon">🔍</div>
-    <p class="ta-empty-title">No students found</p>
-    <p class="ta-empty-sub">No students found for the selected class.</p>
-  </div>
+    <!-- ── Loading ───────────────────────────────────────────────────── -->
+    <div class="ta-list" *ngIf="loading && !sheet" aria-busy="true">
+      <div class="ta-student-card ta-skeleton" *ngFor="let _ of [1, 2, 3, 4]"></div>
+    </div>
 
-  <!-- ── Student List ───────────────────────────────────────────────── -->
-  <div class="ta-list" *ngIf="hasStudents">
-    <div *ngFor="let student of students; trackBy: trackByStudentId"
-      class="ta-student-card" [class.ta-absent]="student.absent">
+    <!-- ── Empty ─────────────────────────────────────────────────────── -->
+    <div class="ta-empty" *ngIf="sheet && rows.length === 0">
+      <div class="ta-empty-icon">🔍</div>
+      <p class="ta-empty-title">No students enrolled</p>
+      <p class="ta-empty-sub">No students are enrolled in {{ displayScope }} on this date.</p>
+    </div>
 
-      <div class="ta-student-avatar" [class.ta-avatar-absent]="student.absent">
-        {{ student.name.charAt(0).toUpperCase() }}
+    <ng-container *ngIf="sheet && rows.length > 0">
+      <!-- ── Summary ────────────────────────────────────────────────── -->
+      <div class="ta-summary" [class.ta-summary-dim]="loading">
+        <div class="ta-summary-item ta-summary-present">
+          <span class="ta-summary-num">{{ presentCount }}</span><span class="ta-summary-label">Present</span>
+        </div>
+        <div class="ta-summary-item ta-summary-absent">
+          <span class="ta-summary-num">{{ absentCount }}</span><span class="ta-summary-label">Absent</span>
+        </div>
+        <div class="ta-summary-item ta-summary-leave" *ngIf="approvedLeaveCount > 0">
+          <span class="ta-summary-num">{{ approvedLeaveCount }}</span><span class="ta-summary-label">On approved leave</span>
+        </div>
+        <button type="button" class="ta-link-btn" *ngIf="canEdit && absentCount > 0" (click)="markAllPresent()">Mark all present</button>
       </div>
 
-      <span class="ta-student-name">{{ student.name }}</span>
+      <!-- ── Student List ───────────────────────────────────────────── -->
+      <div class="ta-list" [class.ta-summary-dim]="loading">
+        <div *ngFor="let row of rows; trackBy: trackByStudentId" class="ta-student-card"
+          [class.ta-absent]="row.status === 'ABSENT'" [class.ta-card-editable]="canEdit"
+          role="button" [attr.tabindex]="canEdit ? 0 : -1" [attr.aria-pressed]="row.status === 'ABSENT'"
+          [attr.aria-label]="row.name + ': ' + (row.status === 'ABSENT' ? 'absent' : 'present')"
+          (click)="toggle(row)" (keydown.enter)="toggle(row)" (keydown.space)="$event.preventDefault(); toggle(row)">
 
-      <select *ngIf="student.absent" class="ta-status-select"
-        [(ngModel)]="student.status"
-        [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate)">
-        <option value="ABSENT">Absent</option>
-        <option value="HALF_DAY">Half Day</option>
-        <option value="LATE">Late</option>
-        <option value="EXCUSED">Excused</option>
-      </select>
+          <div class="ta-student-avatar" [class.ta-avatar-absent]="row.status === 'ABSENT'">
+            {{ (row.name || row.studentId).charAt(0).toUpperCase() }}
+          </div>
 
-      <button *ngIf="!student.absent" class="ta-mark-btn ta-mark-absent"
-        [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate)"
-        (click)="markAbsent(student.studentId)">
-        Mark Absent
-      </button>
-      <button *ngIf="student.absent" class="ta-mark-btn ta-mark-present"
-        [disabled]="!isDateWithinAllowedRange() || isNonWorkingDay(attendanceDate)"
-        (click)="markPresent(student.studentId)">
-        Mark Present
-      </button>
-    </div>
-  </div>
+          <div class="ta-student-main">
+            <span class="ta-student-name">{{ row.name }}</span>
+            <span class="ta-leave-tag" *ngIf="row.approvedLeave">Approved Leave</span>
+          </div>
+
+          <div class="ta-toggle" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+            <button type="button" class="ta-toggle-btn ta-toggle-present" [class.ta-toggle-on]="row.status === 'PRESENT'"
+              [disabled]="!canEdit" (click)="setStatus(row, 'PRESENT')">P</button>
+            <button type="button" class="ta-toggle-btn ta-toggle-absent" [class.ta-toggle-on]="row.status === 'ABSENT'"
+              [disabled]="!canEdit" (click)="setStatus(row, 'ABSENT')">A</button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
 
 </div>

@@ -1,35 +1,32 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
-import { LoggerService } from '../../services/logger.service';
-import { LeaveService } from '../../services/leave.service';
-import { StudentService } from '../../services/student.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, formatDate } from '@angular/common';
-import { SchoolService, SchoolClass } from '../../services/school.service';
-import { SectionService } from '../../services/section.service';
-import { Section } from '../../interfaces/section';
+import { Router } from '@angular/router';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
+import { Subject, of } from 'rxjs';
+import { catchError, map, switchMap, takeUntil } from 'rxjs/operators';
+import { LoggerService } from '../../services/logger.service';
+import { SchoolService, SchoolClass } from '../../services/school.service';
+import { SectionService } from '../../services/section.service';
+import { Section } from '../../interfaces/section';
 import { ToastService } from '../../services/toast.service';
-import { AttendanceData } from '../../interfaces/atendance-data';
 import { AttendanceService } from '../../services/attendance.service';
+import { AttendanceSheet, AttendanceStatus } from '../../interfaces/attendance-sheet';
 import { AuthStateService } from '../../auth/auth-state.service';
-import { TeacherService } from '../../services/teacher.service';
-import { Teacher } from '../../interfaces/teacher';
-import { Subject, takeUntil, switchMap, of, firstValueFrom, forkJoin } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { SchoolHolidayService } from '../../services/school-holiday.service';
-import { Router } from '@angular/router';
 import { getStoredSelectedClass, setStoredSelectedClass } from '../../utils/class-selection-storage.util';
 
-interface Student {
+/** One roster row being marked. Everyone starts PRESENT; APPROVED leave starts ABSENT. */
+interface MarkRow {
   studentId: string;
   name: string;
-  absent: boolean;
-  chargePaid: boolean;
-  status: 'ABSENT' | 'HALF_DAY' | 'LATE' | 'EXCUSED';
-  sectionId?: number | null;
+  status: AttendanceStatus;
+  approvedLeave: boolean;
 }
+
+/** Teachers may edit today and the previous three days (admins: any markable date). */
+const TEACHER_EDIT_WINDOW_DAYS = 3;
 
 @Component({
   selector: 'app-teacher-attendance',
@@ -46,37 +43,34 @@ interface Student {
 })
 export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  students: Student[] = [];
-  attendanceDate: Date = new Date();
-  selectedClass: string = '';
-  absentStudents: string[] = [];
+  private reload$ = new Subject<void>();
 
-  teacherId: string = '';
-  disableDeleteButton: boolean = false;
-  loggedInUserRole: string = '';
-  hasStudents: boolean = false;
-  isAttendanceAlreadyMarked: boolean = false;
-  isSaving: boolean = false;
-  private workingDays = new Set<string>();
+  isAdmin = false;
+  attendanceDate: Date = this.getTodayDateWithoutTime();
+  private dateChosen = false;
 
-  classList: string[] = [];
-  managedClasses: SchoolClass[] = [];
+  classes: SchoolClass[] = [];
+  selectedClassId: number | null = null;
   sections: Section[] = [];
   selectedSectionId: number | null = null;
   private schoolSlug: string | null = null;
+  private workingDays = new Set<string>();
+
+  sheet: AttendanceSheet | null = null;
+  rows: MarkRow[] = [];
+  loading = false;
+  loadError: string | null = null;
+  isSaving = false;
+  isDeleting = false;
 
   constructor(
-    private leaveService: LeaveService,
-    private studentService: StudentService,
     private attendanceService: AttendanceService,
-    private teacherService: TeacherService,
     private authStateService: AuthStateService,
     private logger: LoggerService,
     private cdr: ChangeDetectorRef,
     private toast: ToastService,
     private schoolService: SchoolService,
     private sectionService: SectionService,
-    private holidayService: SchoolHolidayService,
     private router: Router
   ) { }
 
@@ -86,382 +80,280 @@ export class TeacherAttendanceComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const role = this.authStateService.getUserRole?.() ?? this.authStateService.getUser?.()?.role;
+    const user = this.authStateService.getUser();
+    const role = this.authStateService.getUserRole?.() ?? user?.role;
     if (!['ADMIN', 'TEACHER'].includes(role ?? '')) {
       this.router.navigate(['/dashboard']);
       return;
     }
+    this.isAdmin = role === 'ADMIN';
+    this.schoolSlug = user?.schoolSlug ?? null;
 
-    this.attendanceDate = this.getTodayDateWithoutTime();
+    // Latest request wins: switching class/section/date cancels an in-flight roster load.
+    this.reload$.pipe(
+      switchMap(() => {
+        const date = this.dateChosen ? formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en') : null;
+        return this.attendanceService.getSheet(date, this.selectedClassId, this.selectedSectionId).pipe(
+          map(sheet => ({ sheet, error: null as string | null })),
+          catchError(err => {
+            this.logger.error('Error loading attendance sheet:', err);
+            const message = err?.status === 403
+              ? 'Attendance can only be marked by the class teacher of this class, or a school admin.'
+              : this.errorMessage(err, 'Failed to load the class roster.');
+            return of({ sheet: null, error: message });
+          })
+        );
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe(({ sheet, error }) => {
+      this.loading = false;
+      this.loadError = error;
+      this.applySheet(sheet);
+    });
+
+    // The working-day calendar only greys out datepicker days; the server enforces every date rule.
     this.attendanceService.getCalendarConfig().pipe(takeUntil(this.destroy$)).subscribe({
       next: config => {
         this.workingDays = new Set(config.workingDays.split(',').map(d => d.trim().toUpperCase()).filter(Boolean));
-        if (this.workingDays.size === 0) {
-          this.toast.error('Calendar not configured', 'Ask the administrator to select the school working days in School Settings.');
-          return;
-        }
-        this.getUserRoleAndLoadData();
+        this.cdr.markForCheck();
       },
-      error: error => {
-        this.logger.error('Error loading school calendar:', error);
-        this.toast.error('Unable to load calendar', 'Attendance marking is disabled until the school calendar is available.');
+      error: err => this.logger.error('Error loading school calendar:', err)
+    });
+
+    if (this.isAdmin) {
+      this.loadAdminClasses();
+    } else {
+      this.reload();
+    }
+  }
+
+  // ─── Scope selection ──────────────────────────────────────────────
+
+  private loadAdminClasses(): void {
+    this.schoolService.getManagedClasses().pipe(takeUntil(this.destroy$)).subscribe({
+      next: classes => {
+        this.classes = classes.filter(c => c.active);
+        const stored = getStoredSelectedClass(this.schoolSlug, this.classes.map(c => c.name), '');
+        const initial = this.classes.find(c => c.name === stored) ?? null;
+        this.cdr.markForCheck();
+        if (initial) this.onClassSelect(initial);
+      },
+      error: err => {
+        this.logger.error('Failed to load classes:', err);
+        this.toast.error('Error', 'Failed to load class list.');
       }
     });
   }
 
-  getTodayDateWithoutTime(): Date {
+  onClassSelect(cls: SchoolClass): void {
+    this.selectedClassId = cls.id;
+    this.selectedSectionId = null;
+    this.sections = [];
+    this.applySheet(null);
+    setStoredSelectedClass(this.schoolSlug, cls.name);
+    this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: sections => {
+        if (this.selectedClassId !== cls.id) return;
+        this.sections = sections.filter(s => s.active && s.id != null);
+        // Attendance is marked per section: start on the first one.
+        this.selectedSectionId = this.sections.length > 0 ? this.sections[0].id! : null;
+        this.reload();
+      },
+      error: err => {
+        this.logger.error('Failed to load sections', err);
+        this.toast.error('Error', 'Failed to load sections for this class.');
+      }
+    });
+  }
+
+  onSectionSelect(sectionId: number): void {
+    if (this.selectedSectionId === sectionId) return;
+    this.selectedSectionId = sectionId;
+    this.reload();
+  }
+
+  onDateChange(event: { value: Date | null }): void {
+    if (!event.value) return;
+    const date = new Date(event.value);
+    date.setHours(0, 0, 0, 0);
+    this.attendanceDate = date;
+    this.dateChosen = true;
+    this.reload();
+  }
+
+  private reload(): void {
+    if (this.isAdmin && this.selectedClassId == null) return;
+    this.loading = true;
+    this.loadError = null;
+    this.cdr.markForCheck();
+    this.reload$.next();
+  }
+
+  private applySheet(sheet: AttendanceSheet | null): void {
+    this.sheet = sheet;
+    this.rows = (sheet?.students ?? []).map(s => ({
+      studentId: s.studentId,
+      name: s.name,
+      status: s.status ?? (s.approvedLeave ? 'ABSENT' : 'PRESENT'),
+      approvedLeave: s.approvedLeave,
+    }));
+    if (sheet && !this.dateChosen) {
+      // First load: the server picked the school's own "today".
+      const [y, m, d] = sheet.date.split('-').map(Number);
+      this.attendanceDate = new Date(y, m - 1, d);
+    }
+    this.cdr.markForCheck();
+  }
+
+  // ─── Marking ──────────────────────────────────────────────────────
+
+  toggle(row: MarkRow): void {
+    if (!this.canEdit) return;
+    row.status = row.status === 'PRESENT' ? 'ABSENT' : 'PRESENT';
+  }
+
+  setStatus(row: MarkRow, status: AttendanceStatus): void {
+    if (!this.canEdit) return;
+    row.status = status;
+  }
+
+  markAllPresent(): void {
+    if (!this.canEdit) return;
+    this.rows.forEach(r => r.status = 'PRESENT');
+  }
+
+  get presentCount(): number { return this.rows.filter(r => r.status === 'PRESENT').length; }
+  get absentCount(): number { return this.rows.filter(r => r.status === 'ABSENT').length; }
+  get approvedLeaveCount(): number { return this.rows.filter(r => r.approvedLeave).length; }
+
+  get isWithinTeacherWindow(): boolean {
+    if (this.isAdmin) return true;
+    const today = this.getTodayDateWithoutTime();
+    const earliest = new Date(today);
+    earliest.setDate(today.getDate() - TEACHER_EDIT_WINDOW_DAYS);
+    return this.attendanceDate >= earliest && this.attendanceDate <= today;
+  }
+
+  get canEdit(): boolean {
+    return !!this.sheet && this.sheet.markable && this.isWithinTeacherWindow && !this.isSaving && !this.isDeleting;
+  }
+
+  async saveAttendance(): Promise<void> {
+    const sheet = this.sheet;
+    if (!sheet || !this.canEdit || this.rows.length === 0) return;
+
+    const absent = this.absentCount;
+    const confirmed = await this.toast.confirm({
+      title: sheet.submitted ? 'Update Attendance' : 'Submit Attendance',
+      message: `${this.presentCount} present and ${absent} absent out of ${this.rows.length} students`
+        + ` for ${this.displayScope} on ${formatDate(sheet.date, 'd MMM y', 'en')}.`
+        + (sheet.submitted ? ' This replaces the attendance already saved for this day.' : ''),
+      icon: 'question',
+      confirmText: sheet.submitted ? 'Yes, Update' : 'Yes, Submit',
+      cancelText: 'Cancel',
+      danger: false,
+    });
+    // Re-check after the dialog: a double-click or a scope change while it was open must not resubmit.
+    if (!confirmed || this.isSaving || this.sheet !== sheet) return;
+
+    this.isSaving = true;
+    this.cdr.markForCheck();
+    this.attendanceService.submitSheet({
+      classId: this.isAdmin ? sheet.classId : null,
+      sectionId: this.isAdmin ? sheet.sectionId : null,
+      date: sheet.date,
+      students: this.rows.map(r => ({ studentId: r.studentId, status: r.status })),
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: saved => {
+        this.isSaving = false;
+        this.applySheet(saved);
+        this.toast.success(sheet.submitted ? 'Attendance Updated' : 'Attendance Submitted',
+          `${this.presentCount} present, ${this.absentCount} absent.`);
+      },
+      error: err => {
+        this.isSaving = false;
+        this.logger.error('Error saving attendance:', err);
+        this.toast.error('Could not save attendance', this.errorMessage(err, 'Please reload the roster and try again.'));
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  async deleteAttendance(): Promise<void> {
+    const sheet = this.sheet;
+    if (!sheet?.submitted || !this.canEdit) return;
+    const confirmed = await this.toast.confirm({
+      title: 'Delete Attendance',
+      message: `Delete the saved attendance for ${this.displayScope} on ${formatDate(sheet.date, 'd MMM y', 'en')}?`
+        + ' Students will have no attendance recorded for this day.',
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      danger: true,
+    });
+    if (!confirmed || this.isDeleting || this.sheet !== sheet) return;
+
+    this.isDeleting = true;
+    this.cdr.markForCheck();
+    this.attendanceService.deleteSheet(sheet.date, this.isAdmin ? sheet.classId : null, this.isAdmin ? sheet.sectionId : null)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: () => {
+          this.isDeleting = false;
+          this.toast.success('Deleted', 'Attendance for this day has been removed.');
+          this.reload();
+        },
+        error: err => {
+          this.isDeleting = false;
+          this.logger.error('Error deleting attendance:', err);
+          this.toast.error('Could not delete attendance', this.errorMessage(err, 'Please try again.'));
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  // ─── View helpers ─────────────────────────────────────────────────
+
+  get displayScope(): string {
+    if (!this.sheet) return '';
+    return this.sheet.sectionName ? `Class ${this.sheet.className} – ${this.sheet.sectionName}` : `Class ${this.sheet.className}`;
+  }
+
+  /** The server stores submission times in UTC without an offset. */
+  get lastSavedAt(): Date | null {
+    const at = this.sheet?.submitted ? this.sheet.updatedAt : null;
+    if (!at) return null;
+    return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(at) ? at : at + 'Z');
+  }
+
+  /** Datepicker: no future days, and only configured working weekdays once the calendar has loaded. */
+  dateFilter = (date: Date | null): boolean => {
+    if (!date) return false;
+    if (date > this.getTodayDateWithoutTime()) return false;
+    if (this.workingDays.size === 0) return true;
+    const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+    return this.workingDays.has(dayNames[date.getDay()]);
+  };
+
+  getRelativeDate(offset: number): string {
+    const date = this.getTodayDateWithoutTime();
+    date.setDate(date.getDate() + offset);
+    return formatDate(date, 'd MMM', 'en');
+  }
+
+  get editWindowStart(): string { return this.getRelativeDate(-TEACHER_EDIT_WINDOW_DAYS); }
+
+  trackByStudentId(_: number, row: MarkRow): string { return row.studentId; }
+  trackByClassId(_: number, cls: SchoolClass): number { return cls.id; }
+  trackBySectionId(_: number, section: Section): number | undefined { return section.id; }
+
+  private getTodayDateWithoutTime(): Date {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return today;
   }
 
-  getUserRoleAndLoadData(): void {
-    const user = this.authStateService.getUser();
-
-    if (user) {
-      this.loggedInUserRole = user.role;
-      this.teacherId = user.userId;
-      this.schoolSlug = user.schoolSlug;
-
-      if (this.loggedInUserRole === 'ADMIN') {
-        // Class list must be loaded before a stored selection can be validated against it —
-        // otherwise a stale value would slip through while classList is still empty.
-        forkJoin({
-          classList: this.schoolService.getClasses(),
-          managedClasses: this.schoolService.getManagedClasses()
-        }).pipe(takeUntil(this.destroy$)).subscribe({
-          next: ({ classList, managedClasses }) => {
-            this.classList = classList;
-            this.managedClasses = managedClasses;
-            this.selectedClass = getStoredSelectedClass(this.schoolSlug, classList, '');
-            this.cdr.markForCheck();
-            if (this.selectedClass) this.loadSectionsForClass(this.selectedClass);
-            this.loadStudentsAndApplyAttendance();
-          },
-          error: (err) => {
-            this.logger.error('Failed to load classes:', err);
-            this.toast.error('Error', 'Failed to load class list.');
-          }
-        });
-      } else {
-        this.getTeacherClassAndLoadStudents();
-      }
-    }
+  private errorMessage(err: any, fallback: string): string {
+    const body = err?.error;
+    if (typeof body === 'string' && body.trim()) return body;
+    return body?.message || fallback;
   }
-
-
-  getTeacherClassAndLoadStudents(): void {
-    this.teacherService.getTeacher(this.teacherId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (teacher: Teacher) => {
-        this.selectedClass = teacher.classTeacher ?? '';
-        this.loadStudentsAndApplyAttendance();
-      },
-      error: () => {
-        this.toast.error('Error', 'Failed to fetch teacher details.');
-      },
-    });
-  }
-
-  onClassSelect(selectedClass: string): void {
-    this.selectedClass = selectedClass;
-    this.selectedSectionId = null;
-    this.sections = [];
-    setStoredSelectedClass(this.schoolSlug, selectedClass);
-    this.loadSectionsForClass(selectedClass);
-    this.loadStudentsAndApplyAttendance();
-  }
-
-  loadSectionsForClass(className: string): void {
-    const cls = this.managedClasses.find(c => c.name === className);
-    if (!cls) return;
-    this.sectionService.getSectionsForClass(cls.id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: sections => { this.sections = sections; this.cdr.markForCheck(); },
-      error: (err) => this.logger.error('Failed to load sections', err)
-    });
-  }
-
-  onSectionSelect(sectionId: number | null): void {
-    this.selectedSectionId = sectionId;
-    this.loadStudentsAndApplyAttendance();
-  }
-
-  loadStudentsAndApplyAttendance(): void {
-    if (this.isNonWorkingDay(this.attendanceDate)) {
-      this.students = [];
-      this.cdr.markForCheck();
-      return;
-    }
-
-    const dateStr = formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en');
-    this.holidayService.getHolidaysByRange(dateStr, dateStr)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: async (holidays) => {
-          if (holidays.length > 0) {
-            const holidayName = holidays[0].name;
-            const confirmed = await this.toast.confirm({
-              title: 'Holiday: ' + holidayName,
-              message: `This date is marked as a holiday (${holidayName}). Do you still want to mark attendance?`,
-              confirmText: 'Yes, continue',
-              cancelText: 'Cancel',
-            });
-            if (!confirmed) {
-              this.students = [];
-              this.hasStudents = false;
-              this.cdr.markForCheck();
-              return;
-            }
-          }
-          this.doLoadStudents();
-        },
-        error: () => {
-          // If holiday check fails, proceed anyway
-          this.doLoadStudents();
-        }
-      });
-  }
-
-  private doLoadStudents(): void {
-    const classAtRequest = this.selectedClass;
-    const dateAtRequest = this.attendanceDate;
-
-    const secId = this.selectedSectionId ?? undefined;
-    this.studentService.getActiveStudentsByClass(classAtRequest, secId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (studentLeaveDTOs) => {
-        if (this.selectedClass !== classAtRequest || this.attendanceDate !== dateAtRequest) return;
-        this.students = studentLeaveDTOs.map((dto) => ({
-          studentId: dto.studentId,
-          name: dto.name,
-          absent: false,
-          chargePaid: true,
-          status: 'ABSENT' as const,
-          sectionId: dto.sectionId,
-        }));
-        this.hasStudents = this.students.length > 0;
-        this.cdr.markForCheck();
-        this.applyAttendanceAndLeavesToStudents();
-      },
-      error: (error) => {
-        this.logger.error('Error loading students:', error);
-        this.toast.error('Error', 'Failed to load students.');
-      },
-    });
-  }
-
-  applyAttendanceAndLeavesToStudents(): void {
-    const formattedDate = formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en');
-    const classAtRequest = this.selectedClass;
-    const dateAtRequest = this.attendanceDate;
-
-    this.attendanceService.getAttendanceByDateAndClass(formattedDate, classAtRequest, this.selectedSectionId).pipe(
-      takeUntil(this.destroy$),
-      catchError(err => {
-        // Attendance fetch failed — fall through to leaves as fallback
-        this.logger.error('Error loading attendance data:', err);
-        return of([] as AttendanceData[]);
-      }),
-      switchMap(attendanceData => {
-        if (attendanceData.length > 0) {
-          // Attendance already saved — apply it directly, no second request
-          return of({ source: 'attendance' as const, leaves: [] as string[], attendance: attendanceData });
-        }
-        // No saved attendance — pre-fill from approved leaves for the day
-        return this.leaveService.getLeavesByDateAndClass(formattedDate, classAtRequest).pipe(
-          takeUntil(this.destroy$),
-          map(leaves => ({ source: 'leaves' as const, leaves, attendance: [] as AttendanceData[] })),
-          catchError(err => {
-            this.logger.error('No leaves found or error fetching leaves:', err);
-            return of({ source: 'leaves' as const, leaves: [] as string[], attendance: [] as AttendanceData[] });
-          })
-        );
-      })
-    ).subscribe({
-      next: ({ source, attendance, leaves }) => {
-        if (this.selectedClass !== classAtRequest || this.attendanceDate !== dateAtRequest) return;
-
-        if (source === 'attendance') {
-          this.disableDeleteButton = false;
-          this.isAttendanceAlreadyMarked = attendance.length > 0;
-          const attendanceMap = new Map<string, AttendanceData>();
-          attendance.forEach(a => attendanceMap.set(a.studentId, a));
-          this.students.forEach(student => {
-            const att = attendanceMap.get(student.studentId);
-            student.absent = !!att;
-            student.chargePaid = att ? att.chargePaid : true;
-            student.status = att?.status as Student['status'] || 'ABSENT';
-          });
-        } else {
-          this.disableDeleteButton = true;
-          this.isAttendanceAlreadyMarked = false;
-          this.absentStudents = leaves;
-          this.students.forEach(student => {
-            student.absent = leaves.includes(student.studentId);
-            student.chargePaid = true;
-          });
-        }
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  markAbsent(studentId: string): void {
-    const student = this.students.find((s) => s.studentId === studentId);
-    if (student) {
-      student.absent = true;
-      student.chargePaid = this.absentStudents.includes(student.studentId);
-      student.status = 'ABSENT';
-    }
-  }
-
-  markPresent(studentId: string): void {
-    const student = this.students.find((s) => s.studentId === studentId);
-    if (student) {
-      student.absent = false;
-      student.chargePaid = true;
-      student.status = 'ABSENT';
-    }
-  }
-
-  onDateChange(event: any): void {
-    const selectedDate = event.value;
-    if (selectedDate) {
-      const date = new Date(selectedDate);
-      date.setHours(0, 0, 0, 0);
-      this.attendanceDate = date;
-      this.loadStudentsAndApplyAttendance();
-    }
-  }
-
-  async saveAttendance(): Promise<void> {
-    if (this.isAttendanceAlreadyMarked) {
-      const replaceConfirmed = await this.toast.confirm({
-        title: 'Attendance Already Marked',
-        message: 'Attendance is already saved for this date. Do you want to replace it?',
-        confirmText: 'Yes, Replace',
-        cancelText: 'Cancel',
-      });
-      if (!replaceConfirmed) return;
-    }
-
-    const confirmed = await this.toast.confirm({
-      title: 'Save Attendance',
-      message: `You are about to save attendance for ${this.students.length} students. Are you sure?`,
-      icon: 'question',
-      confirmText: 'Yes, Save',
-      cancelText: 'Cancel',
-      danger: false,
-    });
-    if (!confirmed) return;
-
-    const attendanceData: AttendanceData[] = this.students
-      .filter((student) => student.absent)
-      .map((student) => ({
-        studentId: student.studentId,
-        chargePaid: student.chargePaid,
-        date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
-        className: this.selectedClass,
-        status: student.status,
-        sectionId: student.sectionId ?? undefined,
-      }));
-
-    // Sentinel row (studentId 'X') marking that attendance WAS taken for this class/date, even
-    // when nobody is absent. The backend's working-days count (and everything derived from it —
-    // attendance percentages, the monthly calendar view) determines "was school open that day"
-    // from the presence of ANY row for that date; without this, an all-present day writes zero
-    // rows and silently vanishes from every downstream calculation instead of counting as 100%.
-    attendanceData.push({
-      studentId: 'X',
-      chargePaid: true,
-      date: formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en'),
-      className: this.selectedClass,
-      status: 'ABSENT',
-      sectionId: this.selectedSectionId ?? undefined,
-    });
-
-    this.isSaving = true;
-    this.cdr.markForCheck();
-
-    this.attendanceService.saveAttendance(attendanceData, this.selectedSectionId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.toast.success('Attendance Saved!', 'Attendance data saved successfully.');
-        // Check if there are approved leaves for this date that weren't pre-filled
-        // (i.e. attendance already existed before leave approval)
-        if (this.absentStudents.length > 0 && this.isAttendanceAlreadyMarked) {
-          this.toast.info('Check Leaves', 'Some students may have approved leaves for this date. Review attendance if needed.');
-        }
-        this.applyAttendanceAndLeavesToStudents();
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        this.isSaving = false;
-        this.logger.error('Error saving attendance:', error);
-        this.toast.error('Error!', error.error || 'Failed to save attendance. Please try again.');
-        this.cdr.markForCheck();
-      },
-    });
-  }
-
-  isDateWithinAllowedRange(): boolean {
-    if (this.loggedInUserRole === 'ADMIN') { return true; }
-
-    const today = this.getTodayDateWithoutTime();
-    const selected = new Date(this.attendanceDate);
-    selected.setHours(0, 0, 0, 0);
-
-    const pastLimit = new Date(today);
-    pastLimit.setDate(today.getDate() - 3);
-
-    return selected >= pastLimit && selected <= today;
-  }
-
-  getRelativeDate(offset: number): string {
-    const date = this.getTodayDateWithoutTime();
-    date.setDate(date.getDate() + offset);
-    return formatDate(date, 'yyyy-MM-dd', 'en');
-  }
-
-  trackByStudentId(index: number, student: Student): string { return student.studentId; }
-  trackByClass(index: number, className: string): string { return className; }
-
-  isNonWorkingDay(date: Date | null): boolean {
-    if (!date) return false;
-    const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-    return !this.workingDays.has(dayNames[new Date(date).getDay()]);
-  }
-
-  deleteAttendance(): void {
-    if (!this.isDateWithinAllowedRange()) {
-      this.toast.warning('Not Allowed', 'You can only delete attendance for today or yesterday.');
-      return;
-    }
-
-    if (this.isNonWorkingDay(this.attendanceDate)) {
-      this.toast.info('Invalid Date', 'Cannot delete attendance for a configured non-working day.');
-      return;
-    }
-
-    this.toast.confirm({
-      title: 'Confirm Deletion',
-      message: 'Are you sure you want to delete the attendance for this date?',
-      confirmText: 'Yes, delete it!',
-      cancelText: 'Cancel',
-      danger: true,
-    }).then((confirmed) => {
-      if (confirmed) {
-        const formattedDate = formatDate(this.attendanceDate, 'yyyy-MM-dd', 'en');
-    this.attendanceService.deleteAttendanceByDateAndClass(formattedDate, this.selectedClass, this.selectedSectionId).pipe(takeUntil(this.destroy$)).subscribe({
-          next: () => {
-            this.toast.success('Deleted!', 'Attendance has been deleted.');
-            this.loadStudentsAndApplyAttendance(); // refresh the student list
-          },
-          error: (error) => {
-            this.logger.error('Error deleting attendance:', error);
-            this.toast.error('Error', error.error || 'Failed to delete attendance.');
-          },
-        });
-      }
-    });
-  }
-
 }
