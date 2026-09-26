@@ -19,11 +19,13 @@ import {
 } from '../../interfaces/attendance-summary';
 import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
 import { ChildAccess } from '../../interfaces/parent-portal';
+import { StudentAttendanceInsightsComponent } from '../attendance-insights/student-attendance-insights.component';
+import { ClassAttendanceInsightsComponent } from '../attendance-insights/class-attendance-insights.component';
 
 @Component({
   selector: 'app-attendance-summary',
   standalone: true,
-  imports: [CommonModule, FormsModule, ParentChildContextComponent],
+  imports: [CommonModule, FormsModule, ParentChildContextComponent, StudentAttendanceInsightsComponent, ClassAttendanceInsightsComponent],
   templateUrl: './attendance-summary.component.html',
   styleUrl: './attendance-summary.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -531,6 +533,12 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
 
   canChangeClass(): boolean {
     return this.role === 'ADMIN' || this.role === 'SUB_ADMIN' || this.role === 'SUPER_ADMIN';
+  }
+
+  /** The admin's selected class as an id (the class selector works with names). */
+  get selectedClassId(): number | null {
+    if (!this.selectedClass) return null;
+    return this.managedClasses.find(c => c.name === this.selectedClass)?.id ?? null;
   }
 
   isSelfServiceView(): boolean {

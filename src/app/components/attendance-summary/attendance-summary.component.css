@@ -651,3 +651,7 @@
 
 .as-stat-note { font-size: 0.68rem; color: #1d4ed8; font-weight: 600; margin-top: 2px; }
 .as-leave-note { font-size: 0.72rem; color: #1d4ed8; font-weight: 600; }
+
+/* Attendance Insights cards sit between the hero and the report controls. */
+app-student-attendance-insights,
+app-class-attendance-insights { display: block; margin-bottom: 16px; }

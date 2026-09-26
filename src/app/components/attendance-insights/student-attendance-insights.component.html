@@ -1,0 +1,96 @@
+<section class="ai-card" aria-label="Attendance insights">
+  <header class="ai-head">
+    <div>
+      <p class="ai-eyebrow">Attendance insights</p>
+      <h2 class="ai-title">
+        {{ insights?.sessionLabel ? 'Session ' + insights?.sessionLabel : 'Current session' }}
+      </h2>
+    </div>
+    <span class="ai-status" *ngIf="insights && !loading"
+      [class.ai-status-ok]="status === 'healthy'" [class.ai-status-low]="status === 'low'" [class.ai-status-none]="status === 'none'">
+      {{ status === 'healthy' ? 'Healthy' : status === 'low' ? 'Low attendance' : 'No records yet' }}
+    </span>
+  </header>
+
+  <!-- Loading -->
+  <div class="ai-skeleton" *ngIf="loading && !insights" aria-busy="true">
+    <span class="ai-sk ai-sk-ring"></span>
+    <div class="ai-sk-lines"><span class="ai-sk"></span><span class="ai-sk"></span><span class="ai-sk"></span></div>
+  </div>
+
+  <p class="ai-error" *ngIf="error && !loading">{{ error }}</p>
+
+  <p class="ai-empty" *ngIf="requireStudentId && !studentId && !loading">Select a child to see attendance insights.</p>
+
+  <ng-container *ngIf="insights as i">
+    <!-- Nothing recorded yet -->
+    <div class="ai-empty-state" *ngIf="i.submittedDays === 0">
+      <span class="ai-empty-icon">📅</span>
+      <p class="ai-empty-title">No attendance recorded yet</p>
+      <p class="ai-empty-sub">Figures appear here once the class teacher submits attendance{{ i.sessionLabel ? ' for ' + i.sessionLabel : '' }}.</p>
+    </div>
+
+    <ng-container *ngIf="i.submittedDays > 0">
+      <!-- Headline -->
+      <div class="ai-summary" [class.ai-dim]="loading">
+        <div class="ai-ring" [style.background]="ringStyle(i.percentage)">
+          <div class="ai-ring-inner">
+            <span class="ai-ring-num">{{ i.percentage | number: '1.0-1' }}%</span>
+            <span class="ai-ring-lbl">attendance</span>
+          </div>
+        </div>
+        <div class="ai-stats">
+          <div class="ai-stat ai-stat-present"><span class="ai-stat-num">{{ i.present }}</span><span class="ai-stat-lbl">Present</span></div>
+          <div class="ai-stat ai-stat-absent"><span class="ai-stat-num">{{ i.absent }}</span><span class="ai-stat-lbl">Absent</span></div>
+          <div class="ai-stat ai-stat-leave"><span class="ai-stat-num">{{ i.approvedLeave }}</span><span class="ai-stat-lbl">Approved leave</span></div>
+          <div class="ai-stat"><span class="ai-stat-num">{{ i.submittedDays }}</span><span class="ai-stat-lbl">Recorded days</span></div>
+        </div>
+      </div>
+
+      <div class="ai-banner ai-banner-low" *ngIf="i.lowAttendance" role="status">
+        <strong>Attendance is below {{ i.lowAttendanceThreshold }}%.</strong>
+        <span *ngIf="daysToRecover > 0"> About {{ daysToRecover }} more present {{ daysToRecover === 1 ? 'day' : 'days' }} in a row would bring it back to {{ i.lowAttendanceThreshold }}%.</span>
+      </div>
+      <div class="ai-banner ai-banner-ok" *ngIf="!i.lowAttendance" role="status">
+        Attendance is at or above {{ i.lowAttendanceThreshold }}% — keep it up.
+      </div>
+      <div class="ai-banner ai-banner-streak" *ngIf="i.currentAbsenceStreak >= 3" role="status">
+        Absent on the last {{ i.currentAbsenceStreak }} recorded days.
+      </div>
+      <p class="ai-note" *ngIf="i.approvedLeave > 0">
+        Approved leave days are shown for information and still count as absent.
+      </p>
+
+      <div class="ai-grid">
+        <!-- Monthly trend -->
+        <div class="ai-panel">
+          <h3 class="ai-panel-title">Monthly trend</h3>
+          <ul class="ai-bars">
+            <li *ngFor="let m of i.monthlyTrend; trackBy: trackByMonth" class="ai-bar-row">
+              <span class="ai-bar-label">{{ m.label }}</span>
+              <span class="ai-bar-track" [attr.aria-label]="m.label + ': ' + m.percentage + '%'">
+                <span class="ai-bar-fill" [ngClass]="barClass(m.percentage)" [style.width.%]="m.percentage"></span>
+              </span>
+              <span class="ai-bar-value">{{ m.percentage | number: '1.0-1' }}%</span>
+              <span class="ai-bar-meta">{{ m.present }}/{{ m.submittedDays }} days</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Recent -->
+        <div class="ai-panel">
+          <h3 class="ai-panel-title">Recent attendance</h3>
+          <ul class="ai-recent">
+            <li *ngFor="let d of i.recent; trackBy: trackByDate" class="ai-recent-row">
+              <span class="ai-recent-date">{{ d.date | date: 'EEE, d MMM' }}</span>
+              <span class="ai-leave-tag" *ngIf="d.approvedLeave">Approved leave</span>
+              <span class="ai-pill" [class.ai-pill-present]="d.status === 'PRESENT'" [class.ai-pill-absent]="d.status === 'ABSENT'">
+                {{ d.status === 'PRESENT' ? 'Present' : 'Absent' }}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+</section>

@@ -14,6 +14,12 @@
     <div class="as-blob as-blob-2"></div>
   </div>
 
+  <!-- ── Attendance Insights (read-only, current session) ──────── -->
+  <app-student-attendance-insights class="no-print" *ngIf="role === 'STUDENT'"></app-student-attendance-insights>
+  <app-student-attendance-insights class="no-print" *ngIf="role === 'PARENT'"
+    [studentId]="selectedStudentId" [requireStudentId]="true"></app-student-attendance-insights>
+  <app-class-attendance-insights class="no-print" *ngIf="role === 'TEACHER'" mode="teacher"></app-class-attendance-insights>
+
   <!-- ── Controls Card ─────────────────────────────────────────── -->
   <div class="as-controls no-print" *ngIf="!isSelfServiceView()">
 
@@ -103,6 +109,10 @@
       </button>
     </div>
   </div>
+
+  <!-- Admin: insights for the chosen class (and section, if one is picked). -->
+  <app-class-attendance-insights class="no-print" *ngIf="role === 'ADMIN' && selectedClassId !== null" mode="admin"
+    [classId]="selectedClassId" [sectionId]="selectedSectionId"></app-class-attendance-insights>
 
   <!-- ── Error / Loading ───────────────────────────────────────── -->
   <p class="as-error" *ngIf="error">{{ error }}</p>

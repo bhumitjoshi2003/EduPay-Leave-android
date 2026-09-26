@@ -39,7 +39,7 @@
         </svg>
         <div class="sd-ring-label">
           <span class="sd-ring-pct" [style.color]="attendanceColor">{{ attendancePercentage }}%</span>
-          <span class="sd-ring-sub">This Month</span>
+          <span class="sd-ring-sub">Session</span>
         </div>
       </div>
       <div class="sd-attend-stats">
@@ -55,7 +55,7 @@
         </div>
         <div class="sd-attend-row">
           <span class="sd-attend-dot" style="background:#64748b"></span>
-          <span class="sd-attend-text">Working Days</span>
+          <span class="sd-attend-text">Recorded Days</span>
           <span class="sd-attend-val">{{ totalWorkingDays }}</span>
         </div>
         <div class="sd-attend-row">
@@ -63,6 +63,11 @@
           <span class="sd-attend-text">Pending Leaves</span>
           <span class="sd-attend-val">{{ pendingLeavesCount }}</span>
         </div>
+      </div>
+      <div class="sd-attend-foot">
+        <span class="sd-attend-warn" *ngIf="lowAttendance" role="status">⚠ Below {{ lowAttendanceThreshold }}% attendance</span>
+        <span class="sd-attend-ok" *ngIf="!lowAttendance && totalWorkingDays > 0">On track · {{ lowAttendanceThreshold }}%+ needed</span>
+        <a class="sd-attend-link" routerLink="/dashboard/attendance-summary">View attendance insights →</a>
       </div>
     </div>
 

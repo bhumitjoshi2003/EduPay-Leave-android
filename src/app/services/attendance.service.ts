@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { StudentAttendanceSummary, ClassAttendanceSummary, DailyDetail } from '../interfaces/attendance-summary';
 import { AttendanceSheet, AttendanceSubmission } from '../interfaces/attendance-sheet';
+import { ClassAttendanceInsights, StudentAttendanceInsights } from '../interfaces/attendance-insights';
 
 @Injectable({
   providedIn: 'root'
@@ -54,6 +55,27 @@ export class AttendanceService {
     Object.entries(params).forEach(([k, v]) => httpParams = httpParams.set(k, String(v)));
     if (sectionId != null) httpParams = httpParams.set('sectionId', String(sectionId));
     return this.http.get<ClassAttendanceSummary[]>(`${this.apiUrl}/summary/class/${className}`, { params: httpParams });
+  }
+
+  /** The signed-in student's current-session insights. */
+  getMyInsights(): Observable<StudentAttendanceInsights> {
+    return this.http.get<StudentAttendanceInsights>(`${this.apiUrl}/insights/me`);
+  }
+
+  /** One student's insights (parent: a linked child; teacher/admin: within their scope). */
+  getStudentInsights(studentId: string): Observable<StudentAttendanceInsights> {
+    return this.http.get<StudentAttendanceInsights>(`${this.apiUrl}/insights/student/${encodeURIComponent(studentId)}`);
+  }
+
+  /** A teacher's own class/section — the server decides which. */
+  getMyClassInsights(): Observable<ClassAttendanceInsights> {
+    return this.http.get<ClassAttendanceInsights>(`${this.apiUrl}/insights/class`);
+  }
+
+  /** Admin: one class (sectionId omitted = the whole class). */
+  getClassInsights(classId: number, sectionId?: number | null): Observable<ClassAttendanceInsights> {
+    const params = sectionId != null ? new HttpParams().set('sectionId', sectionId) : undefined;
+    return this.http.get<ClassAttendanceInsights>(`${this.apiUrl}/insights/class/${classId}`, { params });
   }
 
   getStudentDailyDetail(studentId: string, month: number, year: number): Observable<DailyDetail> {

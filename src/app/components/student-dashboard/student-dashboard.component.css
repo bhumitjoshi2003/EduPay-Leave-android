@@ -470,3 +470,20 @@
 .sd-as-when.is-today { color: #fff; background: linear-gradient(135deg, #e11d48, #f97316); }
 .sd-as-when.is-tomorrow { color: #c2410c; background: #ffedd5; }
 .sd-as-when.is-later { color: #0e7490; background: #ecfeff; }
+
+/* Attendance card footer: status + link to the full Attendance Insights. */
+.sd-attend-card { flex-wrap: wrap; }
+.sd-attend-foot {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+.sd-attend-warn { padding: 4px 10px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 0.74rem; font-weight: 700; }
+.sd-attend-ok { color: #047857; font-size: 0.74rem; font-weight: 600; }
+.sd-attend-link { margin-left: auto; color: #059669; font-size: 0.8rem; font-weight: 700; text-decoration: none; }
+.sd-attend-link:hover { text-decoration: underline; }

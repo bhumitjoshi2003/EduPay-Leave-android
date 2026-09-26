@@ -1,0 +1,85 @@
+<section class="ai-card" aria-label="Class attendance insights" *ngIf="!hidden">
+  <header class="ai-head">
+    <div>
+      <p class="ai-eyebrow">Attendance insights</p>
+      <h2 class="ai-title">{{ scopeLabel || (mode === 'teacher' ? 'Your class' : 'Class') }}</h2>
+      <p class="ai-sub" *ngIf="insights?.sessionLabel">Session {{ insights?.sessionLabel }} · so far</p>
+    </div>
+  </header>
+
+  <div class="ai-skeleton ai-skeleton-tiles" *ngIf="loading && !insights" aria-busy="true">
+    <span class="ai-sk ai-sk-tile"></span><span class="ai-sk ai-sk-tile"></span>
+    <span class="ai-sk ai-sk-tile"></span><span class="ai-sk ai-sk-tile"></span>
+  </div>
+
+  <p class="ai-error" *ngIf="error && !loading">{{ error }}</p>
+
+  <ng-container *ngIf="insights as i">
+    <div class="ai-empty-state" *ngIf="i.totalStudents === 0">
+      <span class="ai-empty-icon">🏫</span>
+      <p class="ai-empty-title">No students enrolled</p>
+      <p class="ai-empty-sub">{{ i.sessionLabel ? 'No students are currently enrolled in ' + scopeLabel + '.' : 'No current academic session is configured.' }}</p>
+    </div>
+
+    <ng-container *ngIf="i.totalStudents > 0">
+      <div class="ai-tiles" [class.ai-dim]="loading">
+        <div class="ai-tile ai-tile-rate">
+          <span class="ai-tile-num">{{ i.submittedRecords ? (i.classPercentage | number: '1.0-1') + '%' : '—' }}</span>
+          <span class="ai-tile-lbl">Class attendance</span>
+        </div>
+        <div class="ai-tile">
+          <span class="ai-tile-num">{{ i.totalStudents }}</span>
+          <span class="ai-tile-lbl">Students</span>
+        </div>
+        <button type="button" class="ai-tile ai-tile-btn ai-tile-low" [class.ai-tile-alert]="i.belowThresholdCount > 0"
+          (click)="setFilter('low')" [attr.aria-label]="'Show ' + i.belowThresholdCount + ' students below ' + i.lowAttendanceThreshold + '%'">
+          <span class="ai-tile-num">{{ i.belowThresholdCount }}</span>
+          <span class="ai-tile-lbl">Below {{ i.lowAttendanceThreshold }}%</span>
+        </button>
+        <button type="button" class="ai-tile ai-tile-btn ai-tile-streak" [class.ai-tile-alert]="i.consecutiveAbsenceCount > 0"
+          (click)="setFilter('streak')" [attr.aria-label]="'Show ' + i.consecutiveAbsenceCount + ' students absent ' + i.streakThreshold + ' or more days in a row'">
+          <span class="ai-tile-num">{{ i.consecutiveAbsenceCount }}</span>
+          <span class="ai-tile-lbl">{{ i.streakThreshold }}+ absences in a row</span>
+        </button>
+      </div>
+
+      <p class="ai-note" *ngIf="!i.submittedRecords">No attendance has been submitted for this class yet this session.</p>
+
+      <button type="button" class="ai-expand" (click)="toggle()" [attr.aria-expanded]="expanded">
+        {{ expanded ? 'Hide students' : 'View students' }} <span aria-hidden="true">{{ expanded ? '▲' : '▼' }}</span>
+      </button>
+
+      <div class="ai-detail" *ngIf="expanded">
+        <div class="ai-filter" role="tablist" aria-label="Filter students">
+          <button type="button" role="tab" [class.active]="filter === 'all'" [attr.aria-selected]="filter === 'all'" (click)="setFilter('all')">All · {{ i.totalStudents }}</button>
+          <button type="button" role="tab" [class.active]="filter === 'low'" [attr.aria-selected]="filter === 'low'" (click)="setFilter('low')">Below {{ i.lowAttendanceThreshold }}% · {{ i.belowThresholdCount }}</button>
+          <button type="button" role="tab" [class.active]="filter === 'streak'" [attr.aria-selected]="filter === 'streak'" (click)="setFilter('streak')">Streak · {{ i.consecutiveAbsenceCount }}</button>
+        </div>
+
+        <p class="ai-empty" *ngIf="visibleStudents.length === 0">No students match this filter.</p>
+
+        <ul class="ai-students">
+          <li *ngFor="let s of visibleStudents; trackBy: trackByStudent" class="ai-student" [class.ai-student-low]="s.lowAttendance">
+            <div class="ai-student-main">
+              <span class="ai-student-name">{{ s.studentName }}</span>
+              <span class="ai-student-meta">
+                <span *ngIf="s.sectionName && !i.sectionId">Section {{ s.sectionName }} · </span>
+                <ng-container *ngIf="s.submittedDays > 0; else noRecords">
+                  {{ s.present }} present · {{ s.absent }} absent<span *ngIf="s.approvedLeave"> ({{ s.approvedLeave }} approved leave)</span>
+                </ng-container>
+                <ng-template #noRecords>No attendance recorded</ng-template>
+              </span>
+              <span class="ai-streak-tag" *ngIf="s.currentAbsenceStreak >= i.streakThreshold">
+                Absent {{ s.currentAbsenceStreak }} days in a row<span *ngIf="s.streakApprovedLeaveDays"> · {{ s.streakApprovedLeaveDays }} on approved leave</span>
+              </span>
+              <span class="ai-streak-soft" *ngIf="s.currentAbsenceStreak > 0 && s.currentAbsenceStreak < i.streakThreshold">
+                Absent last {{ s.currentAbsenceStreak }} {{ s.currentAbsenceStreak === 1 ? 'day' : 'days' }}
+              </span>
+            </div>
+            <span class="ai-pct" [ngClass]="pctClass(s)">{{ s.submittedDays ? (s.percentage | number: '1.0-1') + '%' : '—' }}</span>
+          </li>
+        </ul>
+      </div>
+    </ng-container>
+  </ng-container>
+</section>

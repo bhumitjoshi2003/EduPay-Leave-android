@@ -41,6 +41,8 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   daysPresent = 0;
   daysAbsent = 0;
   totalWorkingDays = 0;
+  lowAttendance = false;
+  lowAttendanceThreshold = 75;
   pendingLeavesCount = 0;
   recentLeaves: LeaveApplication[] = [];
 
@@ -166,19 +168,19 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
     this.loadTodayHomework();
     this.loadClassUpdates();
     this.loadUpcomingAssessments();
-    const now = this.today;
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
 
     forkJoin([
-      this.attendanceService.getStudentSummary(this.studentId, { type: 'month', month, year }),
+      // Current-session Attendance Insights (the full breakdown lives on the Attendance page).
+      this.attendanceService.getMyInsights(),
       this.leaveService.getLeavesByStudentId(this.studentId, 0, 10),
     ]).pipe(takeUntil(this.destroy$)).subscribe({
       next: ([summary, leavesPage]) => {
-        this.attendancePercentage = Math.round(summary.attendancePercentage);
-        this.daysPresent = summary.daysPresent;
-        this.daysAbsent = summary.daysAbsent;
-        this.totalWorkingDays = summary.totalWorkingDays;
+        this.attendancePercentage = summary.percentage;
+        this.daysPresent = summary.present;
+        this.daysAbsent = summary.absent;
+        this.totalWorkingDays = summary.submittedDays;
+        this.lowAttendance = summary.lowAttendance;
+        this.lowAttendanceThreshold = summary.lowAttendanceThreshold;
 
         const leaves = leavesPage.content
           .slice()
@@ -205,9 +207,9 @@ export class StudentDashboardComponent implements OnInit, OnDestroy {
   }
 
   get attendanceColor(): string {
-    if (this.attendancePercentage >= 85) return '#059669';
-    if (this.attendancePercentage >= 70) return '#d97706';
-    return '#dc2626';
+    // Attendance Insights rule: at or above the threshold (75%) is healthy.
+    if (this.totalWorkingDays === 0) return '#94a3b8';
+    return this.lowAttendance ? '#dc2626' : '#059669';
   }
 
   getLeaveStatusClass(status: string): string {
