@@ -254,8 +254,8 @@
 
 /* ── Status Colors ───────────────────────────────────────────────── */
 .status-green  { color: #16a34a; }
-.status-yellow { color: #d97706; }
 .status-red    { color: #dc2626; }
+.status-none   { color: #94a3b8; }
 
 .as-badge {
   display: inline-block;
@@ -267,8 +267,8 @@
 }
 
 .as-badge.status-green  { background: #dcfce7; color: #15803d; }
-.as-badge.status-yellow { background: #fef3c7; color: #92400e; }
 .as-badge.status-red    { background: #fee2e2; color: #991b1b; }
+.as-badge.status-none   { background: #f1f5f9; color: #64748b; }
 
 /* ── Breakdown Table ─────────────────────────────────────────────── */
 .as-breakdown-title {
@@ -320,8 +320,8 @@
 }
 
 .as-pct-badge.status-green  { background: #dcfce7; color: #15803d; }
-.as-pct-badge.status-yellow { background: #fef3c7; color: #92400e; }
 .as-pct-badge.status-red    { background: #fee2e2; color: #991b1b; }
+.as-pct-badge.status-none   { background: #f1f5f9; color: #94a3b8; }
 
 /* ── Breakdown Header ────────────────────────────────────────────── */
 .as-breakdown-header {

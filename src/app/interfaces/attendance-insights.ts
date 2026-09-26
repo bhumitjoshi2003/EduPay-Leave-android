@@ -1,4 +1,15 @@
 /** Read-only Attendance Insights (Phase 1). % = PRESENT / submitted days; approved leave is still absent. */
+
+/** One attendance threshold for every student-facing status: at or above is Healthy, below is Low Attendance. */
+export const LOW_ATTENDANCE_THRESHOLD = 75;
+
+export type AttendanceHealth = 'healthy' | 'low' | 'none';
+
+/** Healthy / Low Attendance / No Records — no recorded days is never "low". */
+export function attendanceHealth(percentage: number, recordedDays: number | null | undefined): AttendanceHealth {
+  if (!recordedDays) return 'none';
+  return percentage >= LOW_ATTENDANCE_THRESHOLD ? 'healthy' : 'low';
+}
 export interface AttendanceMonthTrend {
   year: number;
   month: number;

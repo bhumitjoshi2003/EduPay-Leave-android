@@ -60,7 +60,7 @@ describe('StudentAttendanceInsightsComponent', () => {
     service.getMyInsights.and.returnValue(of(insights({ submittedDays: 4, present: 1, absent: 3, approvedLeave: 0, percentage: 25, lowAttendance: true, currentAbsenceStreak: 3 })));
     const el = render();
 
-    expect(el.querySelector('.ai-status')!.textContent).toContain('Low attendance');
+    expect(el.querySelector('.ai-status')!.textContent).toContain('Low Attendance');
     expect(el.querySelector('.ai-banner-low')!.textContent).toContain('below 75%');
     // (1 + 8) / (4 + 8) = 75% -> 8 more present days
     expect(el.querySelector('.ai-banner-low')!.textContent).toContain('8 more present days');
@@ -73,7 +73,7 @@ describe('StudentAttendanceInsightsComponent', () => {
 
     expect(el.querySelector('.ai-empty-title')!.textContent).toContain('No attendance recorded yet');
     expect(el.querySelector('.ai-ring')).toBeNull();
-    expect(el.querySelector('.ai-status')!.textContent).toContain('No records yet');
+    expect(el.querySelector('.ai-status')!.textContent).toContain('No Records');
   });
 
   it('a parent view waits for a child and then loads that child', () => {

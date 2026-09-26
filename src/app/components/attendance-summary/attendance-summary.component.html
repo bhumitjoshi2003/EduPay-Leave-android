@@ -155,12 +155,12 @@
         <span class="as-stat-note" *ngIf="studentSummary.approvedLeaveDays > 0">incl. {{ studentSummary.approvedLeaveDays }} on approved leave</span>
       </div>
       <div class="as-stat-card">
-        <span class="as-stat-value" [ngClass]="getAttendanceClass(studentSummary.attendancePercentage)">
+        <span class="as-stat-value" [ngClass]="getAttendanceClass(studentSummary.attendancePercentage, studentSummary.totalWorkingDays)">
           {{ studentSummary.attendancePercentage }}%
         </span>
         <span class="as-stat-label">Attendance</span>
-        <span class="as-badge" [ngClass]="getAttendanceClass(studentSummary.attendancePercentage)">
-          {{ getAttendanceLabel(studentSummary.attendancePercentage) }}
+        <span class="as-badge" [ngClass]="getAttendanceClass(studentSummary.attendancePercentage, studentSummary.totalWorkingDays)">
+          {{ getAttendanceLabel(studentSummary.attendancePercentage, studentSummary.totalWorkingDays) }}
         </span>
       </div>
     </div>
@@ -246,7 +246,7 @@
                 <td data-label="Present" class="as-present-cell">{{ row.present }}</td>
                 <td data-label="Absent" class="as-absent-cell">{{ row.absent }}<span class="as-leave-note" *ngIf="row.approvedLeave > 0"> ({{ row.approvedLeave }} leave)</span></td>
                 <td data-label="Attendance %">
-                  <span class="as-pct-badge" [ngClass]="getAttendanceClass(row.percentage)">
+                  <span class="as-pct-badge" [ngClass]="getAttendanceClass(row.percentage, row.workingDays)">
                     {{ row.percentage }}%
                   </span>
                 </td>
@@ -338,7 +338,7 @@
             <td data-label="Present" class="as-present-cell">{{ row.daysPresent }}</td>
             <td data-label="Absent" class="as-absent-cell">{{ row.daysAbsent }}<span class="as-leave-note" *ngIf="row.approvedLeaveDays > 0"> ({{ row.approvedLeaveDays }} leave)</span></td>
             <td data-label="Attendance %">
-              <span class="as-pct-badge" [ngClass]="getAttendanceClass(row.attendancePercentage)">
+              <span class="as-pct-badge" [ngClass]="getAttendanceClass(row.attendancePercentage, row.totalWorkingDays)">
                 {{ row.attendancePercentage }}%
               </span>
             </td>

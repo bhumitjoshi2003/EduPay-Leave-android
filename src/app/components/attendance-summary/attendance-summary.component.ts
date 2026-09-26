@@ -19,6 +19,7 @@ import {
 } from '../../interfaces/attendance-summary';
 import { ParentChildContextComponent } from '../parent-child-context/parent-child-context.component';
 import { ChildAccess } from '../../interfaces/parent-portal';
+import { attendanceHealth } from '../../interfaces/attendance-insights';
 import { StudentAttendanceInsightsComponent } from '../attendance-insights/student-attendance-insights.component';
 import { ClassAttendanceInsightsComponent } from '../attendance-insights/class-attendance-insights.component';
 
@@ -508,16 +509,15 @@ export class AttendanceSummaryComponent implements OnInit, OnDestroy {
     return this.months.find(m => m.label === monthName)?.value ?? 1;
   }
 
-  getAttendanceClass(pct: number): string {
-    if (pct >= 80) return 'status-green';
-    if (pct >= 60) return 'status-yellow';
-    return 'status-red';
+  /** Same 75% rule and wording as the Session attendance overview. */
+  getAttendanceClass(pct: number, recordedDays: number): string {
+    const health = attendanceHealth(pct, recordedDays);
+    return health === 'healthy' ? 'status-green' : health === 'low' ? 'status-red' : 'status-none';
   }
 
-  getAttendanceLabel(pct: number): string {
-    if (pct >= 80) return 'Good';
-    if (pct >= 60) return 'Low';
-    return 'Critical';
+  getAttendanceLabel(pct: number, recordedDays: number): string {
+    const health = attendanceHealth(pct, recordedDays);
+    return health === 'healthy' ? 'Healthy' : health === 'low' ? 'Low Attendance' : 'No Records';
   }
 
   getPeriodLabel(): string {

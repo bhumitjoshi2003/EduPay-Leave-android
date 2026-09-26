@@ -8,7 +8,7 @@
     </div>
     <span class="ai-status" *ngIf="insights && !loading"
       [class.ai-status-ok]="status === 'healthy'" [class.ai-status-low]="status === 'low'" [class.ai-status-none]="status === 'none'">
-      {{ status === 'healthy' ? 'Healthy' : status === 'low' ? 'Low attendance' : 'No records yet' }}
+      {{ status === 'healthy' ? 'Healthy' : status === 'low' ? 'Low Attendance' : 'No Records' }}
     </span>
   </header>
 
