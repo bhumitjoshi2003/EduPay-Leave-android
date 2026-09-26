@@ -655,3 +655,8 @@
 /* Attendance Insights cards sit between the hero and the report controls. */
 app-student-attendance-insights,
 app-class-attendance-insights { display: block; margin-bottom: 16px; }
+
+/* "Detailed Attendance Report" heading between the overview card and the report controls. */
+.as-section-head { margin: 8px 2px 12px; }
+.as-section-title { margin: 0; color: #0f172a; font-size: 1.05rem; font-weight: 800; letter-spacing: -0.2px; }
+.as-section-sub { margin: 3px 0 0; color: #64748b; font-size: 0.8rem; }

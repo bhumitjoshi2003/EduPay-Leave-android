@@ -98,5 +98,4 @@ export class StudentAttendanceInsightsComponent implements OnInit, OnChanges, On
   }
 
   trackByMonth(_: number, m: { year: number; month: number }): string { return `${m.year}-${m.month}`; }
-  trackByDate(_: number, d: { date: string }): string { return d.date; }
 }

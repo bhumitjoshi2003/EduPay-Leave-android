@@ -1,7 +1,7 @@
-<section class="ai-card" aria-label="Attendance insights">
+<section class="ai-card" aria-label="Session attendance overview">
   <header class="ai-head">
     <div>
-      <p class="ai-eyebrow">Attendance insights</p>
+      <p class="ai-eyebrow">Session attendance overview</p>
       <h2 class="ai-title">
         {{ insights?.sessionLabel ? 'Session ' + insights?.sessionLabel : 'Current session' }}
       </h2>
@@ -51,9 +51,6 @@
         <strong>Attendance is below {{ i.lowAttendanceThreshold }}%.</strong>
         <span *ngIf="daysToRecover > 0"> About {{ daysToRecover }} more present {{ daysToRecover === 1 ? 'day' : 'days' }} in a row would bring it back to {{ i.lowAttendanceThreshold }}%.</span>
       </div>
-      <div class="ai-banner ai-banner-ok" *ngIf="!i.lowAttendance" role="status">
-        Attendance is at or above {{ i.lowAttendanceThreshold }}% — keep it up.
-      </div>
       <div class="ai-banner ai-banner-streak" *ngIf="i.currentAbsenceStreak >= 3" role="status">
         Absent on the last {{ i.currentAbsenceStreak }} recorded days.
       </div>
@@ -61,35 +58,19 @@
         Approved leave days are shown for information and still count as absent.
       </p>
 
-      <div class="ai-grid">
-        <!-- Monthly trend -->
-        <div class="ai-panel">
-          <h3 class="ai-panel-title">Monthly trend</h3>
-          <ul class="ai-bars">
-            <li *ngFor="let m of i.monthlyTrend; trackBy: trackByMonth" class="ai-bar-row">
-              <span class="ai-bar-label">{{ m.label }}</span>
-              <span class="ai-bar-track" [attr.aria-label]="m.label + ': ' + m.percentage + '%'">
-                <span class="ai-bar-fill" [ngClass]="barClass(m.percentage)" [style.width.%]="m.percentage"></span>
-              </span>
-              <span class="ai-bar-value">{{ m.percentage | number: '1.0-1' }}%</span>
-              <span class="ai-bar-meta">{{ m.present }}/{{ m.submittedDays }} days</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Recent -->
-        <div class="ai-panel">
-          <h3 class="ai-panel-title">Recent attendance</h3>
-          <ul class="ai-recent">
-            <li *ngFor="let d of i.recent; trackBy: trackByDate" class="ai-recent-row">
-              <span class="ai-recent-date">{{ d.date | date: 'EEE, d MMM' }}</span>
-              <span class="ai-leave-tag" *ngIf="d.approvedLeave">Approved leave</span>
-              <span class="ai-pill" [class.ai-pill-present]="d.status === 'PRESENT'" [class.ai-pill-absent]="d.status === 'ABSENT'">
-                {{ d.status === 'PRESENT' ? 'Present' : 'Absent' }}
-              </span>
-            </li>
-          </ul>
-        </div>
+      <!-- Monthly trend (full width; one row per month with records) -->
+      <div class="ai-panel ai-panel-full">
+        <h3 class="ai-panel-title">Monthly trend</h3>
+        <ul class="ai-bars">
+          <li *ngFor="let m of i.monthlyTrend; trackBy: trackByMonth" class="ai-bar-row">
+            <span class="ai-bar-label">{{ m.label }}</span>
+            <span class="ai-bar-track" [attr.aria-label]="m.label + ': ' + m.percentage + '%'">
+              <span class="ai-bar-fill" [ngClass]="barClass(m.percentage)" [style.width.%]="m.percentage"></span>
+            </span>
+            <span class="ai-bar-value">{{ m.percentage | number: '1.0-1' }}%</span>
+            <span class="ai-bar-meta">{{ m.present }}/{{ m.submittedDays }} days</span>
+          </li>
+        </ul>
       </div>
     </ng-container>
   </ng-container>

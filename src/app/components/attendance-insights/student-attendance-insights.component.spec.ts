@@ -47,10 +47,13 @@ describe('StudentAttendanceInsightsComponent', () => {
     const stats = Array.from(el.querySelectorAll('.ai-stat')).map(s => Array.from(s.children).map(c => c.textContent!.trim()).join(' '));
     expect(stats).toEqual(['18 Present', '2 Absent', '1 Approved leave', '20 Recorded days']);
     expect(el.querySelector('.ai-status')!.textContent).toContain('Healthy');
-    expect(el.querySelector('.ai-banner-low')).toBeNull();
+    expect(el.querySelector('.ai-eyebrow')!.textContent).toContain('Session attendance overview');
+    // Healthy: the badge is enough — no warning and no separate "keep it up" message.
+    expect(el.querySelector('.ai-banner')).toBeNull();
+    // Full-width monthly trend only; day-level history lives in the calendar below.
+    expect(el.querySelector('.ai-panel-full .ai-panel-title')!.textContent).toContain('Monthly trend');
     expect(el.querySelectorAll('.ai-bar-row').length).toBe(2);
-    expect(el.querySelectorAll('.ai-recent-row').length).toBe(2);
-    expect(el.querySelector('.ai-leave-tag')!.textContent).toContain('Approved leave');
+    expect(el.textContent).not.toContain('Recent attendance');
   });
 
   it('warns below 75% and shows the absence streak', () => {

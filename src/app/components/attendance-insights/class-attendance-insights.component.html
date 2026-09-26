@@ -1,7 +1,7 @@
-<section class="ai-card" aria-label="Class attendance insights" *ngIf="!hidden">
+<section class="ai-card" aria-label="Class session attendance overview" *ngIf="!hidden">
   <header class="ai-head">
     <div>
-      <p class="ai-eyebrow">Attendance insights</p>
+      <p class="ai-eyebrow">Session attendance overview</p>
       <h2 class="ai-title">{{ scopeLabel || (mode === 'teacher' ? 'Your class' : 'Class') }}</h2>
       <p class="ai-sub" *ngIf="insights?.sessionLabel">Session {{ insights?.sessionLabel }} · so far</p>
     </div>
